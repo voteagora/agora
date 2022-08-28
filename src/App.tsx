@@ -1,8 +1,13 @@
 import React, { Suspense } from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import { RelayEnvironmentProvider } from "react-relay/hooks";
+import graphql from 'babel-plugin-relay/macro';
+import {
+  RelayEnvironmentProvider,
+  useLazyLoadQuery,
+} from "react-relay/hooks";
 import { relayEnvironment } from "./relayEnvironment";
+import {AppQuery} from "./__generated__/AppQuery.graphql";
 
 function App() {
   return (
@@ -15,6 +20,17 @@ function App() {
 }
 
 function AppContents() {
+  const query = useLazyLoadQuery<AppQuery>(
+    graphql`
+      query AppQuery {
+        delegates {
+          id
+        }
+      }
+    `,
+    {}
+  );
+
   return (
     <div className="App">
       <header className="App-header">
@@ -22,6 +38,9 @@ function AppContents() {
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
+          <pre>
+              {JSON.stringify(query, undefined, '\t')}
+          </pre>
         <a
           className="App-link"
           href="https://reactjs.org"
