@@ -30,7 +30,7 @@ const recordSource = new RecordSource();
 
 const store = new Store(recordSource);
 
-export default new Environment({
+export const relayEnvironment = new Environment({
   network,
   store,
 });

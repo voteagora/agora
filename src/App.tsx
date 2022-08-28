@@ -1,8 +1,20 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Suspense } from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import { RelayEnvironmentProvider } from "react-relay/hooks";
+import { relayEnvironment } from "./relayEnvironment";
 
 function App() {
+  return (
+    <RelayEnvironmentProvider environment={relayEnvironment}>
+      <Suspense fallback={null}>
+        <AppContents />
+      </Suspense>
+    </RelayEnvironmentProvider>
+  );
+}
+
+function AppContents() {
   return (
     <div className="App">
       <header className="App-header">
