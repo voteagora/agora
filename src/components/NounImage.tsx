@@ -1,4 +1,4 @@
-import {useFragment} from "react-relay";
+import { useFragment } from "react-relay";
 import { NounImageFragment$key } from "./__generated__/NounImageFragment.graphql";
 import graphql from "babel-plugin-relay/macro";
 import { useMemo } from "react";

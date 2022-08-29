@@ -10,7 +10,7 @@ export function HomePage() {
   const query = useLazyLoadQuery<HomePageQuery>(
     graphql`
       query HomePageQuery($pageSize: Int!, $skip: Int) {
-        delegates(first: $pageSize, skip: $skip) {
+        delegates(first: $pageSize, skip: $skip, orderBy: nounsRepresented) {
           id
         }
       }
