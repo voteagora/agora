@@ -8,7 +8,10 @@ import * as theme from "../theme";
 import { countUnique } from "../utils/countUnique";
 import { intersection } from "../utils/set";
 import { useFragment } from "react-relay";
-import { DelegatePageNounGridFragment$key } from "./__generated__/DelegatePageNounGridFragment.graphql";
+import {
+  DelegatePageNounGridFragment$data,
+  DelegatePageNounGridFragment$key,
+} from "./__generated__/DelegatePageNounGridFragment.graphql";
 import { NounResolvedName } from "../components/NounResolvedName";
 import { useEthersProvider } from "../components/EthersProviderProvider";
 import { useQuery } from "@tanstack/react-query";
@@ -93,7 +96,7 @@ export function DelegatePage() {
           border-bottom-color: ${theme.colors.gray["300"]};
         `}
       >
-        <DelegateNounGrid fragmentKey={delegate} />
+        <DelegateNounGrid rows={3} columns={5} fragmentKey={delegate} />
       </div>
       <div
         className={css`
@@ -147,10 +150,16 @@ export function DelegatePage() {
 }
 
 type DelegateNounGridProps = {
+  rows: number;
+  columns: number;
   fragmentKey: DelegatePageNounGridFragment$key;
 };
 
-function DelegateNounGrid({ fragmentKey }: DelegateNounGridProps) {
+function DelegateNounGrid({
+  fragmentKey,
+  rows,
+  columns,
+}: DelegateNounGridProps) {
   const { nounsRepresented } = useFragment<DelegatePageNounGridFragment$key>(
     graphql`
       fragment DelegatePageNounGridFragment on Delegate {
@@ -163,27 +172,52 @@ function DelegateNounGrid({ fragmentKey }: DelegateNounGridProps) {
     fragmentKey
   );
 
+  const possibleSlots = rows * columns;
+  const overflowAmount = nounsRepresented.length - possibleSlots;
+
+  function nounImageForNoun(
+    noun: DelegatePageNounGridFragment$data["nounsRepresented"][0]
+  ) {
+    return (
+      <NounImage
+        className={css`
+          border-radius: 50%;
+          width: ${theme.spacing["8"]};
+          height: ${theme.spacing["8"]};
+        `}
+        key={noun.id}
+        fragmentRef={noun}
+      />
+    );
+  }
+
   return (
     <div
       className={css`
         display: grid;
-        grid-template-columns: repeat(5, ${theme.spacing["8"]});
-        grid-template-rows: repeat(3, ${theme.spacing["8"]});
+        grid-template-columns: repeat(${columns}, ${theme.spacing["8"]});
+        grid-template-rows: repeat(${rows}, ${theme.spacing["8"]});
         gap: ${theme.spacing["1"]};
         padding: ${theme.spacing["2"]};
       `}
     >
-      {nounsRepresented.map((noun) => (
-        <NounImage
-          className={css`
-            border-radius: 50%;
-            width: ${theme.spacing["8"]};
-            height: ${theme.spacing["8"]};
-          `}
-          key={noun.id}
-          fragmentRef={noun}
-        />
-      ))}
+      {overflowAmount > 0 ? (
+        <>
+          {nounsRepresented.slice(0, possibleSlots - 1).map(nounImageForNoun)}
+          <div
+            key="overflowAmount"
+            className={css`
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            `}
+          >
+            + {overflowAmount + 1}
+          </div>
+        </>
+      ) : (
+        <>{nounsRepresented.map(nounImageForNoun)}</>
+      )}
     </div>
   );
 }
