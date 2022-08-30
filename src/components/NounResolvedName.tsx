@@ -3,15 +3,16 @@ import {
   lookupNounNameServiceOrEthereumNameServiceName,
   shortAddress,
 } from "../utils/address";
-import { providers } from "ethers";
+import { useEthersProvider } from "./EthersProviderProvider";
 
 type Props = {
   address: string;
 };
 
 export function NounResolvedName({ address }: Props) {
+  const provider = useEthersProvider();
+
   const { data } = useQuery(["noun-name", address.toLowerCase()], async () => {
-    const provider = new providers.Web3Provider((window as any).ethereum);
     return await lookupNounNameServiceOrEthereumNameServiceName(
       provider,
       address

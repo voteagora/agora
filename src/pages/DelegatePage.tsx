@@ -1,21 +1,27 @@
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { DelegatePageQuery } from "./__generated__/DelegatePageQuery.graphql";
 import { NounImage } from "../components/NounImage";
 import { css } from "@emotion/css";
 import * as theme from "../theme";
-import { shortAddress } from "../utils/address";
 import { countUnique } from "../utils/countUnique";
 import { intersection } from "../utils/set";
 import { useFragment } from "react-relay";
 import { DelegatePageNounGridFragment$key } from "./__generated__/DelegatePageNounGridFragment.graphql";
 import { NounResolvedName } from "../components/NounResolvedName";
+import { useEthersProvider } from "../components/EthersProviderProvider";
+import { useQuery } from "@tanstack/react-query";
+import {
+  NounsDAOLogicV1__factory,
+  NounsToken__factory,
+} from "../contracts/generated";
+import { useMemo } from "react";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
 
-  const { delegate, proposals, nouns } = useLazyLoadQuery<DelegatePageQuery>(
+  const { delegate, proposals } = useLazyLoadQuery<DelegatePageQuery>(
     graphql`
       query DelegatePageQuery($id: ID!) {
         delegate(id: $id) {
@@ -38,11 +44,7 @@ export function DelegatePage() {
           }
         }
 
-        proposals(orderBy: createdBlock, orderDirection: desc) {
-          id
-        }
-
-        nouns {
+        proposals(orderBy: createdBlock, orderDirection: desc, first: 10) {
           id
         }
       }
@@ -52,17 +54,13 @@ export function DelegatePage() {
     }
   );
 
-  if (!delegate) {
-    // todo: redirect
-    return null;
-  }
+  // todo: there is a waterfall here
+  const totalSupply = useNounsCount();
+  const proposalsCount = useProposalsCount();
+  const quorumVotes = useQuorumVotes();
 
-  if (!proposals) {
-    return null;
-  }
-
-  if (!nouns) {
-    return null;
+  if (!delegate || !proposals) {
+    return <Navigate to="/" />;
   }
 
   const lastTenProposals = new Set(
@@ -109,11 +107,15 @@ export function DelegatePage() {
 
         <div>
           {countUnique(delegate.votes.map((proposal) => proposal.id))} /{" "}
-          {proposals.length}
+          {proposalsCount.toString()}
         </div>
 
         <div>
-          {delegate.nounsRepresented.length} / {nouns.length}
+          {delegate.nounsRepresented.length} / {totalSupply.toString()}
+        </div>
+
+        <div>
+          {delegate.nounsRepresented.length} / {quorumVotes.toString()}
         </div>
 
         <div>{recentParticipation.size} / 10</div>
@@ -122,7 +124,9 @@ export function DelegatePage() {
 
         <div>
           {owners.map((owner) => (
-            <div key={owner}>{shortAddress(owner)}</div>
+            <div key={owner}>
+              <NounResolvedName address={owner} />
+            </div>
           ))}
         </div>
 
@@ -174,4 +178,63 @@ function DelegateNounGrid({ fragmentKey }: DelegateNounGridProps) {
       ))}
     </div>
   );
+}
+
+function useNounsDaoLogicV1() {
+  const provider = useEthersProvider();
+
+  return useMemo(
+    () =>
+      NounsDAOLogicV1__factory.connect(
+        "0x6f3E6272A167e8AcCb32072d08E0957F9c79223d",
+        provider
+      ),
+    [provider]
+  );
+}
+
+function useNounsToken() {
+  const provider = useEthersProvider();
+
+  return useMemo(
+    () =>
+      NounsToken__factory.connect(
+        "0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03",
+        provider
+      ),
+    [provider]
+  );
+}
+
+function useProposalsCount() {
+  const dao = useNounsDaoLogicV1();
+  const { data: proposalsCount } = useQuery({
+    queryFn: async () => await dao.proposalCount(),
+    queryKey: ["proposals-count"],
+    suspense: true,
+    useErrorBoundary: true,
+  });
+  return proposalsCount!;
+}
+
+function useQuorumVotes() {
+  const dao = useNounsDaoLogicV1();
+  const { data: quorumCount } = useQuery({
+    queryFn: async () => await dao.quorumVotes(),
+    queryKey: ["quorum-votes"],
+    suspense: true,
+    useErrorBoundary: true,
+  });
+  return quorumCount!;
+}
+
+function useNounsCount() {
+  const nounsToken = useNounsToken();
+  const { data: totalSupply } = useQuery({
+    queryFn: async () => await nounsToken.totalSupply(),
+    queryKey: ["nouns-count"],
+    suspense: true,
+    useErrorBoundary: true,
+  });
+  return totalSupply!;
 }
