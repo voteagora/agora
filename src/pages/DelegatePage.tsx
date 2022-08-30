@@ -2,16 +2,10 @@ import { Navigate, useParams } from "react-router-dom";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { DelegatePageQuery } from "./__generated__/DelegatePageQuery.graphql";
-import { NounImage } from "../components/NounImage";
 import { css } from "@emotion/css";
 import * as theme from "../theme";
 import { countUnique } from "../utils/countUnique";
 import { intersection } from "../utils/set";
-import { useFragment } from "react-relay";
-import {
-  DelegatePageNounGridFragment$data,
-  DelegatePageNounGridFragment$key,
-} from "./__generated__/DelegatePageNounGridFragment.graphql";
 import { NounResolvedName } from "../components/NounResolvedName";
 import { useEthersProvider } from "../components/EthersProviderProvider";
 import { useQuery } from "@tanstack/react-query";
@@ -21,6 +15,7 @@ import {
 } from "../contracts/generated";
 import { fromMarkdown } from "mdast-util-from-markdown";
 import { useMemo } from "react";
+import { DelegateNounGrid } from "../components/DelegateNounGrid";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
@@ -31,7 +26,7 @@ export function DelegatePage() {
         delegate(id: $id) {
           id
 
-          ...DelegatePageNounGridFragment
+          ...DelegateNounGridFragment
           nounsRepresented {
             owner {
               id
@@ -96,7 +91,7 @@ export function DelegatePage() {
           border-bottom-color: ${theme.colors.gray["300"]};
         `}
       >
-        <DelegateNounGrid rows={3} columns={5} fragmentKey={delegate} />
+        <DelegateNounGrid fragmentKey={delegate} />
       </div>
       <div
         className={css`
@@ -145,79 +140,6 @@ export function DelegatePage() {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-type DelegateNounGridProps = {
-  rows: number;
-  columns: number;
-  fragmentKey: DelegatePageNounGridFragment$key;
-};
-
-function DelegateNounGrid({
-  fragmentKey,
-  rows,
-  columns,
-}: DelegateNounGridProps) {
-  const { nounsRepresented } = useFragment<DelegatePageNounGridFragment$key>(
-    graphql`
-      fragment DelegatePageNounGridFragment on Delegate {
-        nounsRepresented {
-          id
-          ...NounImageFragment
-        }
-      }
-    `,
-    fragmentKey
-  );
-
-  const possibleSlots = rows * columns;
-  const overflowAmount = nounsRepresented.length - possibleSlots;
-
-  function nounImageForNoun(
-    noun: DelegatePageNounGridFragment$data["nounsRepresented"][0]
-  ) {
-    return (
-      <NounImage
-        className={css`
-          border-radius: 50%;
-          width: ${theme.spacing["8"]};
-          height: ${theme.spacing["8"]};
-        `}
-        key={noun.id}
-        fragmentRef={noun}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={css`
-        display: grid;
-        grid-template-columns: repeat(${columns}, ${theme.spacing["8"]});
-        grid-template-rows: repeat(${rows}, ${theme.spacing["8"]});
-        gap: ${theme.spacing["1"]};
-        padding: ${theme.spacing["2"]};
-      `}
-    >
-      {overflowAmount > 0 ? (
-        <>
-          {nounsRepresented.slice(0, possibleSlots - 1).map(nounImageForNoun)}
-          <div
-            key="overflowAmount"
-            className={css`
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            `}
-          >
-            + {overflowAmount + 1}
-          </div>
-        </>
-      ) : (
-        <>{nounsRepresented.map(nounImageForNoun)}</>
-      )}
     </div>
   );
 }
