@@ -2,8 +2,42 @@ import { css } from "@emotion/css";
 import { ReactNode } from "react";
 import * as theme from "../../theme";
 import { icons } from "../../icons/icons";
+import { useFragment } from "react-relay";
+import graphql from "babel-plugin-relay/macro";
+import { useNounsCount } from "../../hooks/useNounsCount";
+import { useQuorumVotes } from "../../hooks/useQuorumVotes";
+import { OverviewMetricsContainer$key } from "./__generated__/OverviewMetricsContainer.graphql";
+import { useQuorumBps } from "../../hooks/useQuorumBps";
+import { useProposalThreshold } from "../../hooks/useProposalThreshold";
 
-export function OverviewMetricsContainer() {
+type Props = {
+  fragmentRef: OverviewMetricsContainer$key;
+};
+
+export function OverviewMetricsContainer({ fragmentRef }: Props) {
+  const { delegates } = useFragment(
+    graphql`
+      fragment OverviewMetricsContainer on Query {
+        delegates(
+          first: 1000
+          where: { tokenHoldersRepresentedAmount_gt: 0 }
+          orderBy: tokenHoldersRepresentedAmount
+          orderDirection: desc
+        ) {
+          id
+        }
+      }
+    `,
+    fragmentRef
+  );
+
+  const nounsCount = useNounsCount();
+  const quorumCount = useQuorumVotes();
+  const quorumBps = useQuorumBps();
+  const proposalThreshold = useProposalThreshold();
+
+  const votersCount = delegates.length;
+
   // todo: real values
   return (
     <div
@@ -16,24 +50,32 @@ export function OverviewMetricsContainer() {
         justify-content: center;
       `}
     >
+      {/*todo: review this metric*/}
       <MetricContainer
         icon="community"
         title="Voters / Nouns"
-        body="203 / 338 (45% delegation)"
+        body={`${votersCount} / ${nounsCount} (${(
+          (1 - votersCount / nounsCount.toNumber()) *
+          100
+        ).toFixed(0)}% delegation)`}
       />
 
       <MetricContainer
         icon="ballot"
         title="Quorum"
-        body="39 nouns (10% of supply)"
+        body={`${quorumCount.toNumber()} nouns (${quorumBps
+          .div(100)
+          .toNumber()
+          .toFixed(0)}% of supply)`}
       />
 
       <MetricContainer
         icon="measure"
         title="Proposal threshold"
-        body="1 noun -> 2 on Sep 21"
+        body={`${proposalThreshold} noun`}
       />
 
+      {/*todo: review this metric*/}
       <MetricContainer icon="pedestrian" title="Avg voter turnout" body="54%" />
     </div>
   );

@@ -12,6 +12,7 @@ export function HomePage() {
     graphql`
       query HomePageQuery {
         ...DelegatesContainerFragment
+        ...OverviewMetricsContainer
       }
     `,
     {}
@@ -29,7 +30,7 @@ export function HomePage() {
     >
       <PageHeader />
       <Hero />
-      <OverviewMetricsContainer />
+      <OverviewMetricsContainer fragmentRef={result} />
       <PageDivider />
       <DelegatesContainer fragmentKey={result} />
     </div>

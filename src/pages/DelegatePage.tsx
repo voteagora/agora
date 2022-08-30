@@ -7,15 +7,11 @@ import * as theme from "../theme";
 import { countUnique } from "../utils/countUnique";
 import { intersection } from "../utils/set";
 import { NounResolvedName } from "../components/NounResolvedName";
-import { useEthersProvider } from "../components/EthersProviderProvider";
-import { useQuery } from "@tanstack/react-query";
-import {
-  NounsDAOLogicV1__factory,
-  NounsToken__factory,
-} from "../contracts/generated";
 import { fromMarkdown } from "mdast-util-from-markdown";
-import { useMemo } from "react";
 import { NounGrid } from "../components/NounGrid";
+import { useNounsCount } from "../hooks/useNounsCount";
+import { useProposalsCount } from "../hooks/useProposalsCount";
+import { useQuorumVotes } from "../hooks/useQuorumVotes";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
@@ -142,65 +138,6 @@ export function DelegatePage() {
       </div>
     </div>
   );
-}
-
-function useNounsDaoLogicV1() {
-  const provider = useEthersProvider();
-
-  return useMemo(
-    () =>
-      NounsDAOLogicV1__factory.connect(
-        "0x6f3E6272A167e8AcCb32072d08E0957F9c79223d",
-        provider
-      ),
-    [provider]
-  );
-}
-
-function useNounsToken() {
-  const provider = useEthersProvider();
-
-  return useMemo(
-    () =>
-      NounsToken__factory.connect(
-        "0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03",
-        provider
-      ),
-    [provider]
-  );
-}
-
-function useProposalsCount() {
-  const dao = useNounsDaoLogicV1();
-  const { data: proposalsCount } = useQuery({
-    queryFn: async () => await dao.proposalCount(),
-    queryKey: ["proposals-count"],
-    suspense: true,
-    useErrorBoundary: true,
-  });
-  return proposalsCount!;
-}
-
-function useQuorumVotes() {
-  const dao = useNounsDaoLogicV1();
-  const { data: quorumCount } = useQuery({
-    queryFn: async () => await dao.quorumVotes(),
-    queryKey: ["quorum-votes"],
-    suspense: true,
-    useErrorBoundary: true,
-  });
-  return quorumCount!;
-}
-
-function useNounsCount() {
-  const nounsToken = useNounsToken();
-  const { data: totalSupply } = useQuery({
-    queryFn: async () => await nounsToken.totalSupply(),
-    queryKey: ["nouns-count"],
-    suspense: true,
-    useErrorBoundary: true,
-  });
-  return totalSupply!;
 }
 
 function getTitleFromProposalDescription(description: string) {

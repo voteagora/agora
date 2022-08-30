@@ -10,10 +10,10 @@ type Props = {
 };
 
 export function DelegatesContainer({ fragmentKey }: Props) {
-  const { delegates } = useFragment(
+  const { voters } = useFragment(
     graphql`
       fragment DelegatesContainerFragment on Query {
-        delegates(
+        voters: delegates(
           first: 1000
           where: { tokenHoldersRepresentedAmount_gt: 0, delegatedVotes_gt: 0 }
           orderBy: delegatedVotes
@@ -31,7 +31,7 @@ export function DelegatesContainer({ fragmentKey }: Props) {
   );
 
   // todo: move
-  if (!delegates) {
+  if (!voters) {
     return null;
   }
 
@@ -79,8 +79,8 @@ export function DelegatesContainer({ fragmentKey }: Props) {
           gap: ${theme.spacing["8"]};
         `}
       >
-        {delegates.map((delegate) => (
-          <VoterCard fragmentRef={delegate} />
+        {voters.map((voter) => (
+          <VoterCard fragmentRef={voter} />
         ))}
       </div>
     </div>
