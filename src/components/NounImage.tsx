@@ -6,10 +6,11 @@ import { buildSVG } from "@nouns/sdk/dist/image/svg-builder";
 import { getNounData, ImageData } from "@nouns/assets";
 
 type Props = {
+  className: string;
   fragmentRef: NounImageFragment$key;
 };
 
-export function NounImage({ fragmentRef }: Props) {
+export function NounImage({ fragmentRef, className }: Props) {
   const { seed } = useFragment<NounImageFragment$key>(
     graphql`
       fragment NounImageFragment on Noun {
@@ -47,5 +48,5 @@ export function NounImage({ fragmentRef }: Props) {
     return `data:image/svg+xml;base64,${btoa(imageRaw)}`;
   }, [seed]);
 
-  return <img src={nounSvg} />;
+  return <img className={className} src={nounSvg} />;
 }
