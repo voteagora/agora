@@ -6,6 +6,7 @@
     "@emotion/css": "^11.10.0",
     "@nouns/assets": "^0.4.0",
     "@nouns/sdk": "^0.2.0",
+    "@tanstack/react-query": "^4.2.3",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
     "@testing-library/user-event": "^13.2.1",
@@ -13,6 +14,7 @@
     "@types/node": "^16.7.13",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
+    "ethers": "^5.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-relay": "^14.1.0",
@@ -33,6 +35,7 @@
     "build": "yarn run relay && react-scripts build",
     "relay": "yarn run relay-compiler",
     "fetch-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph > schema.graphql",
+    "typechain-generate": "typechain --target ethers-v5 --out-dir src/contracts/generated src/abis/*.json",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -55,11 +58,13 @@
     ]
   },
   "devDependencies": {
+    "@typechain/ethers-v5": "^10.1.0",
     "@types/react-relay": "^14.1.1",
     "@types/relay-runtime": "^14.1.2",
     "babel-plugin-relay": "^14.1.0",
     "get-graphql-schema": "^2.1.2",
     "prettier": "^2.7.1",
-    "relay-compiler": "^14.1.0"
+    "relay-compiler": "^14.1.0",
+    "typechain": "^8.1.0"
   }
 }

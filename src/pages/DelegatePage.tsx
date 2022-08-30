@@ -10,6 +10,7 @@ import { countUnique } from "../utils/countUnique";
 import { intersection } from "../utils/set";
 import { useFragment } from "react-relay";
 import { DelegatePageNounGridFragment$key } from "./__generated__/DelegatePageNounGridFragment.graphql";
+import { NounResolvedName } from "../components/NounResolvedName";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
@@ -101,7 +102,9 @@ export function DelegatePage() {
           padding: ${theme.spacing["2"]};
         `}
       >
-        <div>{shortAddress(delegate.id)}</div>
+        <div>
+          <NounResolvedName address={delegate.id} />
+        </div>
         <div>{delegate.votes.length} votes</div>
 
         <div>
