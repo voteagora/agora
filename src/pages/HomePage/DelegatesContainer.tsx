@@ -48,9 +48,9 @@ export function DelegatesContainer({ fragmentKey }: Props) {
           transparent 0
         );
         background-size: 20px 20px;
-        height: 300px;
         width: 100%;
         padding-top: ${theme.spacing["16"]};
+        padding-bottom: ${theme.spacing["16"]};
       `}
     >
       <div
