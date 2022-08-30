@@ -26,7 +26,7 @@ export function DelegatePage() {
         delegate(id: $id) {
           id
 
-          ...DelegateNounGridFragment
+          ...NounGridFragment
           nounsRepresented {
             owner {
               id

@@ -1,27 +1,23 @@
 import { useFragment } from "react-relay";
-import {
-  DelegateNounGridFragment$data,
-  DelegateNounGridFragment$key,
-} from "./__generated__/DelegateNounGridFragment.graphql";
 import graphql from "babel-plugin-relay/macro";
 import { NounImage } from "./NounImage";
 import { css } from "@emotion/css";
 import * as theme from "../theme";
+import {
+  NounGridFragment$data,
+  NounGridFragment$key,
+} from "./__generated__/NounGridFragment.graphql";
 
 type Props = {
   rows?: number;
   columns?: number;
-  fragmentKey: DelegateNounGridFragment$key;
+  fragmentKey: NounGridFragment$key;
 };
 
-export function NounGrid({
-  fragmentKey,
-  rows = 3,
-  columns = 5,
-}: Props) {
-  const { nounsRepresented } = useFragment<DelegateNounGridFragment$key>(
+export function NounGrid({ fragmentKey, rows = 3, columns = 5 }: Props) {
+  const { nounsRepresented } = useFragment<NounGridFragment$key>(
     graphql`
-      fragment DelegateNounGridFragment on Delegate {
+      fragment NounGridFragment on Delegate {
         nounsRepresented {
           id
           ...NounImageFragment
@@ -35,7 +31,7 @@ export function NounGrid({
   const overflowAmount = nounsRepresented.length - possibleSlots;
 
   function nounImageForNoun(
-    noun: DelegateNounGridFragment$data["nounsRepresented"][0]
+    noun: NounGridFragment$data["nounsRepresented"][0]
   ) {
     return (
       <NounImage
