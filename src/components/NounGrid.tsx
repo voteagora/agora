@@ -14,7 +14,7 @@ type Props = {
   fragmentKey: DelegateNounGridFragment$key;
 };
 
-export function DelegateNounGrid({
+export function NounGrid({
   fragmentKey,
   rows = 3,
   columns = 5,

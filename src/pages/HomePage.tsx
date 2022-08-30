@@ -8,7 +8,7 @@ import { icons } from "../icons/icons";
 import { ReactNode } from "react";
 import { useFragment } from "react-relay";
 import { HomePageVoterCardFragment$key } from "./__generated__/HomePageVoterCardFragment.graphql";
-import { DelegateNounGrid } from "../components/DelegateNounGrid";
+import { NounGrid } from "../components/NounGrid";
 import { NounResolvedName } from "../components/NounResolvedName";
 import { Link } from "react-router-dom";
 
@@ -355,7 +355,7 @@ function VoterCard({ fragmentRef }: VoterCardProps) {
           }
         `}
       >
-        <DelegateNounGrid fragmentKey={delegate} />
+        <NounGrid fragmentKey={delegate} />
         <div
           className={css`
             display: flex;

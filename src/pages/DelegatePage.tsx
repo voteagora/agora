@@ -15,7 +15,7 @@ import {
 } from "../contracts/generated";
 import { fromMarkdown } from "mdast-util-from-markdown";
 import { useMemo } from "react";
-import { DelegateNounGrid } from "../components/DelegateNounGrid";
+import { NounGrid } from "../components/NounGrid";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
@@ -91,7 +91,7 @@ export function DelegatePage() {
           border-bottom-color: ${theme.colors.gray["300"]};
         `}
       >
-        <DelegateNounGrid fragmentKey={delegate} />
+        <NounGrid fragmentKey={delegate} />
       </div>
       <div
         className={css`
