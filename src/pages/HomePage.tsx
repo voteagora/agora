@@ -2,7 +2,8 @@ import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { HomePageQuery } from "./__generated__/HomePageQuery.graphql";
 
-const pageSize = 100;
+// TODO: this is the max page size
+const pageSize = 1000;
 
 export function HomePage() {
   const pageNumber = 0;

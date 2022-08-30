@@ -16,6 +16,7 @@ import {
   NounsDAOLogicV1__factory,
   NounsToken__factory,
 } from "../contracts/generated";
+import { fromMarkdown } from "mdast-util-from-markdown";
 import { useMemo } from "react";
 
 export function DelegatePage() {
@@ -40,6 +41,7 @@ export function DelegatePage() {
 
             proposal {
               id
+              description
             }
           }
         }
@@ -131,7 +133,13 @@ export function DelegatePage() {
         </div>
 
         {delegate.votes.map((vote) => (
-          <div>{vote.reason}</div>
+          <div>
+            <div>
+              #{vote.proposal.id}{" "}
+              {getTitleFromProposalDescription(vote.proposal.description)}
+            </div>
+            <pre>{vote.reason}</pre>
+          </div>
         ))}
       </div>
     </div>
@@ -237,4 +245,23 @@ function useNounsCount() {
     useErrorBoundary: true,
   });
   return totalSupply!;
+}
+
+function getTitleFromProposalDescription(description: string) {
+  const parsed = fromMarkdown(description);
+  const firstChild = parsed.children[0];
+  if (firstChild.type !== "heading") {
+    return null;
+  }
+
+  if (firstChild.children.length !== 1) {
+    return null;
+  }
+
+  const firstTextNode = firstChild.children[0];
+  if (firstTextNode.type !== "text") {
+    return null;
+  }
+
+  return firstTextNode.value;
 }
