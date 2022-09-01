@@ -8,6 +8,7 @@ import { PageHeader } from "../../components/PageHeader";
 import { VoterPanel } from "./VoterPanel";
 import { PastVotes } from "./PastVotes";
 import { usePrimaryAccount } from "../../components/EthersProviderProvider";
+import { PageContainer } from "../../components/PageContainer";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
@@ -39,15 +40,7 @@ export function DelegatePage() {
   }
 
   return (
-    <div
-      className={css`
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-family: ${theme.fontFamily.sans};
-        width: 100%;
-      `}
-    >
+    <PageContainer>
       <PageHeader accountFragment={query.account} />
 
       <div
@@ -72,6 +65,6 @@ export function DelegatePage() {
 
         <PastVotes fragment={query.delegate} />
       </div>
-    </div>
+    </PageContainer>
   );
 }

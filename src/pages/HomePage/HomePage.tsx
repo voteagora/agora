@@ -7,6 +7,7 @@ import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
 import { DelegatesContainer } from "./DelegatesContainer";
 import { PageHeader } from "../../components/PageHeader";
 import { usePrimaryAccount } from "../../components/EthersProviderProvider";
+import { PageContainer } from "../../components/PageContainer";
 
 export function HomePage() {
   const address = usePrimaryAccount();
@@ -32,21 +33,13 @@ export function HomePage() {
   }
 
   return (
-    <div
-      className={css`
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-family: ${theme.fontFamily.sans};
-        width: 100%;
-      `}
-    >
+    <PageContainer>
       <PageHeader accountFragment={result.account} />
       <Hero />
       <OverviewMetricsContainer fragmentRef={result} />
       <PageDivider />
       <DelegatesContainer fragmentKey={result} />
-    </div>
+    </PageContainer>
   );
 }
 
