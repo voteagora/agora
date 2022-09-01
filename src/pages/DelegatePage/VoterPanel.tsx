@@ -95,6 +95,8 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
   return (
     <div
       className={css`
+        position: sticky;
+        top: ${theme.spacing["16"]};
         border-radius: ${theme.spacing["4"]};
         border-width: ${theme.spacing.px};
         border-color: ${theme.colors.gray["300"]};
