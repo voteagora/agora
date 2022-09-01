@@ -6,17 +6,30 @@ import * as theme from "../../theme";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
 import { DelegatesContainer } from "./DelegatesContainer";
 import { PageHeader } from "../../components/PageHeader";
+import { usePrimaryAccount } from "../../components/EthersProviderProvider";
 
 export function HomePage() {
+  const address = usePrimaryAccount();
+
   const result = useLazyLoadQuery<HomePageQuery>(
     graphql`
-      query HomePageQuery {
+      query HomePageQuery($address: ID!) {
         ...DelegatesContainerFragment
         ...OverviewMetricsContainer
+
+        account(id: $address) {
+          ...PageHeaderFragment
+        }
       }
     `,
-    {}
+    {
+      address,
+    }
   );
+
+  if (!result.account) {
+    return null;
+  }
 
   return (
     <div
@@ -28,7 +41,7 @@ export function HomePage() {
         width: 100%;
       `}
     >
-      <PageHeader />
+      <PageHeader accountFragment={result.account} />
       <Hero />
       <OverviewMetricsContainer fragmentRef={result} />
       <PageDivider />
