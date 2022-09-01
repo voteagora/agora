@@ -32,11 +32,12 @@
     "language": "typescript"
   },
   "scripts": {
-    "start": "yarn run relay && react-scripts start",
-    "build": "yarn run relay && react-scripts build",
+    "start": "yarn run codegen && react-scripts start",
+    "build": "yarn run codegen && react-scripts build",
     "relay": "yarn run relay-compiler",
-    "fetch-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph > schema.graphql",
     "typechain-generate": "typechain --target ethers-v5 --out-dir src/contracts/generated src/abis/*.json",
+    "codegen": "yarn run relay && yarn run typechain-generate",
+    "fetch-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph > schema.graphql",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
