@@ -1,4 +1,4 @@
-import { fromMarkdown } from "mdast-util-from-markdown/dev";
+import { fromMarkdown } from "mdast-util-from-markdown";
 
 export function getTitleFromProposalDescription(description: string) {
   const parsed = fromMarkdown(description);

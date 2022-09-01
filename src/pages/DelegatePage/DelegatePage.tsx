@@ -6,6 +6,7 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { PageHeader } from "../../components/PageHeader";
 import { VoterPanel } from "./VoterPanel";
+import { PastVotes } from "./PastVotes";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
@@ -13,13 +14,22 @@ export function DelegatePage() {
   const query = useLazyLoadQuery<DelegatePageQuery>(
     graphql`
       query DelegatePageQuery($id: ID!) {
-        ...DelegatePageVoterPanelFragment @arguments(id: $id)
+        ...VoterPanelQueryFragment
+
+        delegate(id: $id) {
+          ...VoterPanelDelegateFragment
+          ...PastVotesFragment
+        }
       }
     `,
     {
       id: delegateId ?? "",
     }
   );
+
+  if (!query.delegate) {
+    return null;
+  }
 
   return (
     <div
@@ -39,9 +49,10 @@ export function DelegatePage() {
           flex-direction: row;
           justify-content: space-around;
           gap: ${theme.spacing["16"]};
-          margin: ${theme.spacing["16"]} 0;
-          padding: 0 ${theme.spacing["16"]};
+          margin: ${theme.spacing["16"]};
+          margin-top: ${theme.spacing["8"]};
           width: 100%;
+          max-width: ${theme.maxWidth["6xl"]};
         `}
       >
         <div
@@ -49,18 +60,10 @@ export function DelegatePage() {
             width: ${theme.maxWidth.sm};
           `}
         >
-          <VoterPanel fragment={query} />
+          <VoterPanel delegateFragment={query.delegate} queryFragment={query} />
         </div>
 
-        <div
-          className={css`
-            height: 300px;
-            background: blue;
-            width: 100%;
-          `}
-        >
-          test
-        </div>
+        <PastVotes fragment={query.delegate} />
       </div>
     </div>
   );

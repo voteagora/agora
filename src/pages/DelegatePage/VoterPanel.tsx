@@ -1,11 +1,9 @@
-import { DelegatePageVoterPanelFragment$key } from "./__generated__/DelegatePageVoterPanelFragment.graphql";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { useNounsCount } from "../../hooks/useNounsCount";
 import { useProposalsCount } from "../../hooks/useProposalsCount";
 import { useQuorumVotes } from "../../hooks/useQuorumVotes";
 import { Navigate } from "react-router-dom";
-import { countUnique } from "../../utils/countUnique";
 import { intersection } from "../../utils/set";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
@@ -14,56 +12,61 @@ import {
   NounsRepresentedGrid,
 } from "../../components/NounGrid";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
+import { VoterPanelDelegateFragment$key } from "./__generated__/VoterPanelDelegateFragment.graphql";
+import { VoterPanelQueryFragment$key } from "./__generated__/VoterPanelQueryFragment.graphql";
 
 type Props = {
-  fragment: DelegatePageVoterPanelFragment$key;
+  delegateFragment: VoterPanelDelegateFragment$key;
+  queryFragment: VoterPanelQueryFragment$key;
 };
 
-export function VoterPanel({ fragment }: Props) {
-  const { delegate, proposals } = useFragment(
+export function VoterPanel({ delegateFragment, queryFragment }: Props) {
+  const delegate = useFragment(
     graphql`
-      fragment DelegatePageVoterPanelFragment on Query
-      @argumentDefinitions(id: { type: "ID!" }) {
-        delegate(id: $id) {
-          id
+      fragment VoterPanelDelegateFragment on Delegate {
+        id
 
-          ...NounGridFragment
-          nounsRepresented {
-            owner {
-              id
-            }
-          }
-
-          tokenHoldersRepresented {
-            id
-
-            nouns {
-              id
-              ...NounImageFragment
-            }
-          }
-
-          votes {
-            id
-            reason
-
-            proposal {
-              id
-              description
-            }
-          }
-
-          proposals {
+        ...NounGridFragment
+        nounsRepresented {
+          owner {
             id
           }
         }
 
+        tokenHoldersRepresented {
+          id
+
+          nouns {
+            id
+            ...NounImageFragment
+          }
+        }
+
+        votes(orderBy: blockNumber, orderDirection: desc) {
+          id
+
+          proposal {
+            id
+          }
+        }
+
+        proposals {
+          id
+        }
+      }
+    `,
+    delegateFragment
+  );
+
+  const { proposals } = useFragment(
+    graphql`
+      fragment VoterPanelQueryFragment on Query {
         proposals(orderBy: createdBlock, orderDirection: desc, first: 10) {
           id
         }
       }
     `,
-    fragment
+    queryFragment
   );
 
   // todo: there is a waterfall here
@@ -80,10 +83,6 @@ export function VoterPanel({ fragment }: Props) {
   );
   const votedProposals = new Set(
     delegate.votes.map((vote) => vote.proposal.id)
-  );
-
-  const proposalsVoted = countUnique(
-    delegate.votes.map((proposal) => proposal.id)
   );
 
   const recentParticipation = intersection(lastTenProposals, votedProposals);
@@ -145,8 +144,8 @@ export function VoterPanel({ fragment }: Props) {
 
         <PanelRow
           title="Proposals voted"
-          detail={`${proposalsVoted} (${(
-            (proposalsVoted / proposalsCount.toNumber()) *
+          detail={`${delegate.votes.length} (${(
+            (delegate.votes.length / proposalsCount.toNumber()) *
             100
           ).toFixed(0)}%)`}
         />
