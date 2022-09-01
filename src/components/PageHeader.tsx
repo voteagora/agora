@@ -53,7 +53,32 @@ export function PageHeader({ accountFragment }: Props) {
         </div>
       </Link>
 
-      <OwnedNounsPanel accountFragment={accountFragment} />
+      <div
+        className={css`
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: ${theme.spacing["3"]};
+        `}
+      >
+        <Link
+          to="/create"
+          className={css`
+            border-radius: ${theme.borderRadius.lg};
+            border-width: ${theme.spacing.px};
+            padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
+            color: ${theme.colors.gray["200"]};
+            background: ${theme.colors.black};
+
+            :hover {
+              background: ${theme.colors.gray["800"]};
+            }
+          `}
+        >
+          Create
+        </Link>
+        <OwnedNounsPanel accountFragment={accountFragment} />
+      </div>
     </div>
   );
 }
