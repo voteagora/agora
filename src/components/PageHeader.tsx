@@ -134,7 +134,6 @@ function OwnedNounsPanel({ accountFragment }: OwnedNounsPanelProps) {
 
       <div
         className={css`
-          height: 100%;
           width: ${theme.spacing.px};
           background: ${theme.colors.gray["300"]};
         `}
