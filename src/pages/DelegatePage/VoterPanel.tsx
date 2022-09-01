@@ -241,10 +241,10 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
             `}
           >
             <a href={`https://twitter.com`}>
-              <img src={icons.twitter} />
+              <img src={icons.twitter} alt="twitter" />
             </a>
             <a href={`https://discord.com`}>
-              <img src={icons.discord} />
+              <img src={icons.discord} alt="discord" />
             </a>
           </div>
 

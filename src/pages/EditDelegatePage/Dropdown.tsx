@@ -1,13 +1,13 @@
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 
-type DropdownItem = {
+type DropdownItemValue = {
   selectKey: string;
   title: string;
 };
 
 type Props = {
-  items: DropdownItem[];
+  items: DropdownItemValue[];
   title: string;
   onItemClicked: (selectKey: string) => void;
 };

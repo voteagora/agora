@@ -128,7 +128,7 @@ export function TopIssuesFormSection() {
                   border: 1px solid #ebebeb;
                 `}
               >
-                <img src={icons[issueDef.icon]} />
+                <img src={icons[issueDef.icon]} alt={issueDef.title} />
               </div>
 
               <input
