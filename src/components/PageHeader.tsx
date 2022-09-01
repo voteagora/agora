@@ -1,6 +1,7 @@
 import { css } from "@emotion/css";
 import * as theme from "../theme";
 import logo from "../logo.svg";
+import { Link } from "react-router-dom";
 
 export function PageHeader() {
   return (
@@ -13,24 +14,26 @@ export function PageHeader() {
         padding: 0 ${theme.spacing["4"]};
       `}
     >
-      <div
-        className={css`
-          display: flex;
-          flex-direction: row;
-          gap: ${theme.spacing["4"]};
-        `}
-      >
-        <img alt="logo" src={logo} />
-
-        <span
+      <Link to="/">
+        <div
           className={css`
-            font-size: ${theme.fontSize.sm};
-            color: ${theme.colors.gray["700"]};
+            display: flex;
+            flex-direction: row;
+            gap: ${theme.spacing["4"]};
           `}
         >
-          Nouns Agora
-        </span>
-      </div>
+          <img alt="logo" src={logo} />
+
+          <span
+            className={css`
+              font-size: ${theme.fontSize.sm};
+              color: ${theme.colors.gray["700"]};
+            `}
+          >
+            Nouns Agora
+          </span>
+        </div>
+      </Link>
     </div>
   );
 }
