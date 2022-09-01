@@ -14,6 +14,7 @@ import {
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { VoterPanelDelegateFragment$key } from "./__generated__/VoterPanelDelegateFragment.graphql";
 import { VoterPanelQueryFragment$key } from "./__generated__/VoterPanelQueryFragment.graphql";
+import { icons } from "../../icons/icons";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -142,75 +143,127 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           </span>
         </div>
 
-        <PanelRow
-          title="Proposals voted"
-          detail={`${delegate.votes.length} (${(
-            (delegate.votes.length / proposalsCount.toNumber()) *
-            100
-          ).toFixed(0)}%)`}
-        />
+        <div
+          className={css`
+            display: flex;
+            flex-direction: column;
+            margin-top: ${theme.spacing["4"]};
+          `}
+        >
+          <PanelRow
+            title="Proposals voted"
+            detail={`${delegate.votes.length} (${(
+              (delegate.votes.length / proposalsCount.toNumber()) *
+              100
+            ).toFixed(0)}%)`}
+          />
 
-        <PanelRow
-          title="Voting power"
-          detail={`${(
-            (delegate.nounsRepresented.length / totalSupply.toNumber()) *
-            100
-          ).toFixed(0)}% all / ${(
-            (delegate.nounsRepresented.length / quorumVotes.toNumber()) *
-            100
-          ).toFixed(0)}% quorum`}
-        />
+          <PanelRow
+            title="Voting power"
+            detail={`${(
+              (delegate.nounsRepresented.length / totalSupply.toNumber()) *
+              100
+            ).toFixed(0)}% all / ${(
+              (delegate.nounsRepresented.length / quorumVotes.toNumber()) *
+              100
+            ).toFixed(0)}% quorum`}
+          />
 
-        <PanelRow
-          title="Recent activity"
-          detail={`${recentParticipation.size} of ${lastTenProposals.size} last props`}
-        />
+          <PanelRow
+            title="Recent activity"
+            detail={`${recentParticipation.size} of ${lastTenProposals.size} last props`}
+          />
 
-        <PanelRow
-          title="Proposals created"
-          detail={`${delegate.proposals.length}`}
-        />
+          <PanelRow
+            title="Proposals created"
+            detail={`${delegate.proposals.length}`}
+          />
 
-        <PanelRow
-          title="Delegated from"
-          detail={`${tokenHolders.length} addresses`}
-        />
+          <PanelRow
+            title="Delegated from"
+            detail={`${tokenHolders.length} addresses`}
+          />
 
-        <>
-          {tokenHolders.map((holder) => (
-            <div
-              className={css`
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-              `}
-            >
-              <div
-                className={css`
-                  text-overflow: ellipsis;
-                  overflow: hidden;
-                `}
-              >
-                <NounResolvedLink address={holder.id} />
-              </div>
-
+          <>
+            {tokenHolders.map((holder) => (
               <div
                 className={css`
                   display: flex;
                   flex-direction: row;
-                  gap: ${theme.spacing["1"]};
+                  justify-content: space-between;
                 `}
               >
-                <NounGridChildren
-                  count={3}
-                  nouns={holder.nouns}
-                  overflowFontSize="xs"
-                  imageSize="6"
-                />
+                <div
+                  className={css`
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                  `}
+                >
+                  <NounResolvedLink address={holder.id} />
+                </div>
+
+                <div
+                  className={css`
+                    display: flex;
+                    flex-direction: row;
+                    gap: ${theme.spacing["1"]};
+                  `}
+                >
+                  <NounGridChildren
+                    count={3}
+                    nouns={holder.nouns}
+                    overflowFontSize="xs"
+                    imageSize="6"
+                  />
+                </div>
               </div>
+            ))}
+          </>
+        </div>
+
+        <div
+          className={css`
+            margin-top: ${theme.spacing["8"]};
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          `}
+        >
+          <div
+            className={css`
+              display: flex;
+              flex-direction: row;
+              gap: ${theme.spacing["4"]};
+              height: ${theme.spacing["6"]};
+            `}
+          >
+            <a href={`https://twitter.com`}>
+              <img src={icons.twitter} />
+            </a>
+            <a href={`https://discord.com`}>
+              <img src={icons.discord} />
+            </a>
+          </div>
+
+          <a href={`https://nouns.wtf/delegate?to=${delegate.id}`}>
+            <div
+              className={css`
+                border-radius: ${theme.borderRadius.default};
+                border-width: ${theme.spacing.px};
+                border-color: ${theme.colors.gray["300"]};
+                padding: ${theme.spacing["2"]};
+                cursor: pointer;
+
+                :hover {
+                  background: ${theme.colors.gray["200"]};
+                }
+              `}
+            >
+              Delegate
             </div>
-          ))}
-        </>
+          </a>
+        </div>
       </div>
     </div>
   );
