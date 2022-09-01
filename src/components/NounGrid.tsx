@@ -67,6 +67,7 @@ export function NounGrid({ fragmentKey, rows = 3, columns = 5 }: Props) {
               display: flex;
               align-items: center;
               justify-content: center;
+              font-weight: bold;
             `}
           >
             + {overflowAmount + 1}
