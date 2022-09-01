@@ -3,7 +3,7 @@ import { RelayEnvironmentProvider } from "react-relay/hooks";
 import { relayEnvironment } from "./relayEnvironment";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { HomePage } from "./pages/HomePage/HomePage";
-import { DelegatePage } from "./pages/DelegatePage";
+import { DelegatePage } from "./pages/DelegatePage/DelegatePage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { EthersProviderProvider } from "./components/EthersProviderProvider";
 

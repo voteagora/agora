@@ -3,9 +3,9 @@ import graphql from "babel-plugin-relay/macro";
 import { HomePageQuery } from "./__generated__/HomePageQuery.graphql";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import logo from "../../logo.svg";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
 import { DelegatesContainer } from "./DelegatesContainer";
+import { PageHeader } from "../../components/PageHeader";
 
 export function HomePage() {
   const result = useLazyLoadQuery<HomePageQuery>(
@@ -33,39 +33,6 @@ export function HomePage() {
       <OverviewMetricsContainer fragmentRef={result} />
       <PageDivider />
       <DelegatesContainer fragmentKey={result} />
-    </div>
-  );
-}
-
-function PageHeader() {
-  return (
-    <div
-      className={css`
-        display: flex;
-        flex-direction: row;
-        width: ${theme.maxWidth["6xl"]};
-        margin: ${theme.spacing["8"]} auto;
-        padding: 0 ${theme.spacing["4"]};
-      `}
-    >
-      <div
-        className={css`
-          display: flex;
-          flex-direction: row;
-          gap: ${theme.spacing["4"]};
-        `}
-      >
-        <img alt="logo" src={logo} />
-
-        <span
-          className={css`
-            font-size: ${theme.fontSize.sm};
-            color: ${theme.colors.gray["700"]};
-          `}
-        >
-          Nouns Agora
-        </span>
-      </div>
     </div>
   );
 }

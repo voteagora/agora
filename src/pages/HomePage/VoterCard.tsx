@@ -5,7 +5,7 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql";
 import { NounResolvedName } from "../../components/NounResolvedName";
-import { NounGrid } from "../../components/NounGrid";
+import { NounsRepresentedGrid } from "../../components/NounGrid";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
@@ -48,7 +48,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           }
         `}
       >
-        <NounGrid fragmentKey={delegate} />
+        <NounsRepresentedGrid fragmentKey={delegate} />
         <div
           className={css`
             display: flex;
