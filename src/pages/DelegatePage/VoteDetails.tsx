@@ -30,6 +30,7 @@ export function VoteDetails({ voteFragment }: Props) {
     voteFragment
   );
 
+  // todo: check target
   const totalValue =
     vote.proposal.values?.reduce<BigNumber>(
       (acc, value) => BigNumber.from(value).add(acc),
