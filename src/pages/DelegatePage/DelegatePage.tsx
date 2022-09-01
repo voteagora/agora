@@ -54,7 +54,7 @@ export function DelegatePage() {
         className={css`
           display: flex;
           flex-direction: row;
-          justify-content: space-around;
+          justify-content: space-between;
           gap: ${theme.spacing["16"]};
           margin: ${theme.spacing["16"]};
           margin-top: ${theme.spacing["8"]};
