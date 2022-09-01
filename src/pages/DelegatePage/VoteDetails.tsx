@@ -62,7 +62,8 @@ export function VoteDetails({ voteFragment }: Props) {
         <a href={proposalHref}>Prop {vote.proposal.id}</a>
         {!totalValue.isZero() ? (
           <> for {utils.formatEther(totalValue)} ETH</>
-        ) : null}
+        ) : null}{" "}
+        &mdash; with {vote.votes} votes
       </div>
       <h2
         className={css`
