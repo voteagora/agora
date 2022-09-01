@@ -42,7 +42,6 @@ export function DelegatesContainer({ fragmentKey }: Props) {
         flex-direction: column;
         align-items: center;
 
-        z-index: -1;
         background-image: radial-gradient(
           rgba(0, 0, 0, 10%) 1px,
           transparent 0

@@ -42,6 +42,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
   return (
     <div
       className={css`
+        z-index: 1;
         display: flex;
         max-width: ${theme.maxWidth["6xl"]};
         gap: ${theme.spacing["4"]};
