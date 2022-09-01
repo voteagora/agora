@@ -6,6 +6,7 @@ import { HomePage } from "./pages/HomePage/HomePage";
 import { DelegatePage } from "./pages/DelegatePage/DelegatePage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { EthersProviderProvider } from "./components/EthersProviderProvider";
+import { EditDelegatePage } from "./pages/EditDelegatePage/EditDelegatePage";
 
 function App() {
   const client = new QueryClient();
@@ -23,6 +24,8 @@ function App() {
                     path="/delegate/:delegateId"
                     element={<DelegatePage />}
                   />
+
+                  <Route path="/create" element={<EditDelegatePage />} />
                 </Routes>
               </BrowserRouter>
             </Suspense>
