@@ -7,10 +7,7 @@ import { PageHeader } from "../../components/PageHeader";
 import * as theme from "../../theme";
 import { VoterPanel } from "../DelegatePage/VoterPanel";
 import { PageContainer } from "../../components/PageContainer";
-import {
-  formSectionContainerStyles,
-  TopIssuesFormSection,
-} from "./TopIssuesFormSection";
+import { TopIssuesFormSection } from "./TopIssuesFormSection";
 import {
   DelegateStatementFormSection,
   tipTextStyle,

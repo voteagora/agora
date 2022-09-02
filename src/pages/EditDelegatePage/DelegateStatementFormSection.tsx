@@ -2,13 +2,40 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
 import { formSectionContainerStyles } from "./TopIssuesFormSection";
+import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 
 export const tipTextStyle = css`
   font-size: ${theme.fontSize.xs};
   color: ${theme.colors.gray["600"]};
 `;
 
+type DisplayMode = "write" | "preview";
+
+const displayModeSelectorStyles = css`
+  cursor: pointer;
+  color: ${theme.colors.gray["600"]};
+  padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+  border-radius: ${theme.borderRadius.default};
+
+  :hover {
+    background: ${theme.colors.gray["200"]};
+  }
+`;
+
+const displayModeSelectorSelectedStyles = css`
+  background: ${theme.colors.gray["400"]};
+
+  :hover {
+    background: ${theme.colors.gray["400"]};
+  }
+`;
+
 export function DelegateStatementFormSection() {
+  const [displayMode, setDisplayMode] = useState<DisplayMode>("write");
+  const [delegateStatement, setDelegateStatement] = useState("");
+
   return (
     <div className={formSectionContainerStyles}>
       <div
@@ -22,24 +49,87 @@ export function DelegateStatementFormSection() {
       >
         <h3 className={formSectionHeadingStyle}>Delegate statement</h3>
 
-        <span className={tipTextStyle}>
-          Tip: use markdown for formatting, links, and images
-        </span>
+        <div
+          className={css`
+            display: flex;
+            flex-direction: row;
+            gap: ${theme.spacing["2"]};
+          `}
+        >
+          <div
+            className={css`
+              ${displayModeSelectorStyles}
+              ${displayMode === "write" && displayModeSelectorSelectedStyles}
+            `}
+            onClick={() => setDisplayMode("write")}
+          >
+            Write
+          </div>
+
+          <div
+            className={css`
+              ${displayModeSelectorStyles}
+              ${displayMode === "preview" && displayModeSelectorSelectedStyles}
+            `}
+            onClick={() => setDisplayMode("preview")}
+          >
+            Preview
+          </div>
+        </div>
       </div>
 
-      <textarea
-        className={css`
-          background: ${theme.colors.gray["200"]};
-          padding: ${theme.spacing["4"]};
-          margin-top: ${theme.spacing["2"]};
-          border-radius: ${theme.borderRadius.md};
-          outline: none;
-          width: 100%;
-          min-height: ${theme.spacing["64"]};
-          box-shadow: ${theme.boxShadow.inner};
-        `}
-        placeholder="I believe that..."
-      />
+      {displayMode === "write" && (
+        <textarea
+          className={css`
+            background: ${theme.colors.gray["200"]};
+            padding: ${theme.spacing["4"]};
+            margin-top: ${theme.spacing["2"]};
+            border-radius: ${theme.borderRadius.md};
+            outline: none;
+            width: 100%;
+            min-height: ${theme.spacing["64"]};
+            box-shadow: ${theme.boxShadow.inner};
+          `}
+          value={delegateStatement}
+          onChange={(e) => setDelegateStatement(e.target.value)}
+          placeholder="I believe that..."
+        />
+      )}
+
+      {/*  todo: include a css reboot here */}
+      {displayMode === "preview" && (
+        <ReactMarkdown
+          children={delegateStatement}
+          remarkPlugins={[remarkBreaks]}
+          className={css`
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+              font-weight: bold;
+            }
+
+            h1 {
+              font-size: ${theme.fontSize["xl"]};
+            }
+
+            h2 {
+              font-size: ${theme.fontSize["lg"]};
+            }
+
+            h3 {
+              font-size: ${theme.fontSize["base"]};
+            }
+
+            ol,
+            ul {
+              list-style: decimal;
+            }
+          `}
+        />
+      )}
     </div>
   );
 }
