@@ -44,6 +44,7 @@ export function Dropdown({ title, items, onItemClicked }: Props) {
       >
         {items.map((item) => (
           <DropdownItem
+            key={item.selectKey}
             selectKey={item.selectKey}
             title={item.title}
             onClick={() => onItemClicked(item.selectKey)}
