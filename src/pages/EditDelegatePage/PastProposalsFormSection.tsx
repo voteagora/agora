@@ -44,19 +44,27 @@ export function PastProposalsFormSection({ queryFragment }: Props) {
           Views on past proposals
         </h3>
 
-        <ProposalList
-          selectedProposals={mostValuableProposals}
-          setSelectedProposals={setMostValuableProposals}
-          title="Most valuable"
-          queryFragment={queryFragment}
-        />
+        <div
+          className={css`
+            display: flex;
+            flex-direction: row;
+            gap: ${theme.spacing["4"]};
+          `}
+        >
+          <ProposalList
+            selectedProposals={mostValuableProposals}
+            setSelectedProposals={setMostValuableProposals}
+            title="Most valuable"
+            queryFragment={queryFragment}
+          />
 
-        <ProposalList
-          selectedProposals={leastValuableProposals}
-          setSelectedProposals={setLeastValuableProposals}
-          title="Least valuable"
-          queryFragment={queryFragment}
-        />
+          <ProposalList
+            selectedProposals={leastValuableProposals}
+            setSelectedProposals={setLeastValuableProposals}
+            title="Least valuable"
+            queryFragment={queryFragment}
+          />
+        </div>
       </div>
     </div>
   );
@@ -199,6 +207,8 @@ function ProposalList({
           display: flex;
           flex-direction: column;
           gap: ${theme.spacing["2"]};
+
+          position: relative;
         `}
       >
         <input
@@ -212,14 +222,28 @@ function ProposalList({
           onChange={(e) => setFilterText(e.target.value)}
         />
 
-        {isFocused &&
-          filteredProposals.map((proposal) => (
-            <ProposalCard
-              key={proposal.id}
-              proposal={proposal}
-              onClick={() => handleSuggestedProposalClicked(proposal)}
-            />
-          ))}
+        <div
+          className={css`
+            display: flex;
+            flex-direction: column;
+            gap: ${theme.spacing["2"]};
+            position: absolute;
+            background: white;
+
+            top: 100%;
+            left: 0;
+            right: 0;
+          `}
+        >
+          {isFocused &&
+            filteredProposals.map((proposal) => (
+              <ProposalCard
+                key={proposal.id}
+                proposal={proposal}
+                onClick={() => handleSuggestedProposalClicked(proposal)}
+              />
+            ))}
+        </div>
       </div>
     </div>
   );
