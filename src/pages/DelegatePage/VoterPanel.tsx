@@ -15,6 +15,7 @@ import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { VoterPanelDelegateFragment$key } from "./__generated__/VoterPanelDelegateFragment.graphql";
 import { VoterPanelQueryFragment$key } from "./__generated__/VoterPanelQueryFragment.graphql";
 import { icons } from "../../icons/icons";
+import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -251,15 +252,8 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           <a href={`https://nouns.wtf/delegate?to=${delegate.id}`}>
             <div
               className={css`
-                border-radius: ${theme.borderRadius.default};
-                border-width: ${theme.spacing.px};
-                border-color: ${theme.colors.gray["300"]};
+                ${buttonStyles};
                 padding: ${theme.spacing["2"]};
-                cursor: pointer;
-
-                :hover {
-                  background: ${theme.colors.gray["200"]};
-                }
               `}
             >
               Delegate

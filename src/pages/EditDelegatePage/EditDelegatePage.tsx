@@ -7,10 +7,17 @@ import { PageHeader } from "../../components/PageHeader";
 import * as theme from "../../theme";
 import { VoterPanel } from "../DelegatePage/VoterPanel";
 import { PageContainer } from "../../components/PageContainer";
-import { TopIssuesFormSection } from "./TopIssuesFormSection";
-import { DelegateStatementFormSection } from "./DelegateStatementFormSection";
+import {
+  formSectionContainerStyles,
+  TopIssuesFormSection,
+} from "./TopIssuesFormSection";
+import {
+  DelegateStatementFormSection,
+  tipTextStyle,
+} from "./DelegateStatementFormSection";
 import { PastProposalsFormSection } from "./PastProposalsFormSection";
 import { PastProposalsFormSectionProposalListFragment$key } from "./__generated__/PastProposalsFormSectionProposalListFragment.graphql";
+import { OtherInfoFormSection } from "./OtherInfoFormSection";
 
 export function EditDelegatePage() {
   const address = usePrimaryAccount();
@@ -92,6 +99,36 @@ function DelegateStatementForm({ queryFragment }: DelegateStatementFormProps) {
       <DelegateStatementFormSection />
       <TopIssuesFormSection />
       <PastProposalsFormSection queryFragment={queryFragment} />
+      <OtherInfoFormSection />
+
+      <div
+        className={css`
+          padding: ${theme.spacing["8"]} ${theme.spacing["6"]};
+
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+        `}
+      >
+        <span className={tipTextStyle}>
+          Tip: you can always come back and edit your profile at any time.
+        </span>
+
+        <button className={buttonStyles}>Submit</button>
+      </div>
     </div>
   );
 }
+
+export const buttonStyles = css`
+  border-radius: ${theme.borderRadius.default};
+  border-width: ${theme.spacing.px};
+  border-color: ${theme.colors.gray["300"]};
+  cursor: pointer;
+  padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+
+  :hover {
+    background: ${theme.colors.gray["200"]};
+  }
+`;

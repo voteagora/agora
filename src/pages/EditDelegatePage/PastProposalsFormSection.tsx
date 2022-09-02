@@ -5,13 +5,20 @@ import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { PastProposalsFormSectionProposalListFragment$key } from "./__generated__/PastProposalsFormSectionProposalListFragment.graphql";
 import { getTitleFromProposalDescription } from "../../utils/markdown";
-import { sharedInputStyle } from "./TopIssuesFormSection";
+import {
+  formSectionContainerStyles,
+  sharedInputStyle,
+} from "./TopIssuesFormSection";
 import { CloseIcon } from "../../components/CloseIcon";
 import useClickOutside from "@restart/ui/useClickOutside";
 
 type Props = {
   queryFragment: PastProposalsFormSectionProposalListFragment$key;
 };
+
+export const formSectionHeadingStyle = css`
+  font-weight: bold;
+`;
 
 export function PastProposalsFormSection({ queryFragment }: Props) {
   const [mostValuableProposals, setMostValuableProposals] = useState<
@@ -23,31 +30,20 @@ export function PastProposalsFormSection({ queryFragment }: Props) {
   >([]);
 
   return (
-    <div
-      className={css`
-        border-bottom-width: ${theme.spacing.px};
-        border-color: ${theme.colors.gray["300"]};
-        padding: ${theme.spacing["8"]} ${theme.spacing["6"]};
-      `}
-    >
+    <div className={formSectionContainerStyles}>
       <div
         className={css`
           display: flex;
           flex-direction: column;
         `}
       >
-        <h3
-          className={css`
-            font-weight: bold;
-          `}
-        >
-          Views on past proposals
-        </h3>
+        <h3 className={formSectionHeadingStyle}>Views on past proposals</h3>
 
         <div
           className={css`
             display: flex;
             flex-direction: row;
+            margin-top: ${theme.spacing["4"]};
             gap: ${theme.spacing["4"]};
           `}
         >
@@ -155,15 +151,6 @@ function ProposalList({
     [selectedProposals, mappedProposals]
   );
 
-  const handleSuggestedProposalClicked = useCallback(
-    function handleSuggestedProposalClicked(proposal: SearchableProposal) {
-      setSelectedProposals((last) => [...last, { id: proposal.id }]);
-      setFilterText("");
-    },
-    [setSelectedProposals, setFilterText]
-  );
-
-  const focusContainerRef = useRef<HTMLDivElement | null>(null);
   const [isFocused, setIsFocused] = useState(false);
 
   const setFocused = useCallback(() => {
@@ -174,6 +161,16 @@ function ProposalList({
     setIsFocused(false);
   }, [setIsFocused]);
 
+  const handleSuggestedProposalClicked = useCallback(
+    function handleSuggestedProposalClicked(proposal: SearchableProposal) {
+      setSelectedProposals((last) => [...last, { id: proposal.id }]);
+      setFilterText("");
+      setBlurred();
+    },
+    [setSelectedProposals, setFilterText, setBlurred]
+  );
+
+  const focusContainerRef = useRef<HTMLDivElement | null>(null);
   useClickOutside(focusContainerRef, setBlurred);
 
   return (
@@ -181,7 +178,7 @@ function ProposalList({
       className={css`
         display: flex;
         flex-direction: column;
-        margin-top: ${theme.spacing["4"]};
+        flex: 1;
         gap: ${theme.spacing["2"]};
       `}
     >

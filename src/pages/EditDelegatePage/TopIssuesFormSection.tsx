@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { Dropdown } from "./Dropdown";
+import { formSectionHeadingStyle } from "./PastProposalsFormSection";
 
 type IssueTypeDefinition = {
   key: string;
@@ -40,6 +41,12 @@ function initialIssueState(type: string): IssueState {
   };
 }
 
+export const formSectionContainerStyles = css`
+  padding: ${theme.spacing["8"]} ${theme.spacing["6"]};
+  border-bottom-width: ${theme.spacing.px};
+  border-color: ${theme.colors.gray["300"]};
+`;
+
 export function TopIssuesFormSection() {
   const [topIssues, setTopIssues] = useState<IssueState[]>(() => [
     initialIssueState("treasury"),
@@ -57,13 +64,7 @@ export function TopIssuesFormSection() {
   );
 
   return (
-    <div
-      className={css`
-        padding: ${theme.spacing["8"]} ${theme.spacing["6"]};
-        border-bottom-width: ${theme.spacing.px};
-        border-color: ${theme.colors.gray["300"]};
-      `}
-    >
+    <div className={formSectionContainerStyles}>
       <div
         className={css`
           display: flex;
@@ -73,13 +74,7 @@ export function TopIssuesFormSection() {
           gap: ${theme.spacing["4"]};
         `}
       >
-        <h3
-          className={css`
-            font-weight: bold;
-          `}
-        >
-          Views on top issues
-        </h3>
+        <h3 className={formSectionHeadingStyle}>Views on top issues</h3>
 
         <Dropdown
           title="+ Add a new issue"
@@ -95,7 +90,7 @@ export function TopIssuesFormSection() {
         className={css`
           display: flex;
           flex-direction: column;
-          margin-top: ${theme.spacing["2"]};
+          margin-top: ${theme.spacing["6"]};
           gap: ${theme.spacing["4"]};
         `}
       >

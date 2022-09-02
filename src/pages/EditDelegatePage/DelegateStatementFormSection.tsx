@@ -1,15 +1,16 @@
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
+import { formSectionHeadingStyle } from "./PastProposalsFormSection";
+import { formSectionContainerStyles } from "./TopIssuesFormSection";
+
+export const tipTextStyle = css`
+  font-size: ${theme.fontSize.xs};
+  color: ${theme.colors.gray["600"]};
+`;
 
 export function DelegateStatementFormSection() {
   return (
-    <div
-      className={css`
-        border-bottom-width: ${theme.spacing.px};
-        border-color: ${theme.colors.gray["300"]};
-        padding: ${theme.spacing["8"]} ${theme.spacing["6"]};
-      `}
-    >
+    <div className={formSectionContainerStyles}>
       <div
         className={css`
           display: flex;
@@ -19,20 +20,9 @@ export function DelegateStatementFormSection() {
           gap: ${theme.spacing["4"]};
         `}
       >
-        <h3
-          className={css`
-            font-weight: bold;
-          `}
-        >
-          Delegate statement
-        </h3>
+        <h3 className={formSectionHeadingStyle}>Delegate statement</h3>
 
-        <span
-          className={css`
-            font-size: ${theme.fontSize.xs};
-            color: ${theme.colors.gray["600"]};
-          `}
-        >
+        <span className={tipTextStyle}>
           Tip: use markdown for formatting, links, and images
         </span>
       </div>
