@@ -9,8 +9,8 @@ import {
   formSectionContainerStyles,
   sharedInputStyle,
 } from "./TopIssuesFormSection";
-import { CloseIcon } from "../../components/CloseIcon";
 import useClickOutside from "@restart/ui/useClickOutside";
+import { CloseButton } from "./CloseButton";
 
 type Props = {
   queryFragment: PastProposalsFormSectionProposalListFragment$key;
@@ -314,30 +314,7 @@ function ProposalCard({ proposal, onClick, onClose }: ProposalCardProps) {
         #{proposal.id} - {proposal.title}
       </div>
 
-      {onClose && (
-        <div
-          onClick={onClose}
-          className={css`
-            border-radius: ${theme.borderRadius.md};
-            cursor: pointer;
-            color: ${theme.colors.gray["500"]};
-            margin: ${theme.spacing["1"]};
-
-            :hover {
-              color: ${theme.colors.gray["600"]};
-              background: ${theme.colors.gray["200"]};
-            }
-          `}
-        >
-          <CloseIcon
-            className={css`
-              width: ${theme.spacing["6"]};
-              height: ${theme.spacing["6"]};
-              margin: ${theme.spacing["1"]};
-            `}
-          />
-        </div>
-      )}
+      {onClose && <CloseButton onClick={onClose} />}
     </div>
   );
 }

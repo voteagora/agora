@@ -4,6 +4,7 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { Dropdown } from "./Dropdown";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
+import { CloseButton } from "./CloseButton";
 
 type IssueTypeDefinition = {
   key: string;
@@ -55,10 +56,25 @@ export function TopIssuesFormSection() {
 
   const addIssue = useCallback(
     (selectionKey: string) => {
-      setTopIssues((lastIssues) => [
-        ...lastIssues,
-        initialIssueState(selectionKey),
-      ]);
+      setTopIssues((lastIssues) => {
+        const issueAlreadyExists = lastIssues.find(
+          (needle) => needle.type === selectionKey
+        );
+        if (issueAlreadyExists) {
+          return lastIssues;
+        }
+
+        return [...lastIssues, initialIssueState(selectionKey)];
+      });
+    },
+    [setTopIssues]
+  );
+
+  const removeIssue = useCallback(
+    (selectionKey: string) => {
+      setTopIssues((lastIssues) =>
+        lastIssues.filter((needle) => needle.type !== selectionKey)
+      );
     },
     [setTopIssues]
   );
@@ -126,14 +142,35 @@ export function TopIssuesFormSection() {
                 <img src={icons[issueDef.icon]} alt={issueDef.title} />
               </div>
 
-              <input
+              <div
                 className={css`
                   flex: 1;
-                  ${sharedInputStyle};
+
+                  display: flex;
+                  flex-direction: column;
+
+                  position: relative;
                 `}
-                type="text"
-                placeholder={`On ${issueDef.title.toLowerCase()}, I believe...`}
-              />
+              >
+                <div
+                  className={css`
+                    position: absolute;
+                    right: 0;
+                    top: 0;
+                    bottom: 0;
+
+                    display: flex;
+                    flex-direction: column;
+                  `}
+                >
+                  <CloseButton onClick={() => removeIssue(issueDef.key)} />
+                </div>
+                <input
+                  className={sharedInputStyle}
+                  type="text"
+                  placeholder={`On ${issueDef.title.toLowerCase()}, I believe...`}
+                />
+              </div>
             </div>
           );
         })}
