@@ -77,32 +77,18 @@ export function PageHeader({ accountFragment }: Props) {
         >
           Create
         </Link>
-        {accountFragment && (
-          <OwnedNounsPanel accountFragment={accountFragment} />
-        )}
+        <OwnedNounsPanel accountFragment={accountFragment} />
       </div>
     </div>
   );
 }
 
 type OwnedNounsPanelProps = {
-  accountFragment: PageHeaderFragment$key;
+  accountFragment: PageHeaderFragment$key | null;
 };
 
 function OwnedNounsPanel({ accountFragment }: OwnedNounsPanelProps) {
   const address = usePrimaryAccount();
-
-  const account = useFragment(
-    graphql`
-      fragment PageHeaderFragment on Account {
-        nouns {
-          id
-          ...NounImageFragment
-        }
-      }
-    `,
-    accountFragment
-  );
 
   return (
     <div
@@ -116,6 +102,38 @@ function OwnedNounsPanel({ accountFragment }: OwnedNounsPanelProps) {
         flex-direction: row;
       `}
     >
+      {accountFragment && <OwnedNouns accountFragment={accountFragment} />}
+
+      <div
+        className={css`
+          padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
+        `}
+      >
+        <NounResolvedName address={address} />
+      </div>
+    </div>
+  );
+}
+
+type OwnedNounsProps = {
+  accountFragment: PageHeaderFragment$key;
+};
+
+export function OwnedNouns({ accountFragment }: OwnedNounsProps) {
+  const account = useFragment(
+    graphql`
+      fragment PageHeaderFragment on Account {
+        nouns {
+          id
+          ...NounImageFragment
+        }
+      }
+    `,
+    accountFragment
+  );
+
+  return (
+    <>
       <div
         className={css`
           display: flex;
@@ -140,14 +158,6 @@ function OwnedNounsPanel({ accountFragment }: OwnedNounsPanelProps) {
           background: ${theme.colors.gray["300"]};
         `}
       />
-
-      <div
-        className={css`
-          padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
-        `}
-      >
-        <NounResolvedName address={address} />
-      </div>
-    </div>
+    </>
   );
 }

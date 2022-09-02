@@ -35,7 +35,7 @@ export function DelegatePage() {
     }
   );
 
-  if (!query.delegate || !query.account) {
+  if (!query.delegate) {
     return null;
   }
 
