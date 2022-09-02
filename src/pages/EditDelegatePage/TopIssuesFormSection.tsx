@@ -134,11 +134,7 @@ export function TopIssuesFormSection() {
               <input
                 className={css`
                   flex: 1;
-                  background: ${theme.colors.gray["200"]};
-                  outline: none;
-                  padding: ${theme.spacing["2"]};
-                  box-shadow: ${theme.boxShadow.inner};
-                  border-radius: ${theme.borderRadius.md};
+                  ${sharedInputStyle};
                 `}
                 type="text"
                 placeholder={`On ${issueDef.title.toLowerCase()}, I believe...`}
@@ -150,3 +146,11 @@ export function TopIssuesFormSection() {
     </div>
   );
 }
+
+export const sharedInputStyle = css`
+  background: ${theme.colors.gray["200"]};
+  outline: none;
+  padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
+  box-shadow: ${theme.boxShadow.inner};
+  border-radius: ${theme.borderRadius.md};
+`;
