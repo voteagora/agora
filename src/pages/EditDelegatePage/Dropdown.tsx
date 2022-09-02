@@ -40,6 +40,7 @@ export function Dropdown({ title, items, onItemClicked }: Props) {
 
           white-space: nowrap;
           background: ${theme.colors.gray["300"]};
+          z-index: 1;
         `}
       >
         {items.map((item) => (
