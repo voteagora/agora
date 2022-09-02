@@ -1,4 +1,4 @@
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import * as theme from "../../theme";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
 import { formSectionContainerStyles } from "./TopIssuesFormSection";
@@ -37,7 +37,13 @@ export function DelegateStatementFormSection() {
   const [delegateStatement, setDelegateStatement] = useState("");
 
   return (
-    <div className={formSectionContainerStyles}>
+    <div
+      className={css`
+        display: flex;
+        flex-direction: column;
+        ${formSectionContainerStyles}
+      `}
+    >
       <div
         className={css`
           display: flex;
@@ -96,38 +102,12 @@ export function DelegateStatementFormSection() {
         />
       )}
 
-      {/*  todo: include a css reboot here */}
       {displayMode === "preview" && (
         <ReactMarkdown
           children={delegateStatement}
           remarkPlugins={[remarkBreaks]}
-          className={css`
-            h1,
-            h2,
-            h3,
-            h4,
-            h5,
-            h6 {
-              font-weight: bold;
-            }
-
-            h1 {
-              font-size: ${theme.fontSize["xl"]};
-            }
-
-            h2 {
-              font-size: ${theme.fontSize["lg"]};
-            }
-
-            h3 {
-              font-size: ${theme.fontSize["base"]};
-            }
-
-            ol,
-            ul {
-              list-style: decimal;
-            }
-          `}
+          // tailwind prose + max-width override disabled
+          className={cx("prose", "max-w-none")}
         />
       )}
     </div>
