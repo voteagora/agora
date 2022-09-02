@@ -10,7 +10,7 @@ import { PageHeaderFragment$key } from "./__generated__/PageHeaderFragment.graph
 import { usePrimaryAccount } from "./EthersProviderProvider";
 
 type Props = {
-  accountFragment: PageHeaderFragment$key;
+  accountFragment: PageHeaderFragment$key | null;
 };
 
 export function PageHeader({ accountFragment }: Props) {
@@ -77,7 +77,9 @@ export function PageHeader({ accountFragment }: Props) {
         >
           Create
         </Link>
-        <OwnedNounsPanel accountFragment={accountFragment} />
+        {accountFragment && (
+          <OwnedNounsPanel accountFragment={accountFragment} />
+        )}
       </div>
     </div>
   );

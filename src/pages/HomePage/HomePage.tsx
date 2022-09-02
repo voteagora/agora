@@ -28,10 +28,6 @@ export function HomePage() {
     }
   );
 
-  if (!result.account) {
-    return null;
-  }
-
   return (
     <PageContainer>
       <PageHeader accountFragment={result.account} />
