@@ -5,16 +5,9 @@ import { css } from "@emotion/css";
 import { EditDelegatePageQuery } from "./__generated__/EditDelegatePageQuery.graphql";
 import { PageHeader } from "../../components/PageHeader";
 import * as theme from "../../theme";
-import { VoterPanel } from "../DelegatePage/VoterPanel";
+import { EmptyVoterPanel, VoterPanel } from "../DelegatePage/VoterPanel";
 import { PageContainer } from "../../components/PageContainer";
-import { TopIssuesFormSection } from "./TopIssuesFormSection";
-import {
-  DelegateStatementFormSection,
-  tipTextStyle,
-} from "./DelegateStatementFormSection";
-import { PastProposalsFormSection } from "./PastProposalsFormSection";
-import { PastProposalsFormSectionProposalListFragment$key } from "./__generated__/PastProposalsFormSectionProposalListFragment.graphql";
-import { OtherInfoFormSection } from "./OtherInfoFormSection";
+import { DelegateStatementForm } from "./DelegateStatementForm";
 
 export function EditDelegatePage() {
   const address = usePrimaryAccount();
@@ -39,10 +32,6 @@ export function EditDelegatePage() {
     }
   );
 
-  if (!query.delegate) {
-    return null;
-  }
-
   return (
     <PageContainer>
       <PageHeader accountFragment={query.account} />
@@ -66,55 +55,17 @@ export function EditDelegatePage() {
             width: ${theme.maxWidth.sm};
           `}
         >
-          {/*todo: hide delegate button*/}
-          <VoterPanel delegateFragment={query.delegate} queryFragment={query} />
+          {query.delegate ? (
+            <VoterPanel
+              delegateFragment={query.delegate}
+              queryFragment={query}
+            />
+          ) : (
+            <EmptyVoterPanel address={address} />
+          )}
         </div>
       </div>
     </PageContainer>
-  );
-}
-
-type DelegateStatementFormProps = {
-  queryFragment: PastProposalsFormSectionProposalListFragment$key;
-};
-
-function DelegateStatementForm({ queryFragment }: DelegateStatementFormProps) {
-  return (
-    <div
-      className={css`
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-
-        background: ${theme.colors.white};
-        border-width: ${theme.spacing.px};
-        border-color: ${theme.colors.gray["300"]};
-        border-radius: ${theme.borderRadius.md};
-        box-shadow: ${theme.boxShadow.md};
-      `}
-    >
-      <DelegateStatementFormSection />
-      <TopIssuesFormSection />
-      <PastProposalsFormSection queryFragment={queryFragment} />
-      <OtherInfoFormSection />
-
-      <div
-        className={css`
-          padding: ${theme.spacing["8"]} ${theme.spacing["6"]};
-
-          display: flex;
-          flex-direction: row;
-          justify-content: space-between;
-          align-items: center;
-        `}
-      >
-        <span className={tipTextStyle}>
-          Tip: you can always come back and edit your profile at any time.
-        </span>
-
-        <button className={buttonStyles}>Submit</button>
-      </div>
-    </div>
   );
 }
 

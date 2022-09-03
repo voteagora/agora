@@ -123,7 +123,6 @@ export function NounsRepresentedGrid({
   return (
     <div
       className={css`
-        padding: ${theme.spacing["2"]};
         margin: 0 auto;
       `}
     >
