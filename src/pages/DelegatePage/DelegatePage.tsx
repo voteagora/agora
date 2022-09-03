@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { DelegatePageQuery } from "./__generated__/DelegatePageQuery.graphql";
@@ -36,7 +36,8 @@ export function DelegatePage() {
   );
 
   if (!query.delegate) {
-    return null;
+    // todo: handle delegate not found
+    return <Navigate to="/" />;
   }
 
   return (

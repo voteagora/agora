@@ -39,10 +39,11 @@ export function PastProposalsFormSection({ queryFragment }: Props) {
       >
         <h3 className={formSectionHeadingStyle}>Views on past proposals</h3>
 
+        {/*  todo: so jank */}
         <div
           className={css`
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             margin-top: ${theme.spacing["4"]};
             gap: ${theme.spacing["4"]};
           `}
