@@ -1,30 +1,9 @@
-import {
-  Environment,
-  Network,
-  RecordSource,
-  RequestParameters,
-  Store,
-} from "relay-runtime";
+import { Environment, Network, RecordSource, Store } from "relay-runtime";
+import { fetchFn } from "./graphql/fetchFn";
 
-async function fetchFn(params: RequestParameters, variables: object) {
-  const response = await fetch(
-    "https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph",
-    {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        query: params.text,
-        variables,
-      }),
-    }
-  );
-
-  return await response.json();
-}
-
-const network = Network.create(fetchFn);
+const network = Network.create((request, variables) =>
+  fetchFn(request.text, variables)
+);
 
 const recordSource = new RecordSource();
 
