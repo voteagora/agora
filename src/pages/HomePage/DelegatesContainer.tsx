@@ -30,11 +30,6 @@ export function DelegatesContainer({ fragmentKey }: Props) {
     fragmentKey
   );
 
-  // todo: move
-  if (!voters) {
-    return null;
-  }
-
   return (
     <div
       className={css`
