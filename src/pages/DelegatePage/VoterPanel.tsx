@@ -274,7 +274,7 @@ function NameSection({ address, votes }: NameSectionProps) {
     >
       <span
         className={css`
-          font-size: ${theme.fontSize["2xl"]};
+          font-size: ${theme.fontSize["xl"]};
           font-weight: bolder;
         `}
       >
