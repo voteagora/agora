@@ -1,7 +1,7 @@
 import { fromMarkdown } from "mdast-util-from-markdown";
 
 export function getTitleFromProposalDescription(description: string) {
-  const parsed = fromMarkdown(description);
+  const parsed = fromMarkdown(description.slice(0, 500));
   const firstChild = parsed.children[0];
   if (firstChild.type !== "heading") {
     return null;
