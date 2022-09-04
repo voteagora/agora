@@ -1,11 +1,10 @@
-import { css, cx } from "@emotion/css";
+import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
 import { formSectionContainerStyles } from "./TopIssuesFormSection";
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkBreaks from "remark-breaks";
 import { Form } from "./DelegateStatementForm";
+import { Markdown } from "../../components/Markdown";
 
 export const tipTextStyle = css`
   font-size: ${theme.fontSize.xs};
@@ -109,12 +108,7 @@ export function DelegateStatementFormSection({
       )}
 
       {displayMode === "preview" && (
-        <ReactMarkdown
-          children={form.state.delegateStatement}
-          remarkPlugins={[remarkBreaks]}
-          // tailwind prose + max-width override disabled
-          className={cx("prose", "max-w-none")}
-        />
+        <Markdown markdown={form.state.delegateStatement} />
       )}
     </div>
   );

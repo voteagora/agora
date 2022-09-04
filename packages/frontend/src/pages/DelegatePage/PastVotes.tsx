@@ -22,22 +22,25 @@ export function PastVotes({ fragment }: Props) {
     fragment
   );
 
+  if (!votes.length) {
+    return null;
+  }
+
   return (
     <div
       className={css`
         display: flex;
         flex-direction: column;
-        width: 100%;
       `}
     >
-      <h1
+      <h2
         className={css`
           font-size: ${theme.fontSize["2xl"]};
           font-weight: bold;
         `}
       >
         Past Votes
-      </h1>
+      </h2>
 
       <div
         className={css`

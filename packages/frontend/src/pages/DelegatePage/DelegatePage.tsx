@@ -8,6 +8,10 @@ import { PageHeader } from "../../components/PageHeader";
 import { VoterPanel } from "./VoterPanel";
 import { PastVotes } from "./PastVotes";
 import { PageContainer } from "../../components/PageContainer";
+import { Markdown } from "../../components/Markdown";
+import { HStack, VStack } from "../../components/VStack";
+import { issueDefinitions } from "../EditDelegatePage/TopIssuesFormSection";
+import { icons } from "../../icons/icons";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
@@ -24,7 +28,11 @@ export function DelegatePage() {
             }
 
             statement {
-              __typename
+              statement
+              topIssues {
+                type
+                value
+              }
             }
           }
 
@@ -37,10 +45,9 @@ export function DelegatePage() {
     }
   );
 
-  if (
-    !query.address.wrappedDelegate.delegate &&
-    !query.address.wrappedDelegate.statement
-  ) {
+  const wrappedDelegate = query.address.wrappedDelegate;
+
+  if (!wrappedDelegate.delegate && !wrappedDelegate.statement) {
     // todo: handle delegate not found
     return <Navigate to="/" />;
   }
@@ -69,9 +76,88 @@ export function DelegatePage() {
           <VoterPanel delegateFragment={query.address} queryFragment={query} />
         </div>
 
-        {query.address.wrappedDelegate.delegate && (
-          <PastVotes fragment={query.address.wrappedDelegate.delegate} />
-        )}
+        <VStack gap="8">
+          {wrappedDelegate.statement?.statement && (
+            <VStack gap="4">
+              <h2
+                className={css`
+                  font-size: ${theme.fontSize["2xl"]};
+                  font-weight: bold;
+                `}
+              >
+                Delegate statement
+              </h2>
+
+              <Markdown markdown={wrappedDelegate.statement.statement} />
+            </VStack>
+          )}
+
+          {wrappedDelegate.statement?.topIssues.length && (
+            <VStack gap="4">
+              <h2
+                className={css`
+                  font-size: ${theme.fontSize["2xl"]};
+                  font-weight: bold;
+                `}
+              >
+                Top Issues
+              </h2>
+
+              <VStack gap="4">
+                {wrappedDelegate.statement.topIssues.flatMap((topIssue) => {
+                  const issueDef = issueDefinitions.find(
+                    (issue) => issue.key === topIssue.type
+                  );
+
+                  if (!issueDef) {
+                    return [];
+                  }
+
+                  return (
+                    <div
+                      className={css`
+                        border-radius: ${theme.spacing["3"]};
+                        border: 1px solid #ebebeb;
+                        box-shadow: ${theme.boxShadow.newDefault};
+                        padding: ${theme.spacing["3"]};
+                      `}
+                    >
+                      <HStack gap="4">
+                        <VStack justifyContent="center">
+                          <img
+                            src={icons[issueDef.icon]}
+                            className={css`
+                              padding: ${theme.spacing["3"]};
+                              border-radius: ${theme.spacing["2"]};
+                              box-shadow: ${theme.boxShadow.newDefault};
+                              border: 1px solid #ebebeb;
+                            `}
+                          />
+                        </VStack>
+
+                        <VStack>
+                          <div
+                            className={css`
+                              font-size: ${theme.fontSize.xs};
+                              color: #66676b;
+                            `}
+                          >
+                            {issueDef.title}
+                          </div>
+                          <div>{topIssue.value}</div>
+                        </VStack>
+                      </HStack>
+                    </div>
+                  );
+                })}
+              </VStack>
+            </VStack>
+          )}
+
+          {wrappedDelegate.delegate && (
+            <PastVotes fragment={wrappedDelegate.delegate} />
+          )}
+        </VStack>
       </div>
     </PageContainer>
   );

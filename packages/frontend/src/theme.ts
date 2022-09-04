@@ -63,6 +63,7 @@ export const colors = {
   white: "#fff",
 
   gray: {
+    eb: "#ebebeb",
     100: "#f7fafc",
     200: "#edf2f7",
     300: "#e2e8f0",
@@ -210,6 +211,8 @@ export const lineHeight = {
 };
 
 export const boxShadow = {
+  newDefault:
+    "0px 4px 12px rgba(0, 0, 0, 0.02), 0px 2px 2px rgba(0, 0, 0, 0.03)",
   xs: "0 0 0 1px rgba(0, 0, 0, 0.05)",
   sm: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
   default: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",

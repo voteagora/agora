@@ -332,13 +332,16 @@ function NameSection({ resolvedName, votes }: NameSectionProps) {
   );
 }
 
+const shadow =
+  "0px 4px 12px rgba(0, 0, 0, 0.02), 0px 2px 2px rgba(0, 0, 0, 0.03);";
+
 const containerStyles = css`
   position: sticky;
   top: ${theme.spacing["16"]};
   border-radius: ${theme.spacing["3"]};
   border-width: ${theme.spacing.px};
-  border-color: ${theme.colors.gray["300"]};
-  box-shadow: ${theme.boxShadow.lg};
+  border-color: ${theme.colors.gray.eb};
+  box-shadow: ${shadow};
 `;
 
 type EmptyVoterPanelProps = {

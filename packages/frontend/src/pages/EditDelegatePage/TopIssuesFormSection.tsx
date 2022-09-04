@@ -13,7 +13,7 @@ type IssueTypeDefinition = {
   icon: keyof typeof icons;
 };
 
-const issueDefinitions: IssueTypeDefinition[] = [
+export const issueDefinitions: IssueTypeDefinition[] = [
   {
     title: "Proliferation",
     key: "proliferation",
