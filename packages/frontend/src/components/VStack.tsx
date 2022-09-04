@@ -38,13 +38,13 @@ function Stack({
 export function VStack(props: Props) {
   return (
     <Stack
+      {...props}
       className={cx(
         css`
           flex-direction: column;
         `,
         props.className
       )}
-      {...props}
     />
   );
 }
