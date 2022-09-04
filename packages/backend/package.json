@@ -7,7 +7,7 @@
     "generate-schema": "node --loader ts-node/esm --es-module-specifier-resolution=node src/bin/generateSchema.ts > ../frontend/schema.graphql",
     "generate-typechain": "typechain --target ethers-v5 --out-dir src/contracts/generated src/contracts/abis/*.json",
     "generate-schema-types": "graphql-codegen",
-    "generate": "yarn run generate-schema && yarn run generate-typechain && yarn run generate-schema-types",
+    "generate": "yarn run generate-typechain && yarn run generate-schema-types && yarn run generate-schema",
     "fetch-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph > ./src/schemas/nouns-subgraph.graphql",
     "backend": "node --loader ts-node/esm --es-module-specifier-resolution=node src/bin/server.ts",
     "start": "yarn run generate && yarn run backend"
