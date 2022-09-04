@@ -6,31 +6,22 @@ import * as theme from "../../theme";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
 import { DelegatesContainer } from "./DelegatesContainer";
 import { PageHeader } from "../../components/PageHeader";
-import { usePrimaryAccount } from "../../components/EthersProviderProvider";
 import { PageContainer } from "../../components/PageContainer";
 
 export function HomePage() {
-  const address = usePrimaryAccount();
-
   const result = useLazyLoadQuery<HomePageQuery>(
     graphql`
-      query HomePageQuery($address: ID!) {
+      query HomePageQuery {
         ...DelegatesContainerFragment
         ...OverviewMetricsContainer
-
-        address(address: $address) {
-          ...PageHeaderFragment
-        }
       }
     `,
-    {
-      address,
-    }
+    {}
   );
 
   return (
     <PageContainer>
-      <PageHeader accountFragment={result.address} />
+      <PageHeader />
       <Hero />
       <OverviewMetricsContainer fragmentRef={result} />
       <PageDivider />

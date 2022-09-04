@@ -166,17 +166,15 @@ export async function makeGatewaySchema() {
           },
         },
 
-        account: {
-          resolve({ address }, args, context, info) {
-            return delegateToSchema({
-              schema: nounsSchema,
-              operation: OperationTypeNode.QUERY,
-              fieldName: "account",
-              args: { id: address },
-              context,
-              info,
-            });
-          },
+        account({ address }, args, context, info) {
+          return delegateToSchema({
+            schema: nounsSchema,
+            operation: OperationTypeNode.QUERY,
+            fieldName: "account",
+            args: { id: address },
+            context,
+            info,
+          });
         },
       },
 

@@ -7,31 +7,24 @@ import * as theme from "../../theme";
 import { PageHeader } from "../../components/PageHeader";
 import { VoterPanel } from "./VoterPanel";
 import { PastVotes } from "./PastVotes";
-import { usePrimaryAccount } from "../../components/EthersProviderProvider";
 import { PageContainer } from "../../components/PageContainer";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
-  const address = usePrimaryAccount();
 
   const query = useLazyLoadQuery<DelegatePageQuery>(
     graphql`
-      query DelegatePageQuery($id: ID!, $address: ID!) {
+      query DelegatePageQuery($id: ID!) {
         ...VoterPanelQueryFragment
 
         delegate(id: $id) {
           ...VoterPanelDelegateFragment
           ...PastVotesFragment
         }
-
-        address(address: $address) {
-          ...PageHeaderFragment
-        }
       }
     `,
     {
       id: delegateId ?? "",
-      address,
     }
   );
 
@@ -42,7 +35,7 @@ export function DelegatePage() {
 
   return (
     <PageContainer>
-      <PageHeader accountFragment={query.address} />
+      <PageHeader />
 
       <div
         className={css`

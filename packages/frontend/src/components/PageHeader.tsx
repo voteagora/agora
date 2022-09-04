@@ -2,18 +2,32 @@ import { css } from "@emotion/css";
 import * as theme from "../theme";
 import logo from "../logo.svg";
 import { Link } from "react-router-dom";
-import { NounResolvedName } from "./NounResolvedName";
 import { NounGridChildren } from "./NounGrid";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { PageHeaderFragment$key } from "./__generated__/PageHeaderFragment.graphql";
-import { PageHeaderOwnedNounsFragment$key } from "./__generated__/PageHeaderOwnedNounsFragment.graphql";
+import { ConnectKitButton } from "connectkit";
+import { useAccount } from "wagmi";
+import { useLazyLoadQuery } from "react-relay/hooks";
+import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
 
-type Props = {
-  accountFragment: PageHeaderFragment$key;
-};
+export function PageHeader() {
+  const { address: accountAddress } = useAccount();
 
-export function PageHeader({ accountFragment }: Props) {
+  const { address } = useLazyLoadQuery<PageHeaderQuery>(
+    graphql`
+      query PageHeaderQuery($address: ID!, $skip: Boolean!) {
+        address(address: $address) @skip(if: $skip) {
+          ...PageHeaderFragment
+        }
+      }
+    `,
+    {
+      address: accountAddress ?? "",
+      skip: !accountAddress,
+    }
+  );
+
   return (
     <div
       className={css`
@@ -57,27 +71,35 @@ export function PageHeader({ accountFragment }: Props) {
         className={css`
           display: flex;
           flex-direction: row;
-          align-items: center;
+          align-items: stretch;
           gap: ${theme.spacing["3"]};
         `}
       >
-        <Link
-          to="/create"
-          className={css`
-            border-radius: ${theme.borderRadius.lg};
-            border-width: ${theme.spacing.px};
-            padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
-            color: ${theme.colors.gray["200"]};
-            background: ${theme.colors.black};
+        {address && (
+          <Link
+            to="/create"
+            className={css`
+              border-radius: ${theme.borderRadius.lg};
+              border-width: ${theme.spacing.px};
+              padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
+              color: ${theme.colors.gray["200"]};
+              background: ${theme.colors.black};
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
 
-            :hover {
-              background: ${theme.colors.gray["800"]};
-            }
-          `}
-        >
-          Create
-        </Link>
-        <OwnedNounsPanel fragment={accountFragment} />
+              :hover {
+                background: ${theme.colors.gray["800"]};
+              }
+            `}
+          >
+            <div>Create</div>
+          </Link>
+        )}
+
+        <ConnectKitButton mode="light" />
+
+        {address && <OwnedNounsPanel fragment={address} />}
       </div>
     </div>
   );
@@ -88,20 +110,23 @@ type OwnedNounsPanelProps = {
 };
 
 function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
-  const { account, resolvedName } = useFragment(
+  const { account } = useFragment(
     graphql`
       fragment PageHeaderFragment on Address {
         account {
-          ...PageHeaderOwnedNounsFragment
-        }
-
-        resolvedName {
-          ...NounResolvedNameFragment
+          nouns {
+            id
+            ...NounImageFragment
+          }
         }
       }
     `,
     fragment
   );
+
+  if (!account || !account.nouns.length) {
+    return null;
+  }
 
   return (
     <div
@@ -115,38 +140,6 @@ function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
         flex-direction: row;
       `}
     >
-      {account && <OwnedNouns accountFragment={account} />}
-
-      <div
-        className={css`
-          padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
-        `}
-      >
-        <NounResolvedName resolvedName={resolvedName} />
-      </div>
-    </div>
-  );
-}
-
-type OwnedNounsProps = {
-  accountFragment: PageHeaderOwnedNounsFragment$key;
-};
-
-export function OwnedNouns({ accountFragment }: OwnedNounsProps) {
-  const account = useFragment(
-    graphql`
-      fragment PageHeaderOwnedNounsFragment on Account {
-        nouns {
-          id
-          ...NounImageFragment
-        }
-      }
-    `,
-    accountFragment
-  );
-
-  return (
-    <>
       <div
         className={css`
           display: flex;
@@ -164,13 +157,6 @@ export function OwnedNouns({ accountFragment }: OwnedNounsProps) {
           overflowFontSize={"sm"}
         />
       </div>
-
-      <div
-        className={css`
-          width: ${theme.spacing.px};
-          background: ${theme.colors.gray["300"]};
-        `}
-      />
-    </>
+    </div>
   );
 }

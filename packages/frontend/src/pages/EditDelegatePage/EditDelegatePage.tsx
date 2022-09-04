@@ -1,4 +1,3 @@
-import { usePrimaryAccount } from "../../components/EthersProviderProvider";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
@@ -14,28 +13,28 @@ import { PageContainer } from "../../components/PageContainer";
 import { DelegateStatementForm } from "./DelegateStatementForm";
 import { Suspense } from "react";
 import { EditDelegatePageLazyVoterPanelQuery } from "./__generated__/EditDelegatePageLazyVoterPanelQuery.graphql";
+import { useAccount } from "wagmi";
+import { Navigate } from "react-router-dom";
 
 export function EditDelegatePage() {
-  const address = usePrimaryAccount();
-
   const query = useLazyLoadQuery<EditDelegatePageQuery>(
     graphql`
-      query EditDelegatePageQuery($address: ID!) {
-        address(address: $address) {
-          ...PageHeaderFragment
-        }
-
+      query EditDelegatePageQuery {
         ...PastProposalsFormSectionProposalListFragment
       }
     `,
-    {
-      address,
-    }
+    {}
   );
+
+  const { address } = useAccount();
+
+  if (!address) {
+    return <Navigate to="/" />;
+  }
 
   return (
     <PageContainer>
-      <PageHeader accountFragment={query.address} />
+      <PageHeader />
 
       <div
         className={css`
@@ -57,7 +56,7 @@ export function EditDelegatePage() {
           `}
         >
           <Suspense fallback={<LoadingVoterPanel />}>
-            <LazyVoterPanel />
+            <LazyVoterPanel address={address} />
           </Suspense>
         </div>
       </div>
@@ -77,9 +76,11 @@ export const buttonStyles = css`
   }
 `;
 
-function LazyVoterPanel() {
-  const address = usePrimaryAccount();
+type LazyVoterPanelProps = {
+  address: string;
+};
 
+function LazyVoterPanel({ address }: LazyVoterPanelProps) {
   const query = useLazyLoadQuery<EditDelegatePageLazyVoterPanelQuery>(
     graphql`
       query EditDelegatePageLazyVoterPanelQuery($address: ID!) {
