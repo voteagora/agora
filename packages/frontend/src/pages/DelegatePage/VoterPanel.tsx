@@ -1,8 +1,5 @@
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { useNounsCount } from "../../hooks/useNounsCount";
-import { useProposalsCount } from "../../hooks/useProposalsCount";
-import { useQuorumVotes } from "../../hooks/useQuorumVotes";
 import { intersection } from "../../utils/set";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
@@ -59,24 +56,29 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
     delegateFragment
   );
 
-  const { proposals } = useFragment(
+  const { recentProposals, metrics } = useFragment(
     graphql`
       fragment VoterPanelQueryFragment on Query {
-        proposals(orderBy: createdBlock, orderDirection: desc, first: 10) {
+        recentProposals: proposals(
+          orderBy: createdBlock
+          orderDirection: desc
+          first: 10
+        ) {
           id
+        }
+
+        metrics {
+          totalSupply
+          proposalCount
+          quorumVotes
         }
       }
     `,
     queryFragment
   );
 
-  // todo: there is a waterfall here
-  const totalSupply = useNounsCount();
-  const proposalsCount = useProposalsCount();
-  const quorumVotes = useQuorumVotes();
-
   const lastTenProposals = new Set(
-    proposals.slice(0, 10).map((proposal) => proposal.id)
+    recentProposals.slice(0, 10).map((proposal) => proposal.id)
   );
   const votedProposals = new Set(
     delegate.votes.map((vote) => vote.proposal.id)
@@ -113,7 +115,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           <PanelRow
             title="Proposals voted"
             detail={`${delegate.votes.length} (${(
-              (delegate.votes.length / proposalsCount.toNumber()) *
+              (delegate.votes.length / Number(metrics.proposalCount)) *
               100
             ).toFixed(0)}%)`}
           />
@@ -121,10 +123,10 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           <PanelRow
             title="Voting power"
             detail={`${(
-              (delegate.nounsRepresented.length / totalSupply.toNumber()) *
+              (delegate.nounsRepresented.length / Number(metrics.totalSupply)) *
               100
             ).toFixed(0)}% all / ${(
-              (delegate.nounsRepresented.length / quorumVotes.toNumber()) *
+              (delegate.nounsRepresented.length / Number(metrics.quorumVotes)) *
               100
             ).toFixed(0)}% quorum`}
           />

@@ -4,18 +4,15 @@ import * as theme from "../../theme";
 import { icons } from "../../icons/icons";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { useNounsCount } from "../../hooks/useNounsCount";
-import { useQuorumVotes } from "../../hooks/useQuorumVotes";
 import { OverviewMetricsContainer$key } from "./__generated__/OverviewMetricsContainer.graphql";
-import { useQuorumBps } from "../../hooks/useQuorumBps";
-import { useProposalThreshold } from "../../hooks/useProposalThreshold";
+import { BigNumber } from "ethers";
 
 type Props = {
   fragmentRef: OverviewMetricsContainer$key;
 };
 
 export function OverviewMetricsContainer({ fragmentRef }: Props) {
-  const { delegates } = useFragment(
+  const { delegates, metrics } = useFragment(
     graphql`
       fragment OverviewMetricsContainer on Query {
         delegates(
@@ -26,15 +23,22 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
         ) {
           id
         }
+
+        metrics {
+          totalSupply
+          quorumVotes
+          quorumVotesBPS
+          proposalThreshold
+        }
       }
     `,
     fragmentRef
   );
 
-  const nounsCount = useNounsCount();
-  const quorumCount = useQuorumVotes();
-  const quorumBps = useQuorumBps();
-  const proposalThreshold = useProposalThreshold();
+  const nounsCount = BigNumber.from(metrics.totalSupply);
+  const quorumCount = BigNumber.from(metrics.quorumVotes);
+  const quorumBps = BigNumber.from(metrics.quorumVotesBPS);
+  const proposalThreshold = BigNumber.from(metrics.proposalThreshold);
 
   const votersCount = delegates.length;
 
