@@ -12,6 +12,9 @@ import {
   NounsToken__factory,
 } from "./contracts/generated";
 import { Resolvers } from "./generated/types";
+import { validateForm } from "./formSchema";
+
+const delegateStatements = new Map<string, ReturnType<typeof validateForm>>();
 
 export async function makeGatewaySchema() {
   const nounsSchema = await makeNounsSchema();
@@ -47,6 +50,12 @@ export async function makeGatewaySchema() {
         resolve(_, { address }) {
           return { address: address.toLowerCase() };
         },
+      },
+
+      wrappedDelegates() {
+        return Array.from(delegateStatements.keys()).map((address) => ({
+          address,
+        }));
       },
     },
 
@@ -102,10 +111,80 @@ export async function makeGatewaySchema() {
       },
     },
 
+    WrappedDelegate: {
+      id({ address }) {
+        return address;
+      },
+
+      delegate({ address }, args, context, info) {
+        return delegateToSchema({
+          schema: nounsSchema,
+          operation: OperationTypeNode.QUERY,
+          fieldName: "delegate",
+          args: { id: address },
+          context,
+          info,
+        });
+      },
+
+      statement({ address }) {
+        return delegateStatements.get(address);
+      },
+    },
+
+    DelegateStatement: {
+      statement({ values: { delegateStatement } }) {
+        return delegateStatement;
+      },
+
+      topIssues({ values: { topIssues } }) {
+        return topIssues as any;
+      },
+
+      leastValuableProposals({ values: { leastValuableProposals } }) {
+        // todo: fetch proposals
+        return leastValuableProposals as any;
+      },
+
+      mostValuableProposals({ values: { mostValuableProposals } }) {
+        // todo: implement
+        return mostValuableProposals as any;
+      },
+
+      discord({ values: { discord } }) {
+        return discord;
+      },
+
+      twitter({ values: { twitter } }) {
+        return twitter;
+      },
+
+      openToSponsoringProposals({ values: { openToSponsoringProposals } }) {
+        switch (openToSponsoringProposals) {
+          case "yes":
+            return true;
+
+          case "no":
+            return false;
+
+          default:
+            return null;
+        }
+      },
+    },
+
     Mutation: {
       createNewDelegateStatement: (parent, args, context, info) => {
-        // todo: implement
-        return null as any;
+        const validated = validateForm(
+          args.data.statementBodyJson,
+          args.data.statementBodyJsonSignature
+        );
+
+        delegateStatements.set(validated.address, validated);
+
+        return {
+          address: validated.address,
+        };
       },
     },
   };

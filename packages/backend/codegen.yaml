@@ -9,4 +9,6 @@ generates:
         OverallMetrics: ../model#OverallMetrics
         Address: ../model#Address
         ResolvedName: ../model#ResolvedName
+        WrappedDelegate: ../model#WrappedDelegate
+        DelegateStatement: ../model#DelegateStatement
 

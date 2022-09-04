@@ -1,0 +1,80 @@
+import { z, ZodArray, ZodTypeAny } from "zod";
+import { ethers } from "ethers";
+
+export function validateForm(serializedContents: string, signature: string) {
+  const address = ethers.utils.verifyMessage(serializedContents, signature);
+
+  const body = JSON.parse(serializedContents);
+  const values = formSchema.parse(body);
+
+  return {
+    address: address.toLowerCase(),
+    values,
+  };
+}
+
+const topIssueSchema = z
+  .object({
+    type: z.union([
+      z.literal("proliferation"),
+      z.literal("treasury"),
+      z.literal("funding"),
+    ]),
+    value: z.string(),
+  })
+  .strict();
+
+const selectedProposalSchema = z
+  .object({
+    id: z.string(),
+  })
+  .strict();
+
+function ensureUnique<T extends ZodTypeAny>(
+  array: ZodArray<T>,
+  extractKey: (item: T["_output"]) => string,
+  message: string
+) {
+  return array.refine(
+    (value) => value.length === new Set(value.map((it) => extractKey(it))).size,
+    message
+  );
+}
+
+const proposalsListSchema = ensureUnique(
+  z.array(selectedProposalSchema),
+  (it) => it.id,
+  "same proposal selected multiple times"
+);
+
+export const formSchema = z
+  .object({
+    for: z.literal("nouns-agora"),
+    delegateStatement: z.string(),
+    // todo: ensure no more than exactly one of each
+    topIssues: ensureUnique(
+      z.array(topIssueSchema),
+      (it) => it.type,
+      "duplicate types"
+    ),
+    mostValuableProposals: proposalsListSchema,
+    leastValuableProposals: proposalsListSchema,
+    twitter: z.string(),
+    discord: z.string(),
+    openToSponsoringProposals: z.union([
+      z.literal("yes"),
+      z.literal("no"),
+      z.null(),
+    ]),
+  })
+  .strict()
+  .refine(
+    (value) =>
+      value.leastValuableProposals.length +
+        value.mostValuableProposals.length ===
+      new Set([
+        ...value.leastValuableProposals.map((it) => it.id),
+        ...value.mostValuableProposals.map((it) => it.id),
+      ]).size,
+    "same proposals in both least valuable and most valuable"
+  );

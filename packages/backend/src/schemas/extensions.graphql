@@ -35,11 +35,11 @@ type ResolvedName {
 
 type WrappedDelegate {
   id: ID!
-  metadata: DelegateMetadata
+  statement: DelegateStatement
   delegate: Delegate
 }
 
-type DelegateMetadata {
+type DelegateStatement {
   statement: String!
   topIssues: [TopIssue!]!
   mostValuableProposals: [Proposal!]!

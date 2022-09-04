@@ -23,7 +23,8 @@
     "graphql": "^16.6.0",
     "mdast-util-from-markdown": "^1.2.0",
     "node-fetch": "^3.2.10",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "zod": "3.14.2"
   },
   "devDependencies": {
     "@typechain/ethers-v5": "^10.1.0",
