@@ -6,7 +6,7 @@ import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { OverviewMetricsContainer$key } from "./__generated__/OverviewMetricsContainer.graphql";
 import { BigNumber } from "ethers";
-import { HStack } from "../../components/VStack";
+import { HStack, VStack } from "../../components/VStack";
 
 type Props = {
   fragmentRef: OverviewMetricsContainer$key;
@@ -129,7 +129,7 @@ function MetricContainer({ icon, title, body }: MetricContainerProps) {
         />
       </div>
 
-      <HStack
+      <VStack
         className={css`
           padding-right: ${theme.spacing["1"]};
         `}
@@ -153,7 +153,7 @@ function MetricContainer({ icon, title, body }: MetricContainerProps) {
         >
           {body}
         </div>
-      </HStack>
+      </VStack>
     </HStack>
   );
 }
