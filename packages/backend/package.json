@@ -6,13 +6,17 @@
   "scripts": {
     "generate-schema": "node --loader ts-node/esm --es-module-specifier-resolution=node src/bin/generateSchema.ts > ../frontend/schema.graphql",
     "generate-typechain": "typechain --target ethers-v5 --out-dir src/contracts/generated src/contracts/abis/*.json",
+    "generate-schema-types": "graphql-codegen",
     "fetch-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph > ./src/schemas/nouns-subgraph.graphql",
     "backend": "node --loader ts-node/esm --es-module-specifier-resolution=node src/bin/server.ts"
   },
   "dependencies": {
+    "@graphql-codegen/cli": "^2.12.0",
+    "@graphql-codegen/typescript-resolvers": "^2.7.3",
     "@graphql-tools/delegate": "^9.0.4",
     "@graphql-tools/graphql-file-loader": "^7.5.3",
     "@graphql-tools/load": "^7.7.5",
+    "@graphql-tools/merge": "^8.3.4",
     "@graphql-tools/stitch": "^8.7.7",
     "@graphql-yoga/node": "^2.13.12",
     "get-graphql-schema": "^2.1.2",

@@ -2,6 +2,7 @@ import { stitchSchemas } from "@graphql-tools/stitch";
 import { getTitleFromProposalDescription } from "./utils/markdown";
 import { makeNounsSchema } from "./schemas/nouns-subgraph";
 import { delegateToSchema } from "@graphql-tools/delegate";
+import { mergeResolvers } from "@graphql-tools/merge";
 import { OperationTypeNode } from "graphql";
 import { promises as fs } from "fs";
 import { ethers } from "ethers";
@@ -10,6 +11,7 @@ import {
   NounsDAOLogicV1__factory,
   NounsToken__factory,
 } from "./contracts/generated";
+import { Resolvers } from "./generated/types";
 
 export async function makeGatewaySchema() {
   const nounsSchema = await makeNounsSchema();
@@ -33,75 +35,89 @@ export async function makeGatewaySchema() {
     provider
   );
 
-  return stitchSchemas({
-    subschemas: [nounsSchema],
+  const typedResolvers: Resolvers = {
+    Query: {
+      metrics: {
+        resolve() {
+          return {};
+        },
+      },
 
-    typeDefs: (
-      await fs.readFile("./src/schemas/extensions.graphql")
-    ).toString(),
+      address: {
+        resolve(_, { address }) {
+          return { address: address.toLowerCase() };
+        },
+      },
+    },
 
-    resolvers: {
+    OverallMetrics: {
+      async totalSupply() {
+        return (await nounsToken.totalSupply()).toString();
+      },
+
+      async proposalCount() {
+        return (await nounsDaoLogicV1.proposalCount()).toString();
+      },
+
+      async quorumVotes() {
+        return (await nounsDaoLogicV1.quorumVotes()).toString();
+      },
+
+      async quorumVotesBPS() {
+        return (await nounsDaoLogicV1.quorumVotesBPS()).toString();
+      },
+
+      async proposalThreshold() {
+        return (await nounsDaoLogicV1.proposalThreshold()).toString();
+      },
+    },
+
+    Address: {
+      resolvedName: {
+        resolve({ address }) {
+          return { address };
+        },
+      },
+
+      account({ address }, args, context, info) {
+        return delegateToSchema({
+          schema: nounsSchema,
+          operation: OperationTypeNode.QUERY,
+          fieldName: "account",
+          args: { id: address },
+          context,
+          info,
+        });
+      },
+    },
+
+    ResolvedName: {
+      async name({ address }) {
+        const resolved = await resolver.resolve(address);
+        if (!resolved) {
+          return null;
+        }
+
+        return resolved;
+      },
+    },
+
+    Mutation: {
+      createNewDelegateStatement: (parent, args, context, info) => {
+        // todo: implement
+        return null as any;
+      },
+    },
+  };
+
+  const resolvers = mergeResolvers([
+    typedResolvers,
+    {
       Proposal: {
         title: {
           selectionSet: `{ description }`,
           resolve({ description }) {
             return getTitleFromProposalDescription(description);
-          },
-        },
-      },
-
-      Query: {
-        metrics: {
-          resolve() {
-            return {};
-          },
-        },
-
-        address: {
-          resolve(_, { address }) {
-            return { address: address.toLowerCase() };
-          },
-        },
-      },
-
-      Mutation: {
-        createNewDelegateStatement: {
-          resolve(...args) {
-            console.log(...args);
-          },
-        },
-      },
-
-      OverallMetrics: {
-        totalSupply: {
-          async resolve() {
-            return (await nounsToken.totalSupply()).toString();
-          },
-        },
-
-        proposalCount: {
-          async resolve() {
-            return (await nounsDaoLogicV1.proposalCount()).toString();
-          },
-        },
-
-        quorumVotes: {
-          async resolve() {
-            const votes = (await nounsDaoLogicV1.quorumVotes()).toString();
-
-            return votes;
-          },
-        },
-
-        quorumVotesBPS: {
-          async resolve() {
-            return (await nounsDaoLogicV1.quorumVotesBPS()).toString();
-          },
-        },
-
-        proposalThreshold: {
-          async resolve() {
-            return (await nounsDaoLogicV1.proposalThreshold()).toString();
           },
         },
       },
@@ -123,38 +139,16 @@ export async function makeGatewaySchema() {
           },
         },
       },
-
-      Address: {
-        resolvedName: {
-          resolve({ address }) {
-            return { address };
-          },
-        },
-
-        account({ address }, args, context, info) {
-          return delegateToSchema({
-            schema: nounsSchema,
-            operation: OperationTypeNode.QUERY,
-            fieldName: "account",
-            args: { id: address },
-            context,
-            info,
-          });
-        },
-      },
-
-      ResolvedName: {
-        name: {
-          async resolve({ address }) {
-            const resolved = await resolver.resolve(address);
-            if (!resolved) {
-              return null;
-            }
-
-            return resolved;
-          },
-        },
-      },
     },
+  ]);
+
+  return stitchSchemas({
+    subschemas: [nounsSchema],
+
+    typeDefs: (
+      await fs.readFile("./src/schemas/extensions.graphql")
+    ).toString(),
+
+    resolvers,
   });
 }
