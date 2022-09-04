@@ -74,7 +74,7 @@ export function DelegatesContainer({ fragmentKey }: Props) {
         `}
       >
         {voters.map((voter) => (
-          <VoterCard fragmentRef={voter} />
+          <VoterCard key={voter.id} fragmentRef={voter} />
         ))}
       </div>
     </div>
