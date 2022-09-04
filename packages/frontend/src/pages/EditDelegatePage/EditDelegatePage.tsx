@@ -5,9 +5,15 @@ import { css } from "@emotion/css";
 import { EditDelegatePageQuery } from "./__generated__/EditDelegatePageQuery.graphql";
 import { PageHeader } from "../../components/PageHeader";
 import * as theme from "../../theme";
-import { EmptyVoterPanel, VoterPanel } from "../DelegatePage/VoterPanel";
+import {
+  EmptyVoterPanel,
+  LoadingVoterPanel,
+  VoterPanel,
+} from "../DelegatePage/VoterPanel";
 import { PageContainer } from "../../components/PageContainer";
 import { DelegateStatementForm } from "./DelegateStatementForm";
+import { Suspense } from "react";
+import { EditDelegatePageLazyVoterPanelQuery } from "./__generated__/EditDelegatePageLazyVoterPanelQuery.graphql";
 
 export function EditDelegatePage() {
   const address = usePrimaryAccount();
@@ -17,18 +23,9 @@ export function EditDelegatePage() {
       query EditDelegatePageQuery($address: ID!) {
         address(address: $address) {
           ...PageHeaderFragment
-
-          resolvedName {
-            ...NounResolvedLinkFragment
-          }
-        }
-
-        delegate(id: $address) {
-          ...VoterPanelDelegateFragment
         }
 
         ...PastProposalsFormSectionProposalListFragment
-        ...VoterPanelQueryFragment
       }
     `,
     {
@@ -59,14 +56,9 @@ export function EditDelegatePage() {
             width: ${theme.maxWidth.sm};
           `}
         >
-          {query.delegate ? (
-            <VoterPanel
-              delegateFragment={query.delegate}
-              queryFragment={query}
-            />
-          ) : (
-            <EmptyVoterPanel resolvedName={query.address.resolvedName} />
-          )}
+          <Suspense fallback={<LoadingVoterPanel />}>
+            <LazyVoterPanel />
+          </Suspense>
         </div>
       </div>
     </PageContainer>
@@ -84,3 +76,34 @@ export const buttonStyles = css`
     background: ${theme.colors.gray["200"]};
   }
 `;
+
+function LazyVoterPanel() {
+  const address = usePrimaryAccount();
+
+  const query = useLazyLoadQuery<EditDelegatePageLazyVoterPanelQuery>(
+    graphql`
+      query EditDelegatePageLazyVoterPanelQuery($address: ID!) {
+        address(address: $address) {
+          resolvedName {
+            ...NounResolvedLinkFragment
+          }
+        }
+
+        delegate(id: $address) {
+          ...VoterPanelDelegateFragment
+        }
+
+        ...VoterPanelQueryFragment
+      }
+    `,
+    {
+      address,
+    }
+  );
+
+  return query.delegate ? (
+    <VoterPanel delegateFragment={query.delegate} queryFragment={query} />
+  ) : (
+    <EmptyVoterPanel resolvedName={query.address.resolvedName} />
+  );
+}

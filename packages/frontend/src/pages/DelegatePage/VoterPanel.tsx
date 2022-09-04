@@ -387,3 +387,16 @@ export function EmptyVoterPanel({ resolvedName }: EmptyVoterPanelProps) {
     </div>
   );
 }
+
+export function LoadingVoterPanel() {
+  return (
+    <div
+      className={css`
+        padding: ${theme.spacing["8"]} ${theme.spacing["10"]};
+        ${containerStyles};
+      `}
+    >
+      Loading...
+    </div>
+  );
+}
