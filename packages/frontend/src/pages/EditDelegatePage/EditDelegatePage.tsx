@@ -88,10 +88,12 @@ function LazyVoterPanel({ address }: LazyVoterPanelProps) {
           resolvedName {
             ...NounResolvedLinkFragment
           }
-        }
 
-        delegate(id: $address) {
-          ...VoterPanelDelegateFragment
+          account {
+            delegate {
+              ...VoterPanelDelegateFragment
+            }
+          }
         }
 
         ...VoterPanelQueryFragment
@@ -102,8 +104,11 @@ function LazyVoterPanel({ address }: LazyVoterPanelProps) {
     }
   );
 
-  return query.delegate ? (
-    <VoterPanel delegateFragment={query.delegate} queryFragment={query} />
+  return query.address?.account?.delegate ? (
+    <VoterPanel
+      delegateFragment={query.address?.account?.delegate}
+      queryFragment={query}
+    />
   ) : (
     <EmptyVoterPanel resolvedName={query.address.resolvedName} />
   );
