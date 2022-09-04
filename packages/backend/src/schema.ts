@@ -69,6 +69,10 @@ export async function makeGatewaySchema() {
         address(address: ID!): Address!
       }
       
+      extend type Account {
+        address: Address!
+      }
+      
       type Address {
         resolvedName: ResolvedName!
         account: Account
@@ -111,7 +115,7 @@ export async function makeGatewaySchema() {
 
         address: {
           resolve(_, { address }) {
-            return { address };
+            return { address: address.toLowerCase() };
           },
         },
       },
@@ -155,6 +159,15 @@ export async function makeGatewaySchema() {
           selectionSet: `{ id }`,
           resolve({ id }) {
             return { address: id };
+          },
+        },
+      },
+
+      Account: {
+        address: {
+          selectionSet: `{ id }`,
+          resolve({ id }) {
+            return { address: id.toLowerCase() };
           },
         },
       },

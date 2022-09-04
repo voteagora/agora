@@ -964,6 +964,7 @@ type Account {
 
   """The Nouns owned by this account"""
   nouns(skip: Int = 0, first: Int = 100, orderBy: Noun_orderBy, orderDirection: OrderDirection, where: Noun_filter): [Noun!]!
+  address: Address!
 }
 
 input Account_filter {

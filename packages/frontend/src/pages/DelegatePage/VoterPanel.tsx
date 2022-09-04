@@ -35,6 +35,12 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
         tokenHoldersRepresented {
           id
 
+          address {
+            resolvedName {
+              ...NounResolvedLinkFragment
+            }
+          }
+
           nouns {
             id
             ...NounImageFragment
@@ -166,7 +172,9 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
                     overflow: hidden;
                   `}
                 >
-                  <NounResolvedLink resolvedName={delegate.resolvedName} />
+                  <NounResolvedLink
+                    resolvedName={holder.address.resolvedName}
+                  />
                 </div>
 
                 <div
@@ -248,14 +256,22 @@ const PanelRow = ({ title, detail }: PanelRowProps) => {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
+        gap: ${theme.spacing["4"]};
       `}
     >
-      <span>{title}</span>
+      <span
+        className={css`
+          white-space: nowrap;
+        `}
+      >
+        {title}
+      </span>
 
       <span
         className={css`
           font-size: ${theme.fontSize.sm};
           color: #66676b;
+          text-align: right;
         `}
       >
         {detail}
