@@ -10,24 +10,18 @@ import {
 } from "./TopIssuesFormSection";
 import useClickOutside from "@restart/ui/useClickOutside";
 import { CloseButton } from "./CloseButton";
+import { Form } from "./DelegateStatementForm";
 
 type Props = {
   queryFragment: PastProposalsFormSectionProposalListFragment$key;
+  form: Form;
 };
 
 export const formSectionHeadingStyle = css`
   font-weight: bold;
 `;
 
-export function PastProposalsFormSection({ queryFragment }: Props) {
-  const [mostValuableProposals, setMostValuableProposals] = useState<
-    SelectedProposal[]
-  >([]);
-
-  const [leastValuableProposals, setLeastValuableProposals] = useState<
-    SelectedProposal[]
-  >([]);
-
+export function PastProposalsFormSection({ queryFragment, form }: Props) {
   return (
     <div className={formSectionContainerStyles}>
       <div
@@ -48,15 +42,15 @@ export function PastProposalsFormSection({ queryFragment }: Props) {
           `}
         >
           <ProposalList
-            selectedProposals={mostValuableProposals}
-            setSelectedProposals={setMostValuableProposals}
+            selectedProposals={form.state.mostValuablePastProposals}
+            setSelectedProposals={form.onChange.mostValuablePastProposals}
             title="Most valuable"
             queryFragment={queryFragment}
           />
 
           <ProposalList
-            selectedProposals={leastValuableProposals}
-            setSelectedProposals={setLeastValuableProposals}
+            selectedProposals={form.state.leastValuablePastProposals}
+            setSelectedProposals={form.onChange.leastValuablePastProposals}
             title="Least valuable"
             queryFragment={queryFragment}
           />
@@ -246,7 +240,7 @@ function ProposalList({
   );
 }
 
-type SelectedProposal = {
+export type SelectedProposal = {
   id: string;
 };
 

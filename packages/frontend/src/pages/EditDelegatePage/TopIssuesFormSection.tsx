@@ -1,10 +1,11 @@
 import { icons } from "../../icons/icons";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { Dropdown } from "./Dropdown";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
 import { CloseButton } from "./CloseButton";
+import { Form } from "./DelegateStatementForm";
 
 type IssueTypeDefinition = {
   key: string;
@@ -30,7 +31,7 @@ const issueDefinitions: IssueTypeDefinition[] = [
   },
 ];
 
-type IssueState = {
+export type IssueState = {
   type: string;
   value: string;
 };
@@ -48,11 +49,17 @@ export const formSectionContainerStyles = css`
   border-color: ${theme.colors.gray["300"]};
 `;
 
-export function TopIssuesFormSection() {
-  const [topIssues, setTopIssues] = useState<IssueState[]>(() => [
-    initialIssueState("treasury"),
-    initialIssueState("proliferation"),
-  ]);
+export function initialTopIssues(): IssueState[] {
+  return [initialIssueState("treasury"), initialIssueState("proliferation")];
+}
+
+type Props = {
+  form: Form;
+};
+
+export function TopIssuesFormSection({ form }: Props) {
+  const topIssues = form.state.topIssues;
+  const setTopIssues = form.onChange.topIssues;
 
   const addIssue = useCallback(
     (selectionKey: string) => {
@@ -74,6 +81,24 @@ export function TopIssuesFormSection() {
     (selectionKey: string) => {
       setTopIssues((lastIssues) =>
         lastIssues.filter((needle) => needle.type !== selectionKey)
+      );
+    },
+    [setTopIssues]
+  );
+
+  const updateIssue = useCallback(
+    (key: string, value: string) => {
+      setTopIssues((lastIssues) =>
+        lastIssues.map((issue) => {
+          if (issue.type === key) {
+            return {
+              ...issue,
+              value,
+            };
+          }
+
+          return issue;
+        })
       );
     },
     [setTopIssues]
@@ -169,6 +194,10 @@ export function TopIssuesFormSection() {
                   className={sharedInputStyle}
                   type="text"
                   placeholder={`On ${issueDef.title.toLowerCase()}, I believe...`}
+                  value={issue.value}
+                  onChange={(evt) =>
+                    updateIssue(issueDef.key, evt.target.value)
+                  }
                 />
               </div>
             </div>

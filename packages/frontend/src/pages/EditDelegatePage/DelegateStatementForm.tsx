@@ -5,18 +5,54 @@ import {
   DelegateStatementFormSection,
   tipTextStyle,
 } from "./DelegateStatementFormSection";
-import { TopIssuesFormSection } from "./TopIssuesFormSection";
-import { PastProposalsFormSection } from "./PastProposalsFormSection";
+import {
+  initialTopIssues,
+  IssueState,
+  TopIssuesFormSection,
+} from "./TopIssuesFormSection";
+import {
+  PastProposalsFormSection,
+  SelectedProposal,
+} from "./PastProposalsFormSection";
 import { OtherInfoFormSection } from "./OtherInfoFormSection";
 import { buttonStyles } from "./EditDelegatePage";
+import { UseForm, useForm } from "./useForm";
 
 type DelegateStatementFormProps = {
   queryFragment: PastProposalsFormSectionProposalListFragment$key;
 };
 
+type FormValues = {
+  delegateStatement: string;
+  topIssues: IssueState[];
+  mostValuablePastProposals: SelectedProposal[];
+  leastValuablePastProposals: SelectedProposal[];
+  twitter: string;
+  discord: string;
+  email: string;
+  openToSponsoringProposals: "yes" | "no" | undefined;
+};
+
+function initialFormValues(): FormValues {
+  return {
+    delegateStatement: "",
+    topIssues: initialTopIssues(),
+    mostValuablePastProposals: [],
+    leastValuablePastProposals: [],
+    twitter: "",
+    discord: "",
+    email: "",
+    openToSponsoringProposals: undefined,
+  };
+}
+
+export type Form = UseForm<FormValues>;
+
 export function DelegateStatementForm({
   queryFragment,
 }: DelegateStatementFormProps) {
+  const form = useForm(initialFormValues);
+
   return (
     <div
       className={css`
@@ -31,10 +67,10 @@ export function DelegateStatementForm({
         box-shadow: ${theme.boxShadow.md};
       `}
     >
-      <DelegateStatementFormSection />
-      <TopIssuesFormSection />
-      <PastProposalsFormSection queryFragment={queryFragment} />
-      <OtherInfoFormSection />
+      <DelegateStatementFormSection form={form} />
+      <TopIssuesFormSection form={form} />
+      <PastProposalsFormSection form={form} queryFragment={queryFragment} />
+      <OtherInfoFormSection form={form} />
 
       <div
         className={css`
@@ -50,7 +86,12 @@ export function DelegateStatementForm({
           Tip: you can always come back and edit your profile at any time.
         </span>
 
-        <button className={buttonStyles}>Submit</button>
+        <button
+          className={buttonStyles}
+          onClick={() => console.log(form.state)}
+        >
+          Submit
+        </button>
       </div>
     </div>
   );

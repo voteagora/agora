@@ -5,6 +5,7 @@ import { formSectionContainerStyles } from "./TopIssuesFormSection";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
+import { Form } from "./DelegateStatementForm";
 
 export const tipTextStyle = css`
   font-size: ${theme.fontSize.xs};
@@ -32,9 +33,14 @@ const displayModeSelectorSelectedStyles = css`
   }
 `;
 
-export function DelegateStatementFormSection() {
+type DelegateStatementFormSectionProps = {
+  form: Form;
+};
+
+export function DelegateStatementFormSection({
+  form,
+}: DelegateStatementFormSectionProps) {
   const [displayMode, setDisplayMode] = useState<DisplayMode>("write");
-  const [delegateStatement, setDelegateStatement] = useState("");
 
   return (
     <div
@@ -96,15 +102,15 @@ export function DelegateStatementFormSection() {
             min-height: ${theme.spacing["64"]};
             box-shadow: ${theme.boxShadow.inner};
           `}
-          value={delegateStatement}
-          onChange={(e) => setDelegateStatement(e.target.value)}
+          value={form.state.delegateStatement}
+          onChange={(e) => form.onChange.delegateStatement(e.target.value)}
           placeholder="I believe that..."
         />
       )}
 
       {displayMode === "preview" && (
         <ReactMarkdown
-          children={delegateStatement}
+          children={form.state.delegateStatement}
           remarkPlugins={[remarkBreaks]}
           // tailwind prose + max-width override disabled
           className={cx("prose", "max-w-none")}

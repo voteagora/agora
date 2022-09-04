@@ -5,6 +5,8 @@ import { sharedInputStyle } from "./TopIssuesFormSection";
 type Props = {
   title: string;
   placeholder: string;
+  value: string;
+  onChange: (next: string) => void;
 };
 
 export const inputLabelStyle = css`
@@ -13,7 +15,7 @@ export const inputLabelStyle = css`
   margin-bottom: ${theme.spacing["2"]};
 `;
 
-export function InputGroup({ title, placeholder }: Props) {
+export function InputGroup({ title, placeholder, value, onChange }: Props) {
   return (
     <label
       className={css`
@@ -22,7 +24,12 @@ export function InputGroup({ title, placeholder }: Props) {
       `}
     >
       <h4 className={inputLabelStyle}>{title}</h4>
-      <input className={sharedInputStyle} placeholder={placeholder} />
+      <input
+        className={sharedInputStyle}
+        placeholder={placeholder}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
     </label>
   );
 }
