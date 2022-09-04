@@ -1,7 +1,5 @@
-import "isomorphic-fetch";
-
 import { createServer } from "@graphql-yoga/node";
-import { makeGatewaySchema } from "./schema";
+import { makeGatewaySchema } from "../schema";
 
 async function main() {
   const schema = await makeGatewaySchema();

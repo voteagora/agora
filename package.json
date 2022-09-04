@@ -1,7 +1,8 @@
 {
   "private": true,
   "workspaces": [
-    "./packages/frontend"
+    "./packages/frontend",
+    "./packages/backend"
   ],
   "devDependencies": {
     "prettier": "^2.7.1"

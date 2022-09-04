@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "version": "0.1.0",
+  "name": "nouns-agora-backend",
+  "type": "module",
+  "scripts": {
+    "generate-schema": "node --loader ts-node/esm --es-module-specifier-resolution=node src/bin/generateScheama.ts > ../frontend/schema.graphql",
+    "fetch-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph > ./src/schemas/nouns-subgraph.graphql",
+    "backend": "node --loader ts-node/esm --es-module-specifier-resolution=node src/bin/server.ts"
+  },
+  "dependencies": {
+    "@graphql-tools/graphql-file-loader": "^7.5.3",
+    "@graphql-tools/load": "^7.7.5",
+    "@graphql-tools/stitch": "^8.7.7",
+    "@graphql-yoga/node": "^2.13.12",
+    "get-graphql-schema": "^2.1.2",
+    "graphql": "^16.6.0",
+    "node-fetch": "^3.2.10",
+    "ts-node": "^10.9.1"
+  }
+}
