@@ -1,19 +1,19 @@
 import { stitchSchemas } from "@graphql-tools/stitch";
-import { loadSchema } from "@graphql-tools/load";
-import { GraphQLFileLoader } from "@graphql-tools/graphql-file-loader";
-import { print } from "graphql";
-import fetch from "node-fetch";
 import { getTitleFromProposalDescription } from "./utils/markdown";
+import { makeNounsSchema } from "./schemas/nouns-subgraph";
+import { delegateToSchema } from "@graphql-tools/delegate";
+import { OperationTypeNode } from "graphql";
+import { promises as fs } from "fs";
 import { ethers } from "ethers";
 import {
   NNSENSReverseResolver__factory,
   NounsDAOLogicV1__factory,
   NounsToken__factory,
 } from "./contracts/generated";
-import { delegateToSchema } from "@graphql-tools/delegate";
-import { OperationTypeNode } from "graphql";
 
 export async function makeGatewaySchema() {
+  const nounsSchema = await makeNounsSchema();
+
   const provider = new ethers.providers.AlchemyProvider(
     null,
     process.env.ALCHEMY_API_KEY
@@ -33,68 +33,12 @@ export async function makeGatewaySchema() {
     provider
   );
 
-  const nounsSchema = {
-    schema: await loadSchema("./src/schemas/nouns-subgraph.graphql", {
-      loaders: [new GraphQLFileLoader()],
-    }),
-    async executor({ document, variables }) {
-      const response = await fetch(
-        "https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph",
-        {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            query: print(document),
-            variables,
-          }),
-        }
-      );
-
-      return (await response.json()) as any;
-    },
-  };
-
   return stitchSchemas({
     subschemas: [nounsSchema],
 
-    typeDefs: `
-      extend type Proposal {
-        title: String
-      }
-      
-      extend type Query {
-        metrics: OverallMetrics!
-        address(address: ID!): Address!
-      }
-      
-      extend type Account {
-        address: Address!
-      }
-      
-      type Address {
-        resolvedName: ResolvedName!
-        account: Account
-      }
-      
-      type OverallMetrics {
-        totalSupply: BigInt!
-        proposalCount: BigInt!
-        quorumVotes: BigInt!
-        quorumVotesBPS: BigInt!
-        proposalThreshold: BigInt!
-      }
-      
-      extend type Delegate {
-        resolvedName: ResolvedName!
-      }
-      
-      type ResolvedName {
-        address: ID!
-        name: String
-      }
-    `,
+    typeDefs: (
+      await fs.readFile("./src/schemas/extensions.graphql")
+    ).toString(),
 
     resolvers: {
       Proposal: {
@@ -116,6 +60,14 @@ export async function makeGatewaySchema() {
         address: {
           resolve(_, { address }) {
             return { address: address.toLowerCase() };
+          },
+        },
+      },
+
+      Mutation: {
+        createNewDelegateStatement: {
+          resolve(...args) {
+            console.log(...args);
           },
         },
       },

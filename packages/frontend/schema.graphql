@@ -444,6 +444,7 @@ type Query {
   _meta(block: Block_height): _Meta_
   metrics: OverallMetrics!
   address(address: ID!): Address!
+  wrappedDelegates: [WrappedDelegate!]!
 }
 
 type Subscription {
@@ -2417,4 +2418,34 @@ type OverallMetrics {
 type ResolvedName {
   address: ID!
   name: String
+}
+
+type WrappedDelegate {
+  id: ID!
+  metadata: DelegateMetadata
+  delegate: Delegate
+}
+
+type DelegateMetadata {
+  statement: String!
+  topIssues: [TopIssue!]!
+  mostValuableProposals: [Proposal!]!
+  leastValuableProposals: [Proposal!]!
+  twitter: String!
+  discord: String!
+  openToSponsoringProposals: Boolean
+}
+
+type TopIssue {
+  type: String!
+  value: String!
+}
+
+type Mutation {
+  createNewDelegateStatement(data: CreateNewDelegateStatementData): WrappedDelegate!
+}
+
+input CreateNewDelegateStatementData {
+  statementBodyJson: String!
+  statementBodyJsonSignature: String!
 }

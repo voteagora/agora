@@ -1,0 +1,70 @@
+extend type Proposal {
+  title: String
+}
+
+extend type Account {
+  address: Address!
+}
+
+extend type Delegate {
+  resolvedName: ResolvedName!
+}
+
+type Query {
+  metrics: OverallMetrics!
+  address(address: ID!): Address!
+}
+
+type Address {
+  resolvedName: ResolvedName!
+  account: Account
+}
+
+type OverallMetrics {
+  totalSupply: BigInt!
+  proposalCount: BigInt!
+  quorumVotes: BigInt!
+  quorumVotesBPS: BigInt!
+  proposalThreshold: BigInt!
+}
+
+type ResolvedName {
+  address: ID!
+  name: String
+}
+
+type WrappedDelegate {
+  id: ID!
+  metadata: DelegateMetadata
+  delegate: Delegate
+}
+
+type DelegateMetadata {
+  statement: String!
+  topIssues: [TopIssue!]!
+  mostValuableProposals: [Proposal!]!
+  leastValuableProposals: [Proposal!]!
+  twitter: String!
+  discord: String!
+  openToSponsoringProposals: Boolean
+}
+
+type TopIssue {
+  type: String!
+  value: String!
+}
+
+type Mutation {
+  createNewDelegateStatement(
+    data: CreateNewDelegateStatementData
+  ): WrappedDelegate!
+}
+
+input CreateNewDelegateStatementData {
+  statementBodyJson: String!
+  statementBodyJsonSignature: String!
+}
+
+type Query {
+  wrappedDelegates: [WrappedDelegate!]!
+}

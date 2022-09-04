@@ -42,15 +42,15 @@ export function PastProposalsFormSection({ queryFragment, form }: Props) {
           `}
         >
           <ProposalList
-            selectedProposals={form.state.mostValuablePastProposals}
-            setSelectedProposals={form.onChange.mostValuablePastProposals}
+            selectedProposals={form.state.mostValuableProposals}
+            setSelectedProposals={form.onChange.mostValuableProposals}
             title="Most valuable"
             queryFragment={queryFragment}
           />
 
           <ProposalList
-            selectedProposals={form.state.leastValuablePastProposals}
-            setSelectedProposals={form.onChange.leastValuablePastProposals}
+            selectedProposals={form.state.leastValuableProposals}
+            setSelectedProposals={form.onChange.leastValuableProposals}
             title="Least valuable"
             queryFragment={queryFragment}
           />

@@ -43,5 +43,11 @@ export function useForm<T extends Record<string, any>>(
     [initialState, setState]
   ) as any;
 
-  return { state, onChange };
+  return useMemo(
+    () => ({
+      state,
+      onChange,
+    }),
+    [state, onChange]
+  );
 }

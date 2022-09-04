@@ -17,6 +17,11 @@ import {
 import { OtherInfoFormSection } from "./OtherInfoFormSection";
 import { buttonStyles } from "./EditDelegatePage";
 import { UseForm, useForm } from "./useForm";
+import { useSigner } from "wagmi";
+import { useMutation } from "react-relay";
+import { useMutation as useReactQueryMutation } from "@tanstack/react-query";
+import graphql from "babel-plugin-relay/macro";
+import { DelegateStatementFormMutation } from "./__generated__/DelegateStatementFormMutation.graphql";
 
 type DelegateStatementFormProps = {
   queryFragment: PastProposalsFormSectionProposalListFragment$key;
@@ -25,8 +30,8 @@ type DelegateStatementFormProps = {
 type FormValues = {
   delegateStatement: string;
   topIssues: IssueState[];
-  mostValuablePastProposals: SelectedProposal[];
-  leastValuablePastProposals: SelectedProposal[];
+  mostValuableProposals: SelectedProposal[];
+  leastValuableProposals: SelectedProposal[];
   twitter: string;
   discord: string;
   email: string;
@@ -37,8 +42,8 @@ function initialFormValues(): FormValues {
   return {
     delegateStatement: "",
     topIssues: initialTopIssues(),
-    mostValuablePastProposals: [],
-    leastValuablePastProposals: [],
+    mostValuableProposals: [],
+    leastValuableProposals: [],
     twitter: "",
     discord: "",
     email: "",
@@ -52,6 +57,53 @@ export function DelegateStatementForm({
   queryFragment,
 }: DelegateStatementFormProps) {
   const form = useForm(initialFormValues);
+
+  const [createNewDelegateStatement, isMutationInFlight] =
+    useMutation<DelegateStatementFormMutation>(
+      graphql`
+        mutation DelegateStatementFormMutation(
+          $input: CreateNewDelegateStatementData
+        ) {
+          createNewDelegateStatement(data: $input) {
+            id
+          }
+        }
+      `
+    );
+
+  const { data: signer } = useSigner();
+  const submitMutation = useReactQueryMutation(["submit"], async () => {
+    if (!signer) {
+      return;
+    }
+
+    const formState = form.state;
+    const signingBody = {
+      for: "nouns-agora",
+      delegateStatement: formState.delegateStatement,
+      topIssues: formState.topIssues,
+      mostValuablePastProposals: formState.mostValuableProposals,
+      leastValuablePastProposals: formState.leastValuableProposals,
+      twitter: formState.twitter,
+      discord: formState.discord,
+      openToSponsoringProposals: formState.openToSponsoringProposals ?? null,
+    };
+    const serializedBody = JSON.stringify(signingBody, undefined, "\t");
+
+    const signature = await signer.signMessage(serializedBody);
+
+    createNewDelegateStatement({
+      variables: {
+        input: {
+          statementBodyJson: serializedBody,
+          statementBodyJsonSignature: signature,
+        },
+      },
+    });
+  });
+
+  const canSubmit =
+    !!signer && !isMutationInFlight && !submitMutation.isLoading;
 
   return (
     <div
@@ -88,7 +140,8 @@ export function DelegateStatementForm({
 
         <button
           className={buttonStyles}
-          onClick={() => console.log(form.state)}
+          disabled={!canSubmit}
+          onClick={() => submitMutation.mutate()}
         >
           Submit
         </button>
