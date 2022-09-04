@@ -16,6 +16,7 @@
     "get-graphql-schema": "^2.1.2",
     "graphql": "^16.6.0",
     "node-fetch": "^3.2.10",
+    "mdast-util-from-markdown": "^1.2.0",
     "ts-node": "^10.9.1"
   }
 }

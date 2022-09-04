@@ -3,7 +3,6 @@ import graphql from "babel-plugin-relay/macro";
 import { BigNumber, utils } from "ethers";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { VoteDetailsFragment$key } from "./__generated__/VoteDetailsFragment.graphql";
 
 type Props = {
@@ -21,7 +20,7 @@ export function VoteDetails({ voteFragment }: Props) {
 
         proposal {
           id
-          description
+          title
 
           values
         }
@@ -72,9 +71,7 @@ export function VoteDetails({ voteFragment }: Props) {
           font-size: ${theme.fontSize.lg};
         `}
       >
-        <a href={proposalHref}>
-          {getTitleFromProposalDescription(vote.proposal.description)}
-        </a>
+        <a href={proposalHref}>{vote.proposal.title}</a>
       </h2>
       <p>{vote.reason}</p>
     </div>

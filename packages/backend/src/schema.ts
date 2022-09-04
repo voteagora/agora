@@ -3,6 +3,7 @@ import { loadSchema } from "@graphql-tools/load";
 import { GraphQLFileLoader } from "@graphql-tools/graphql-file-loader";
 import { print } from "graphql";
 import fetch from "node-fetch";
+import { getTitleFromProposalDescription } from "./utils/markdown";
 
 export async function makeGatewaySchema() {
   return stitchSchemas({
@@ -30,5 +31,22 @@ export async function makeGatewaySchema() {
         },
       },
     ],
+
+    typeDefs: `
+      extend type Proposal {
+        title: String
+      }
+    `,
+
+    resolvers: {
+      Proposal: {
+        title: {
+          selectionSet: `{ description }`,
+          resolve(proposal) {
+            return getTitleFromProposalDescription(proposal.description);
+          },
+        },
+      },
+    },
   });
 }

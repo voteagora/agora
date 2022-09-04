@@ -4,7 +4,6 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { PastProposalsFormSectionProposalListFragment$key } from "./__generated__/PastProposalsFormSectionProposalListFragment.graphql";
-import { getTitleFromProposalDescription } from "../../utils/markdown";
 import {
   formSectionContainerStyles,
   sharedInputStyle,
@@ -91,7 +90,7 @@ function ProposalList({
           orderBy: createdBlock
         ) {
           id
-          description
+          title
         }
       }
     `,
@@ -103,7 +102,7 @@ function ProposalList({
   const mappedProposals: SearchableProposal[] = useMemo(
     () =>
       allProposals.map((proposal) => {
-        const title = getTitleFromProposalDescription(proposal.description);
+        const title = proposal.title;
 
         return {
           id: proposal.id,
