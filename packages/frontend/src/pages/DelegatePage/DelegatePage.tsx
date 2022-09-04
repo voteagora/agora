@@ -17,9 +17,18 @@ export function DelegatePage() {
       query DelegatePageQuery($id: ID!) {
         ...VoterPanelQueryFragment
 
-        delegate(id: $id) {
+        address(address: $id) {
+          wrappedDelegate {
+            delegate {
+              ...PastVotesFragment
+            }
+
+            statement {
+              __typename
+            }
+          }
+
           ...VoterPanelDelegateFragment
-          ...PastVotesFragment
         }
       }
     `,
@@ -28,7 +37,10 @@ export function DelegatePage() {
     }
   );
 
-  if (!query.delegate) {
+  if (
+    !query.address.wrappedDelegate.delegate &&
+    !query.address.wrappedDelegate.statement
+  ) {
     // todo: handle delegate not found
     return <Navigate to="/" />;
   }
@@ -54,10 +66,12 @@ export function DelegatePage() {
             width: ${theme.maxWidth.sm};
           `}
         >
-          <VoterPanel delegateFragment={query.delegate} queryFragment={query} />
+          <VoterPanel delegateFragment={query.address} queryFragment={query} />
         </div>
 
-        <PastVotes fragment={query.delegate} />
+        {query.address.wrappedDelegate.delegate && (
+          <PastVotes fragment={query.address.wrappedDelegate.delegate} />
+        )}
       </div>
     </PageContainer>
   );

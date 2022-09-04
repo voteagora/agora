@@ -2405,6 +2405,7 @@ enum Vote_orderBy {
 type Address {
   resolvedName: ResolvedName!
   account: Account
+  wrappedDelegate: WrappedDelegate!
 }
 
 type OverallMetrics {

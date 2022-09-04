@@ -4,11 +4,7 @@ import { css } from "@emotion/css";
 import { EditDelegatePageQuery } from "./__generated__/EditDelegatePageQuery.graphql";
 import { PageHeader } from "../../components/PageHeader";
 import * as theme from "../../theme";
-import {
-  EmptyVoterPanel,
-  LoadingVoterPanel,
-  VoterPanel,
-} from "../DelegatePage/VoterPanel";
+import { LoadingVoterPanel, VoterPanel } from "../DelegatePage/VoterPanel";
 import { PageContainer } from "../../components/PageContainer";
 import { DelegateStatementForm } from "./DelegateStatementForm";
 import { Suspense } from "react";
@@ -89,11 +85,7 @@ function LazyVoterPanel({ address }: LazyVoterPanelProps) {
             ...NounResolvedLinkFragment
           }
 
-          account {
-            delegate {
-              ...VoterPanelDelegateFragment
-            }
-          }
+          ...VoterPanelDelegateFragment
         }
 
         ...VoterPanelQueryFragment
@@ -104,12 +96,5 @@ function LazyVoterPanel({ address }: LazyVoterPanelProps) {
     }
   );
 
-  return query.address?.account?.delegate ? (
-    <VoterPanel
-      delegateFragment={query.address?.account?.delegate}
-      queryFragment={query}
-    />
-  ) : (
-    <EmptyVoterPanel resolvedName={query.address.resolvedName} />
-  );
+  return <VoterPanel delegateFragment={query.address} queryFragment={query} />;
 }

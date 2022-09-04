@@ -20,52 +20,62 @@ type Props = {
 };
 
 export function VoterPanel({ delegateFragment, queryFragment }: Props) {
-  const delegate = useFragment(
+  const address = useFragment(
     graphql`
-      fragment VoterPanelDelegateFragment on Delegate {
-        id
-
-        ...NounGridFragment
-        nounsRepresented {
-          owner {
-            id
-          }
-        }
-
-        tokenHoldersRepresented {
-          id
-
-          address {
-            resolvedName {
-              ...NounResolvedLinkFragment
-            }
-          }
-
-          nouns {
-            id
-            ...NounImageFragment
-          }
-        }
-
-        votes(orderBy: blockNumber, orderDirection: desc) {
-          id
-
-          proposal {
-            id
-          }
-        }
-
-        proposals {
-          id
-        }
-
+      fragment VoterPanelDelegateFragment on Address {
         resolvedName {
           ...NounResolvedLinkFragment
+        }
+
+        wrappedDelegate {
+          statement {
+            twitter
+          }
+
+          delegate {
+            id
+
+            ...NounGridFragment
+            nounsRepresented {
+              owner {
+                id
+              }
+            }
+
+            tokenHoldersRepresented {
+              id
+
+              address {
+                resolvedName {
+                  ...NounResolvedLinkFragment
+                }
+              }
+
+              nouns {
+                id
+                ...NounImageFragment
+              }
+            }
+
+            votes(orderBy: blockNumber, orderDirection: desc) {
+              id
+
+              proposal {
+                id
+              }
+            }
+
+            proposals {
+              id
+            }
+          }
         }
       }
     `,
     delegateFragment
   );
+
+  const delegate = address.wrappedDelegate.delegate;
 
   const { recentProposals, metrics } = useFragment(
     graphql`
@@ -87,6 +97,12 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
     `,
     queryFragment
   );
+
+  if (!delegate) {
+    return <EmptyVoterPanel resolvedName={address.resolvedName} />;
+  }
+
+  const statement = address.wrappedDelegate.statement;
 
   const lastTenProposals = new Set(
     recentProposals.slice(0, 10).map((proposal) => proposal.id)
@@ -118,7 +134,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
         `}
       >
         <NameSection
-          resolvedName={delegate.resolvedName}
+          resolvedName={address.resolvedName}
           votes={delegate.nounsRepresented.length}
         />
 
@@ -213,9 +229,11 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
               height: ${theme.spacing["6"]};
             `}
           >
-            <a href={`https://twitter.com`}>
-              <img src={icons.twitter} alt="twitter" />
-            </a>
+            {statement?.twitter && (
+              <a href={`https://twitter.com/${statement?.twitter}`}>
+                <img src={icons.twitter} alt="twitter" />
+              </a>
+            )}
             <a href={`https://discord.com`}>
               <img src={icons.discord} alt="discord" />
             </a>
