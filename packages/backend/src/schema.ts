@@ -1,9 +1,10 @@
 import { stitchSchemas } from "@graphql-tools/stitch";
 import { getTitleFromProposalDescription } from "./utils/markdown";
 import { makeNounsSchema } from "./schemas/nouns-subgraph";
+import { AggregateError } from "@graphql-tools/utils";
 import { delegateToSchema } from "@graphql-tools/delegate";
 import { mergeResolvers } from "@graphql-tools/merge";
-import { OperationTypeNode } from "graphql";
+import { graphql, Kind, OperationTypeNode, parse, print, visit } from "graphql";
 import { promises as fs } from "fs";
 import { ethers } from "ethers";
 import {
@@ -13,6 +14,7 @@ import {
 } from "./contracts/generated";
 import { Resolvers } from "./generated/types";
 import { validateForm } from "./formSchema";
+import { WrappedDelegate } from "./model";
 
 const delegateStatements = new Map<string, ReturnType<typeof validateForm>>();
 
@@ -52,10 +54,113 @@ export async function makeGatewaySchema() {
         },
       },
 
-      wrappedDelegates() {
-        return Array.from(delegateStatements.keys()).map((address) => ({
+      async wrappedDelegates(_, args, context, info) {
+        function getSelectionSetFromDelegateField() {
+          const currentFieldNode = info.fieldNodes.find(
+            (node) => node.name.value === info.fieldName
+          );
+          if (!currentFieldNode) {
+            return [];
+          }
+
+          const [delegateFieldNode] =
+            currentFieldNode.selectionSet.selections.flatMap((field) => {
+              if (field.kind === "Field" && field.name.value === "delegate") {
+                return [field];
+              }
+              return [];
+            });
+
+          if (!delegateFieldNode) {
+            return [];
+          }
+
+          return delegateFieldNode.selectionSet.selections.filter(
+            (node) => node.kind === "Field" && node.name.value !== "id"
+          );
+        }
+
+        function buildFusedDelegateQuery(
+          delegateFieldSelectionSet: ReturnType<
+            typeof getSelectionSetFromDelegateField
+          >
+        ) {
+          const document = parse(`
+            query FusedDelegateQuery {
+              delegates(
+                first: 1000
+                orderBy: delegatedVotesRaw
+                orderDirection: desc
+              ) {
+                ...DelegateFields
+              }
+            }
+
+            fragment DelegateFields on Delegate {
+              id
+            }
+          `);
+
+          return visit(document, {
+            [Kind.FRAGMENT_DEFINITION](node) {
+              if (node.name.value === "DelegateFields") {
+                return {
+                  ...node,
+                  selectionSet: {
+                    ...node.selectionSet,
+                    selections: [
+                      ...node.selectionSet.selections,
+                      ...delegateFieldSelectionSet,
+                    ],
+                  },
+                };
+              }
+
+              return node;
+            },
+          });
+        }
+
+        const delegateFieldSelectionSet = getSelectionSetFromDelegateField();
+        const fusedDelegateQuery = buildFusedDelegateQuery(
+          delegateFieldSelectionSet
+        );
+
+        const fromDelegateStatements = Array.from(
+          delegateStatements.keys()
+        ).map((address) => ({
           address,
         }));
+
+        const executionResult = await graphql({
+          schema: nounsSchema,
+          source: print(fusedDelegateQuery),
+        });
+
+        if (executionResult.errors) {
+          throw new AggregateError(
+            executionResult.errors,
+            executionResult.errors.map((error) => error.message).join(", \n")
+          );
+        }
+
+        const remoteDelegates: WrappedDelegate[] = (
+          executionResult.data.delegates as any
+        ).map((delegate) => ({
+          address: delegate.id,
+          underlyingDelegate: delegate,
+        }));
+
+        const remoteDelegatesSet = new Set(
+          remoteDelegates.map((it) => it.address)
+        );
+
+        return [
+          ...remoteDelegates,
+          ...fromDelegateStatements.filter(
+            (it) => !remoteDelegatesSet.has(it.address)
+          ),
+        ];
       },
     },
 
@@ -116,7 +221,11 @@ export async function makeGatewaySchema() {
         return address;
       },
 
-      delegate({ address }, args, context, info) {
+      delegate({ address, underlyingDelegate }, args, context, info) {
+        if (underlyingDelegate) {
+          return underlyingDelegate;
+        }
+
         return delegateToSchema({
           schema: nounsSchema,
           operation: OperationTypeNode.QUERY,

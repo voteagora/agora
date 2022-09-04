@@ -12,6 +12,8 @@ export type ResolvedName = {
 
 export type WrappedDelegate = {
   address: string;
+
+  underlyingDelegate?: any;
 };
 
 export type DelegateStatement = ReturnType<typeof validateForm>;
