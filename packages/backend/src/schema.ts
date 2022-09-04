@@ -16,7 +16,46 @@ import { Resolvers } from "./generated/types";
 import { validateForm } from "./formSchema";
 import { WrappedDelegate } from "./model";
 
-const delegateStatements = new Map<string, ReturnType<typeof validateForm>>();
+const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
+  [
+    "0x2573c60a6d127755aa2dc85e342f7da2378a0cc5",
+    {
+      address: "0x2573c60a6d127755aa2dc85e342f7da2378a0cc5",
+      values: {
+        delegateStatement:
+          "We are a group of Nounish builders and representatives from launched Nounish NFT extension projects, coming together to participate in Nouns DAO governance.",
+        openToSponsoringProposals: null,
+        twitter: "nouncil",
+        discord: "",
+        mostValuableProposals: [
+          {
+            id: "121",
+          },
+          {
+            id: "87",
+          },
+          {
+            id: "77",
+          },
+        ],
+        leastValuableProposals: [{ id: "127" }, { id: "122" }, { id: "74" }],
+        topIssues: [
+          {
+            type: "proliferation",
+            value:
+              "Proliferation, above revenue generation, should be the number one focus.",
+          },
+          {
+            type: "treasury",
+            value:
+              "We believe that active management of the treasury is a distraction.",
+          },
+        ],
+        for: "nouns-agora",
+      },
+    },
+  ],
+]);
 
 export async function makeGatewaySchema() {
   const nounsSchema = await makeNounsSchema();
@@ -202,6 +241,12 @@ export async function makeGatewaySchema() {
           context,
           info,
         });
+      },
+
+      wrappedDelegate({ address }) {
+        return {
+          address,
+        };
       },
     },
 

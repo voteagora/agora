@@ -18,6 +18,7 @@ type Query {
 type Address {
   resolvedName: ResolvedName!
   account: Account
+  wrappedDelegate: WrappedDelegate!
 }
 
 type OverallMetrics {
