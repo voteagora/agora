@@ -4,6 +4,7 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCard } from "./VoterCard";
 import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
+import { VStack } from "../../components/VStack";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -31,12 +32,9 @@ export function DelegatesContainer({ fragmentKey }: Props) {
   );
 
   return (
-    <div
+    <VStack
+      alignItems="center"
       className={css`
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-
         background-image: radial-gradient(
           rgba(0, 0, 0, 10%) 1px,
           transparent 0
@@ -47,10 +45,8 @@ export function DelegatesContainer({ fragmentKey }: Props) {
         padding-bottom: ${theme.spacing["16"]};
       `}
     >
-      <div
+      <VStack
         className={css`
-          display: flex;
-          flex-direction: column;
           max-width: ${theme.maxWidth["6xl"]};
           width: 100%;
           margin-bottom: ${theme.spacing["8"]};
@@ -64,7 +60,7 @@ export function DelegatesContainer({ fragmentKey }: Props) {
         >
           Voters
         </h2>
-      </div>
+      </VStack>
 
       <div
         className={css`
@@ -77,6 +73,6 @@ export function DelegatesContainer({ fragmentKey }: Props) {
           <VoterCard key={voter.id} fragmentRef={voter} />
         ))}
       </div>
-    </div>
+    </VStack>
   );
 }

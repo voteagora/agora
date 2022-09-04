@@ -1,6 +1,7 @@
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { inputLabelStyle } from "./InputGroup";
+import { HStack, VStack } from "../../components/VStack";
 
 type Props = {
   onSelectionChanged: (newSelection: "yes" | "no") => void;
@@ -9,19 +10,11 @@ type Props = {
 
 export function YesNoSelector({ onSelectionChanged, selection }: Props) {
   return (
-    <div
-      className={css`
-        display: flex;
-        flex-direction: column;
-      `}
-    >
+    <VStack>
       <h4 className={inputLabelStyle}>Open to sponsoring proposals</h4>
 
-      <div
+      <HStack
         className={css`
-          display: flex;
-          flex-direction: row;
-
           background: ${theme.colors.gray["200"]};
           border-radius: ${theme.borderRadius.md};
           overflow: hidden;
@@ -45,8 +38,8 @@ export function YesNoSelector({ onSelectionChanged, selection }: Props) {
         >
           No
         </div>
-      </div>
-    </div>
+      </HStack>
+    </VStack>
   );
 }
 

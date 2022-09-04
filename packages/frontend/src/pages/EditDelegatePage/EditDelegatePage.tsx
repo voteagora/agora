@@ -11,6 +11,7 @@ import { Suspense } from "react";
 import { EditDelegatePageLazyVoterPanelQuery } from "./__generated__/EditDelegatePageLazyVoterPanelQuery.graphql";
 import { useAccount } from "wagmi";
 import { Navigate } from "react-router-dom";
+import { HStack } from "../../components/VStack";
 
 export function EditDelegatePage() {
   const query = useLazyLoadQuery<EditDelegatePageQuery>(
@@ -32,12 +33,10 @@ export function EditDelegatePage() {
     <PageContainer>
       <PageHeader />
 
-      <div
+      <HStack
+        justifyContent="space-between"
+        gap="16"
         className={css`
-          display: flex;
-          flex-direction: row;
-          justify-content: space-between;
-          gap: ${theme.spacing["16"]};
           margin: ${theme.spacing["16"]};
           margin-top: ${theme.spacing["8"]};
           width: 100%;
@@ -55,7 +54,7 @@ export function EditDelegatePage() {
             <LazyVoterPanel address={address} />
           </Suspense>
         </div>
-      </div>
+      </HStack>
     </PageContainer>
   );
 }

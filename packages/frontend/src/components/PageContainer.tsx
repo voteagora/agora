@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { css } from "@emotion/css";
 import * as theme from "../theme";
+import { VStack } from "./VStack";
 
 type Props = {
   children: ReactNode;
@@ -8,16 +9,14 @@ type Props = {
 
 export function PageContainer({ children }: Props) {
   return (
-    <div
+    <VStack
+      alignItems="center"
       className={css`
-        display: flex;
-        flex-direction: column;
-        align-items: center;
         font-family: ${theme.fontFamily.sans};
         width: 100%;
       `}
     >
       {children}
-    </div>
+    </VStack>
   );
 }

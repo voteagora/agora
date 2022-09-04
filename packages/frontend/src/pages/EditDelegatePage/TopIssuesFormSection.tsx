@@ -6,6 +6,7 @@ import { Dropdown } from "./Dropdown";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
 import { CloseButton } from "./CloseButton";
 import { Form } from "./DelegateStatementForm";
+import { HStack, VStack } from "../../components/VStack";
 
 type IssueTypeDefinition = {
   key: string;
@@ -106,15 +107,7 @@ export function TopIssuesFormSection({ form }: Props) {
 
   return (
     <div className={formSectionContainerStyles}>
-      <div
-        className={css`
-          display: flex;
-          flex-direction: row;
-          align-items: baseline;
-          justify-content: space-between;
-          gap: ${theme.spacing["4"]};
-        `}
-      >
+      <HStack gap="4" justifyContent="space-between" alignItems="baseline">
         <h3 className={formSectionHeadingStyle}>Views on top issues</h3>
 
         <Dropdown
@@ -125,14 +118,12 @@ export function TopIssuesFormSection({ form }: Props) {
           }))}
           onItemClicked={addIssue}
         />
-      </div>
+      </HStack>
 
-      <div
+      <VStack
+        gap="4"
         className={css`
-          display: flex;
-          flex-direction: column;
           margin-top: ${theme.spacing["6"]};
-          gap: ${theme.spacing["4"]};
         `}
       >
         {topIssues.map((issue, index) => {
@@ -141,15 +132,7 @@ export function TopIssuesFormSection({ form }: Props) {
           )!;
 
           return (
-            <div
-              key={index}
-              className={css`
-                display: flex;
-                flex-direction: row;
-                gap: ${theme.spacing["2"]};
-                align-items: center;
-              `}
-            >
+            <HStack gap="2" alignItems="center" key={index}>
               <div
                 className={css`
                   display: flex;
@@ -167,29 +150,22 @@ export function TopIssuesFormSection({ form }: Props) {
                 <img src={icons[issueDef.icon]} alt={issueDef.title} />
               </div>
 
-              <div
+              <VStack
                 className={css`
                   flex: 1;
-
-                  display: flex;
-                  flex-direction: column;
-
                   position: relative;
                 `}
               >
-                <div
+                <VStack
                   className={css`
                     position: absolute;
                     right: 0;
                     top: 0;
                     bottom: 0;
-
-                    display: flex;
-                    flex-direction: column;
                   `}
                 >
                   <CloseButton onClick={() => removeIssue(issueDef.key)} />
-                </div>
+                </VStack>
                 <input
                   className={sharedInputStyle}
                   type="text"
@@ -199,11 +175,11 @@ export function TopIssuesFormSection({ form }: Props) {
                     updateIssue(issueDef.key, evt.target.value)
                   }
                 />
-              </div>
-            </div>
+              </VStack>
+            </HStack>
           );
         })}
-      </div>
+      </VStack>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { ConnectKitButton } from "connectkit";
 import { useAccount } from "wagmi";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
+import { HStack } from "./VStack";
 
 export function PageHeader() {
   const { address: accountAddress } = useAccount();
@@ -29,10 +30,8 @@ export function PageHeader() {
   );
 
   return (
-    <div
+    <HStack
       className={css`
-        display: flex;
-        flex-direction: row;
         width: ${theme.maxWidth["6xl"]};
         margin: ${theme.spacing["8"]} auto;
         padding: 0 ${theme.spacing["4"]};
@@ -47,13 +46,7 @@ export function PageHeader() {
         `}
         to="/"
       >
-        <div
-          className={css`
-            display: flex;
-            flex-direction: row;
-            gap: ${theme.spacing["4"]};
-          `}
-        >
+        <HStack gap="4">
           <img alt="logo" src={logo} />
 
           <span
@@ -64,17 +57,10 @@ export function PageHeader() {
           >
             Nouns Agora
           </span>
-        </div>
+        </HStack>
       </Link>
 
-      <div
-        className={css`
-          display: flex;
-          flex-direction: row;
-          align-items: stretch;
-          gap: ${theme.spacing["3"]};
-        `}
-      >
+      <HStack alignItems="stretch" gap="3">
         {address && (
           <Link
             to="/create"
@@ -100,8 +86,8 @@ export function PageHeader() {
         <ConnectKitButton mode="light" />
 
         {address && <OwnedNounsPanel fragment={address} />}
-      </div>
-    </div>
+      </HStack>
+    </HStack>
   );
 }
 
@@ -129,22 +115,17 @@ function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
   }
 
   return (
-    <div
+    <HStack
       className={css`
         border-color: ${theme.colors.gray["300"]};
         border-width: ${theme.spacing.px};
         border-radius: ${theme.borderRadius.lg};
         box-shadow: ${theme.boxShadow.md};
-
-        display: flex;
-        flex-direction: row;
       `}
     >
-      <div
+      <HStack
+        gap="1"
         className={css`
-          display: flex;
-          flex-direction: row;
-          gap: ${theme.spacing["1"]};
           align-items: center;
 
           padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
@@ -156,7 +137,7 @@ function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
           imageSize={"5"}
           overflowFontSize={"sm"}
         />
-      </div>
-    </div>
+      </HStack>
+    </HStack>
   );
 }

@@ -6,6 +6,7 @@ import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { OverviewMetricsContainer$key } from "./__generated__/OverviewMetricsContainer.graphql";
 import { BigNumber } from "ethers";
+import { HStack } from "../../components/VStack";
 
 type Props = {
   fragmentRef: OverviewMetricsContainer$key;
@@ -44,15 +45,13 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
 
   // todo: real values
   return (
-    <div
+    <HStack
+      justifyContent="center"
+      gap="4"
       className={css`
         z-index: 1;
-        display: flex;
         max-width: ${theme.maxWidth["6xl"]};
-        gap: ${theme.spacing["4"]};
-        flex-direction: row;
         flex-wrap: wrap;
-        justify-content: center;
       `}
     >
       {/*todo: review this metric*/}
@@ -82,7 +81,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
 
       {/*todo: review this metric*/}
       <MetricContainer icon="pedestrian" title="Avg voter turnout" body="54%" />
-    </div>
+    </HStack>
   );
 }
 
@@ -96,17 +95,15 @@ const color = "#FBFBFB";
 
 function MetricContainer({ icon, title, body }: MetricContainerProps) {
   return (
-    <div
+    <HStack
+      gap="3"
       className={css`
-        display: flex;
         background: ${theme.colors.white};
-        flex-direction: row;
         border-radius: ${theme.spacing["3"]};
         padding: ${theme.spacing["3"]};
         border-width: ${theme.spacing.px};
         border-color: ${theme.colors.gray["300"]};
         box-shadow: ${theme.boxShadow.sm};
-        gap: ${theme.spacing["3"]};
       `}
     >
       <div
@@ -132,10 +129,8 @@ function MetricContainer({ icon, title, body }: MetricContainerProps) {
         />
       </div>
 
-      <div
+      <HStack
         className={css`
-          display: flex;
-          flex-direction: column;
           padding-right: ${theme.spacing["1"]};
         `}
       >
@@ -158,7 +153,7 @@ function MetricContainer({ icon, title, body }: MetricContainerProps) {
         >
           {body}
         </div>
-      </div>
-    </div>
+      </HStack>
+    </HStack>
   );
 }

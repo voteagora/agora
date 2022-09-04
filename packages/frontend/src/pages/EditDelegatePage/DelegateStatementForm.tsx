@@ -22,6 +22,7 @@ import { useMutation } from "react-relay";
 import { useMutation as useReactQueryMutation } from "@tanstack/react-query";
 import graphql from "babel-plugin-relay/macro";
 import { DelegateStatementFormMutation } from "./__generated__/DelegateStatementFormMutation.graphql";
+import { HStack, VStack } from "../../components/VStack";
 
 type DelegateStatementFormProps = {
   queryFragment: PastProposalsFormSectionProposalListFragment$key;
@@ -106,10 +107,8 @@ export function DelegateStatementForm({
     !!signer && !isMutationInFlight && !submitMutation.isLoading;
 
   return (
-    <div
+    <VStack
       className={css`
-        display: flex;
-        flex-direction: column;
         width: 100%;
 
         background: ${theme.colors.white};
@@ -124,14 +123,11 @@ export function DelegateStatementForm({
       <PastProposalsFormSection form={form} queryFragment={queryFragment} />
       <OtherInfoFormSection form={form} />
 
-      <div
+      <HStack
+        justifyContent="space-between"
+        alignItems="center"
         className={css`
           padding: ${theme.spacing["8"]} ${theme.spacing["6"]};
-
-          display: flex;
-          flex-direction: row;
-          justify-content: space-between;
-          align-items: center;
         `}
       >
         <span className={tipTextStyle}>
@@ -145,7 +141,7 @@ export function DelegateStatementForm({
         >
           Submit
         </button>
-      </div>
-    </div>
+      </HStack>
+    </VStack>
   );
 }

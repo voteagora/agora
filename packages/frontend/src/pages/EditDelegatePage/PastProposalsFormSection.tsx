@@ -11,6 +11,7 @@ import {
 import useClickOutside from "@restart/ui/useClickOutside";
 import { CloseButton } from "./CloseButton";
 import { Form } from "./DelegateStatementForm";
+import { VStack } from "../../components/VStack";
 
 type Props = {
   queryFragment: PastProposalsFormSectionProposalListFragment$key;
@@ -24,21 +25,14 @@ export const formSectionHeadingStyle = css`
 export function PastProposalsFormSection({ queryFragment, form }: Props) {
   return (
     <div className={formSectionContainerStyles}>
-      <div
-        className={css`
-          display: flex;
-          flex-direction: column;
-        `}
-      >
+      <VStack>
         <h3 className={formSectionHeadingStyle}>Views on past proposals</h3>
 
         {/*  todo: so jank */}
-        <div
+        <VStack
+          gap="4"
           className={css`
-            display: flex;
-            flex-direction: column;
             margin-top: ${theme.spacing["4"]};
-            gap: ${theme.spacing["4"]};
           `}
         >
           <ProposalList
@@ -54,8 +48,8 @@ export function PastProposalsFormSection({ queryFragment, form }: Props) {
             title="Least valuable"
             queryFragment={queryFragment}
           />
-        </div>
-      </div>
+        </VStack>
+      </VStack>
     </div>
   );
 }
@@ -168,12 +162,10 @@ function ProposalList({
   useClickOutside(focusContainerRef, setBlurred);
 
   return (
-    <div
+    <VStack
+      gap="2"
       className={css`
-        display: flex;
-        flex-direction: column;
         flex: 1;
-        gap: ${theme.spacing["2"]};
       `}
     >
       <h3
@@ -213,11 +205,9 @@ function ProposalList({
           onChange={(e) => setFilterText(e.target.value)}
         />
 
-        <div
+        <VStack
+          gap="2"
           className={css`
-            display: flex;
-            flex-direction: column;
-            gap: ${theme.spacing["2"]};
             position: absolute;
             background: white;
 
@@ -234,9 +224,9 @@ function ProposalList({
                 onClick={() => handleSuggestedProposalClicked(proposal)}
               />
             ))}
-        </div>
+        </VStack>
       </div>
-    </div>
+    </VStack>
   );
 }
 
@@ -285,10 +275,6 @@ function ProposalCard({ proposal, onClick, onClose }: ProposalCardProps) {
         border-radius: ${theme.borderRadius.md};
         border-width: ${theme.spacing.px};
         border-color: ${theme.colors.gray["300"]};
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
 
         ${onClick &&
         css`

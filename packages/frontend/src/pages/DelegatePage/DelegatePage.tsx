@@ -56,12 +56,10 @@ export function DelegatePage() {
     <PageContainer>
       <PageHeader />
 
-      <div
+      <HStack
+        justifyContent="space-between"
+        gap="16"
         className={css`
-          display: flex;
-          flex-direction: row;
-          justify-content: space-between;
-          gap: ${theme.spacing["16"]};
           margin: ${theme.spacing["16"]};
           margin-top: ${theme.spacing["8"]};
           width: 100%;
@@ -158,7 +156,7 @@ export function DelegatePage() {
             <PastVotes fragment={wrappedDelegate.delegate} />
           )}
         </VStack>
-      </div>
+      </HStack>
     </PageContainer>
   );
 }

@@ -13,6 +13,7 @@ import { VoterPanelQueryFragment$key } from "./__generated__/VoterPanelQueryFrag
 import { icons } from "../../icons/icons";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 import { NounResolvedLinkFragment$key } from "../../components/__generated__/NounResolvedLinkFragment.graphql";
+import { HStack, VStack } from "../../components/VStack";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -175,13 +176,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
 
           <>
             {tokenHolders.map((holder) => (
-              <div
-                className={css`
-                  display: flex;
-                  flex-direction: row;
-                  justify-content: space-between;
-                `}
-              >
+              <HStack justifyContent="space-between">
                 <div
                   className={css`
                     text-overflow: ellipsis;
@@ -193,39 +188,29 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
                   />
                 </div>
 
-                <div
-                  className={css`
-                    display: flex;
-                    flex-direction: row;
-                    gap: ${theme.spacing["1"]};
-                  `}
-                >
+                <HStack gap="1">
                   <NounGridChildren
                     count={3}
                     nouns={holder.nouns}
                     overflowFontSize="xs"
                     imageSize="6"
                   />
-                </div>
-              </div>
+                </HStack>
+              </HStack>
             ))}
           </>
         </div>
 
-        <div
+        <HStack
+          justifyContent="space-between"
+          alignItems="center"
           className={css`
             margin-top: ${theme.spacing["8"]};
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
           `}
         >
-          <div
+          <HStack
+            gap="4"
             className={css`
-              display: flex;
-              flex-direction: row;
-              gap: ${theme.spacing["4"]};
               height: ${theme.spacing["6"]};
             `}
           >
@@ -237,7 +222,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
             <a href={`https://discord.com`}>
               <img src={icons.discord} alt="discord" />
             </a>
-          </div>
+          </HStack>
 
           <a href={`https://nouns.wtf/delegate?to=${delegate.id}`}>
             <div
@@ -249,7 +234,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
               Delegate
             </div>
           </a>
-        </div>
+        </HStack>
       </div>
     </div>
   );
@@ -269,14 +254,7 @@ type PanelRowProps = {
 
 const PanelRow = ({ title, detail }: PanelRowProps) => {
   return (
-    <div
-      className={css`
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        gap: ${theme.spacing["4"]};
-      `}
-    >
+    <HStack gap="4" justifyContent="space-between">
       <span
         className={css`
           white-space: nowrap;
@@ -294,7 +272,7 @@ const PanelRow = ({ title, detail }: PanelRowProps) => {
       >
         {detail}
       </span>
-    </div>
+    </HStack>
   );
 };
 
@@ -305,14 +283,7 @@ type NameSectionProps = {
 
 function NameSection({ resolvedName, votes }: NameSectionProps) {
   return (
-    <div
-      className={css`
-        display: flex;
-        flex-direction: row;
-        align-items: baseline;
-        gap: ${theme.spacing["2"]};
-      `}
-    >
+    <HStack gap="2" alignItems="baseline">
       <span
         className={css`
           font-size: ${theme.fontSize["xl"]};
@@ -328,7 +299,7 @@ function NameSection({ resolvedName, votes }: NameSectionProps) {
       >
         {votes} votes
       </span>
-    </div>
+    </HStack>
   );
 }
 
@@ -356,12 +327,9 @@ const voterPanelDetailsContainerStyle = css`
 
 export function EmptyVoterPanel({ resolvedName }: EmptyVoterPanelProps) {
   return (
-    <div
+    <VStack
       className={css`
         ${containerStyles};
-
-        display: flex;
-        flex-direction: column;
       `}
     >
       <div
@@ -371,12 +339,10 @@ export function EmptyVoterPanel({ resolvedName }: EmptyVoterPanelProps) {
           border-bottom: 1px solid #ebebeb;
         `}
       >
-        <div
+        <HStack
+          gap="2"
+          alignItems="center"
           className={css`
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: ${theme.spacing["2"]};
             border-radius: ${theme.borderRadius.default};
             border: 1px solid #ebebeb;
             padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
@@ -399,7 +365,7 @@ export function EmptyVoterPanel({ resolvedName }: EmptyVoterPanelProps) {
           >
             Currently seeking delegation
           </div>
-        </div>
+        </HStack>
       </div>
 
       <div
@@ -421,7 +387,7 @@ export function EmptyVoterPanel({ resolvedName }: EmptyVoterPanelProps) {
           <PanelRow title="Delegated from" detail={`N/A`} />
         </div>
       </div>
-    </div>
+    </VStack>
   );
 }
 

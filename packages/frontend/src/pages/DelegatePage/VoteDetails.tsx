@@ -4,6 +4,7 @@ import { BigNumber, utils } from "ethers";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoteDetailsFragment$key } from "./__generated__/VoteDetailsFragment.graphql";
+import { VStack } from "../../components/VStack";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;
@@ -39,7 +40,7 @@ export function VoteDetails({ voteFragment }: Props) {
   const proposalHref = `https://nouns.wtf/vote/${vote.proposal.id}`;
 
   return (
-    <div
+    <VStack
       className={css`
         border-radius: ${theme.borderRadius.lg};
         border-width: ${theme.spacing.px};
@@ -47,8 +48,6 @@ export function VoteDetails({ voteFragment }: Props) {
         background: ${theme.colors.white};
         box-shadow: ${theme.boxShadow.default};
 
-        display: flex;
-        flex-direction: column;
         padding: ${theme.spacing["2"]};
       `}
     >
@@ -74,7 +73,7 @@ export function VoteDetails({ voteFragment }: Props) {
         <a href={proposalHref}>{vote.proposal.title}</a>
       </h2>
       <p>{vote.reason}</p>
-    </div>
+    </VStack>
   );
 }
 

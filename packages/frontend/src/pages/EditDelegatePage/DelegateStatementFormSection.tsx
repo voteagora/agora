@@ -5,6 +5,7 @@ import { formSectionContainerStyles } from "./TopIssuesFormSection";
 import { useState } from "react";
 import { Form } from "./DelegateStatementForm";
 import { Markdown } from "../../components/Markdown";
+import { HStack, VStack } from "../../components/VStack";
 
 export const tipTextStyle = css`
   font-size: ${theme.fontSize.xs};
@@ -42,31 +43,15 @@ export function DelegateStatementFormSection({
   const [displayMode, setDisplayMode] = useState<DisplayMode>("write");
 
   return (
-    <div
+    <VStack
       className={css`
-        display: flex;
-        flex-direction: column;
         ${formSectionContainerStyles}
       `}
     >
-      <div
-        className={css`
-          display: flex;
-          flex-direction: row;
-          align-items: baseline;
-          justify-content: space-between;
-          gap: ${theme.spacing["4"]};
-        `}
-      >
+      <HStack alignItems="baseline" justifyContent="space-between" gap="4">
         <h3 className={formSectionHeadingStyle}>Delegate statement</h3>
 
-        <div
-          className={css`
-            display: flex;
-            flex-direction: row;
-            gap: ${theme.spacing["2"]};
-          `}
-        >
+        <HStack gap="2">
           <div
             className={css`
               ${displayModeSelectorStyles}
@@ -86,8 +71,8 @@ export function DelegateStatementFormSection({
           >
             Preview
           </div>
-        </div>
-      </div>
+        </HStack>
+      </HStack>
 
       {displayMode === "write" && (
         <textarea
@@ -110,6 +95,6 @@ export function DelegateStatementFormSection({
       {displayMode === "preview" && (
         <Markdown markdown={form.state.delegateStatement} />
       )}
-    </div>
+    </VStack>
   );
 }

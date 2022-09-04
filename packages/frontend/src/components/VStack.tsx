@@ -7,10 +7,17 @@ type Props = {
   className?: string;
   gap?: keyof typeof theme["spacing"];
   justifyContent?: DataType.ContentDistribution | DataType.ContentPosition;
+  alignItems?: DataType.SelfPosition | "baseline" | "normal" | "stretch";
   children: ReactNode;
 };
 
-function Stack({ className, gap, justifyContent, children }: Props) {
+function Stack({
+  className,
+  gap,
+  alignItems,
+  justifyContent,
+  children,
+}: Props) {
   return (
     <div
       className={cx(
@@ -18,6 +25,7 @@ function Stack({ className, gap, justifyContent, children }: Props) {
           display: flex;
           gap: ${gap && theme.spacing[gap]};
           justify-content: ${justifyContent};
+          align-items: ${alignItems};
         `,
         className
       )}

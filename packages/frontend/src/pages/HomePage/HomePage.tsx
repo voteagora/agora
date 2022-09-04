@@ -7,6 +7,7 @@ import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
 import { DelegatesContainer } from "./DelegatesContainer";
 import { PageHeader } from "../../components/PageHeader";
 import { PageContainer } from "../../components/PageContainer";
+import { VStack } from "../../components/VStack";
 
 export function HomePage() {
   const result = useLazyLoadQuery<HomePageQuery>(
@@ -32,10 +33,8 @@ export function HomePage() {
 
 function Hero() {
   return (
-    <div
+    <VStack
       className={css`
-        display: flex;
-        flex-direction: column;
         max-width: ${theme.maxWidth["xl"]};
         text-align: center;
 
@@ -60,7 +59,7 @@ function Hero() {
         Nouns voters are the stewards for the DAO. You can see them all below,
         delegate your votes to them, or contact them about your ideas.
       </p>
-    </div>
+    </VStack>
   );
 }
 
