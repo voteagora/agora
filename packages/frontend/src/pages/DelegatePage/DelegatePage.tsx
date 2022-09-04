@@ -24,7 +24,7 @@ export function DelegatePage() {
           ...PastVotesFragment
         }
 
-        account(id: $address) {
+        address(address: $address) {
           ...PageHeaderFragment
         }
       }
@@ -42,7 +42,7 @@ export function DelegatePage() {
 
   return (
     <PageContainer>
-      <PageHeader accountFragment={query.account} />
+      <PageHeader accountFragment={query.address} />
 
       <div
         className={css`

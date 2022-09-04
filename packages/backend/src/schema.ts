@@ -6,9 +6,12 @@ import fetch from "node-fetch";
 import { getTitleFromProposalDescription } from "./utils/markdown";
 import { ethers } from "ethers";
 import {
+  NNSENSReverseResolver__factory,
   NounsDAOLogicV1__factory,
   NounsToken__factory,
 } from "./contracts/generated";
+import { delegateToSchema } from "@graphql-tools/delegate";
+import { OperationTypeNode } from "graphql";
 
 export async function makeGatewaySchema() {
   const provider = new ethers.providers.AlchemyProvider(
@@ -25,31 +28,36 @@ export async function makeGatewaySchema() {
     provider
   );
 
-  return stitchSchemas({
-    subschemas: [
-      {
-        schema: await loadSchema("./src/schemas/nouns-subgraph.graphql", {
-          loaders: [new GraphQLFileLoader()],
-        }),
-        async executor({ document, variables }) {
-          const response = await fetch(
-            "https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph",
-            {
-              method: "POST",
-              headers: {
-                "content-type": "application/json",
-              },
-              body: JSON.stringify({
-                query: print(document),
-                variables,
-              }),
-            }
-          );
+  const resolver = NNSENSReverseResolver__factory.connect(
+    "0x5982cE3554B18a5CF02169049e81ec43BFB73961",
+    provider
+  );
 
-          return (await response.json()) as any;
-        },
-      },
-    ],
+  const nounsSchema = {
+    schema: await loadSchema("./src/schemas/nouns-subgraph.graphql", {
+      loaders: [new GraphQLFileLoader()],
+    }),
+    async executor({ document, variables }) {
+      const response = await fetch(
+        "https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph",
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            query: print(document),
+            variables,
+          }),
+        }
+      );
+
+      return (await response.json()) as any;
+    },
+  };
+
+  return stitchSchemas({
+    subschemas: [nounsSchema],
 
     typeDefs: `
       extend type Proposal {
@@ -58,6 +66,12 @@ export async function makeGatewaySchema() {
       
       extend type Query {
         metrics: OverallMetrics!
+        address(address: ID!): Address!
+      }
+      
+      type Address {
+        resolvedName: ResolvedName!
+        account: Account
       }
       
       type OverallMetrics {
@@ -67,14 +81,23 @@ export async function makeGatewaySchema() {
         quorumVotesBPS: BigInt!
         proposalThreshold: BigInt!
       }
+      
+      extend type Delegate {
+        resolvedName: ResolvedName!
+      }
+      
+      type ResolvedName {
+        address: ID!
+        name: String
+      }
     `,
 
     resolvers: {
       Proposal: {
         title: {
           selectionSet: `{ description }`,
-          resolve(proposal) {
-            return getTitleFromProposalDescription(proposal.description);
+          resolve({ description }) {
+            return getTitleFromProposalDescription(description);
           },
         },
       },
@@ -83,6 +106,12 @@ export async function makeGatewaySchema() {
         metrics: {
           resolve() {
             return {};
+          },
+        },
+
+        address: {
+          resolve(_, { address }) {
+            return { address };
           },
         },
       },
@@ -117,6 +146,49 @@ export async function makeGatewaySchema() {
         proposalThreshold: {
           async resolve() {
             return (await nounsDaoLogicV1.proposalThreshold()).toString();
+          },
+        },
+      },
+
+      Delegate: {
+        resolvedName: {
+          selectionSet: `{ id }`,
+          resolve({ id }) {
+            return { address: id };
+          },
+        },
+      },
+
+      Address: {
+        resolvedName: {
+          resolve({ address }) {
+            return { address };
+          },
+        },
+
+        account: {
+          resolve({ address }, args, context, info) {
+            return delegateToSchema({
+              schema: nounsSchema,
+              operation: OperationTypeNode.QUERY,
+              fieldName: "account",
+              args: { id: address },
+              context,
+              info,
+            });
+          },
+        },
+      },
+
+      ResolvedName: {
+        name: {
+          async resolve({ address }) {
+            const resolved = await resolver.resolve(address);
+            if (!resolved) {
+              return null;
+            }
+
+            return resolved;
           },
         },
       },

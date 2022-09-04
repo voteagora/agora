@@ -1688,7 +1688,7 @@
     tslib "^2.4.0"
     value-or-promise "1.0.11"
 
-"@graphql-tools/delegate@9.0.4":
+"@graphql-tools/delegate@9.0.4", "@graphql-tools/delegate@^9.0.4":
   version "9.0.4"
   resolved "https://registry.yarnpkg.com/@graphql-tools/delegate/-/delegate-9.0.4.tgz#b9cf81a431c097a4377fe6d8921a6754308e5d87"
   integrity sha512-W58ZHBR7Rawxa/FqyezdcCyj21f15sid7IaAFon7PRIIaIFJMIZrodKeaclTd34skGguLvuloeYIny6vXNA3tg==

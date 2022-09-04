@@ -15,8 +15,12 @@ export function EditDelegatePage() {
   const query = useLazyLoadQuery<EditDelegatePageQuery>(
     graphql`
       query EditDelegatePageQuery($address: ID!) {
-        account(id: $address) {
+        address(address: $address) {
           ...PageHeaderFragment
+
+          resolvedName {
+            ...NounResolvedLinkFragment
+          }
         }
 
         delegate(id: $address) {
@@ -34,7 +38,7 @@ export function EditDelegatePage() {
 
   return (
     <PageContainer>
-      <PageHeader accountFragment={query.account} />
+      <PageHeader accountFragment={query.address} />
 
       <div
         className={css`
@@ -61,7 +65,7 @@ export function EditDelegatePage() {
               queryFragment={query}
             />
           ) : (
-            <EmptyVoterPanel address={address} />
+            <EmptyVoterPanel resolvedName={query.address.resolvedName} />
           )}
         </div>
       </div>

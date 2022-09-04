@@ -18,7 +18,7 @@ export function HomePage() {
         ...DelegatesContainerFragment
         ...OverviewMetricsContainer
 
-        account(id: $address) {
+        address(address: $address) {
           ...PageHeaderFragment
         }
       }
@@ -30,7 +30,7 @@ export function HomePage() {
 
   return (
     <PageContainer>
-      <PageHeader accountFragment={result.account} />
+      <PageHeader accountFragment={result.address} />
       <Hero />
       <OverviewMetricsContainer fragmentRef={result} />
       <PageDivider />

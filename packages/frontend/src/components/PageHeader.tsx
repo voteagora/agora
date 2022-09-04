@@ -7,10 +7,10 @@ import { NounGridChildren } from "./NounGrid";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { PageHeaderFragment$key } from "./__generated__/PageHeaderFragment.graphql";
-import { usePrimaryAccount } from "./EthersProviderProvider";
+import { PageHeaderOwnedNounsFragment$key } from "./__generated__/PageHeaderOwnedNounsFragment.graphql";
 
 type Props = {
-  accountFragment: PageHeaderFragment$key | null;
+  accountFragment: PageHeaderFragment$key;
 };
 
 export function PageHeader({ accountFragment }: Props) {
@@ -77,18 +77,31 @@ export function PageHeader({ accountFragment }: Props) {
         >
           Create
         </Link>
-        <OwnedNounsPanel accountFragment={accountFragment} />
+        <OwnedNounsPanel fragment={accountFragment} />
       </div>
     </div>
   );
 }
 
 type OwnedNounsPanelProps = {
-  accountFragment: PageHeaderFragment$key | null;
+  fragment: PageHeaderFragment$key;
 };
 
-function OwnedNounsPanel({ accountFragment }: OwnedNounsPanelProps) {
-  const address = usePrimaryAccount();
+function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
+  const { account, resolvedName } = useFragment(
+    graphql`
+      fragment PageHeaderFragment on Address {
+        account {
+          ...PageHeaderOwnedNounsFragment
+        }
+
+        resolvedName {
+          ...NounResolvedNameFragment
+        }
+      }
+    `,
+    fragment
+  );
 
   return (
     <div
@@ -102,27 +115,27 @@ function OwnedNounsPanel({ accountFragment }: OwnedNounsPanelProps) {
         flex-direction: row;
       `}
     >
-      {accountFragment && <OwnedNouns accountFragment={accountFragment} />}
+      {account && <OwnedNouns accountFragment={account} />}
 
       <div
         className={css`
           padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
         `}
       >
-        <NounResolvedName address={address} />
+        <NounResolvedName resolvedName={resolvedName} />
       </div>
     </div>
   );
 }
 
 type OwnedNounsProps = {
-  accountFragment: PageHeaderFragment$key;
+  accountFragment: PageHeaderOwnedNounsFragment$key;
 };
 
 export function OwnedNouns({ accountFragment }: OwnedNounsProps) {
   const account = useFragment(
     graphql`
-      fragment PageHeaderFragment on Account {
+      fragment PageHeaderOwnedNounsFragment on Account {
         nouns {
           id
           ...NounImageFragment

@@ -21,6 +21,10 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           id
         }
 
+        resolvedName {
+          ...NounResolvedNameFragment
+        }
+
         ...NounGridFragment
       }
     `,
@@ -59,7 +63,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           `}
         >
           <div>
-            <NounResolvedName address={delegate.id} />
+            <NounResolvedName resolvedName={delegate.resolvedName} />
           </div>
 
           <div>Voted {delegate.votes.length} times</div>

@@ -12,6 +12,7 @@ import { VoterPanelDelegateFragment$key } from "./__generated__/VoterPanelDelega
 import { VoterPanelQueryFragment$key } from "./__generated__/VoterPanelQueryFragment.graphql";
 import { icons } from "../../icons/icons";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
+import { NounResolvedLinkFragment$key } from "../../components/__generated__/NounResolvedLinkFragment.graphql";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -50,6 +51,10 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
 
         proposals {
           id
+        }
+
+        resolvedName {
+          ...NounResolvedLinkFragment
         }
       }
     `,
@@ -107,7 +112,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
         `}
       >
         <NameSection
-          address={delegate.id}
+          resolvedName={delegate.resolvedName}
           votes={delegate.nounsRepresented.length}
         />
 
@@ -161,7 +166,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
                     overflow: hidden;
                   `}
                 >
-                  <NounResolvedLink address={holder.id} />
+                  <NounResolvedLink resolvedName={delegate.resolvedName} />
                 </div>
 
                 <div
@@ -260,11 +265,11 @@ const PanelRow = ({ title, detail }: PanelRowProps) => {
 };
 
 type NameSectionProps = {
-  address: string;
+  resolvedName: NounResolvedLinkFragment$key;
   votes: number;
 };
 
-function NameSection({ address, votes }: NameSectionProps) {
+function NameSection({ resolvedName, votes }: NameSectionProps) {
   return (
     <div
       className={css`
@@ -280,7 +285,7 @@ function NameSection({ address, votes }: NameSectionProps) {
           font-weight: bolder;
         `}
       >
-        <NounResolvedLink address={address} />
+        <NounResolvedLink resolvedName={resolvedName} />
       </span>
       <span
         className={css`
@@ -303,7 +308,7 @@ const containerStyles = css`
 `;
 
 type EmptyVoterPanelProps = {
-  address: string;
+  resolvedName: NounResolvedLinkFragment$key;
 };
 
 const voterPanelDetailsContainerStyle = css`
@@ -312,7 +317,7 @@ const voterPanelDetailsContainerStyle = css`
   padding: ${theme.spacing["6"]} ${theme.spacing["6"]};
 `;
 
-export function EmptyVoterPanel({ address }: EmptyVoterPanelProps) {
+export function EmptyVoterPanel({ resolvedName }: EmptyVoterPanelProps) {
   return (
     <div
       className={css`
@@ -365,7 +370,7 @@ export function EmptyVoterPanel({ address }: EmptyVoterPanelProps) {
           ${voterPanelDetailsContainerStyle};
         `}
       >
-        <NameSection address={address} votes={0} />
+        <NameSection resolvedName={resolvedName} votes={0} />
 
         <div className={panelRowContainerStyles}>
           <PanelRow title="Proposals voted" detail={`N/A`} />
