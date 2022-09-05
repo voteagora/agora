@@ -155,7 +155,7 @@ export async function makeGatewaySchema() {
           const document = parse(`
             query FusedDelegateQuery {
               delegates(
-                first: 1000
+                first: 50
                 orderBy: delegatedVotesRaw
                 orderDirection: desc
               ) {
