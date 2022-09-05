@@ -46,10 +46,11 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
   // todo: real values
   return (
     <HStack
-      justifyContent="center"
+      justifyContent="space-between"
       gap="4"
       className={css`
         z-index: 1;
+        width:100%;
         max-width: ${theme.maxWidth["6xl"]};
         flex-wrap: wrap;
       `}
@@ -111,7 +112,7 @@ function MetricContainer({ icon, title, body }: MetricContainerProps) {
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: ${theme.spacing["3"]};
+          border-radius: ${theme.spacing["2"]};
           border-width: ${theme.spacing.px};
           border-color: ${theme.colors.gray["300"]};
           background: ${color};

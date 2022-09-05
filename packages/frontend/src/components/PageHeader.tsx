@@ -34,7 +34,6 @@ export function PageHeader() {
       className={css`
         width: ${theme.maxWidth["6xl"]};
         margin: ${theme.spacing["8"]} auto;
-        padding: 0 ${theme.spacing["4"]};
         justify-content: space-between;
       `}
     >
@@ -46,13 +45,14 @@ export function PageHeader() {
         `}
         to="/"
       >
-        <HStack gap="4">
+        <HStack gap="3">
           <img alt="logo" src={logo} />
 
           <span
             className={css`
-              font-size: ${theme.fontSize.sm};
-              color: ${theme.colors.gray["700"]};
+              font-size: ${theme.fontSize.base};
+              font-weight: ${theme.fontWeight.semibold};
+              color: ${theme.colors.gray["800"]};
             `}
           >
             Nouns Agora

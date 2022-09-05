@@ -21,7 +21,7 @@ export function HomePage() {
   );
 
   return (
-    <PageContainer>
+    <PageContainer >
       <PageHeader />
       <Hero />
       <OverviewMetricsContainer fragmentRef={result} />
@@ -43,8 +43,8 @@ function Hero() {
     >
       <h1
         className={css`
-          font-weight: bolder;
-          font-size: ${theme.fontSize["3xl"]};
+          font-weight: ${theme.fontWeight.extrabold};
+          font-size: ${theme.fontSize["2xl"]};
         `}
       >
         Agora is the home of nouns voters
@@ -53,7 +53,7 @@ function Hero() {
       <p
         className={css`
           color: ${theme.colors.gray["700"]};
-          font-size: ${theme.fontSize.sm};
+          font-size: ${theme.fontSize.base};
         `}
       >
         Nouns voters are the stewards for the DAO. You can see them all below,
