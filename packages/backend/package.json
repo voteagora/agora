@@ -11,7 +11,7 @@
     "generate-schema-types": "graphql-codegen",
     "generate": "yarn run generate-typechain && yarn run generate-schema-types && yarn run generate-schema",
     "bundle-worker": "yarn build-worker && yarn patch-worker",
-    "build-worker": "esbuild --bundle --sourcemap src/worker.ts --outfile=dist/worker.js --loader:.graphql=text --format=esm --metafile=dist/meta.json",
+    "build-worker": "esbuild --external:__STATIC_CONTENT_MANIFEST --bundle --sourcemap src/worker.ts --outfile=dist/worker.js --loader:.graphql=text --format=esm --metafile=dist/meta.json",
     "patch-worker": "sed -i '' 's/options.skipFetchSetup !== true/false/g' dist/worker.js",
     "visualize-worker-bundle": "esbuild-visualizer ---metadata ./dist/meta.json",
     "fetch-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph > ./src/schemas/nouns-subgraph.graphql",
@@ -19,6 +19,7 @@
     "start": "yarn build && yarn run generate && yarn run server"
   },
   "dependencies": {
+    "@cloudflare/kv-asset-handler": "^0.2.0",
     "@envelop/core": "^2.6.0",
     "@envelop/response-cache": "^3.2.0",
     "@graphql-codegen/cli": "^2.12.0",

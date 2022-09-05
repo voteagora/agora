@@ -1,7 +1,19 @@
-name = "backend"
+name = "nouns-agora-dev"
 compatibility_date = "2022-09-04"
 main = "dist/worker.js"
+
+vars = { ENVIRONMENT = "dev" }
+
+[env.staging]
+name = "nouns-agora-staging"
+vars = { ENVIRONMENT = "staging" }
+
+[env.prod]
+name = "nouns-agora"
+vars = { ENVIRONMENT = "prod" }
 
 [build]
 command = "yarn bundle-worker"
 
+[site]
+bucket = "../frontend/build"
