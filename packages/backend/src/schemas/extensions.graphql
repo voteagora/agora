@@ -1,5 +1,6 @@
 extend type Proposal {
   title: String!
+  totalValue: BigInt!
 }
 
 extend type Account {

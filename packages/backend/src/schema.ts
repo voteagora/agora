@@ -17,7 +17,7 @@ import {
   SelectionSetNode,
   visit,
 } from "graphql";
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import {
   NNSENSReverseResolver__factory,
   NounsDAOLogicV1__factory,
@@ -499,6 +499,18 @@ export async function makeGatewaySchema() {
           selectionSet: `{ description }`,
           resolve({ description }) {
             return getTitleFromProposalDescription(description);
+          },
+        },
+
+        totalValue: {
+          selectionSet: `{ values }`,
+          resolve({ values }: { values: string[] }) {
+            return (
+              values?.reduce<BigNumber>(
+                (acc, value) => BigNumber.from(value).add(acc),
+                BigNumber.from(0)
+              ) ?? BigNumber.from(0)
+            ).toString();
           },
         },
       },
