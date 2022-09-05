@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
+    "types": ["@cloudflare/workers-types"],
     "target": "ES6",
-    "module": "esnext",
+    "module": "commonjs",
     "moduleResolution": "node"
   }
 }

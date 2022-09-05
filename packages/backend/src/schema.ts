@@ -5,7 +5,6 @@ import { AggregateError } from "@graphql-tools/utils";
 import { delegateToSchema } from "@graphql-tools/delegate";
 import { mergeResolvers } from "@graphql-tools/merge";
 import { graphql, Kind, OperationTypeNode, parse, print, visit } from "graphql";
-import { promises as fs } from "fs";
 import { ethers } from "ethers";
 import {
   NNSENSReverseResolver__factory,
@@ -15,6 +14,7 @@ import {
 import { Resolvers } from "./generated/types";
 import { validateForm } from "./formSchema";
 import { WrappedDelegate } from "./model";
+import schema from "./schemas/extensions.graphql";
 
 const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
   [
@@ -62,7 +62,7 @@ export async function makeGatewaySchema() {
 
   const provider = new ethers.providers.AlchemyProvider(
     null,
-    process.env.ALCHEMY_API_KEY
+    "n5gGwVT2N71fqaLGpXmoATWz5keZ0RfN"
   );
   const nounsDaoLogicV1 = NounsDAOLogicV1__factory.connect(
     "0x6f3E6272A167e8AcCb32072d08E0957F9c79223d",
@@ -378,9 +378,7 @@ export async function makeGatewaySchema() {
   return stitchSchemas({
     subschemas: [nounsSchema],
 
-    typeDefs: (
-      await fs.readFile("./src/schemas/extensions.graphql")
-    ).toString(),
+    typeDefs: schema,
 
     resolvers,
   });

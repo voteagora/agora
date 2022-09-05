@@ -1,14 +1,10 @@
-import { GraphQLFileLoader } from "@graphql-tools/graphql-file-loader";
-import { loadSchema } from "@graphql-tools/load";
-import { GraphQLSchema, print } from "graphql";
+import { buildSchema, GraphQLSchema, print } from "graphql";
 import { wrapSchema } from "@graphql-tools/wrap";
-import fetch from "node-fetch";
+import schema from "./nouns-subgraph.graphql";
 
 export async function makeNounsSchema(): Promise<GraphQLSchema> {
   return wrapSchema({
-    schema: await loadSchema("./src/schemas/nouns-subgraph.graphql", {
-      loaders: [new GraphQLFileLoader()],
-    }),
+    schema: buildSchema(schema),
     async executor({ document, variables }) {
       const response = await fetch(
         "https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph",
