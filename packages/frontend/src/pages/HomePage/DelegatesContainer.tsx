@@ -14,16 +14,8 @@ export function DelegatesContainer({ fragmentKey }: Props) {
   const { voters } = useFragment(
     graphql`
       fragment DelegatesContainerFragment on Query {
-        voters: delegates(
-          first: 1000
-          where: { tokenHoldersRepresentedAmount_gt: 0, delegatedVotes_gt: 0 }
-          orderBy: delegatedVotes
-          orderDirection: desc
-        ) {
+        voters: wrappedDelegates {
           id
-          delegatedVotes
-          tokenHoldersRepresentedAmount
-
           ...VoterCardFragment
         }
       }
@@ -41,13 +33,15 @@ export function DelegatesContainer({ fragmentKey }: Props) {
         );
         background-size: 20px 20px;
         width: 100%;
+        max-width: ${theme.maxWidth["6xl"]};
         padding-top: ${theme.spacing["16"]};
         padding-bottom: ${theme.spacing["16"]};
+        padding-left: ${theme.spacing["4"]};
+        padding-right: ${theme.spacing["4"]};
       `}
     >
       <VStack
         className={css`
-          max-width: ${theme.maxWidth["6xl"]};
           width: 100%;
           margin-bottom: ${theme.spacing["8"]};
         `}
@@ -65,8 +59,9 @@ export function DelegatesContainer({ fragmentKey }: Props) {
       <div
         className={css`
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(3, calc(${theme.spacing["12"]} * 6));
           gap: ${theme.spacing["8"]};
+          max-width: ${theme.maxWidth["6xl"]};
         `}
       >
         {voters.map((voter) => (

@@ -7,6 +7,8 @@ import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql
 import { NounResolvedName } from "../../components/NounResolvedName";
 import { NounsRepresentedGrid } from "../../components/NounGrid";
 import { HStack, VStack } from "../../components/VStack";
+import { shadow } from "../DelegatePage/VoterPanel";
+import { icons } from "../../icons/icons";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
@@ -15,18 +17,30 @@ type VoterCardProps = {
 export function VoterCard({ fragmentRef }: VoterCardProps) {
   const delegate = useFragment(
     graphql`
-      fragment VoterCardFragment on Delegate {
+      fragment VoterCardFragment on WrappedDelegate {
         id
 
-        votes {
+        address {
+          resolvedName {
+            ...NounResolvedNameFragment
+          }
+        }
+
+        statement {
+          statement
+          twitter
+          discord
+        }
+
+        delegate {
           id
-        }
 
-        resolvedName {
-          ...NounResolvedNameFragment
-        }
+          votes {
+            id
+          }
 
-        ...NounGridFragment
+          ...NounGridFragment
+        }
       }
     `,
     fragmentRef
@@ -41,29 +55,42 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           border-radius: ${theme.borderRadius.lg};
           background: ${theme.colors.white};
           border-width: ${theme.spacing.px};
-          border: ${theme.colors.gray["300"]};
+          border: ${theme.colors.gray.eb};
           border-style: solid;
-          box-shadow: ${theme.boxShadow.lg};
+          box-shadow: ${shadow};
           cursor: pointer;
-
-          :hover {
-            box-shadow: ${theme.boxShadow.xl};
-          }
         `}
       >
-        <NounsRepresentedGrid fragmentKey={delegate} />
+        {delegate.delegate ? (
+          <NounsRepresentedGrid fragmentKey={delegate.delegate} />
+        ) : (
+          <HStack>
+            <img src={icons.anonNoun} />
+          </HStack>
+        )}
+
         <HStack
           justifyContent="space-between"
           className={css`
             margin-top: ${theme.spacing["4"]};
           `}
         >
-          <div>
-            <NounResolvedName resolvedName={delegate.resolvedName} />
+          <div
+            className={css`
+              font-weight: bold;
+            `}
+          >
+            <NounResolvedName resolvedName={delegate.address.resolvedName} />
           </div>
 
-          <div>Voted {delegate.votes.length} times</div>
+          {delegate.delegate && (
+            <div>Voted {delegate.delegate.votes.length} times</div>
+          )}
         </HStack>
+
+        {/*{delegate.statement?.statement && (*/}
+        {/*  <Markdown markdown={delegate.statement?.statement} />*/}
+        {/*)}*/}
       </VStack>
     </Link>
   );

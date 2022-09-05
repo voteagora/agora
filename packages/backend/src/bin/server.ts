@@ -2,7 +2,7 @@ import "isomorphic-fetch";
 import { createServer } from "@graphql-yoga/node";
 import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
-import { createInMemoryCache, useResponseCache } from "@envelop/response-cache";
+import { createInMemoryCache } from "@envelop/response-cache";
 import { makeCachePlugin } from "../cache";
 
 async function main() {

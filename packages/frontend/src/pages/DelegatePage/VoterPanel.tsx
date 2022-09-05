@@ -303,7 +303,7 @@ function NameSection({ resolvedName, votes }: NameSectionProps) {
   );
 }
 
-const shadow =
+export const shadow =
   "0px 4px 12px rgba(0, 0, 0, 0.02), 0px 2px 2px rgba(0, 0, 0, 0.03);";
 
 const containerStyles = css`

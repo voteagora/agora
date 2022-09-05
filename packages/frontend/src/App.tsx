@@ -29,6 +29,7 @@ function App() {
                 <BrowserRouter>
                   <Routes>
                     <Route path="/" element={<HomePage />} />
+                    {/* todo: delegateId should have a canonical url instead */}
                     <Route
                       path="/delegate/:delegateId"
                       element={<DelegatePage />}

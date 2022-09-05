@@ -152,6 +152,8 @@ export function DelegatePage() {
             </VStack>
           )}
 
+          {/* todo: most/least impactful */}
+
           {wrappedDelegate.delegate && (
             <PastVotes fragment={wrappedDelegate.delegate} />
           )}
