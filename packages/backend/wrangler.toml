@@ -1,0 +1,7 @@
+name = "backend"
+compatibility_date = "2022-09-04"
+main = "dist/worker.js"
+
+[build]
+command = "yarn bundle-worker"
+
