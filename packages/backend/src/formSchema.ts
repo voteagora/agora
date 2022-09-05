@@ -51,7 +51,6 @@ export const formSchema = z
   .object({
     for: z.literal("nouns-agora"),
     delegateStatement: z.string(),
-    // todo: ensure no more than exactly one of each
     topIssues: ensureUnique(
       z.array(topIssueSchema),
       (it) => it.type,
