@@ -65,6 +65,45 @@ const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
       },
     },
   ],
+  [
+    "0xc3fdadbae46798cd8762185a09c5b672a7aa36bb",
+    {
+      address: "0xc3fdadbae46798cd8762185a09c5b672a7aa36bb",
+      values: {
+        delegateStatement:
+          "I am the co-founder of Vector DAO and builder of prop 87. As long time designer and software builder, I plan on using my votes to advocate for and shepard through high quality projects that either creatively proliferate the meme, and contribute software to better functioning of the DAO.",
+        for: "nouns-agora",
+        twitter: "zhayitong",
+        discord: "",
+
+        mostValuableProposals: [
+          {
+            id: "121",
+          },
+          {
+            id: "87",
+          },
+          {
+            id: "77",
+          },
+        ],
+        leastValuableProposals: [{ id: "127" }, { id: "122" }, { id: "74" }],
+        topIssues: [
+          {
+            type: "proliferation",
+            value:
+              "Proliferation, above revenue generation, should be the number one focus.",
+          },
+          {
+            type: "treasury",
+            value:
+              "We believe that active management of the treasury is a distraction.",
+          },
+        ],
+        openToSponsoringProposals: null,
+      },
+    },
+  ],
 ]);
 
 export async function makeGatewaySchema() {
