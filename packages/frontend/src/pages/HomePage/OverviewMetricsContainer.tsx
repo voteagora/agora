@@ -7,6 +7,7 @@ import graphql from "babel-plugin-relay/macro";
 import { OverviewMetricsContainer$key } from "./__generated__/OverviewMetricsContainer.graphql";
 import { BigNumber } from "ethers";
 import { HStack, VStack } from "../../components/VStack";
+import { shadow } from "../DelegatePage/VoterPanel";
 
 type Props = {
   fragmentRef: OverviewMetricsContainer$key;
@@ -102,8 +103,8 @@ function MetricContainer({ icon, title, body }: MetricContainerProps) {
         border-radius: ${theme.spacing["3"]};
         padding: ${theme.spacing["3"]};
         border-width: ${theme.spacing.px};
-        border-color: ${theme.colors.gray["300"]};
-        box-shadow: ${theme.boxShadow.sm};
+        border-color: ${theme.colors.gray.eb};
+        box-shadow: ${shadow};
       `}
     >
       <div
@@ -111,7 +112,8 @@ function MetricContainer({ icon, title, body }: MetricContainerProps) {
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: ${theme.spacing["3"]};
+          border-radius: ${theme.spacing["2"]};
+          box-shadow: ${shadow};
           border-width: ${theme.spacing.px};
           border-color: ${theme.colors.gray["300"]};
           background: ${color};
