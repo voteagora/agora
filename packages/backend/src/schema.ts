@@ -4,7 +4,17 @@ import { makeNounsSchema } from "./schemas/nouns-subgraph";
 import { AggregateError } from "@graphql-tools/utils";
 import { delegateToSchema } from "@graphql-tools/delegate";
 import { mergeResolvers } from "@graphql-tools/merge";
-import { graphql, Kind, OperationTypeNode, parse, print, visit } from "graphql";
+import {
+  ASTNode,
+  FragmentDefinitionNode,
+  graphql,
+  Kind,
+  OperationTypeNode,
+  parse,
+  print,
+  SelectionSetNode,
+  visit,
+} from "graphql";
 import { ethers } from "ethers";
 import {
   NNSENSReverseResolver__factory,
@@ -91,6 +101,26 @@ export async function makeGatewaySchema() {
       },
 
       async wrappedDelegates(_, args, context, info) {
+        function fieldsMatching(
+          selectionSetNode: SelectionSetNode,
+          name: string
+        ) {
+          return selectionSetNode.selections.flatMap((field) => {
+            if (field.kind === "Field" && field.name.value === name) {
+              return [field];
+            }
+
+            if (field.kind === "FragmentSpread") {
+              return fieldsMatching(
+                info.fragments[field.name.value].selectionSet,
+                name
+              );
+            }
+
+            return [];
+          });
+        }
+
         function getSelectionSetFromDelegateField() {
           const currentFieldNode = info.fieldNodes.find(
             (node) => node.name.value === info.fieldName
@@ -99,21 +129,22 @@ export async function makeGatewaySchema() {
             return [];
           }
 
-          const [delegateFieldNode] =
-            currentFieldNode.selectionSet.selections.flatMap((field) => {
-              if (field.kind === "Field" && field.name.value === "delegate") {
-                return [field];
-              }
-              return [];
-            });
+          const [delegateFieldNode] = fieldsMatching(
+            currentFieldNode.selectionSet,
+            "delegate"
+          );
 
           if (!delegateFieldNode) {
             return [];
           }
 
-          return delegateFieldNode.selectionSet.selections.filter(
-            (node) => node.kind === "Field" && node.name.value !== "id"
-          );
+          return delegateFieldNode.selectionSet.selections.filter((node) => {
+            if (node.kind === "Field") {
+              return node.name.value !== "id";
+            }
+
+            return true;
+          });
         }
 
         function buildFusedDelegateQuery(
@@ -137,7 +168,7 @@ export async function makeGatewaySchema() {
             }
           `);
 
-          return visit(document, {
+          const patchedDocument = visit(document, {
             [Kind.FRAGMENT_DEFINITION](node) {
               if (node.name.value === "DelegateFields") {
                 return {
@@ -155,6 +186,43 @@ export async function makeGatewaySchema() {
               return node;
             },
           });
+
+          let fragmentMap: Map<string, FragmentDefinitionNode> = new Map<
+            string,
+            FragmentDefinitionNode
+          >();
+
+          function getDefinedFragments(
+            astNode: ASTNode,
+            fragments: Map<string, FragmentDefinitionNode>
+          ) {
+            visit(astNode, {
+              [Kind.FRAGMENT_SPREAD](node) {
+                const name = node.name.value;
+                const fragment = info.fragments[name];
+                if (!fragment) {
+                  return;
+                }
+
+                if (fragments.has(name)) {
+                  return;
+                }
+
+                fragmentMap.set(node.name.value, fragment);
+                getDefinedFragments(fragment, fragments);
+              },
+            });
+          }
+
+          getDefinedFragments(patchedDocument, fragmentMap);
+
+          return {
+            ...patchedDocument,
+            definitions: [
+              ...patchedDocument.definitions,
+              ...fragmentMap.values(),
+            ],
+          };
         }
 
         const delegateFieldSelectionSet = getSelectionSetFromDelegateField();
@@ -280,6 +348,10 @@ export async function makeGatewaySchema() {
 
       statement({ address }) {
         return delegateStatements.get(address);
+      },
+
+      address({ address }) {
+        return { address };
       },
     },
 
