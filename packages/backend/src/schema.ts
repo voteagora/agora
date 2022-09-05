@@ -60,10 +60,7 @@ const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
 export async function makeGatewaySchema() {
   const nounsSchema = await makeNounsSchema();
 
-  const provider = new ethers.providers.AlchemyProvider(
-    null,
-    "n5gGwVT2N71fqaLGpXmoATWz5keZ0RfN"
-  );
+  const provider = new ethers.providers.CloudflareProvider();
   const nounsDaoLogicV1 = NounsDAOLogicV1__factory.connect(
     "0x6f3E6272A167e8AcCb32072d08E0957F9c79223d",
     provider
