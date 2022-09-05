@@ -54,7 +54,7 @@ export function VoteDetails({ voteFragment }: Props) {
     >
       <div
         className={css`
-          font-size: ${theme.fontSize.sm};
+          font-size: ${theme.fontSize.xs};
           color: ${theme.colors.gray["700"]};
         `}
       >
@@ -67,8 +67,7 @@ export function VoteDetails({ voteFragment }: Props) {
       </div>
       <h2
         className={css`
-          font-weight: bold;
-          font-size: ${theme.fontSize.lg};
+          font-size: ${theme.fontSize.base};
         `}
       >
         <a href={proposalHref}>{vote.proposal.title}</a>
