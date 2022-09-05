@@ -1374,7 +1374,7 @@
   resolved "https://registry.yarnpkg.com/@emotion/weak-memoize/-/weak-memoize-0.3.0.tgz#ea89004119dc42db2e1dba0f97d553f7372f6fcb"
   integrity sha512-AHPmaAx+RYfZz0eYu6Gviiagpmiyw98ySSlQvCUhVGDRtDFe4DBS0x1bSjdF3gqUDYOczB+yYvBTtEylYSdRhg==
 
-"@envelop/core@^2.5.0":
+"@envelop/core@^2.5.0", "@envelop/core@^2.6.0":
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/@envelop/core/-/core-2.6.0.tgz#1b7a346a37040c217f0f9b60c3358efc6c3b1b94"
   integrity sha512-yTptKinJN//i6m1kXUbnLBl/FobzddI4ehURAMS08eRUOQwAuXqJU9r8VdTav8nIZLb4t6cuDWFb3n331LiwLw==
@@ -1387,6 +1387,16 @@
   resolved "https://registry.yarnpkg.com/@envelop/parser-cache/-/parser-cache-4.7.0.tgz#fc438d8ed390c88fa24bf56da3e4da36f088e3fc"
   integrity sha512-63NfXDcW/vGn4U6NFxaZ0JbYWAcJb9A6jhTvghsSz1ZS+Dny/ci8bVSgVmM1q+N56hPyGsVPuyI+rIc71mPU5g==
   dependencies:
+    lru-cache "^6.0.0"
+    tslib "^2.4.0"
+
+"@envelop/response-cache@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@envelop/response-cache/-/response-cache-3.2.0.tgz#b92496737a050ba251dba4d713d207e0ff999778"
+  integrity sha512-g/y3fHQYs23ZqyLVHpaZnWwT/wAb02tZP7GS2TlVxu8iaQZbkRdOVyuuiWzWy49+2Rjk1nDhOFAQUy650jqziw==
+  dependencies:
+    "@graphql-tools/utils" "^8.8.0"
+    fast-json-stable-stringify "^2.1.0"
     lru-cache "^6.0.0"
     tslib "^2.4.0"
 
