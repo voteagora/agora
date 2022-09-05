@@ -46,11 +46,11 @@ export function VoteDetails({ voteFragment }: Props) {
       className={css`
         border-radius: ${theme.borderRadius.lg};
         border-width: ${theme.spacing.px};
-        border-color: ${theme.colors.gray["300"]};
+        border-color: ${theme.colors.gray.eb};
         background: ${theme.colors.white};
         box-shadow: ${shadow};
 
-        padding: ${theme.spacing["2"]};
+        padding: ${theme.spacing["6"]};
       `}
     >
       <div
