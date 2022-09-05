@@ -2423,6 +2423,7 @@ type ResolvedName {
 
 type WrappedDelegate {
   id: ID!
+  address: Address!
   statement: DelegateStatement
   delegate: Delegate
 }
