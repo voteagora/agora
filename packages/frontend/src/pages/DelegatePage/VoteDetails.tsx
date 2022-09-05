@@ -6,6 +6,7 @@ import * as theme from "../../theme";
 import { VoteDetailsFragment$key } from "./__generated__/VoteDetailsFragment.graphql";
 import { VStack } from "../../components/VStack";
 import { shadow } from "./VoterPanel";
+import { useMemo } from "react";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;
@@ -24,20 +25,12 @@ export function VoteDetails({ voteFragment }: Props) {
           id
           title
 
-          values
+          totalValue
         }
       }
     `,
     voteFragment
   );
-
-  // todo: check target
-  // todo: move this check out
-  const totalValue =
-    vote.proposal.values?.reduce<BigNumber>(
-      (acc, value) => BigNumber.from(value).add(acc),
-      BigNumber.from(0)
-    ) ?? BigNumber.from(0);
 
   const proposalHref = `https://nouns.wtf/vote/${vote.proposal.id}`;
 
@@ -61,9 +54,7 @@ export function VoteDetails({ voteFragment }: Props) {
       >
         <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
         <a href={proposalHref}>Prop {vote.proposal.id}</a>
-        {!totalValue.isZero() ? (
-          <> for {utils.formatEther(totalValue)} ETH</>
-        ) : null}{" "}
+        <ValuePart value={vote.proposal.totalValue} />
         &mdash; with {vote.votes} votes
       </div>
       <h2
@@ -75,6 +66,18 @@ export function VoteDetails({ voteFragment }: Props) {
       </h2>
       <p>{vote.reason}</p>
     </VStack>
+  );
+}
+
+type ValuePartProps = {
+  value: string;
+};
+
+export function ValuePart({ value }: ValuePartProps) {
+  const amount = useMemo(() => BigNumber.from(value), [value]);
+
+  return (
+    <>{!amount.isZero() ? <> for {utils.formatEther(amount)} ETH</> : null} </>
   );
 }
 
