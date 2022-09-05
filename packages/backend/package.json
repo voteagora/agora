@@ -19,6 +19,8 @@
     "start": "yarn build && yarn run generate && yarn run server"
   },
   "dependencies": {
+    "@envelop/core": "^2.6.0",
+    "@envelop/response-cache": "^3.2.0",
     "@graphql-codegen/cli": "^2.12.0",
     "@graphql-codegen/typescript-resolvers": "^2.7.3",
     "@graphql-tools/delegate": "^9.0.4",
