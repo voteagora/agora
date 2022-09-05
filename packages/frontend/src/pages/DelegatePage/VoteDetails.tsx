@@ -5,6 +5,7 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoteDetailsFragment$key } from "./__generated__/VoteDetailsFragment.graphql";
 import { VStack } from "../../components/VStack";
+import { shadow } from "./VoterPanel";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;
@@ -47,7 +48,7 @@ export function VoteDetails({ voteFragment }: Props) {
         border-width: ${theme.spacing.px};
         border-color: ${theme.colors.gray["300"]};
         background: ${theme.colors.white};
-        box-shadow: ${theme.boxShadow.default};
+        box-shadow: ${shadow};
 
         padding: ${theme.spacing["2"]};
       `}
