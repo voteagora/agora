@@ -32,7 +32,7 @@ export function NounGrid({
         display: grid;
         grid-template-columns: repeat(${columns}, ${imageSizeResolved});
         grid-template-rows: repeat(${rows}, ${imageSizeResolved});
-        gap: ${theme.spacing["1"]};
+        gap: ${theme.spacing["4"]};
       `}
     >
       <NounGridChildren
@@ -92,12 +92,16 @@ export function NounGridChildren({
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: bold;
+          font-weight: ${theme.fontWeight.medium};
+          color:${theme.colors.gray[600]};
           font-size: ${theme.fontSize[overflowFontSize]};
           white-space: nowrap;
+          letter-spacing:${theme.letterSpacing.tight};
+          background-color:${theme.colors.gray[200]};
+          border-radius: ${theme.borderRadius.full};;
         `}
       >
-        + {overflowAmount + 1}
+        +{overflowAmount + 1}
       </div>
     </>
   ) : (
