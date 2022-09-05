@@ -8,6 +8,8 @@ import {
   ASTNode,
   FragmentDefinitionNode,
   graphql,
+  GraphQLList,
+  GraphQLNonNull,
   Kind,
   OperationTypeNode,
   parse,
@@ -403,14 +405,52 @@ export async function makeGatewaySchema() {
         return topIssues as any;
       },
 
-      leastValuableProposals({ values: { leastValuableProposals } }) {
-        // todo: fetch proposals
-        return leastValuableProposals as any;
+      async leastValuableProposals(
+        { values: { leastValuableProposals } },
+        args,
+        context,
+        info
+      ) {
+        return Promise.all(
+          leastValuableProposals.map((proposal) =>
+            delegateToSchema({
+              schema: nounsSchema,
+              operation: OperationTypeNode.QUERY,
+              fieldName: "proposal",
+              args: { id: proposal.id },
+              context,
+              returnType: (
+                (info.returnType as GraphQLNonNull<any>)
+                  .ofType as GraphQLList<any>
+              ).ofType,
+              info,
+            })
+          )
+        );
       },
 
-      mostValuableProposals({ values: { mostValuableProposals } }) {
-        // todo: implement
-        return mostValuableProposals as any;
+      async mostValuableProposals(
+        { values: { mostValuableProposals } },
+        args,
+        context,
+        info
+      ) {
+        return Promise.all(
+          mostValuableProposals.map((proposal) =>
+            delegateToSchema({
+              schema: nounsSchema,
+              operation: OperationTypeNode.QUERY,
+              fieldName: "proposal",
+              args: { id: proposal.id },
+              context,
+              returnType: (
+                (info.returnType as GraphQLNonNull<any>)
+                  .ofType as GraphQLList<any>
+              ).ofType,
+              info,
+            })
+          )
+        );
       },
 
       discord({ values: { discord } }) {
