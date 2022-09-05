@@ -1,5 +1,7 @@
 import { createServer } from "@graphql-yoga/common";
 import { makeGatewaySchema } from "./schema";
+import { createInMemoryCache } from "@envelop/response-cache";
+import { makeCachePlugin } from "./cache";
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -24,6 +26,8 @@ export interface Env {
 
 let makeGatewaySchemaPromise = null;
 
+const cache = createInMemoryCache();
+
 export default {
   async fetch(
     request: Request,
@@ -34,7 +38,12 @@ export default {
       makeGatewaySchemaPromise = makeGatewaySchema();
     }
     const schema = await makeGatewaySchemaPromise;
-    const server = createServer({ schema, maskedErrors: false });
+    const server = createServer({
+      schema,
+      // todo: fix for prod
+      maskedErrors: false,
+      plugins: [makeCachePlugin(cache)],
+    });
 
     return server.handleRequest(request, { env, ctx });
   },
