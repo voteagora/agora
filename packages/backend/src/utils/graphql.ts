@@ -1,11 +1,11 @@
-import { FragmentDefinitionNode, SelectionSetNode } from "graphql";
+import { FieldNode, FragmentDefinitionNode, SelectionSetNode } from "graphql";
 import { ObjMap } from "graphql/jsutils/ObjMap";
 
 export function fieldsMatching(
   selectionSetNode: SelectionSetNode,
   name: string,
   fragments: ObjMap<FragmentDefinitionNode>
-) {
+): FieldNode[] {
   return selectionSetNode.selections.flatMap((field) => {
     if (field.kind === "Field" && field.name.value === name) {
       return [field];
