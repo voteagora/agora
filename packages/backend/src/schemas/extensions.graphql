@@ -80,8 +80,14 @@ enum WrappedDelegatesWhere {
   seekingDelegation
 }
 
+enum WrappedDelegatesOrder {
+  mostNounsRepresented
+  mostRecentlyActive
+}
+
 type Query {
   wrappedDelegates(
     where: WrappedDelegatesWhere
+    orderBy: WrappedDelegatesOrder! = mostNounsRepresented
   ): [WrappedDelegate!]!
 }
