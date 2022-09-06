@@ -24,9 +24,9 @@ export function CloseButton({ onClick }: Props) {
     >
       <CloseIcon
         className={css`
-          width: ${theme.spacing["6"]};
-          height: ${theme.spacing["6"]};
-          margin: ${theme.spacing["1"]};
+          width: ${theme.spacing["4"]};
+          height: ${theme.spacing["4"]};
+          margin: 0.8rem;
         `}
       />
     </div>
