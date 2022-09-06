@@ -8,7 +8,6 @@ import { DelegatesContainer } from "./DelegatesContainer";
 import { PageHeader } from "../../components/PageHeader";
 import { PageContainer } from "../../components/PageContainer";
 import { VStack } from "../../components/VStack";
-import { Suspense } from "react";
 
 export function HomePage() {
   const result = useLazyLoadQuery<HomePageQuery>(
@@ -27,9 +26,7 @@ export function HomePage() {
       <Hero />
       <OverviewMetricsContainer fragmentRef={result} />
       <PageDivider />
-      <Suspense fallback={null}>
-        <DelegatesContainer fragmentKey={result} />
-      </Suspense>
+      <DelegatesContainer fragmentKey={result} />
     </PageContainer>
   );
 }
