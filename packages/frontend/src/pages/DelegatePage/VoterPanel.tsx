@@ -309,10 +309,11 @@ export const shadow =
 const containerStyles = css`
   position: sticky;
   top: ${theme.spacing["16"]};
+  background-color: ${theme.colors.white};
   border-radius: ${theme.spacing["3"]};
   border-width: ${theme.spacing.px};
-  border-color: ${theme.colors.gray.eb};
-  box-shadow: ${shadow};
+  border-color: ${theme.colors.gray["300"]};
+  box-shadow: ${theme.boxShadow.newDefault};
 `;
 
 type EmptyVoterPanelProps = {

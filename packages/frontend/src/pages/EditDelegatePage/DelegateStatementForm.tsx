@@ -110,12 +110,11 @@ export function DelegateStatementForm({
     <VStack
       className={css`
         width: 100%;
-
-        background: ${theme.colors.white};
+        background-color: ${theme.colors.white};
+        border-radius: ${theme.spacing["3"]};
         border-width: ${theme.spacing.px};
         border-color: ${theme.colors.gray["300"]};
-        border-radius: ${theme.spacing["3"]};
-        box-shadow: ${theme.boxShadow.md};
+        box-shadow: ${theme.boxShadow.newDefault};
       `}
     >
       <DelegateStatementFormSection form={form} />
