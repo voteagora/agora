@@ -14,16 +14,16 @@ import { Navigate } from "react-router-dom";
 import { HStack } from "../../components/VStack";
 
 export function EditDelegatePage() {
+  const { address } = useAccount();
+
   const query = useLazyLoadQuery<EditDelegatePageQuery>(
     graphql`
-      query EditDelegatePageQuery {
-        ...PastProposalsFormSectionProposalListFragment
+      query EditDelegatePageQuery($address: ID!) {
+        ...DelegateStatementFormFragment @arguments(address: $address)
       }
     `,
-    {}
+    { address: address ?? "" }
   );
-
-  const { address } = useAccount();
 
   if (!address) {
     return <Navigate to="/" />;
