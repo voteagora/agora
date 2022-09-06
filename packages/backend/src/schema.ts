@@ -224,12 +224,14 @@ export async function makeGatewaySchema() {
         },
       },
 
-      async wrappedDelegates(_, { where }, context, info) {
+      async wrappedDelegates(_, { where, orderBy }, context, info) {
         switch (where) {
           case WrappedDelegatesWhere.WithStatement: {
-            return Array.from(delegateStatements.keys()).map((address) => ({
-              address,
-            }));
+            const remoteDelegates = await fetchRemoteDelegates(context, info);
+
+            return remoteDelegates.filter((delegate) =>
+              delegateStatements.has(delegate.address)
+            );
           }
 
           case WrappedDelegatesWhere.SeekingDelegation: {
