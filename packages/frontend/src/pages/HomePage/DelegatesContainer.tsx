@@ -5,16 +5,9 @@ import * as theme from "../../theme";
 import { VoterCard } from "./VoterCard";
 import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
-import { Listbox } from "@headlessui/react";
-import {
-  dropdownContainerStyles,
-  dropdownItemActiveStyle,
-  DropdownItems,
-  dropdownItemStyle,
-} from "../EditDelegatePage/TopIssuesFormSection";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useState } from "react";
 import { WrappedDelegatesOrder } from "./__generated__/DelegatesContainerPaginationQuery.graphql";
+import { Selector } from "./Selector";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -93,61 +86,19 @@ export function DelegatesContainer({ fragmentKey }: Props) {
             Voters
           </h2>
 
-          <Listbox
+          <Selector
+            items={Object.entries(orderNames).map(
+              ([value, title]): SelectorItem<WrappedDelegatesOrder> => ({
+                title,
+                value: value as WrappedDelegatesOrder,
+              })
+            )}
             value={orderBy}
             onChange={(orderBy) => {
-              setOrderBy(orderBy);
               refetch({ orderBy });
+              setOrderBy(orderBy);
             }}
-            as="div"
-            className={dropdownContainerStyles}
-          >
-            {({ open }) => (
-              <>
-                <Listbox.Button className={css``}>
-                  <HStack
-                    alignItems="center"
-                    gap="2"
-                    className={css`
-                      background: #f7f7f7;
-                      border-radius: ${theme.borderRadius.full};
-                      border: 1px solid ${theme.colors.gray.eb};
-                      padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
-                    `}
-                  >
-                    <div>{orderNames[orderBy]}</div>
-
-                    <ChevronDownIcon
-                      aria-hidden="true"
-                      className={css`
-                        width: ${theme.spacing["4"]};
-                        height: ${theme.spacing["4"]};
-                      `}
-                    />
-                  </HStack>
-                </Listbox.Button>
-                <Listbox.Options static>
-                  <DropdownItems open={open}>
-                    {Object.entries(orderNames).map(([type, name]) => (
-                      <Listbox.Option key={type} value={type}>
-                        {({ selected, active }) => (
-                          //  todo: need an active style here
-                          <div
-                            className={css`
-                              ${dropdownItemStyle}
-                              ${selected && dropdownItemActiveStyle}
-                            `}
-                          >
-                            {name}
-                          </div>
-                        )}
-                      </Listbox.Option>
-                    ))}
-                  </DropdownItems>
-                </Listbox.Options>
-              </>
-            )}
-          </Listbox>
+          />
         </HStack>
       </VStack>
 
