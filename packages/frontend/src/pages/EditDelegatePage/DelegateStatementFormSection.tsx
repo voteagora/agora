@@ -56,7 +56,7 @@ export function DelegateStatementFormSection({
       <HStack alignItems="baseline" justifyContent="space-between" gap="4">
         <h3 className={formSectionHeadingStyle}>Delegate statement</h3>
 
-        <HStack gap="0">
+        <HStack gap="1">
           <div
             className={css`
               ${displayModeSelectorStyles}
