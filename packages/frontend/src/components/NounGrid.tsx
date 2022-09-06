@@ -93,12 +93,12 @@ export function NounGridChildren({
           align-items: center;
           justify-content: center;
           font-weight: ${theme.fontWeight.medium};
-          color:${theme.colors.gray[600]};
+          color: ${theme.colors.gray[600]};
           font-size: ${theme.fontSize[overflowFontSize]};
           white-space: nowrap;
-          letter-spacing:${theme.letterSpacing.tight};
-          background-color:${theme.colors.gray[200]};
-          border-radius: ${theme.borderRadius.full};;
+          letter-spacing: ${theme.letterSpacing.tight};
+          background-color: ${theme.colors.gray[200]};
+          border-radius: ${theme.borderRadius.full}; ;
         `}
       >
         +{overflowAmount + 1}

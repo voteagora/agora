@@ -272,7 +272,7 @@ function ProposalCard({ proposal, onClick, onClose }: ProposalCardProps) {
     <div
       onClick={onClick}
       className={css`
-        z-index:3;
+        z-index: 3;
         background-color: ${theme.colors.white};
 
         ${onClick &&

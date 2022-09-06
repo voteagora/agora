@@ -18,7 +18,7 @@ export function YesNoSelector({ onSelectionChanged, selection }: Props) {
           background: ${theme.colors.gray["100"]};
           border-radius: ${theme.borderRadius.md};
           border-width: ${theme.spacing.px};
-  border-color: ${theme.colors.gray["300"]};
+          border-color: ${theme.colors.gray["300"]};
           overflow: hidden;
         `}
       >

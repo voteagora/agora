@@ -12,7 +12,7 @@ export function PageContainer({ children }: Props) {
     <VStack
       alignItems="center"
       className={css`
-        background-color:#FCFCFC;
+        background-color: #fcfcfc;
         background-image: radial-gradient(
           rgba(0, 0, 0, 10%) 0.5px,
           transparent 0

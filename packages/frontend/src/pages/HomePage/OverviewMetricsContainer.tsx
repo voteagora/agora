@@ -50,7 +50,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
       gap="4"
       className={css`
         z-index: 1;
-        width:100%;
+        width: 100%;
         max-width: ${theme.maxWidth["6xl"]};
         flex-wrap: wrap;
       `}
