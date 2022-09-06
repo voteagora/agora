@@ -75,6 +75,13 @@ input CreateNewDelegateStatementData {
   statementBodyJsonSignature: String!
 }
 
+enum WrappedDelegatesWhere {
+  withStatement
+  seekingDelegation
+}
+
 type Query {
-  wrappedDelegates: [WrappedDelegate!]!
+  wrappedDelegates(
+    where: WrappedDelegatesWhere
+  ): [WrappedDelegate!]!
 }
