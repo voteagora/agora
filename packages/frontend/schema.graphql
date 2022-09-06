@@ -444,7 +444,7 @@ type Query {
   _meta(block: Block_height): _Meta_
   metrics: OverallMetrics!
   address(address: ID!): Address!
-  wrappedDelegates: [WrappedDelegate!]!
+  wrappedDelegates(where: WrappedDelegatesWhere): [WrappedDelegate!]!
 }
 
 type Subscription {
@@ -2458,4 +2458,9 @@ type Mutation {
 input CreateNewDelegateStatementData {
   statementBodyJson: String!
   statementBodyJsonSignature: String!
+}
+
+enum WrappedDelegatesWhere {
+  withStatement
+  seekingDelegation
 }
