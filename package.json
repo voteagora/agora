@@ -6,10 +6,10 @@
   ],
   "scripts": {
     "start-frontend": "yarn workspace nouns-agora run start",
-    "start-backend": "yarn workspace nouns-agora-backend run start"
+    "start-backend": "yarn workspace nouns-agora-backend run start",
+    "prettier": "prettier --write . --ignore-path .gitignore"
   },
   "devDependencies": {
     "prettier": "^2.7.1"
   }
 }
-
