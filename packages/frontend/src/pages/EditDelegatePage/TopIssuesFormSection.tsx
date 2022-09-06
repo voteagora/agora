@@ -132,19 +132,20 @@ export function TopIssuesFormSection({ form }: Props) {
           )!;
 
           return (
-            <HStack gap="2" alignItems="center" key={index}>
+            <HStack gap="4" alignItems="center" key={index}>
               <div
                 className={css`
                   display: flex;
                   justify-content: center;
                   align-items: center;
-                  width: ${theme.spacing["10"]};
-                  height: ${theme.spacing["10"]};
-                  box-shadow: ${theme.boxShadow.md};
+                  width: ${theme.spacing["12"]};
+                  height: ${theme.spacing["12"]};
+                  background-color: ${theme.colors.white};
                   border-radius: ${theme.borderRadius.md};
+                  border-width: ${theme.spacing.px};
+                  border-color: ${theme.colors.gray["300"]};
+                  box-shadow: ${theme.boxShadow.newDefault};
                   padding: ${theme.spacing["2"]};
-                  background: #fbfbfb;
-                  border: 1px solid #ebebeb;
                 `}
               >
                 <img src={icons[issueDef.icon]} alt={issueDef.title} />
@@ -185,9 +186,10 @@ export function TopIssuesFormSection({ form }: Props) {
 }
 
 export const sharedInputStyle = css`
-  background: ${theme.colors.gray["200"]};
+  background: ${theme.colors.gray["100"]};
   outline: none;
-  padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
-  box-shadow: ${theme.boxShadow.inner};
+  padding: ${theme.spacing["3"]} ${theme.spacing["3"]};
+  border-width: ${theme.spacing.px};
+  border-color: ${theme.colors.gray["300"]};
   border-radius: ${theme.borderRadius.md};
 `;
