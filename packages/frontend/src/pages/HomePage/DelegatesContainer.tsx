@@ -1,4 +1,4 @@
-import { useFragment } from "react-relay";
+import { usePaginationFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
@@ -11,10 +11,21 @@ type Props = {
 };
 
 export function DelegatesContainer({ fragmentKey }: Props) {
-  const { voters } = useFragment(
+  const {
+    data: { voters },
+    loadNext,
+    hasNext,
+    isLoadingNext,
+  } = usePaginationFragment(
     graphql`
-      fragment DelegatesContainerFragment on Query {
-        voters: wrappedDelegates(first: 50) {
+      fragment DelegatesContainerFragment on Query
+      @argumentDefinitions(
+        first: { type: "Int", defaultValue: 30 }
+        after: { type: "String" }
+      )
+      @refetchable(queryName: "DelegatesContainerPaginationQuery") {
+        voters: wrappedDelegates(first: $first, after: $after)
+          @connection(key: "DelegatesContainerFragment_voters") {
           edges {
             node {
               id
@@ -67,6 +78,9 @@ export function DelegatesContainer({ fragmentKey }: Props) {
         {voters.edges.map(({ node: voter }) => (
           <VoterCard key={voter.id} fragmentRef={voter} />
         ))}
+
+        {isLoadingNext && <div>loading</div>}
+        {hasNext && <button onClick={() => loadNext(30)}>Load More!</button>}
       </div>
     </VStack>
   );

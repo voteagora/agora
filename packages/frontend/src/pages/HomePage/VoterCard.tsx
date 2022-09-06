@@ -7,7 +7,6 @@ import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql
 import { NounResolvedName } from "../../components/NounResolvedName";
 import { NounsRepresentedGrid } from "../../components/NounGrid";
 import { HStack, VStack } from "../../components/VStack";
-import { shadow } from "../DelegatePage/VoterPanel";
 import { icons } from "../../icons/icons";
 
 type VoterCardProps = {
