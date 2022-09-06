@@ -113,7 +113,7 @@ export function DelegatesContainer({ fragmentKey }: Props) {
               }
               value={filterBy}
               onChange={(filterBy) => {
-                refetch({ filterBy });
+                refetch({ orderBy, filterBy });
                 setFilterBy(filterBy);
               }}
             />
@@ -127,7 +127,7 @@ export function DelegatesContainer({ fragmentKey }: Props) {
               )}
               value={orderBy}
               onChange={(orderBy) => {
-                refetch({ orderBy });
+                refetch({ orderBy, filterBy });
                 setOrderBy(orderBy);
               }}
             />
