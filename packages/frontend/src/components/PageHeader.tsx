@@ -120,7 +120,7 @@ function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
         border-color: ${theme.colors.gray["300"]};
         border-width: ${theme.spacing.px};
         border-radius: ${theme.borderRadius.lg};
-        box-shadow: ${theme.boxShadow.md};
+        box-shadow: ${theme.boxShadow.newDefault};
       `}
     >
       <HStack

@@ -104,7 +104,7 @@ function MetricContainer({ icon, title, body }: MetricContainerProps) {
         padding: ${theme.spacing["3"]};
         border-width: ${theme.spacing.px};
         border-color: ${theme.colors.gray["300"]};
-        box-shadow: ${theme.boxShadow.sm};
+        box-shadow: ${theme.boxShadow.newDefault};
       `}
     >
       <div

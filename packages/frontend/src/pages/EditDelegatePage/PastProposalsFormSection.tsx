@@ -163,7 +163,7 @@ function ProposalList({
 
   return (
     <VStack
-      gap="2"
+      gap="1"
       className={css`
         flex: 1;
       `}
@@ -206,14 +206,14 @@ function ProposalList({
         />
 
         <VStack
-          gap="2"
+          gap="0"
           className={css`
             position: absolute;
-            background: white;
-
             top: 100%;
             left: 0;
             right: 0;
+            border-color: ${theme.colors.gray["300"]};
+            box-shadow: ${theme.boxShadow.newDefault};
           `}
         >
           {isFocused &&
@@ -272,9 +272,8 @@ function ProposalCard({ proposal, onClick, onClose }: ProposalCardProps) {
     <div
       onClick={onClick}
       className={css`
-        border-radius: ${theme.borderRadius.md};
-        border-width: ${theme.spacing.px};
-        border-color: ${theme.colors.gray["300"]};
+        z-index:3;
+        background-color: ${theme.colors.white};
 
         ${onClick &&
         css`
@@ -288,7 +287,7 @@ function ProposalCard({ proposal, onClick, onClose }: ProposalCardProps) {
     >
       <div
         className={css`
-          padding: ${theme.spacing["2"]};
+          padding: ${theme.spacing["3"]} ${theme.spacing["3"]};
         `}
       >
         #{proposal.id} - {proposal.title}
