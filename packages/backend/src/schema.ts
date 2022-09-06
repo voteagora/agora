@@ -281,7 +281,7 @@ export async function makeGatewaySchema() {
         const selectionsForWhere = (() => {
           switch (where) {
             case WrappedDelegatesWhere.SeekingDelegation:
-              return parseSelection(`{ tokenHoldersRepresentedAmount }`);
+              return parseSelection(`{ delegatedVotes }`);
 
             case WrappedDelegatesWhere.WithStatement:
             default:
@@ -340,7 +340,9 @@ export async function makeGatewaySchema() {
                 }
 
                 return (
-                  delegate.delegatedDelegate.tokenHoldersRepresentedAmount === 0
+                  BigNumber.from(
+                    delegate.delegatedDelegate.delegatedVotes
+                  ).isZero() && delegate.delegateStatement
                 );
               });
 

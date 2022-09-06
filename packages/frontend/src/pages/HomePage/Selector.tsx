@@ -10,7 +10,7 @@ import { Listbox } from "@headlessui/react";
 import { css } from "@emotion/css";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 
-type SelectorItem<T> = {
+export type SelectorItem<T> = {
   title: string;
   value: T;
 };
