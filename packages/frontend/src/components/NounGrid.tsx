@@ -98,7 +98,7 @@ export function NounGridChildren({
           white-space: nowrap;
           letter-spacing: ${theme.letterSpacing.tight};
           background-color: ${theme.colors.gray[200]};
-          border-radius: ${theme.borderRadius.full}; ;
+          border-radius: ${theme.borderRadius.full};
         `}
       >
         +{overflowAmount + 1}
