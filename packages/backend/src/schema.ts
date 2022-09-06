@@ -1,21 +1,16 @@
 import { stitchSchemas } from "@graphql-tools/stitch";
 import { getTitleFromProposalDescription } from "./utils/markdown";
 import { makeNounsSchema } from "./schemas/nouns-subgraph";
-import { AggregateError } from "@graphql-tools/utils";
 import { delegateToSchema } from "@graphql-tools/delegate";
 import { mergeResolvers } from "@graphql-tools/merge";
 import {
-  ASTNode,
-  FragmentDefinitionNode,
-  graphql,
+  FieldNode,
   GraphQLList,
   GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLResolveInfo,
   Kind,
   OperationTypeNode,
-  parse,
-  print,
-  SelectionSetNode,
-  visit,
 } from "graphql";
 import { ethers, BigNumber } from "ethers";
 import {
@@ -142,134 +137,77 @@ export async function makeGatewaySchema() {
       },
 
       async wrappedDelegates(_, args, context, info) {
-        function fieldsMatching(
-          selectionSetNode: SelectionSetNode,
-          name: string
-        ) {
-          return selectionSetNode.selections.flatMap((field) => {
-            if (field.kind === "Field" && field.name.value === name) {
-              return [field];
-            }
+        const delegateResolveInfo: GraphQLResolveInfo = {
+          ...info,
+          fieldName: "delegate",
+          fieldNodes: [
+            ...info.fieldNodes
+              .flatMap((field) => {
+                if (
+                  field.kind !== "Field" ||
+                  field.name.value !== "wrappedDelegates"
+                ) {
+                  return [];
+                }
 
-            if (field.kind === "FragmentSpread") {
-              return fieldsMatching(
-                info.fragments[field.name.value].selectionSet,
-                name
-              );
-            }
+                return field.selectionSet.selections;
+              })
+              .flatMap((field) => {
+                if (field.kind !== "Field" || field.name.value !== "delegate") {
+                  return [];
+                }
 
-            return [];
-          });
-        }
-
-        function getSelectionSetFromDelegateField() {
-          const currentFieldNode = info.fieldNodes.find(
-            (node) => node.name.value === info.fieldName
-          );
-          if (!currentFieldNode) {
-            return [];
-          }
-
-          const [delegateFieldNode] = fieldsMatching(
-            currentFieldNode.selectionSet,
-            "delegate"
-          );
-
-          if (!delegateFieldNode) {
-            return [];
-          }
-
-          return delegateFieldNode.selectionSet.selections.filter((node) => {
-            if (node.kind === "Field") {
-              return node.name.value !== "id";
-            }
-
-            return true;
-          });
-        }
-
-        function buildFusedDelegateQuery(
-          delegateFieldSelectionSet: ReturnType<
-            typeof getSelectionSetFromDelegateField
-          >
-        ) {
-          const document = parse(`
-            query FusedDelegateQuery {
-              delegates(
-                first: 50
-                orderBy: delegatedVotesRaw
-                orderDirection: desc
-              ) {
-                ...DelegateFields
-              }
-            }
-
-            fragment DelegateFields on Delegate {
-              id
-            }
-          `);
-
-          const patchedDocument = visit(document, {
-            [Kind.FRAGMENT_DEFINITION](node) {
-              if (node.name.value === "DelegateFields") {
+                return [field];
+              })
+              .map((field): FieldNode => {
                 return {
-                  ...node,
+                  ...field,
                   selectionSet: {
-                    ...node.selectionSet,
+                    ...field.selectionSet,
                     selections: [
-                      ...node.selectionSet.selections,
-                      ...delegateFieldSelectionSet,
+                      ...field.selectionSet.selections,
+                      {
+                        kind: Kind.FIELD,
+                        name: {
+                          kind: Kind.NAME,
+                          value: "id",
+                        },
+                      },
                     ],
                   },
                 };
-              }
+              }),
+          ],
+          returnType: (
+            info.returnType as GraphQLNonNull<
+              GraphQLList<GraphQLNonNull<GraphQLObjectType>>
+            >
+          ).ofType.ofType.ofType.getFields()["delegate"].type,
+          parentType: (
+            info.parentType.getFields()["wrappedDelegates"]
+              .type as GraphQLNonNull<
+              GraphQLList<GraphQLNonNull<GraphQLObjectType>>
+            >
+          ).ofType.ofType.ofType,
+          path: {
+            prev: undefined,
+            typename: "WrappedDelegate",
+            key: "delegate",
+          },
+        };
 
-              return node;
-            },
-          });
-
-          let fragmentMap: Map<string, FragmentDefinitionNode> = new Map<
-            string,
-            FragmentDefinitionNode
-          >();
-
-          function getDefinedFragments(
-            astNode: ASTNode,
-            fragments: Map<string, FragmentDefinitionNode>
-          ) {
-            visit(astNode, {
-              [Kind.FRAGMENT_SPREAD](node) {
-                const name = node.name.value;
-                const fragment = info.fragments[name];
-                if (!fragment) {
-                  return;
-                }
-
-                if (fragments.has(name)) {
-                  return;
-                }
-
-                fragmentMap.set(node.name.value, fragment);
-                getDefinedFragments(fragment, fragments);
-              },
-            });
-          }
-
-          getDefinedFragments(patchedDocument, fragmentMap);
-
-          return {
-            ...patchedDocument,
-            definitions: [
-              ...patchedDocument.definitions,
-              ...fragmentMap.values(),
-            ],
-          };
-        }
-
-        const delegateFieldSelectionSet = getSelectionSetFromDelegateField();
-        const fusedDelegateQuery = buildFusedDelegateQuery(
-          delegateFieldSelectionSet
-        );
+        const remoteDelegates = await delegateToSchema({
+          schema: nounsSchema,
+          operation: OperationTypeNode.QUERY,
+          fieldName: "delegates",
+          args: {
+            first: 50,
+            orderBy: "delegatedVotesRaw",
+            orderDirection: "desc",
+          },
+          context,
+          info: delegateResolveInfo,
+        });
 
         const fromDelegateStatements = Array.from(
           delegateStatements.keys()
@@ -277,31 +215,19 @@ export async function makeGatewaySchema() {
           address,
         }));
 
-        const executionResult = await graphql({
-          schema: nounsSchema,
-          source: print(fusedDelegateQuery),
-        });
-
-        if (executionResult.errors) {
-          throw new AggregateError(
-            executionResult.errors,
-            executionResult.errors.map((error) => error.message).join(", \n")
-          );
-        }
-
-        const remoteDelegates: WrappedDelegate[] = (
-          executionResult.data.delegates as any
-        ).map((delegate) => ({
-          address: delegate.id,
-          underlyingDelegate: delegate,
-        }));
+        const remoteWrappedDelegates: WrappedDelegate[] = remoteDelegates.map(
+          (delegate) => ({
+            id: delegate.id,
+            underlyingDelegate: delegate,
+          })
+        );
 
         const remoteDelegatesSet = new Set(
-          remoteDelegates.map((it) => it.address)
+          remoteWrappedDelegates.map((it) => it.address)
         );
 
         return [
-          ...remoteDelegates,
+          ...remoteWrappedDelegates,
           ...fromDelegateStatements.filter(
             (it) => !remoteDelegatesSet.has(it.address)
           ),
@@ -520,6 +446,29 @@ export async function makeGatewaySchema() {
           selectionSet: `{ id }`,
           resolve({ id }) {
             return { address: id };
+          },
+        },
+
+        voteSummary: {
+          selectionSet: `{ votes(first: 1000) { supportDetailed } }`,
+          resolve({ votes }) {
+            return votes.reduce(
+              (acc, { supportDetailed }) => {
+                switch (supportDetailed) {
+                  case 0:
+                    return { ...acc, againstVotes: acc.againstVotes + 1 };
+                  case 1:
+                    return { ...acc, forVotes: acc.forVotes + 1 };
+                  case 2:
+                    return { ...acc, abstainVotes: acc.abstainVotes + 1 };
+                }
+              },
+              {
+                forVotes: 0,
+                againstVotes: 0,
+                abstainVotes: 0,
+              }
+            );
           },
         },
       },
