@@ -444,7 +444,7 @@ type Query {
   _meta(block: Block_height): _Meta_
   metrics: OverallMetrics!
   address(address: ID!): Address!
-  wrappedDelegates(where: WrappedDelegatesWhere): [WrappedDelegate!]!
+  wrappedDelegates(where: WrappedDelegatesWhere, orderBy: WrappedDelegatesOrder! = mostNounsRepresented): [WrappedDelegate!]!
 }
 
 type Subscription {
@@ -2463,4 +2463,9 @@ input CreateNewDelegateStatementData {
 enum WrappedDelegatesWhere {
   withStatement
   seekingDelegation
+}
+
+enum WrappedDelegatesOrder {
+  mostNounsRepresented
+  mostRecentlyActive
 }
