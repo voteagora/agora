@@ -107,6 +107,7 @@ type WrappedDelegatesEdge {
 type PageInfo {
   count: Int!
   hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
   startCursor: String!
   endCursor: String!
 }
