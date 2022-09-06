@@ -9,6 +9,13 @@ extend type Account {
 
 extend type Delegate {
   resolvedName: ResolvedName!
+  voteSummary: DelegateVotesSummary!
+}
+
+type DelegateVotesSummary {
+  forVotes: Int!
+  againstVotes: Int!
+  abstainVotes: Int!
 }
 
 type Query {
