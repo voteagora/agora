@@ -6,8 +6,11 @@ import { VoterCard } from "./VoterCard";
 import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { useState } from "react";
-import { WrappedDelegatesOrder } from "./__generated__/DelegatesContainerPaginationQuery.graphql";
-import { Selector } from "./Selector";
+import {
+  WrappedDelegatesOrder,
+  WrappedDelegatesWhere,
+} from "./__generated__/DelegatesContainerPaginationQuery.graphql";
+import { Selector, SelectorItem } from "./Selector";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -22,6 +25,8 @@ export function DelegatesContainer({ fragmentKey }: Props) {
   const [orderBy, setOrderBy] = useState<WrappedDelegatesOrder>(
     "mostNounsRepresented"
   );
+
+  const [filterBy, setFilterBy] = useState<WrappedDelegatesWhere>();
 
   const {
     data: { voters },
@@ -39,12 +44,14 @@ export function DelegatesContainer({ fragmentKey }: Props) {
           type: "WrappedDelegatesOrder"
           defaultValue: mostNounsRepresented
         }
+        filterBy: { type: "WrappedDelegatesWhere" }
       )
       @refetchable(queryName: "DelegatesContainerPaginationQuery") {
         voters: wrappedDelegates(
           first: $first
           after: $after
           orderBy: $orderBy
+          where: $filterBy
         ) @connection(key: "DelegatesContainerFragment_voters") {
           edges {
             node {
@@ -86,19 +93,45 @@ export function DelegatesContainer({ fragmentKey }: Props) {
             Voters
           </h2>
 
-          <Selector
-            items={Object.entries(orderNames).map(
-              ([value, title]): SelectorItem<WrappedDelegatesOrder> => ({
-                title,
-                value: value as WrappedDelegatesOrder,
-              })
-            )}
-            value={orderBy}
-            onChange={(orderBy) => {
-              refetch({ orderBy });
-              setOrderBy(orderBy);
-            }}
-          />
+          <HStack gap="4">
+            <Selector
+              items={
+                [
+                  {
+                    title: "View all",
+                    value: undefined,
+                  },
+                  {
+                    title: "View with statement",
+                    value: "withStatement" as const,
+                  },
+                  {
+                    title: "View seeking delegation",
+                    value: "seekingDelegation" as const,
+                  },
+                ] as SelectorItem<WrappedDelegatesWhere | undefined>[]
+              }
+              value={filterBy}
+              onChange={(filterBy) => {
+                refetch({ filterBy });
+                setFilterBy(filterBy);
+              }}
+            />
+
+            <Selector
+              items={Object.entries(orderNames).map(
+                ([value, title]): SelectorItem<WrappedDelegatesOrder> => ({
+                  title,
+                  value: value as WrappedDelegatesOrder,
+                })
+              )}
+              value={orderBy}
+              onChange={(orderBy) => {
+                refetch({ orderBy });
+                setOrderBy(orderBy);
+              }}
+            />
+          </HStack>
         </HStack>
       </VStack>
 
