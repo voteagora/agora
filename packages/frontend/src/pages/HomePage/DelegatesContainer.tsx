@@ -5,7 +5,7 @@ import * as theme from "../../theme";
 import { VoterCard } from "./VoterCard";
 import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   WrappedDelegatesOrder,
   WrappedDelegatesWhere,
@@ -27,43 +27,6 @@ export function DelegatesContainer({ fragmentKey }: Props) {
   );
 
   const [filterBy, setFilterBy] = useState<WrappedDelegatesWhere | null>(null);
-
-  const {
-    data: { voters },
-    loadNext,
-    hasNext,
-    isLoadingNext,
-    refetch,
-  } = usePaginationFragment(
-    graphql`
-      fragment DelegatesContainerFragment on Query
-      @argumentDefinitions(
-        first: { type: "Int", defaultValue: 30 }
-        after: { type: "String" }
-        orderBy: {
-          type: "WrappedDelegatesOrder"
-          defaultValue: mostNounsRepresented
-        }
-        filterBy: { type: "WrappedDelegatesWhere" }
-      )
-      @refetchable(queryName: "DelegatesContainerPaginationQuery") {
-        voters: wrappedDelegates(
-          first: $first
-          after: $after
-          orderBy: $orderBy
-          where: $filterBy
-        ) @connection(key: "DelegatesContainerFragment_voters") {
-          edges {
-            node {
-              id
-              ...VoterCardFragment
-            }
-          }
-        }
-      }
-    `,
-    fragmentKey
-  );
 
   return (
     <VStack
@@ -113,7 +76,6 @@ export function DelegatesContainer({ fragmentKey }: Props) {
               }
               value={filterBy}
               onChange={(filterBy) => {
-                refetch({ orderBy, filterBy });
                 setFilterBy(filterBy);
               }}
             />
@@ -127,7 +89,6 @@ export function DelegatesContainer({ fragmentKey }: Props) {
               )}
               value={orderBy}
               onChange={(orderBy) => {
-                refetch({ orderBy, filterBy });
                 setOrderBy(orderBy);
               }}
             />
@@ -144,13 +105,78 @@ export function DelegatesContainer({ fragmentKey }: Props) {
           /* max-width: ${theme.maxWidth["6xl"]}; */
         `}
       >
-        {voters.edges.map(({ node: voter }) => (
-          <VoterCard key={voter.id} fragmentRef={voter} />
-        ))}
-
-        {isLoadingNext && <div>loading</div>}
-        {hasNext && <button onClick={() => loadNext(30)}>Load More!</button>}
+        <Suspense fallback={null}>
+          <VotersContainer
+            fragmentKey={fragmentKey}
+            filterBy={filterBy}
+            orderBy={orderBy}
+          />
+        </Suspense>
       </div>
     </VStack>
+  );
+}
+
+type VotersContainerProps = {
+  fragmentKey: DelegatesContainerFragment$key;
+  orderBy: WrappedDelegatesOrder;
+  filterBy: WrappedDelegatesWhere | null;
+};
+
+function VotersContainer({
+  filterBy,
+  fragmentKey,
+  orderBy,
+}: VotersContainerProps) {
+  const {
+    data: { voters },
+    loadNext,
+    hasNext,
+    isLoadingNext,
+    refetch,
+  } = usePaginationFragment(
+    graphql`
+      fragment DelegatesContainerFragment on Query
+      @argumentDefinitions(
+        first: { type: "Int", defaultValue: 30 }
+        after: { type: "String" }
+        orderBy: {
+          type: "WrappedDelegatesOrder"
+          defaultValue: mostNounsRepresented
+        }
+        filterBy: { type: "WrappedDelegatesWhere" }
+      )
+      @refetchable(queryName: "DelegatesContainerPaginationQuery") {
+        voters: wrappedDelegates(
+          first: $first
+          after: $after
+          orderBy: $orderBy
+          where: $filterBy
+        ) @connection(key: "DelegatesContainerFragment_voters") {
+          edges {
+            node {
+              id
+              ...VoterCardFragment
+            }
+          }
+        }
+      }
+    `,
+    fragmentKey
+  );
+
+  useEffect(() => {
+    refetch({ filterBy, orderBy });
+  }, [filterBy, orderBy]);
+
+  return (
+    <>
+      {voters.edges.map(({ node: voter }) => (
+        <VoterCard key={voter.id} fragmentRef={voter} />
+      ))}
+
+      {isLoadingNext && <div>loading</div>}
+      {hasNext && <button onClick={() => loadNext(30)}>Load More!</button>}
+    </>
   );
 }
