@@ -3,5 +3,19 @@
 @tailwind utilities;
 
 #root {
-    display: flex;
+  display: flex;
+}
+.css-n0mnn6::before {
+  position: fixed;
+  top: 0;
+  content: "";
+  height: 100%;
+  width: 100%;
+  background: radial-gradient(
+    circle,
+    rgba(252, 252, 252, 0) 60%,
+    rgba(252, 252, 252, 1) 100%
+  );
+  z-index: 2;
+  pointer-events: none;
 }

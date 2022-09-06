@@ -16,20 +16,25 @@ type DisplayMode = "write" | "preview";
 
 const displayModeSelectorStyles = css`
   cursor: pointer;
+  font-size: ${theme.fontSize.sm};
+  font-weight: ${theme.fontWeight.medium};
   color: ${theme.colors.gray["600"]};
-  padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
-  border-radius: ${theme.borderRadius.default};
+  padding: ${theme.spacing["1"]} ${theme.spacing["3"]};
+  border-radius: ${theme.borderRadius.full};
 
   :hover {
-    background: ${theme.colors.gray["200"]};
+    background: ${theme.colors.gray["100"]};
+    color: ${theme.colors.gray["900"]};
   }
 `;
 
 const displayModeSelectorSelectedStyles = css`
-  background: ${theme.colors.gray["400"]};
+  background: ${theme.colors.gray["200"]};
+  color: ${theme.colors.gray["900"]};
+  border-radius: ${theme.borderRadius.full};
 
   :hover {
-    background: ${theme.colors.gray["400"]};
+    background: ${theme.colors.gray["200"]};
   }
 `;
 
@@ -51,7 +56,7 @@ export function DelegateStatementFormSection({
       <HStack alignItems="baseline" justifyContent="space-between" gap="4">
         <h3 className={formSectionHeadingStyle}>Delegate statement</h3>
 
-        <HStack gap="2">
+        <HStack gap="1">
           <div
             className={css`
               ${displayModeSelectorStyles}
@@ -77,14 +82,15 @@ export function DelegateStatementFormSection({
       {displayMode === "write" && (
         <textarea
           className={css`
-            background: ${theme.colors.gray["200"]};
+            background: ${theme.colors.gray["100"]};
             padding: ${theme.spacing["4"]};
             margin-top: ${theme.spacing["2"]};
             border-radius: ${theme.borderRadius.md};
             outline: none;
             width: 100%;
             min-height: ${theme.spacing["64"]};
-            box-shadow: ${theme.boxShadow.inner};
+            border-width: ${theme.spacing.px};
+            border-color: ${theme.colors.gray["300"]};
           `}
           value={form.state.delegateStatement}
           onChange={(e) => form.onChange.delegateStatement(e.target.value)}

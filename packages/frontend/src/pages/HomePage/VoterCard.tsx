@@ -50,14 +50,12 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
     <Link to={`/delegate/${delegate.id}`}>
       <VStack
         className={css`
-          padding: ${theme.spacing["4"]};
-
-          border-radius: ${theme.borderRadius.lg};
+          padding: ${theme.spacing["6"]};
+          border-radius: ${theme.spacing["3"]};
           background: ${theme.colors.white};
           border-width: ${theme.spacing.px};
-          border: ${theme.colors.gray.eb};
-          border-style: solid;
-          box-shadow: ${shadow};
+          border-color: ${theme.colors.gray["300"]};
+          box-shadow: ${theme.boxShadow.newDefault};
           cursor: pointer;
         `}
       >
@@ -72,12 +70,12 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
         <HStack
           justifyContent="space-between"
           className={css`
-            margin-top: ${theme.spacing["4"]};
+            margin-top: ${theme.spacing["5"]};
           `}
         >
           <div
             className={css`
-              font-weight: bold;
+              font-weight: ${theme.fontWeight.semibold};
             `}
           >
             <NounResolvedName resolvedName={delegate.address.resolvedName} />
