@@ -26,7 +26,7 @@ export function DelegatesContainer({ fragmentKey }: Props) {
     "mostNounsRepresented"
   );
 
-  const [filterBy, setFilterBy] = useState<WrappedDelegatesWhere>();
+  const [filterBy, setFilterBy] = useState<WrappedDelegatesWhere | null>(null);
 
   const {
     data: { voters },
@@ -99,7 +99,7 @@ export function DelegatesContainer({ fragmentKey }: Props) {
                 [
                   {
                     title: "View all",
-                    value: undefined,
+                    value: null,
                   },
                   {
                     title: "View with statement",
@@ -109,7 +109,7 @@ export function DelegatesContainer({ fragmentKey }: Props) {
                     title: "View seeking delegation",
                     value: "seekingDelegation" as const,
                   },
-                ] as SelectorItem<WrappedDelegatesWhere | undefined>[]
+                ] as SelectorItem<WrappedDelegatesWhere | null>[]
               }
               value={filterBy}
               onChange={(filterBy) => {
