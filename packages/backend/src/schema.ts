@@ -11,6 +11,7 @@ import {
   GraphQLResolveInfo,
   Kind,
   OperationTypeNode,
+  SelectionSetNode,
 } from "graphql";
 import { ethers, BigNumber } from "ethers";
 import {
@@ -137,6 +138,26 @@ export async function makeGatewaySchema() {
       },
 
       async wrappedDelegates(_, args, context, info) {
+        function fieldsMatching(
+          selectionSetNode: SelectionSetNode,
+          name: string
+        ) {
+          return selectionSetNode.selections.flatMap((field) => {
+            if (field.kind === "Field" && field.name.value === name) {
+              return [field];
+            }
+
+            if (field.kind === "FragmentSpread") {
+              return fieldsMatching(
+                info.fragments[field.name.value].selectionSet,
+                name
+              );
+            }
+
+            return [];
+          });
+        }
+
         const delegateResolveInfo: GraphQLResolveInfo = {
           ...info,
           fieldName: "delegate",
@@ -150,15 +171,11 @@ export async function makeGatewaySchema() {
                   return [];
                 }
 
-                return field.selectionSet.selections;
+                return field.selectionSet;
               })
-              .flatMap((field) => {
-                if (field.kind !== "Field" || field.name.value !== "delegate") {
-                  return [];
-                }
-
-                return [field];
-              })
+              .flatMap((selectionNode) =>
+                fieldsMatching(selectionNode, "delegate")
+              )
               .map((field): FieldNode => {
                 return {
                   ...field,
@@ -216,8 +233,8 @@ export async function makeGatewaySchema() {
         }));
 
         const remoteWrappedDelegates: WrappedDelegate[] = remoteDelegates.map(
-          (delegate) => ({
-            id: delegate.id,
+          (delegate): WrappedDelegate => ({
+            address: delegate.id,
             underlyingDelegate: delegate,
           })
         );
