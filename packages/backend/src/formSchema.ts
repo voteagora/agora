@@ -51,11 +51,7 @@ export const formSchema = z
   .object({
     for: z.literal("nouns-agora"),
     delegateStatement: z.string(),
-    topIssues: ensureUnique(
-      z.array(topIssueSchema),
-      (it) => it.type,
-      "duplicate types"
-    ),
+    topIssues: z.array(topIssueSchema),
     mostValuableProposals: proposalsListSchema,
     leastValuableProposals: proposalsListSchema,
     twitter: z.string(),
