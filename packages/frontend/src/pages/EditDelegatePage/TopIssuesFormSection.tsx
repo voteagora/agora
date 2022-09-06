@@ -2,11 +2,12 @@ import { icons } from "../../icons/icons";
 import { useCallback } from "react";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { Dropdown } from "./Dropdown";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
 import { CloseButton } from "./CloseButton";
 import { Form } from "./DelegateStatementForm";
 import { HStack, VStack } from "../../components/VStack";
+import { Menu } from "@headlessui/react";
+import { AnimatePresence, motion } from "framer-motion";
 
 type IssueTypeDefinition = {
   key: string;
@@ -109,15 +110,7 @@ export function TopIssuesFormSection({ form }: Props) {
     <div className={formSectionContainerStyles}>
       <HStack gap="4" justifyContent="space-between" alignItems="baseline">
         <h3 className={formSectionHeadingStyle}>Views on top issues</h3>
-
-        <Dropdown
-          title="+ Add a new issue"
-          items={issueDefinitions.map((def) => ({
-            selectKey: def.key,
-            title: def.title,
-          }))}
-          onItemClicked={addIssue}
-        />
+        <Dropdown addIssue={addIssue} />
       </HStack>
 
       <VStack
@@ -182,6 +175,93 @@ export function TopIssuesFormSection({ form }: Props) {
         })}
       </VStack>
     </div>
+  );
+}
+
+type DropdownProps = {
+  addIssue: (key: string) => void;
+};
+
+function Dropdown({ addIssue }: DropdownProps) {
+  return (
+    <Menu
+      as="div"
+      className={css`
+        position: relative;
+      `}
+    >
+      {({ open }) => (
+        <>
+          <Menu.Button
+            className={css`
+              color: #66676b;
+            `}
+          >
+            + Add a new issue
+          </Menu.Button>
+          <Menu.Items
+            static
+            className={css`
+              position: absolute;
+              z-index: 3;
+              outline: none;
+
+              top: calc(100% + ${theme.spacing["2"]});
+              right: 0;
+            `}
+          >
+            <AnimatePresence>
+              {open && (
+                <motion.div
+                  style={{ originY: "-100%", originX: "100%" }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <VStack
+                    gap="1"
+                    className={css`
+                      background: #f7f7f7;
+                      box-shadow: ${theme.boxShadow.newDefault};
+                      border: 1px solid ${theme.colors.gray.eb};
+                      padding: ${theme.spacing["2"]};
+                      border-radius: ${theme.spacing["4"]};
+                    `}
+                  >
+                    {issueDefinitions.map((def) => (
+                      <Menu.Item key={def.key}>
+                        {({ active }) => (
+                          <div
+                            onClick={() => addIssue(def.key)}
+                            className={css`
+                              white-space: nowrap;
+                              border-radius: ${theme.spacing["3"]};
+                              border: 1px solid transparent;
+                              padding: ${theme.spacing["2"]}
+                                ${theme.spacing["3"]};
+                              cursor: pointer;
+
+                              ${active &&
+                              css`
+                                background: white;
+                                border-color: ${theme.colors.gray.eb};
+                              `}
+                            `}
+                          >
+                            {def.title}
+                          </div>
+                        )}
+                      </Menu.Item>
+                    ))}
+                  </VStack>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Menu.Items>
+        </>
+      )}
+    </Menu>
   );
 }
 
