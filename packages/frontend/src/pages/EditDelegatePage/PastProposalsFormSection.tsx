@@ -206,7 +206,6 @@ function ProposalList({
         />
 
         <VStack
-          gap="0"
           className={css`
             position: absolute;
             top: 100%;
