@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Form } from "./DelegateStatementForm";
 import { Markdown } from "../../components/Markdown";
 import { HStack, VStack } from "../../components/VStack";
+import { Tab } from "@headlessui/react";
 
 export const tipTextStyle = css`
   font-size: ${theme.fontSize.xs};
@@ -56,27 +57,67 @@ export function DelegateStatementFormSection({
       <HStack alignItems="baseline" justifyContent="space-between" gap="4">
         <h3 className={formSectionHeadingStyle}>Delegate statement</h3>
 
-        <HStack gap="1">
-          <div
-            className={css`
-              ${displayModeSelectorStyles}
-              ${displayMode === "write" && displayModeSelectorSelectedStyles}
-            `}
-            onClick={() => setDisplayMode("write")}
-          >
-            Write
-          </div>
+        <Tab.Group
+          manual
+          selectedIndex={(() => {
+            switch (displayMode) {
+              case "preview":
+                return 1;
 
-          <div
-            className={css`
-              ${displayModeSelectorStyles}
-              ${displayMode === "preview" && displayModeSelectorSelectedStyles}
-            `}
-            onClick={() => setDisplayMode("preview")}
-          >
-            Preview
-          </div>
-        </HStack>
+              case "write":
+                return 0;
+            }
+          })()}
+          onChange={(index) => {
+            switch (index) {
+              case 0:
+                setDisplayMode("write");
+                return;
+
+              case 1:
+                setDisplayMode("preview");
+                return;
+            }
+          }}
+        >
+          <Tab.List>
+            <HStack gap="1">
+              <Tab
+                className={css`
+                  outline: none;
+                `}
+              >
+                {({ selected }) => (
+                  <div
+                    className={css`
+                      ${displayModeSelectorStyles}
+                      ${selected && displayModeSelectorSelectedStyles}
+                    `}
+                  >
+                    Write
+                  </div>
+                )}
+              </Tab>
+
+              <Tab
+                className={css`
+                  outline: none;
+                `}
+              >
+                {({ selected }) => (
+                  <div
+                    className={css`
+                      ${displayModeSelectorStyles}
+                      ${selected && displayModeSelectorSelectedStyles}
+                    `}
+                  >
+                    Preview
+                  </div>
+                )}
+              </Tab>
+            </HStack>
+          </Tab.List>
+        </Tab.Group>
       </HStack>
 
       {displayMode === "write" && (
