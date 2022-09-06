@@ -1,5 +1,5 @@
 import { icons } from "../../icons/icons";
-import { useCallback } from "react";
+import { ReactNode, useCallback } from "react";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
@@ -175,14 +175,73 @@ type DropdownProps = {
   addIssue: (key: string) => void;
 };
 
-function Dropdown({ addIssue }: DropdownProps) {
+export const dropdownContainerStyles = css`
+  position: relative;
+`;
+
+export const dropdownItemStyle = css`
+  white-space: nowrap;
+  border-radius: ${theme.spacing["3"]};
+  border: 1px solid transparent;
+  padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
+  cursor: pointer;
+  color: #66676b;
+`;
+
+export const dropdownItemActiveStyle = css`
+  background: white;
+  color: black;
+  border-color: ${theme.colors.gray.eb};
+`;
+
+type DropdownItemsProps = {
+  open: boolean;
+  children: ReactNode;
+};
+
+export function DropdownItems({ open, children }: DropdownItemsProps) {
   return (
-    <Menu
-      as="div"
+    <div
       className={css`
-        position: relative;
+        position: absolute;
+        z-index: 3;
+        outline: none;
+
+        top: calc(100% + ${theme.spacing["2"]});
+        right: 0;
       `}
     >
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            style={{ originY: "-100%", originX: "100%" }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.15 }}
+          >
+            <VStack
+              gap="1"
+              className={css`
+                background: #f7f7f7;
+                box-shadow: ${theme.boxShadow.newDefault};
+                border: 1px solid ${theme.colors.gray.eb};
+                padding: ${theme.spacing["2"]};
+                border-radius: ${theme.spacing["4"]};
+              `}
+            >
+              {children}
+            </VStack>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function Dropdown({ addIssue }: DropdownProps) {
+  return (
+    <Menu as="div" className={dropdownContainerStyles}>
       {({ open }) => (
         <>
           <Menu.Button
@@ -192,65 +251,24 @@ function Dropdown({ addIssue }: DropdownProps) {
           >
             + Add a new issue
           </Menu.Button>
-          <Menu.Items
-            static
-            className={css`
-              position: absolute;
-              z-index: 3;
-              outline: none;
-
-              top: calc(100% + ${theme.spacing["2"]});
-              right: 0;
-            `}
-          >
-            <AnimatePresence>
-              {open && (
-                <motion.div
-                  style={{ originY: "-100%", originX: "100%" }}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <VStack
-                    gap="1"
-                    className={css`
-                      background: #f7f7f7;
-                      box-shadow: ${theme.boxShadow.newDefault};
-                      border: 1px solid ${theme.colors.gray.eb};
-                      padding: ${theme.spacing["2"]};
-                      border-radius: ${theme.spacing["4"]};
-                    `}
-                  >
-                    {issueDefinitions.map((def) => (
-                      <Menu.Item key={def.key}>
-                        {({ active }) => (
-                          <div
-                            onClick={() => addIssue(def.key)}
-                            className={css`
-                              white-space: nowrap;
-                              border-radius: ${theme.spacing["3"]};
-                              border: 1px solid transparent;
-                              padding: ${theme.spacing["2"]}
-                                ${theme.spacing["3"]};
-                              cursor: pointer;
-
-                              ${active &&
-                              css`
-                                background: white;
-                                border-color: ${theme.colors.gray.eb};
-                              `}
-                            `}
-                          >
-                            {def.title}
-                          </div>
-                        )}
-                      </Menu.Item>
-                    ))}
-                  </VStack>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          <Menu.Items static>
+            <DropdownItems open={open}>
+              {issueDefinitions.map((def) => (
+                <Menu.Item key={def.key}>
+                  {({ active }) => (
+                    <div
+                      onClick={() => addIssue(def.key)}
+                      className={css`
+                        ${dropdownItemStyle};
+                        ${active && dropdownItemActiveStyle}
+                      `}
+                    >
+                      {def.title}
+                    </div>
+                  )}
+                </Menu.Item>
+              ))}
+            </DropdownItems>
           </Menu.Items>
         </>
       )}
