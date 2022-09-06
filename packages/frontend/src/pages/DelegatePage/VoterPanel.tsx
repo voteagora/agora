@@ -58,6 +58,12 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
               }
             }
 
+            voteSummary {
+              forVotes
+              againstVotes
+              abstainVotes
+            }
+
             votes(orderBy: blockNumber, orderDirection: desc) {
               id
 
@@ -157,6 +163,11 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
               (delegate.nounsRepresented.length / Number(metrics.quorumVotes)) *
               100
             ).toFixed(0)}% quorum`}
+          />
+
+          <PanelRow
+            title="For / Against / Abstain"
+            detail={`${delegate.voteSummary.forVotes} / ${delegate.voteSummary.againstVotes} / ${delegate.voteSummary.abstainVotes}`}
           />
 
           <PanelRow
@@ -379,6 +390,8 @@ export function EmptyVoterPanel({ resolvedName }: EmptyVoterPanelProps) {
           <PanelRow title="Proposals voted" detail={`N/A`} />
 
           <PanelRow title="Voting power" detail={`N/A`} />
+
+          <PanelRow title="For / Against / Abstain" detail="N/A" />
 
           <PanelRow title="Recent activity" detail={`N/A`} />
 
