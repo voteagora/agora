@@ -16,11 +16,11 @@ type DisplayMode = "write" | "preview";
 
 const displayModeSelectorStyles = css`
   cursor: pointer;
-  font-size:${theme.fontSize.sm};
+  font-size: ${theme.fontSize.sm};
   font-weight: ${theme.fontWeight.medium};
   color: ${theme.colors.gray["600"]};
   padding: ${theme.spacing["1"]} ${theme.spacing["3"]};
-  border-radius:${theme.borderRadius.full};
+  border-radius: ${theme.borderRadius.full};
 
   :hover {
     background: ${theme.colors.gray["100"]};
@@ -31,7 +31,7 @@ const displayModeSelectorStyles = css`
 const displayModeSelectorSelectedStyles = css`
   background: ${theme.colors.gray["200"]};
   color: ${theme.colors.gray["900"]};
-  border-radius:${theme.borderRadius.full};
+  border-radius: ${theme.borderRadius.full};
 
   :hover {
     background: ${theme.colors.gray["200"]};

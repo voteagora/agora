@@ -21,7 +21,7 @@ export function HomePage() {
   );
 
   return (
-    <PageContainer >
+    <PageContainer>
       <PageHeader />
       <Hero />
       <OverviewMetricsContainer fragmentRef={result} />

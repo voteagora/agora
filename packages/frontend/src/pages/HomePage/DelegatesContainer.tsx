@@ -26,8 +26,7 @@ export function DelegatesContainer({ fragmentKey }: Props) {
   return (
     <VStack
       alignItems="center"
-      className={
-        css`
+      className={css`
         width: 100%;
         max-width: ${theme.maxWidth["6xl"]};
         padding-top: ${theme.spacing["16"]};
@@ -55,9 +54,9 @@ export function DelegatesContainer({ fragmentKey }: Props) {
       <div
         className={css`
           display: grid;
-          grid-template-columns: repeat(3, calc(${theme.spacing["12"]} *7.55));
+          grid-template-columns: repeat(3, calc(${theme.spacing["12"]} * 7.55));
           gap: ${theme.spacing["8"]};
-          width:100%;
+          width: 100%;
           /* max-width: ${theme.maxWidth["6xl"]}; */
         `}
       >
