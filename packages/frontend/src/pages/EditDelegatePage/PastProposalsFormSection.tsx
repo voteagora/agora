@@ -28,7 +28,6 @@ export function PastProposalsFormSection({ queryFragment, form }: Props) {
       <VStack>
         <h3 className={formSectionHeadingStyle}>Views on past proposals</h3>
 
-        {/*  todo: so jank */}
         <VStack
           gap="4"
           className={css`
@@ -213,6 +212,7 @@ function ProposalList({
             right: 0;
             border-color: ${theme.colors.gray["300"]};
             box-shadow: ${theme.boxShadow.newDefault};
+            z-index: 3;
           `}
         >
           {isFocused &&
@@ -271,7 +271,10 @@ function ProposalCard({ proposal, onClick, onClose }: ProposalCardProps) {
     <div
       onClick={onClick}
       className={css`
-        z-index: 3;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
         background-color: ${theme.colors.white};
 
         ${onClick &&

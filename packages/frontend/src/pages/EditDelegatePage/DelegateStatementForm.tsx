@@ -1,4 +1,3 @@
-import { PastProposalsFormSectionProposalListFragment$key } from "./__generated__/PastProposalsFormSectionProposalListFragment.graphql";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import {
@@ -18,14 +17,15 @@ import { OtherInfoFormSection } from "./OtherInfoFormSection";
 import { buttonStyles } from "./EditDelegatePage";
 import { UseForm, useForm } from "./useForm";
 import { useSigner } from "wagmi";
-import { useMutation } from "react-relay";
+import { useFragment, useMutation } from "react-relay";
 import { useMutation as useReactQueryMutation } from "@tanstack/react-query";
 import graphql from "babel-plugin-relay/macro";
 import { DelegateStatementFormMutation } from "./__generated__/DelegateStatementFormMutation.graphql";
 import { HStack, VStack } from "../../components/VStack";
+import { DelegateStatementFormFragment$key } from "./__generated__/DelegateStatementFormFragment.graphql";
 
 type DelegateStatementFormProps = {
-  queryFragment: PastProposalsFormSectionProposalListFragment$key;
+  queryFragment: DelegateStatementFormFragment$key;
 };
 
 type FormValues = {
@@ -57,7 +57,64 @@ export type Form = UseForm<FormValues>;
 export function DelegateStatementForm({
   queryFragment,
 }: DelegateStatementFormProps) {
-  const form = useForm(initialFormValues);
+  const data = useFragment(
+    graphql`
+      fragment DelegateStatementFormFragment on Query
+      @argumentDefinitions(address: { type: "ID!" }) {
+        address(address: $address) {
+          wrappedDelegate {
+            statement {
+              statement
+              mostValuableProposals {
+                id
+              }
+
+              leastValuableProposals {
+                id
+              }
+
+              discord
+              twitter
+              topIssues {
+                type
+                value
+              }
+
+              openToSponsoringProposals
+            }
+          }
+        }
+
+        ...PastProposalsFormSectionProposalListFragment
+      }
+    `,
+    queryFragment
+  );
+
+  const form = useForm<FormValues>(() => {
+    if (!data.address.wrappedDelegate.statement) {
+      return initialFormValues();
+    }
+
+    const statement = data.address.wrappedDelegate.statement;
+
+    return {
+      discord: statement.discord,
+      twitter: statement.twitter,
+      leastValuableProposals: statement.leastValuableProposals.slice(),
+      mostValuableProposals: statement.mostValuableProposals.slice(),
+      topIssues: statement.topIssues.slice(),
+      delegateStatement: statement.statement,
+      email: "",
+      openToSponsoringProposals: (() => {
+        if (statement.openToSponsoringProposals === null) {
+          return undefined;
+        }
+
+        return statement.openToSponsoringProposals ? "yes" : "no";
+      })(),
+    };
+  });
 
   const [createNewDelegateStatement, isMutationInFlight] =
     useMutation<DelegateStatementFormMutation>(
@@ -119,7 +176,7 @@ export function DelegateStatementForm({
     >
       <DelegateStatementFormSection form={form} />
       <TopIssuesFormSection form={form} />
-      <PastProposalsFormSection form={form} queryFragment={queryFragment} />
+      <PastProposalsFormSection form={form} queryFragment={data} />
       <OtherInfoFormSection form={form} />
 
       <HStack
