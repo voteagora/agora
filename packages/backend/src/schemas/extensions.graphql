@@ -89,5 +89,24 @@ type Query {
   wrappedDelegates(
     where: WrappedDelegatesWhere
     orderBy: WrappedDelegatesOrder! = mostNounsRepresented
-  ): [WrappedDelegate!]!
+    first: Int!
+    after: String
+  ): WrappedDelegatesConnection!
+}
+
+type WrappedDelegatesConnection {
+  pageInfo: PageInfo!
+  edges: [WrappedDelegatesEdge!]!
+}
+
+type WrappedDelegatesEdge {
+  node: WrappedDelegate!
+  cursor: String!
+}
+
+type PageInfo {
+  count: Int!
+  hasNextPage: Boolean!
+  startCursor: String!
+  endCursor: String!
 }

@@ -133,12 +133,21 @@ function makeDelegateResolveInfo(
     ...injectedSelections,
   ];
 
+  const parentType = (
+    (
+      (info.returnType as GraphQLNonNull<GraphQLObjectType>).ofType.getFields()[
+        "edges"
+      ].type as GraphQLNonNull<GraphQLList<GraphQLNonNull<GraphQLObjectType>>>
+    ).ofType.ofType.ofType.getFields()["node"]
+      .type as GraphQLNonNull<GraphQLObjectType>
+  ).ofType;
+
   return {
     ...info,
     fieldName: "delegate",
     fieldNodes: [
       ...info.fieldNodes
-        .flatMap((field) => {
+        .flatMap((field): FieldNode[] => {
           if (
             field.kind !== "Field" ||
             field.name.value !== "wrappedDelegates"
@@ -146,10 +155,16 @@ function makeDelegateResolveInfo(
             return [];
           }
 
-          return field.selectionSet;
+          return [field];
         })
-        .flatMap((selectionNode) =>
-          fieldsMatching(selectionNode, "delegate", info.fragments)
+        .flatMap((field) =>
+          fieldsMatching(field.selectionSet, "edges", info.fragments)
+        )
+        .flatMap((field) =>
+          fieldsMatching(field.selectionSet, "node", info.fragments)
+        )
+        .flatMap((field) =>
+          fieldsMatching(field.selectionSet, "delegate", info.fragments)
         )
         .map((field): FieldNode => {
           return {
@@ -164,16 +179,7 @@ function makeDelegateResolveInfo(
           };
         }),
     ],
-    returnType: (
-      info.returnType as GraphQLNonNull<
-        GraphQLList<GraphQLNonNull<GraphQLObjectType>>
-      >
-    ).ofType.ofType.ofType.getFields()["delegate"].type,
-    parentType: (
-      info.parentType.getFields()["wrappedDelegates"].type as GraphQLNonNull<
-        GraphQLList<GraphQLNonNull<GraphQLObjectType>>
-      >
-    ).ofType.ofType.ofType,
+    returnType: parentType.getFields()["delegate"].type,
     path: {
       prev: undefined,
       typename: "WrappedDelegate",
@@ -241,7 +247,12 @@ export async function makeGatewaySchema() {
         },
       },
 
-      async wrappedDelegates(_, { where, orderBy }, context, info) {
+      async wrappedDelegates(
+        _,
+        { where, orderBy, first, after },
+        context,
+        info
+      ) {
         const selectionsForOrdering = (() => {
           switch (orderBy) {
             case WrappedDelegatesOrder.MostRecentlyActive:
@@ -372,10 +383,29 @@ export async function makeGatewaySchema() {
           }
         })();
 
-        return sortedDelegates.slice(0, 50).map((delegate) => ({
-          address: delegate.id,
-          underlyingDelegate: delegate.delegatedDelegate,
-        }));
+        const parsedAfter = parseInt(after);
+        const offset = isNaN(parsedAfter) ? 0 : parsedAfter + 1;
+        const count = first;
+
+        const edges = sortedDelegates
+          .map((node, index) => ({
+            node: {
+              address: node.id,
+              underlyingDelegate: node.delegatedDelegate,
+            },
+            cursor: `${index}`,
+          }))
+          .slice(offset, offset + count);
+
+        return {
+          edges,
+          pageInfo: {
+            count: sortedDelegates.length,
+            hasNextPage: offset + count < sortedDelegates.length,
+            startCursor: `${edges[0].cursor}`,
+            endCursor: `${edges[edges.length - 1].cursor}`,
+          },
+        };
       },
     },
 
