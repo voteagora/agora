@@ -11,6 +11,7 @@ import {
   GraphQLResolveInfo,
   Kind,
   OperationTypeNode,
+  SelectionNode,
 } from "graphql";
 import { BigNumber, ethers } from "ethers";
 import {
@@ -18,11 +19,20 @@ import {
   NounsDAOLogicV1__factory,
   NounsToken__factory,
 } from "./contracts/generated";
-import { Resolvers, WrappedDelegatesWhere } from "./generated/types";
+import {
+  Delegate_OrderBy,
+  OrderDirection,
+  QueryDelegatesArgs,
+  Resolvers,
+  WrappedDelegatesOrder,
+  WrappedDelegatesWhere,
+} from "./generated/types";
 import { validateForm } from "./formSchema";
 import { WrappedDelegate } from "./model";
 import schema from "./schemas/extensions.graphql";
 import { fieldsMatching } from "./utils/graphql";
+import { parseSelectionSet } from "@graphql-tools/utils";
+import { ascendingValueComparator } from "./utils/sorting";
 
 const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
   [
@@ -104,11 +114,24 @@ const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
   ],
 ]);
 
+function makeSimpleFieldNode(name: string): FieldNode {
+  return {
+    kind: Kind.FIELD,
+    name: {
+      kind: Kind.NAME,
+      value: name,
+    },
+  };
+}
+
 function makeDelegateResolveInfo(
   info: GraphQLResolveInfo,
-  injectedFieldNames: string[] = []
+  injectedSelections: ReadonlyArray<SelectionNode>
 ): GraphQLResolveInfo {
-  const fieldNames = ["id", ...injectedFieldNames];
+  const additionalSelections: SelectionNode[] = [
+    makeSimpleFieldNode("id"),
+    ...injectedSelections,
+  ];
 
   return {
     ...info,
@@ -135,13 +158,7 @@ function makeDelegateResolveInfo(
               ...field.selectionSet,
               selections: [
                 ...field.selectionSet.selections,
-                ...fieldNames.map((fieldName) => ({
-                  kind: Kind.FIELD,
-                  name: {
-                    kind: Kind.NAME,
-                    value: fieldName,
-                  },
-                })),
+                ...additionalSelections,
               ],
             },
           };
@@ -186,28 +203,28 @@ export async function makeGatewaySchema() {
 
   async function fetchRemoteDelegates(
     context: any,
+    args: QueryDelegatesArgs,
     info: GraphQLResolveInfo,
-    injectedFieldNames: string[] = []
+    injectedSelections: ReadonlyArray<SelectionNode> = []
   ) {
-    const remoteDelegates = await delegateToSchema({
+    const result = await delegateToSchema({
       schema: nounsSchema,
       operation: OperationTypeNode.QUERY,
       fieldName: "delegates",
-      args: {
-        first: 1000,
-        orderBy: "delegatedVotesRaw",
-        orderDirection: "desc",
-      },
+      args,
       context,
-      info: makeDelegateResolveInfo(info, injectedFieldNames),
+      info: makeDelegateResolveInfo(info, injectedSelections),
     });
 
-    return remoteDelegates.map(
-      (delegate): WrappedDelegate => ({
-        address: delegate.id,
-        underlyingDelegate: delegate,
-      })
-    );
+    if (result instanceof Error) {
+      throw result;
+    }
+
+    return result;
+  }
+
+  function parseSelection(input: string) {
+    return parseSelectionSet(input, { noLocation: true }).selections;
   }
 
   const typedResolvers: Resolvers = {
@@ -225,56 +242,140 @@ export async function makeGatewaySchema() {
       },
 
       async wrappedDelegates(_, { where, orderBy }, context, info) {
-        switch (where) {
-          case WrappedDelegatesWhere.WithStatement: {
-            const remoteDelegates = await fetchRemoteDelegates(context, info);
+        const selectionsForOrdering = (() => {
+          switch (orderBy) {
+            case WrappedDelegatesOrder.MostRecentlyActive:
+              return parseSelection(
+                `
+                  {
+                    votes(first: 1, orderBy: blockNumber, orderDirection:desc) {
+                      id
+                      blockNumber
+                    }
+                    
+                    proposals(first: 1, orderBy: createdBlock, orderDirection: desc) {
+                      id
+                      createdBlock
+                    }
+                  }
+                `
+              );
 
-            return remoteDelegates.filter((delegate) =>
-              delegateStatements.has(delegate.address)
-            );
-          }
-
-          case WrappedDelegatesWhere.SeekingDelegation: {
-            const remoteDelegates = await fetchRemoteDelegates(context, info, [
-              "tokenHoldersRepresentedAmount",
-            ]);
-
-            const remoteDelegatesByAddress = new Map<string, any>(
-              remoteDelegates.map((delegate) => [
-                delegate.address,
-                delegate.underlyingDelegate,
-              ])
-            );
-
-            return Array.from(delegateStatements.keys()).flatMap((address) => {
-              const remoteDelegate = remoteDelegatesByAddress.get(address);
-              if (!remoteDelegate) {
-                return [{ address }];
-              }
-
-              if (!remoteDelegate.tokenHoldersRepresentedAmount) {
-                return [{ address, underlyingDelegate: remoteDelegate }];
-              }
-
+            case WrappedDelegatesOrder.MostNounsRepresented:
+            default:
               return [];
-            });
           }
+        })();
 
-          default: {
-            const remoteDelegates = await fetchRemoteDelegates(context, info);
-            const remoteDelegatesSet = new Set(
-              remoteDelegates.map((delegate) => delegate.address)
+        const selectionsForWhere = (() => {
+          switch (where) {
+            case WrappedDelegatesWhere.SeekingDelegation:
+              return parseSelection(`{ tokenHoldersRepresentedAmount }`);
+
+            case WrappedDelegatesWhere.WithStatement:
+            default:
+              return [];
+          }
+        })();
+
+        const queryDelegatesArgs: QueryDelegatesArgs = {
+          orderBy: Delegate_OrderBy.DelegatedVotes,
+          orderDirection: OrderDirection.Desc,
+          first: 1000,
+        };
+
+        const remoteDelegates = await fetchRemoteDelegates(
+          context,
+          queryDelegatesArgs,
+          info,
+          [...selectionsForOrdering, ...selectionsForWhere]
+        );
+
+        const remoteDelegateSet = new Set(remoteDelegates.map(({ id }) => id));
+
+        const delegates = [
+          ...remoteDelegates.map((delegatedDelegate) => {
+            const delegateStatement = delegateStatements.get(
+              delegatedDelegate.id
             );
 
-            return [
-              // todo: pagination
-              ...remoteDelegates.slice(0, 50),
-              ...Array.from(delegateStatements.keys())
-                .filter((address) => !remoteDelegatesSet.has(address))
-                .map((address) => ({ address })),
-            ];
+            return {
+              id: delegatedDelegate.id,
+              delegateStatement: delegateStatement?.values,
+              delegatedDelegate,
+            };
+          }),
+          ...Array.from(delegateStatements.values()).flatMap(
+            (delegateStatement) => {
+              if (remoteDelegateSet.has(delegateStatement.address)) {
+                return [];
+              }
+
+              return {
+                id: delegateStatement.address,
+                delegateStatement: delegateStatement.values,
+                delegatedDelegate: null,
+              };
+            }
+          ),
+        ];
+
+        const filteredDelegates = (() => {
+          switch (where) {
+            case WrappedDelegatesWhere.SeekingDelegation:
+              return delegates.filter((delegate) => {
+                if (!delegate.delegatedDelegate) {
+                  return true;
+                }
+
+                return (
+                  delegate.delegatedDelegate.tokenHoldersRepresentedAmount === 0
+                );
+              });
+
+            case WrappedDelegatesWhere.WithStatement: {
+              return delegates.filter(
+                (delegate) => !!delegate.delegateStatement
+              );
+            }
+
+            default: {
+              return delegates;
+            }
           }
-        }
+        })();
+
+        const sortedDelegates = (() => {
+          switch (orderBy) {
+            case WrappedDelegatesOrder.MostRecentlyActive:
+              return filteredDelegates.slice().sort(
+                ascendingValueComparator((delegate) => {
+                  if (!delegate.delegatedDelegate) {
+                    return -Infinity;
+                  }
+
+                  const latestVote =
+                    delegate.delegatedDelegate?.votes?.[0]?.blockNumber ??
+                    -Infinity;
+
+                  const latestProposal =
+                    delegate.delegatedDelegate?.proposals?.[0]?.createdBlock ??
+                    -Infinity;
+
+                  return Math.max(latestVote, latestProposal);
+                })
+              );
+
+            case WrappedDelegatesOrder.MostNounsRepresented:
+            default:
+              return filteredDelegates;
+          }
+        })();
+
+        return sortedDelegates.slice(0, 50).map((delegate) => ({
+          address: delegate.id,
+          underlyingDelegate: delegate.delegatedDelegate,
+        }));
       },
     },
 
