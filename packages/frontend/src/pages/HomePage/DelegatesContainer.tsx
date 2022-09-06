@@ -4,28 +4,55 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCard } from "./VoterCard";
 import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
-import { VStack } from "../../components/VStack";
+import { HStack, VStack } from "../../components/VStack";
+import { Listbox } from "@headlessui/react";
+import {
+  dropdownContainerStyles,
+  dropdownItemActiveStyle,
+  DropdownItems,
+  dropdownItemStyle,
+} from "../EditDelegatePage/TopIssuesFormSection";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { useState } from "react";
+import { WrappedDelegatesOrder } from "./__generated__/DelegatesContainerPaginationQuery.graphql";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
 };
 
+const orderNames: { [K in WrappedDelegatesOrder]?: string } = {
+  mostNounsRepresented: "Most nouns represented",
+  mostRecentlyActive: "Most recently active",
+};
+
 export function DelegatesContainer({ fragmentKey }: Props) {
+  const [orderBy, setOrderBy] = useState<WrappedDelegatesOrder>(
+    "mostNounsRepresented"
+  );
+
   const {
     data: { voters },
     loadNext,
     hasNext,
     isLoadingNext,
+    refetch,
   } = usePaginationFragment(
     graphql`
       fragment DelegatesContainerFragment on Query
       @argumentDefinitions(
         first: { type: "Int", defaultValue: 30 }
         after: { type: "String" }
+        orderBy: {
+          type: "WrappedDelegatesOrder"
+          defaultValue: mostNounsRepresented
+        }
       )
       @refetchable(queryName: "DelegatesContainerPaginationQuery") {
-        voters: wrappedDelegates(first: $first, after: $after)
-          @connection(key: "DelegatesContainerFragment_voters") {
+        voters: wrappedDelegates(
+          first: $first
+          after: $after
+          orderBy: $orderBy
+        ) @connection(key: "DelegatesContainerFragment_voters") {
           edges {
             node {
               id
@@ -56,14 +83,72 @@ export function DelegatesContainer({ fragmentKey }: Props) {
           margin-bottom: ${theme.spacing["8"]};
         `}
       >
-        <h2
-          className={css`
-            font-size: ${theme.fontSize["2xl"]};
-            font-weight: bolder;
-          `}
-        >
-          Voters
-        </h2>
+        <HStack alignItems="baseline" gap="2" justifyContent="space-between">
+          <h2
+            className={css`
+              font-size: ${theme.fontSize["2xl"]};
+              font-weight: bolder;
+            `}
+          >
+            Voters
+          </h2>
+
+          <Listbox
+            value={orderBy}
+            onChange={(orderBy) => {
+              setOrderBy(orderBy);
+              refetch({ orderBy });
+            }}
+            as="div"
+            className={dropdownContainerStyles}
+          >
+            {({ open }) => (
+              <>
+                <Listbox.Button className={css``}>
+                  <HStack
+                    alignItems="center"
+                    gap="2"
+                    className={css`
+                      background: #f7f7f7;
+                      border-radius: ${theme.borderRadius.full};
+                      border: 1px solid ${theme.colors.gray.eb};
+                      padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+                    `}
+                  >
+                    <div>{orderNames[orderBy]}</div>
+
+                    <ChevronDownIcon
+                      aria-hidden="true"
+                      className={css`
+                        width: ${theme.spacing["4"]};
+                        height: ${theme.spacing["4"]};
+                      `}
+                    />
+                  </HStack>
+                </Listbox.Button>
+                <Listbox.Options static>
+                  <DropdownItems open={open}>
+                    {Object.entries(orderNames).map(([type, name]) => (
+                      <Listbox.Option key={type} value={type}>
+                        {({ selected, active }) => (
+                          //  todo: need an active style here
+                          <div
+                            className={css`
+                              ${dropdownItemStyle}
+                              ${selected && dropdownItemActiveStyle}
+                            `}
+                          >
+                            {name}
+                          </div>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </DropdownItems>
+                </Listbox.Options>
+              </>
+            )}
+          </Listbox>
+        </HStack>
       </VStack>
 
       <div
