@@ -14,9 +14,13 @@ export function DelegatesContainer({ fragmentKey }: Props) {
   const { voters } = useFragment(
     graphql`
       fragment DelegatesContainerFragment on Query {
-        voters: wrappedDelegates {
-          id
-          ...VoterCardFragment
+        voters: wrappedDelegates(first: 50) {
+          edges {
+            node {
+              id
+              ...VoterCardFragment
+            }
+          }
         }
       }
     `,
@@ -60,7 +64,7 @@ export function DelegatesContainer({ fragmentKey }: Props) {
           /* max-width: ${theme.maxWidth["6xl"]}; */
         `}
       >
-        {voters.map((voter) => (
+        {voters.edges.map(({ node: voter }) => (
           <VoterCard key={voter.id} fragmentRef={voter} />
         ))}
       </div>
