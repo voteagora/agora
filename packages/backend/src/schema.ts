@@ -11,7 +11,6 @@ import {
   GraphQLResolveInfo,
   Kind,
   OperationTypeNode,
-  SelectionSetNode,
 } from "graphql";
 import { ethers, BigNumber } from "ethers";
 import {
@@ -23,6 +22,7 @@ import { Resolvers } from "./generated/types";
 import { validateForm } from "./formSchema";
 import { WrappedDelegate } from "./model";
 import schema from "./schemas/extensions.graphql";
+import { fieldsMatching } from "./utils/graphql";
 
 const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
   [
@@ -138,26 +138,6 @@ export async function makeGatewaySchema() {
       },
 
       async wrappedDelegates(_, args, context, info) {
-        function fieldsMatching(
-          selectionSetNode: SelectionSetNode,
-          name: string
-        ) {
-          return selectionSetNode.selections.flatMap((field) => {
-            if (field.kind === "Field" && field.name.value === name) {
-              return [field];
-            }
-
-            if (field.kind === "FragmentSpread") {
-              return fieldsMatching(
-                info.fragments[field.name.value].selectionSet,
-                name
-              );
-            }
-
-            return [];
-          });
-        }
-
         const delegateResolveInfo: GraphQLResolveInfo = {
           ...info,
           fieldName: "delegate",
@@ -174,7 +154,7 @@ export async function makeGatewaySchema() {
                 return field.selectionSet;
               })
               .flatMap((selectionNode) =>
-                fieldsMatching(selectionNode, "delegate")
+                fieldsMatching(selectionNode, "delegate", info.fragments)
               )
               .map((field): FieldNode => {
                 return {
