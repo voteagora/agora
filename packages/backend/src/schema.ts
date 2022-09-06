@@ -401,6 +401,7 @@ export async function makeGatewaySchema() {
           edges,
           pageInfo: {
             count: sortedDelegates.length,
+            hasPreviousPage: offset > 0,
             hasNextPage: offset + count < sortedDelegates.length,
             startCursor: `${edges[0].cursor}`,
             endCursor: `${edges[edges.length - 1].cursor}`,
