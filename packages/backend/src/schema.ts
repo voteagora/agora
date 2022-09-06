@@ -12,13 +12,13 @@ import {
   Kind,
   OperationTypeNode,
 } from "graphql";
-import { ethers, BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import {
   NNSENSReverseResolver__factory,
   NounsDAOLogicV1__factory,
   NounsToken__factory,
 } from "./contracts/generated";
-import { Resolvers } from "./generated/types";
+import { Resolvers, WrappedDelegatesWhere } from "./generated/types";
 import { validateForm } from "./formSchema";
 import { WrappedDelegate } from "./model";
 import schema from "./schemas/extensions.graphql";
@@ -104,6 +104,67 @@ const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
   ],
 ]);
 
+function makeDelegateResolveInfo(
+  info: GraphQLResolveInfo,
+  injectedFieldNames: string[] = []
+): GraphQLResolveInfo {
+  const fieldNames = ["id", ...injectedFieldNames];
+
+  return {
+    ...info,
+    fieldName: "delegate",
+    fieldNodes: [
+      ...info.fieldNodes
+        .flatMap((field) => {
+          if (
+            field.kind !== "Field" ||
+            field.name.value !== "wrappedDelegates"
+          ) {
+            return [];
+          }
+
+          return field.selectionSet;
+        })
+        .flatMap((selectionNode) =>
+          fieldsMatching(selectionNode, "delegate", info.fragments)
+        )
+        .map((field): FieldNode => {
+          return {
+            ...field,
+            selectionSet: {
+              ...field.selectionSet,
+              selections: [
+                ...field.selectionSet.selections,
+                ...fieldNames.map((fieldName) => ({
+                  kind: Kind.FIELD,
+                  name: {
+                    kind: Kind.NAME,
+                    value: fieldName,
+                  },
+                })),
+              ],
+            },
+          };
+        }),
+    ],
+    returnType: (
+      info.returnType as GraphQLNonNull<
+        GraphQLList<GraphQLNonNull<GraphQLObjectType>>
+      >
+    ).ofType.ofType.ofType.getFields()["delegate"].type,
+    parentType: (
+      info.parentType.getFields()["wrappedDelegates"].type as GraphQLNonNull<
+        GraphQLList<GraphQLNonNull<GraphQLObjectType>>
+      >
+    ).ofType.ofType.ofType,
+    path: {
+      prev: undefined,
+      typename: "WrappedDelegate",
+      key: "delegate",
+    },
+  };
+}
+
 export async function makeGatewaySchema() {
   const nounsSchema = await makeNounsSchema();
 
@@ -123,6 +184,32 @@ export async function makeGatewaySchema() {
     provider
   );
 
+  async function fetchRemoteDelegates(
+    context: any,
+    info: GraphQLResolveInfo,
+    injectedFieldNames: string[] = []
+  ) {
+    const remoteDelegates = await delegateToSchema({
+      schema: nounsSchema,
+      operation: OperationTypeNode.QUERY,
+      fieldName: "delegates",
+      args: {
+        first: 1000,
+        orderBy: "delegatedVotesRaw",
+        orderDirection: "desc",
+      },
+      context,
+      info: makeDelegateResolveInfo(info, injectedFieldNames),
+    });
+
+    return remoteDelegates.map(
+      (delegate): WrappedDelegate => ({
+        address: delegate.id,
+        underlyingDelegate: delegate,
+      })
+    );
+  }
+
   const typedResolvers: Resolvers = {
     Query: {
       metrics: {
@@ -137,98 +224,55 @@ export async function makeGatewaySchema() {
         },
       },
 
-      async wrappedDelegates(_, args, context, info) {
-        const delegateResolveInfo: GraphQLResolveInfo = {
-          ...info,
-          fieldName: "delegate",
-          fieldNodes: [
-            ...info.fieldNodes
-              .flatMap((field) => {
-                if (
-                  field.kind !== "Field" ||
-                  field.name.value !== "wrappedDelegates"
-                ) {
-                  return [];
-                }
+      async wrappedDelegates(_, { where }, context, info) {
+        switch (where) {
+          case WrappedDelegatesWhere.WithStatement: {
+            return Array.from(delegateStatements.keys()).map((address) => ({
+              address,
+            }));
+          }
 
-                return field.selectionSet;
-              })
-              .flatMap((selectionNode) =>
-                fieldsMatching(selectionNode, "delegate", info.fragments)
-              )
-              .map((field): FieldNode => {
-                return {
-                  ...field,
-                  selectionSet: {
-                    ...field.selectionSet,
-                    selections: [
-                      ...field.selectionSet.selections,
-                      {
-                        kind: Kind.FIELD,
-                        name: {
-                          kind: Kind.NAME,
-                          value: "id",
-                        },
-                      },
-                    ],
-                  },
-                };
-              }),
-          ],
-          returnType: (
-            info.returnType as GraphQLNonNull<
-              GraphQLList<GraphQLNonNull<GraphQLObjectType>>
-            >
-          ).ofType.ofType.ofType.getFields()["delegate"].type,
-          parentType: (
-            info.parentType.getFields()["wrappedDelegates"]
-              .type as GraphQLNonNull<
-              GraphQLList<GraphQLNonNull<GraphQLObjectType>>
-            >
-          ).ofType.ofType.ofType,
-          path: {
-            prev: undefined,
-            typename: "WrappedDelegate",
-            key: "delegate",
-          },
-        };
+          case WrappedDelegatesWhere.SeekingDelegation: {
+            const remoteDelegates = await fetchRemoteDelegates(context, info, [
+              "tokenHoldersRepresentedAmount",
+            ]);
 
-        const remoteDelegates = await delegateToSchema({
-          schema: nounsSchema,
-          operation: OperationTypeNode.QUERY,
-          fieldName: "delegates",
-          args: {
-            first: 50,
-            orderBy: "delegatedVotesRaw",
-            orderDirection: "desc",
-          },
-          context,
-          info: delegateResolveInfo,
-        });
+            const remoteDelegatesByAddress = new Map<string, any>(
+              remoteDelegates.map((delegate) => [
+                delegate.address,
+                delegate.underlyingDelegate,
+              ])
+            );
 
-        const fromDelegateStatements = Array.from(
-          delegateStatements.keys()
-        ).map((address) => ({
-          address,
-        }));
+            return Array.from(delegateStatements.keys()).flatMap((address) => {
+              const remoteDelegate = remoteDelegatesByAddress.get(address);
+              if (!remoteDelegate) {
+                return [{ address }];
+              }
 
-        const remoteWrappedDelegates: WrappedDelegate[] = remoteDelegates.map(
-          (delegate): WrappedDelegate => ({
-            address: delegate.id,
-            underlyingDelegate: delegate,
-          })
-        );
+              if (!remoteDelegate.tokenHoldersRepresentedAmount) {
+                return [{ address, underlyingDelegate: remoteDelegate }];
+              }
 
-        const remoteDelegatesSet = new Set(
-          remoteWrappedDelegates.map((it) => it.address)
-        );
+              return [];
+            });
+          }
 
-        return [
-          ...remoteWrappedDelegates,
-          ...fromDelegateStatements.filter(
-            (it) => !remoteDelegatesSet.has(it.address)
-          ),
-        ];
+          default: {
+            const remoteDelegates = await fetchRemoteDelegates(context, info);
+            const remoteDelegatesSet = new Set(
+              remoteDelegates.map((delegate) => delegate.address)
+            );
+
+            return [
+              // todo: pagination
+              ...remoteDelegates.slice(0, 50),
+              ...Array.from(delegateStatements.keys())
+                .filter((address) => !remoteDelegatesSet.has(address))
+                .map((address) => ({ address })),
+            ];
+          }
+        }
       },
     },
 
