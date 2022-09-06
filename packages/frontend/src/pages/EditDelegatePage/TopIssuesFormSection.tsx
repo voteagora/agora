@@ -73,9 +73,9 @@ export function TopIssuesFormSection({ form }: Props) {
   );
 
   const removeIssue = useCallback(
-    (selectionKey: string) => {
+    (index: number) => {
       setTopIssues((lastIssues) =>
-        lastIssues.filter((needle) => needle.type !== selectionKey)
+        lastIssues.filter((needle, needleIndex) => needleIndex !== index)
       );
     },
     [setTopIssues]
@@ -151,7 +151,7 @@ export function TopIssuesFormSection({ form }: Props) {
                     bottom: 0;
                   `}
                 >
-                  <CloseButton onClick={() => removeIssue(issueDef.key)} />
+                  <CloseButton onClick={() => removeIssue(index)} />
                 </VStack>
                 <input
                   className={sharedInputStyle}
