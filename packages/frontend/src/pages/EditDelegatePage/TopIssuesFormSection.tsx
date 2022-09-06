@@ -66,13 +66,6 @@ export function TopIssuesFormSection({ form }: Props) {
   const addIssue = useCallback(
     (selectionKey: string) => {
       setTopIssues((lastIssues) => {
-        const issueAlreadyExists = lastIssues.find(
-          (needle) => needle.type === selectionKey
-        );
-        if (issueAlreadyExists) {
-          return lastIssues;
-        }
-
         return [...lastIssues, initialIssueState(selectionKey)];
       });
     },
