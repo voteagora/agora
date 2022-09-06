@@ -12,6 +12,7 @@ import { Markdown } from "../../components/Markdown";
 import { HStack, VStack } from "../../components/VStack";
 import { issueDefinitions } from "../EditDelegatePage/TopIssuesFormSection";
 import { icons } from "../../icons/icons";
+import { ImpactfulProposals } from "./ImpactfulProposals";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
@@ -28,6 +29,7 @@ export function DelegatePage() {
             }
 
             statement {
+              ...ImpactfulProposalsFragment
               statement
               topIssues {
                 type
@@ -152,7 +154,9 @@ export function DelegatePage() {
             </VStack>
           )}
 
-          {/* todo: most/least impactful */}
+          {wrappedDelegate.statement && (
+            <ImpactfulProposals fragment={wrappedDelegate.statement} />
+          )}
 
           {wrappedDelegate.delegate && (
             <PastVotes fragment={wrappedDelegate.delegate} />
