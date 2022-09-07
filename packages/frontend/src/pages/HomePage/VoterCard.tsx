@@ -57,7 +57,8 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
       <VStack
         gap="4"
         className={css`
-          flex: 1;
+          max-height: 28rem;
+          height: 100%;
           padding: ${theme.spacing["6"]};
           border-radius: ${theme.spacing["3"]};
           background: ${theme.colors.white};
@@ -98,6 +99,8 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           className={css`
             color: #66676b;
             flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
           `}
         >
           {delegate?.statement?.summary}
