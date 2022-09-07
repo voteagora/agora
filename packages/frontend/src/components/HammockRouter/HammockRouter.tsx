@@ -158,6 +158,10 @@ type LinkProps = {
   children: ReactNode;
 };
 
+function isModifiedEvent(event: React.MouseEvent) {
+  return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
+}
+
 export function Link({ to, className, children }: LinkProps) {
   const navigate = useNavigate();
 
@@ -166,6 +170,14 @@ export function Link({ to, className, children }: LinkProps) {
       className={className}
       href={to}
       onClick={(event) => {
+        if (event.button !== 0) {
+          return;
+        }
+
+        if (isModifiedEvent(event)) {
+          return;
+        }
+
         event.preventDefault();
         navigate(to, true);
       }}
