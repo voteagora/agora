@@ -27,7 +27,7 @@ export function RouteTransitionLoadingIndicator() {
       }}
       transition={{
         duration: 0.3,
-        delay: 0.3,
+        delay: isPending ? 0.3 : 0,
       }}
     >
       <div
