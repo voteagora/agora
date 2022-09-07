@@ -11,6 +11,7 @@ import {
   WrappedDelegatesWhere,
 } from "./__generated__/DelegatesContainerPaginationQuery.graphql";
 import { Selector, SelectorItem } from "./Selector";
+import { motion } from "framer-motion";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -141,18 +142,16 @@ export function DelegatesContainer({ fragmentKey }: Props) {
         </HStack>
       </VStack>
 
-      <div
+      <motion.div
+        initial={{ opacity: 1 }}
+        animate={{ opacity: isPending ? 0.3 : 1 }}
+        transition={{ duration: 0.3 }}
         className={css`
           display: grid;
           grid-template-columns: repeat(3, calc(${theme.spacing["12"]} * 7.55));
           gap: ${theme.spacing["8"]};
           width: 100%;
           /* max-width: ${theme.maxWidth["6xl"]}; */
-          transition: opacity 0.3s;
-          ${isPending &&
-          css`
-            opacity: 0.3;
-          `};
         `}
       >
         {voters.edges.map(({ node: voter }) => (
@@ -161,7 +160,7 @@ export function DelegatesContainer({ fragmentKey }: Props) {
 
         {isLoadingNext && <div>loading</div>}
         {hasNext && <button onClick={() => loadNext(30)}>Load More!</button>}
-      </div>
+      </motion.div>
     </VStack>
   );
 }
