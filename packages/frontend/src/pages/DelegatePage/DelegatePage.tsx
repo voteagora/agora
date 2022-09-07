@@ -58,22 +58,34 @@ export function DelegatePage() {
   return (
     <>
       <HStack
-        justifyContent="space-between"
         gap="16"
+        justifyContent="space-between"
+        alignItems="flex-start"
         className={css`
           margin: ${theme.spacing["16"]};
           margin-top: ${theme.spacing["8"]};
+          padding-left: ${theme.spacing["4"]};
+          padding-right: ${theme.spacing["4"]};
           width: 100%;
           max-width: ${theme.maxWidth["6xl"]};
         `}
       >
-        <div
+        <VStack
           className={css`
-            width: ${theme.maxWidth.sm};
+            position: sticky;
+            top: ${theme.spacing["16"]};
+            background-color: ${theme.colors.white};
+            border-radius: ${theme.spacing["3"]};
+            border-width: ${theme.spacing.px};
+            border-color: ${theme.colors.gray["300"]};
+            box-shadow: ${theme.boxShadow.newDefault};
+
+            flex-shrink: 0;
+            width: ${theme.maxWidth.xs};
           `}
         >
           <VoterPanel delegateFragment={query.address} queryFragment={query} />
-        </div>
+        </VStack>
 
         <VStack gap="8">
           {wrappedDelegate.statement?.statement && (
