@@ -269,15 +269,18 @@ function DelegateButton({
   );
 
   return (
-    <a href={`https://nouns.wtf/delegate?to=${id}`}>
-      <div
+    <a
+      href={`https://nouns.wtf/delegate?to=${id}`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
         className={css`
           ${buttonStyles};
           padding: ${theme.spacing["2"]};
         `}
       >
         Delegate
-      </div>
+      </button>
     </a>
   );
 }
