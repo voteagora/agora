@@ -17,7 +17,7 @@ import { HStack, VStack } from "../../components/VStack";
 import { VoterPanelSocialButtonsFragment$key } from "./__generated__/VoterPanelSocialButtonsFragment.graphql";
 import { VoterPanelDelegateButtonFragment$key } from "./__generated__/VoterPanelDelegateButtonFragment.graphql";
 import { VoterPanelActionsFragment$key } from "./__generated__/VoterPanelActionsFragment.graphql";
-import { ReactNode, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { VoterPanelDelegateFromListFragment$key } from "./__generated__/VoterPanelDelegateFromListFragment.graphql";
 
@@ -206,9 +206,12 @@ function DelegateFromList({
     fragment
   );
 
-  const tokenHolders = tokenHoldersRepresented.filter(
-    (holder) => !!holder.nouns.length
-  );
+  const tokenHolders = useMemo(() => {
+    return tokenHoldersRepresented
+      .filter((holder) => !!holder.nouns.length)
+      .slice()
+      .sort(descendingValueComparator((item) => item.nouns.length));
+  }, [tokenHoldersRepresented]);
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -549,4 +552,15 @@ export function LoadingVoterPanel() {
       Loading...
     </div>
   );
+}
+
+function descendingValueComparator<T>(
+  getValueFor: (item: T) => number
+): (a: T, b: T) => number {
+  return (a, b) => {
+    const aValue = getValueFor(a);
+    const bValue = getValueFor(b);
+
+    return bValue - aValue;
+  };
 }
