@@ -14,6 +14,7 @@ import { icons } from "../../icons/icons";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 import { NounResolvedLinkFragment$key } from "../../components/__generated__/NounResolvedLinkFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
+import { VoterPanelSocialButtonsFragment$key } from "./__generated__/VoterPanelSocialButtonsFragment.graphql";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -30,7 +31,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
 
         wrappedDelegate {
           statement {
-            twitter
+            ...VoterPanelSocialButtonsFragment
           }
 
           delegate {
@@ -219,22 +220,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
             margin-top: ${theme.spacing["8"]};
           `}
         >
-          <HStack
-            gap="4"
-            className={css`
-              height: ${theme.spacing["6"]};
-            `}
-          >
-            {statement?.twitter && (
-              <a href={`https://twitter.com/${statement?.twitter}`}>
-                <img src={icons.twitter} alt="twitter" />
-              </a>
-            )}
-            <a href={`https://discord.com`}>
-              <img src={icons.discord} alt="discord" />
-            </a>
-          </HStack>
-
+          <SocialButtons fragment={statement} />
           <a href={`https://nouns.wtf/delegate?to=${delegate.id}`}>
             <div
               className={css`
@@ -248,6 +234,55 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
         </HStack>
       </div>
     </div>
+  );
+}
+
+export function SocialButtons({
+  fragment,
+}: {
+  fragment: VoterPanelSocialButtonsFragment$key | null;
+}) {
+  return (
+    <HStack
+      gap="4"
+      className={css`
+        height: ${theme.spacing["6"]};
+      `}
+    >
+      {fragment && <SocialButtonsContainer fragment={fragment} />}
+    </HStack>
+  );
+}
+
+function SocialButtonsContainer({
+  fragment,
+}: {
+  fragment: VoterPanelSocialButtonsFragment$key;
+}) {
+  const { discord, twitter } = useFragment(
+    graphql`
+      fragment VoterPanelSocialButtonsFragment on DelegateStatement {
+        discord
+        twitter
+      }
+    `,
+    fragment
+  );
+
+  return (
+    <>
+      {twitter && (
+        <a href={`https://twitter.com/${twitter}`}>
+          <img src={icons.twitter} alt="twitter" />
+        </a>
+      )}
+
+      {discord && (
+        <a href={`https://discord.com`}>
+          <img src={icons.discord} alt="discord" />
+        </a>
+      )}
+    </>
   );
 }
 

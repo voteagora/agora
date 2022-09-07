@@ -8,6 +8,7 @@ import { NounsRepresentedGrid } from "../../components/NounGrid";
 import { HStack, VStack } from "../../components/VStack";
 import { icons } from "../../icons/icons";
 import { Link } from "../../components/HammockRouter/HammockRouter";
+import { SocialButtons } from "../DelegatePage/VoterPanel";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
@@ -27,8 +28,9 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
 
         statement {
           statement
-          twitter
-          discord
+          summary
+
+          ...VoterPanelSocialButtonsFragment
         }
 
         delegate {
@@ -48,6 +50,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
   return (
     <Link to={`/delegate/${delegate.id}`}>
       <VStack
+        gap="4"
         className={css`
           padding: ${theme.spacing["6"]};
           border-radius: ${theme.spacing["3"]};
@@ -69,7 +72,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
         <HStack
           justifyContent="space-between"
           className={css`
-            margin-top: ${theme.spacing["5"]};
+            margin-top: ${theme.spacing["2"]};
           `}
         >
           <div
@@ -85,9 +88,19 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           )}
         </HStack>
 
-        {/*{delegate.statement?.statement && (*/}
-        {/*  <Markdown markdown={delegate.statement?.statement} />*/}
-        {/*)}*/}
+        {delegate?.statement?.summary && (
+          <div
+            className={css`
+              color: #66676b;
+            `}
+          >
+            {delegate?.statement?.summary}
+          </div>
+        )}
+
+        <HStack justifyContent="space-between">
+          <SocialButtons fragment={delegate.statement} />
+        </HStack>
       </VStack>
     </Link>
   );
