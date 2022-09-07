@@ -86,7 +86,7 @@ const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
           "I am the co-founder of Vector DAO and builder of prop 87. As long time designer and software builder, I plan on using my votes to advocate for and shepard through high quality projects that either creatively proliferate the meme, and contribute software to better functioning of the DAO.",
         for: "nouns-agora",
         twitter: "zhayitong",
-        discord: "",
+        discord: "yitong#9038",
 
         mostValuableProposals: [
           {
