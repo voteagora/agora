@@ -13,8 +13,6 @@ export function PageContainer({ children }: Props) {
     <VStack
       alignItems="center"
       className={css`
-        position: relative;
-
         font-family: ${theme.fontFamily.sans};
       `}
     >
