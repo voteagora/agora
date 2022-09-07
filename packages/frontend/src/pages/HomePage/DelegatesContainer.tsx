@@ -160,11 +160,13 @@ export function DelegatesContainer({ fragmentKey }: Props) {
           <div
             className={css`
               display: grid;
+              grid-auto-flow: row;
               justify-content: space-between;
-              grid-template-columns: repeat(auto-fit, 23rem);
+              grid-template-columns: repeat(3, 23rem);
               gap: ${theme.spacing["8"]};
 
               @media (max-width: ${theme.maxWidth["6xl"]}) {
+                grid-template-columns: repeat(auto-fit, 23rem);
                 justify-content: space-around;
               }
             `}
