@@ -10,18 +10,23 @@ import {
 
 type Props = {
   nouns: NounGridFragment$data["nounsRepresented"];
-  rows?: number;
-  columns?: number;
-  imageSize?: keyof typeof theme.spacing;
-  overflowFontSize?: keyof typeof theme.fontSize;
+} & LayoutProps;
+
+type LayoutProps = {
+  rows: number;
+  columns: number;
+  imageSize: keyof typeof theme.spacing;
+  gap: keyof typeof theme.spacing;
+  overflowFontSize: keyof typeof theme.fontSize;
 };
 
 export function NounGrid({
   nouns,
-  rows = 3,
-  columns = 5,
-  imageSize = "12",
-  overflowFontSize = "base",
+  rows,
+  columns,
+  imageSize,
+  gap,
+  overflowFontSize,
 }: Props) {
   const possibleSlots = rows * columns;
   const imageSizeResolved = theme.spacing[imageSize];
@@ -32,7 +37,7 @@ export function NounGrid({
         display: grid;
         grid-template-columns: repeat(${columns}, ${imageSizeResolved});
         grid-template-rows: repeat(auto-fit, ${imageSizeResolved});
-        gap: ${theme.spacing["4"]};
+        gap: ${theme.spacing[gap]};
       `}
     >
       <NounGridChildren
@@ -47,7 +52,7 @@ export function NounGrid({
 
 type NounsRepresentedGridProps = {
   fragmentKey: NounGridFragment$key;
-};
+} & LayoutProps;
 
 type NounGridChildrenProps = {
   count: number;
@@ -111,6 +116,7 @@ export function NounGridChildren({
 
 export function NounsRepresentedGrid({
   fragmentKey,
+  ...layoutProps
 }: NounsRepresentedGridProps) {
   const { nounsRepresented } = useFragment<NounGridFragment$key>(
     graphql`
@@ -124,13 +130,5 @@ export function NounsRepresentedGrid({
     fragmentKey
   );
 
-  return (
-    <div
-      className={css`
-        margin: 0 auto;
-      `}
-    >
-      <NounGrid nouns={nounsRepresented} columns={5} rows={3} />
-    </div>
-  );
+  return <NounGrid nouns={nounsRepresented} {...layoutProps} />;
 }

@@ -38,6 +38,7 @@ export function PageHeader() {
 
           <span
             className={css`
+              white-space: nowrap;
               font-size: ${theme.fontSize.base};
               font-weight: ${theme.fontWeight.semibold};
               color: ${theme.colors.gray["800"]};

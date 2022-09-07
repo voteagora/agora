@@ -69,7 +69,16 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
         `}
       >
         {delegate.delegate ? (
-          <NounsRepresentedGrid fragmentKey={delegate.delegate} />
+          <HStack justifyContent="center">
+            <NounsRepresentedGrid
+              rows={3}
+              columns={5}
+              gap="4"
+              imageSize="12"
+              overflowFontSize="base"
+              fragmentKey={delegate.delegate}
+            />
+          </HStack>
         ) : (
           <HStack>
             <img src={icons.anonNoun} />
