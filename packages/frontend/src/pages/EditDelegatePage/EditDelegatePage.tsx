@@ -31,16 +31,29 @@ export function EditDelegatePage() {
       justifyContent="space-between"
       gap="16"
       className={css`
-        margin: ${theme.spacing["16"]};
+        padding-left: ${theme.spacing["4"]};
+        padding-right: ${theme.spacing["4"]};
         margin-top: ${theme.spacing["8"]};
+        width: 100%;
         max-width: ${theme.maxWidth["6xl"]};
+
+        @media (max-width: ${theme.maxWidth["6xl"]}) {
+          flex-direction: column-reverse;
+          align-items: center;
+        }
       `}
     >
-      <DelegateStatementForm queryFragment={query} />
+      <DelegateStatementForm
+        queryFragment={query}
+        className={css`
+          flex: 1;
+        `}
+      />
 
       <div
         className={css`
-          width: ${theme.maxWidth.sm};
+          flex-shrink: 0;
+          width: ${theme.maxWidth.xs};
         `}
       >
         <LazyVoterPanel address={address} />
