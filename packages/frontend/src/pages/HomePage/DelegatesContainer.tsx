@@ -5,13 +5,14 @@ import * as theme from "../../theme";
 import { VoterCard } from "./VoterCard";
 import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import {
   WrappedDelegatesOrder,
   WrappedDelegatesWhere,
 } from "./__generated__/DelegatesContainerPaginationQuery.graphql";
 import { Selector, SelectorItem } from "./Selector";
 import { motion } from "framer-motion";
+import InfiniteScroll from "react-infinite-scroller";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -67,6 +68,10 @@ export function DelegatesContainer({ fragmentKey }: Props) {
     `,
     fragmentKey
   );
+
+  const loadMore = useCallback(() => {
+    loadNext(30);
+  }, [loadNext]);
 
   return (
     <VStack
@@ -147,19 +152,37 @@ export function DelegatesContainer({ fragmentKey }: Props) {
         animate={{ opacity: isPending ? 0.3 : 1 }}
         transition={{ duration: 0.3, delay: isPending ? 0.3 : 0 }}
         className={css`
-          display: grid;
-          grid-template-columns: repeat(3, calc(${theme.spacing["12"]} * 7.55));
-          gap: ${theme.spacing["8"]};
           width: 100%;
           /* max-width: ${theme.maxWidth["6xl"]}; */
         `}
       >
-        {voters.edges.map(({ node: voter }) => (
-          <VoterCard key={voter.id} fragmentRef={voter} />
-        ))}
+        <InfiniteScroll loadMore={loadMore} hasMore={hasNext}>
+          <div
+            className={css`
+              display: grid;
+              grid-template-columns: repeat(
+                3,
+                calc(${theme.spacing["12"]} * 7.55)
+              );
+              gap: ${theme.spacing["8"]};
+            `}
+          >
+            {voters.edges.map(({ node: voter }) => (
+              <VoterCard key={voter.id} fragmentRef={voter} />
+            ))}
+          </div>
+        </InfiniteScroll>
 
-        {isLoadingNext && <div>loading</div>}
-        {hasNext && <button onClick={() => loadNext(30)}>Load More!</button>}
+        {isLoadingNext && (
+          <HStack
+            justifyContent="center"
+            className={css`
+              padding-top: ${theme.spacing["16"]};
+            `}
+          >
+            Loading...
+          </HStack>
+        )}
       </motion.div>
     </VStack>
   );
