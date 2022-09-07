@@ -20,6 +20,8 @@ export function PageHeader() {
         width: ${theme.maxWidth["6xl"]};
         margin: ${theme.spacing["8"]} auto;
         justify-content: space-between;
+        padding-left: ${theme.spacing["4"]};
+        padding-right: ${theme.spacing["4"]};
       `}
     >
       <Link

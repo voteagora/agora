@@ -34,7 +34,6 @@ export function EditDelegatePage() {
       className={css`
         margin: ${theme.spacing["16"]};
         margin-top: ${theme.spacing["8"]};
-        width: 100%;
         max-width: ${theme.maxWidth["6xl"]};
       `}
     >
