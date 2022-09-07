@@ -18,7 +18,7 @@ export function FullPageLoadingIndicator() {
     <VStack
       justifyContent="center"
       className={css`
-        flex: 1;
+        min-height: 100vh;
         animation: ${shimmer} 0.5s alternate-reverse infinite ease-in-out;
       `}
     >

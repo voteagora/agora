@@ -81,8 +81,8 @@ export function DelegatesContainer({ fragmentKey }: Props) {
         max-width: ${theme.maxWidth["6xl"]};
         padding-top: ${theme.spacing["16"]};
         padding-bottom: ${theme.spacing["16"]};
-        /* padding-left: ${theme.spacing["4"]}; */
-        /* padding-right: ${theme.spacing["4"]}; */
+        padding-left: ${theme.spacing["4"]};
+        padding-right: ${theme.spacing["4"]};
       `}
     >
       <VStack
@@ -160,11 +160,13 @@ export function DelegatesContainer({ fragmentKey }: Props) {
           <div
             className={css`
               display: grid;
-              grid-template-columns: repeat(
-                3,
-                calc(${theme.spacing["12"]} * 7.55)
-              );
+              justify-content: space-between;
+              grid-template-columns: repeat(auto-fit, 23rem);
               gap: ${theme.spacing["8"]};
+
+              @media (max-width: ${theme.maxWidth["6xl"]}) {
+                justify-content: space-around;
+              }
             `}
           >
             {voters.edges.map(({ node: voter }) => (
