@@ -1,7 +1,6 @@
 import { css } from "@emotion/css";
 import * as theme from "../theme";
 import logo from "../logo.svg";
-import { Link } from "react-router-dom";
 import { NounGridChildren } from "./NounGrid";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
@@ -12,6 +11,7 @@ import { useLazyLoadQuery } from "react-relay/hooks";
 import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
 import { Suspense } from "react";
+import { Link } from "./HammockRouter/HammockRouter";
 
 export function PageHeader() {
   return (

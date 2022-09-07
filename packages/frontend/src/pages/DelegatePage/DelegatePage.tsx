@@ -1,4 +1,3 @@
-import { Navigate, useParams } from "react-router-dom";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { DelegatePageQuery } from "./__generated__/DelegatePageQuery.graphql";
@@ -11,6 +10,10 @@ import { HStack, VStack } from "../../components/VStack";
 import { issueDefinitions } from "../EditDelegatePage/TopIssuesFormSection";
 import { icons } from "../../icons/icons";
 import { ImpactfulProposals } from "./ImpactfulProposals";
+import {
+  Navigate,
+  useParams,
+} from "../../components/HammockRouter/HammockRouter";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
