@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  position: relative;
+}
+
 #root {
   display: flex;
   flex-direction: column;
