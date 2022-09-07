@@ -160,7 +160,10 @@ export function DelegatePage() {
           )}
 
           {wrappedDelegate.delegate && (
-            <PastVotes fragment={wrappedDelegate.delegate} />
+            <PastVotes
+              fragment={wrappedDelegate.delegate}
+              dense={!wrappedDelegate.statement}
+            />
           )}
         </VStack>
       </HStack>
