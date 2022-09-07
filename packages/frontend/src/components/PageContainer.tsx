@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { css, cx } from "@emotion/css";
+import { css } from "@emotion/css";
 import * as theme from "../theme";
 import { VStack } from "./VStack";
 
