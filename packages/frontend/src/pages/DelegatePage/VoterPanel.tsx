@@ -245,7 +245,7 @@ export function VoterPanelActions({
   return (
     <HStack
       justifyContent="space-between"
-      alignItems="center"
+      alignItems="stretch"
       className={className}
     >
       <SocialButtons fragment={wrappedDelegate.statement} />
@@ -288,12 +288,7 @@ function SocialButtons({
   fragment: VoterPanelSocialButtonsFragment$key | null;
 }) {
   return (
-    <HStack
-      gap="4"
-      className={css`
-        height: ${theme.spacing["6"]};
-      `}
-    >
+    <HStack gap="4" alignItems="center">
       {fragment && <SocialButtonsContainer fragment={fragment} />}
     </HStack>
   );
@@ -317,13 +312,19 @@ function SocialButtonsContainer({
   return (
     <>
       {twitter && (
-        <a href={`https://twitter.com/${twitter}`}>
+        <a
+          className={css`
+            padding: ${theme.spacing["1"]};
+          `}
+          href={`https://twitter.com/${twitter}`}
+          onClick={(e) => e.stopPropagation()}
+        >
           <img src={icons.twitter} alt="twitter" />
         </a>
       )}
 
       {discord && (
-        <a href={`https://discord.com`}>
+        <a href={`https://discord.com`} onClick={(e) => e.stopPropagation()}>
           <img src={icons.discord} alt="discord" />
         </a>
       )}
