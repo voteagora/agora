@@ -145,7 +145,7 @@ export function DelegatesContainer({ fragmentKey }: Props) {
       <motion.div
         initial={{ opacity: 1 }}
         animate={{ opacity: isPending ? 0.3 : 1 }}
-        transition={{ duration: 0.3, delay: 0.3 }}
+        transition={{ duration: 0.3, delay: isPending ? 0.3 : 0 }}
         className={css`
           display: grid;
           grid-template-columns: repeat(3, calc(${theme.spacing["12"]} * 7.55));
