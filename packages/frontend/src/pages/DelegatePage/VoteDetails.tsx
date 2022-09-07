@@ -36,35 +36,61 @@ export function VoteDetails({ voteFragment }: Props) {
 
   return (
     <VStack
+      gap="3"
       className={css`
         border-radius: ${theme.borderRadius.lg};
         border-width: ${theme.spacing.px};
         border-color: ${theme.colors.gray.eb};
         background: ${theme.colors.white};
         box-shadow: ${shadow};
-
-        padding: ${theme.spacing["6"]};
+        padding-bottom: ${theme.spacing["6"]};
+        min-width: 24rem;
+        max-width: 24rem;
+        max-height: 15rem;
+        overflow: hidden;
       `}
     >
-      <div
+      <VStack
         className={css`
-          font-size: ${theme.fontSize.xs};
-          color: ${theme.colors.gray["700"]};
+          padding-top: ${theme.spacing["6"]};
+          padding-left: ${theme.spacing["6"]};
+          padding-right: ${theme.spacing["6"]};
+          overflow-y: scroll;
         `}
       >
-        <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
-        <a href={proposalHref}>Prop {vote.proposal.id}</a>
-        <ValuePart value={vote.proposal.totalValue} />
-        &mdash; with {vote.votes} votes
-      </div>
-      <h2
-        className={css`
-          font-size: ${theme.fontSize.base};
-        `}
-      >
-        <a href={proposalHref}>{vote.proposal.title}</a>
-      </h2>
-      <p>{vote.reason}</p>
+        <VStack>
+          <div
+            className={css`
+              font-size: ${theme.fontSize.xs};
+              color: #66676b;
+            `}
+          >
+            <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
+            <a href={proposalHref}>Prop {vote.proposal.id}</a>
+            <ValuePart value={vote.proposal.totalValue} />
+            &mdash; with {vote.votes} votes
+          </div>
+          <h2
+            className={css`
+              font-size: ${theme.fontSize.base};
+
+              overflow: hidden;
+              text-overflow: ellipsis;
+            `}
+          >
+            <a href={proposalHref}>{vote.proposal.title}</a>
+          </h2>
+        </VStack>
+
+        <span
+          className={css`
+            color: #66676b;
+            line-height: ${theme.lineHeight.snug};
+          `}
+        >
+          {vote.reason}
+        </span>
+      </VStack>
     </VStack>
   );
 }
