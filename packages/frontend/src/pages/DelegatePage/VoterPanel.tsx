@@ -17,6 +17,9 @@ import { HStack, VStack } from "../../components/VStack";
 import { VoterPanelSocialButtonsFragment$key } from "./__generated__/VoterPanelSocialButtonsFragment.graphql";
 import { VoterPanelDelegateButtonFragment$key } from "./__generated__/VoterPanelDelegateButtonFragment.graphql";
 import { VoterPanelActionsFragment$key } from "./__generated__/VoterPanelActionsFragment.graphql";
+import { ReactNode, useState } from "react";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { VoterPanelDelegateFromListFragment$key } from "./__generated__/VoterPanelDelegateFromListFragment.graphql";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -44,20 +47,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
               }
             }
 
-            tokenHoldersRepresented {
-              id
-
-              address {
-                resolvedName {
-                  ...NounResolvedLinkFragment
-                }
-              }
-
-              nouns {
-                id
-                ...NounImageFragment
-              }
-            }
+            ...VoterPanelDelegateFromListFragment
 
             voteSummary {
               forVotes
@@ -119,10 +109,6 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
 
   const recentParticipation = intersection(lastTenProposals, votedProposals);
 
-  const tokenHolders = delegate.tokenHoldersRepresented.filter(
-    (holder) => !!holder.nouns.length
-  );
-
   return (
     <div className={containerStyles}>
       <div
@@ -179,36 +165,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
             detail={`${delegate.proposals.length}`}
           />
 
-          <PanelRow
-            title="Delegated from"
-            detail={`${tokenHolders.length} addresses`}
-          />
-
-          <>
-            {tokenHolders.map((holder) => (
-              <HStack justifyContent="space-between">
-                <div
-                  className={css`
-                    text-overflow: ellipsis;
-                    overflow: hidden;
-                  `}
-                >
-                  <NounResolvedLink
-                    resolvedName={holder.address.resolvedName}
-                  />
-                </div>
-
-                <HStack gap="1">
-                  <NounGridChildren
-                    count={3}
-                    nouns={holder.nouns}
-                    overflowFontSize="xs"
-                    imageSize="6"
-                  />
-                </HStack>
-              </HStack>
-            ))}
-          </>
+          <DelegateFromList fragment={delegate} />
 
           <VoterPanelActions
             className={css`
@@ -219,6 +176,98 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
         </div>
       </div>
     </div>
+  );
+}
+
+function DelegateFromList({
+  fragment,
+}: {
+  fragment: VoterPanelDelegateFromListFragment$key;
+}) {
+  const { tokenHoldersRepresented } = useFragment(
+    graphql`
+      fragment VoterPanelDelegateFromListFragment on Delegate {
+        tokenHoldersRepresented {
+          id
+
+          address {
+            resolvedName {
+              ...NounResolvedLinkFragment
+            }
+          }
+
+          nouns {
+            id
+            ...NounImageFragment
+          }
+        }
+      }
+    `,
+    fragment
+  );
+
+  const tokenHolders = tokenHoldersRepresented.filter(
+    (holder) => !!holder.nouns.length
+  );
+
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <VStack gap="2">
+      <PanelRow
+        title="Delegated from"
+        detail={
+          <div onClick={() => setIsExpanded((lastValue) => !lastValue)}>
+            <HStack
+              alignItems="center"
+              gap="1"
+              className={css`
+                cursor: pointer;
+                user-select: none;
+              `}
+            >
+              <div>{tokenHolders.length} addresses</div>
+              <ChevronDownIcon
+                aria-hidden="true"
+                className={css`
+                  margin-bottom: -0.125rem;
+                  transition: transform 0.3s;
+                  width: ${theme.spacing["4"]};
+                  height: ${theme.spacing["4"]};
+                  ${isExpanded &&
+                  css`
+                    transform: rotateZ(180deg);
+                  `}
+                `}
+              />
+            </HStack>
+          </div>
+        }
+      />
+
+      {isExpanded &&
+        tokenHolders.map((holder) => (
+          <HStack justifyContent="space-between">
+            <div
+              className={css`
+                text-overflow: ellipsis;
+                overflow: hidden;
+              `}
+            >
+              <NounResolvedLink resolvedName={holder.address.resolvedName} />
+            </div>
+
+            <HStack gap="1">
+              <NounGridChildren
+                count={3}
+                nouns={holder.nouns}
+                overflowFontSize="xs"
+                imageSize="6"
+              />
+            </HStack>
+          </HStack>
+        ))}
+    </VStack>
   );
 }
 
@@ -344,7 +393,7 @@ const panelRowContainerStyles = css`
 
 type PanelRowProps = {
   title: string;
-  detail: string;
+  detail: ReactNode;
 };
 
 const PanelRow = ({ title, detail }: PanelRowProps) => {
