@@ -5,8 +5,6 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
 import { DelegatesContainer } from "./DelegatesContainer";
-import { PageHeader } from "../../components/PageHeader";
-import { PageContainer } from "../../components/PageContainer";
 import { VStack } from "../../components/VStack";
 
 export function HomePage() {
@@ -21,13 +19,12 @@ export function HomePage() {
   );
 
   return (
-    <PageContainer>
-      <PageHeader />
+    <>
       <Hero />
       <OverviewMetricsContainer fragmentRef={result} />
       <PageDivider />
       <DelegatesContainer fragmentKey={result} />
-    </PageContainer>
+    </>
   );
 }
 
