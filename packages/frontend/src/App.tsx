@@ -10,6 +10,7 @@ import {
   HammockRouter,
   HammockRouterContents,
 } from "./components/HammockRouter/HammockRouter";
+import { FullPageLoadingIndicator } from "./components/FullPageLoadingIndicator";
 
 const wagmiClient = createClient(
   getDefaultClient({
@@ -29,9 +30,9 @@ function App() {
             <RelayEnvironmentProvider environment={relayEnvironment}>
               <HammockRouter>
                 <PageContainer>
-                  <PageHeader />
+                  <Suspense fallback={<FullPageLoadingIndicator />}>
+                    <PageHeader />
 
-                  <Suspense fallback={null}>
                     <HammockRouterContents />
                   </Suspense>
                 </PageContainer>
