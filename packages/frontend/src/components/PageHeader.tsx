@@ -17,7 +17,8 @@ export function PageHeader() {
   return (
     <HStack
       className={css`
-        width: ${theme.maxWidth["6xl"]};
+        width: 100%;
+        max-width: ${theme.maxWidth["6xl"]};
         margin: ${theme.spacing["8"]} auto;
         justify-content: space-between;
         padding-left: ${theme.spacing["4"]};
