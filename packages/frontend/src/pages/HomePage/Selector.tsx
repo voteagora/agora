@@ -58,11 +58,15 @@ export function Selector<T>({ items, value, onChange }: SelectorProps<T>) {
               {items.map(({ title, value }, index) => (
                 <Listbox.Option key={index} value={value}>
                   {({ selected, active }) => (
-                    //  todo: need an active style here
                     <div
                       className={css`
                         ${dropdownItemStyle}
                         ${selected && dropdownItemActiveStyle}
+                        ${!selected &&
+                        active &&
+                        css`
+                          background: ${theme.colors.gray.eb};
+                        `}
                       `}
                     >
                       {title}
