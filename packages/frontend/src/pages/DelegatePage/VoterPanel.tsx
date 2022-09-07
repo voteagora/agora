@@ -110,15 +110,23 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
   const recentParticipation = intersection(lastTenProposals, votedProposals);
 
   return (
-    <div className={containerStyles}>
-      <div
+    <>
+      <VStack
+        alignItems="center"
         className={css`
           padding: ${theme.spacing["4"]};
           border-bottom: ${theme.spacing.px} solid ${theme.colors.gray["300"]};
         `}
       >
-        <NounsRepresentedGrid fragmentKey={delegate} />
-      </div>
+        <NounsRepresentedGrid
+          fragmentKey={delegate}
+          imageSize="10"
+          gap="2"
+          overflowFontSize="base"
+          rows={3}
+          columns={6}
+        />
+      </VStack>
 
       <div
         className={css`
@@ -175,7 +183,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           />
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -452,15 +460,7 @@ function NameSection({ resolvedName, votes }: NameSectionProps) {
 export const shadow =
   "0px 4px 12px rgba(0, 0, 0, 0.02), 0px 2px 2px rgba(0, 0, 0, 0.03);";
 
-const containerStyles = css`
-  position: sticky;
-  top: ${theme.spacing["16"]};
-  background-color: ${theme.colors.white};
-  border-radius: ${theme.spacing["3"]};
-  border-width: ${theme.spacing.px};
-  border-color: ${theme.colors.gray["300"]};
-  box-shadow: ${theme.boxShadow.newDefault};
-`;
+const containerStyles = css``;
 
 type EmptyVoterPanelProps = {
   resolvedName: NounResolvedLinkFragment$key;
