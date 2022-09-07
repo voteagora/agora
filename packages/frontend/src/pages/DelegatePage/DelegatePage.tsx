@@ -72,7 +72,12 @@ export function DelegatePage() {
       >
         <VoterPanel delegateFragment={query.address} queryFragment={query} />
 
-        <VStack gap="8">
+        <VStack
+          gap="8"
+          className={css`
+            min-width: 0;
+          `}
+        >
           {wrappedDelegate.statement?.statement && (
             <VStack gap="4">
               <h2
