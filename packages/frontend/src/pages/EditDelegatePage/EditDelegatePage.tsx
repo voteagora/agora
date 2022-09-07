@@ -3,9 +3,8 @@ import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import { EditDelegatePageQuery } from "./__generated__/EditDelegatePageQuery.graphql";
 import * as theme from "../../theme";
-import { LoadingVoterPanel, VoterPanel } from "../DelegatePage/VoterPanel";
+import { VoterPanel } from "../DelegatePage/VoterPanel";
 import { DelegateStatementForm } from "./DelegateStatementForm";
-import { Suspense } from "react";
 import { EditDelegatePageLazyVoterPanelQuery } from "./__generated__/EditDelegatePageLazyVoterPanelQuery.graphql";
 import { useAccount } from "wagmi";
 import { HStack } from "../../components/VStack";
@@ -44,9 +43,7 @@ export function EditDelegatePage() {
           width: ${theme.maxWidth.sm};
         `}
       >
-        <Suspense fallback={<LoadingVoterPanel />}>
-          <LazyVoterPanel address={address} />
-        </Suspense>
+        <LazyVoterPanel address={address} />
       </div>
     </HStack>
   );
@@ -73,10 +70,6 @@ function LazyVoterPanel({ address }: LazyVoterPanelProps) {
     graphql`
       query EditDelegatePageLazyVoterPanelQuery($address: ID!) {
         address(address: $address) {
-          resolvedName {
-            ...NounResolvedLinkFragment
-          }
-
           ...VoterPanelDelegateFragment
         }
 

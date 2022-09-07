@@ -94,6 +94,9 @@ export function NounGridChildren({
       <div
         key="overflowAmount"
         className={css`
+          min-width: ${imageSizeResolved};
+          min-height: ${imageSizeResolved};
+
           display: flex;
           align-items: center;
           justify-content: center;

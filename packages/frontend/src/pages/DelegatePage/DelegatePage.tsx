@@ -70,22 +70,7 @@ export function DelegatePage() {
           max-width: ${theme.maxWidth["6xl"]};
         `}
       >
-        <VStack
-          className={css`
-            position: sticky;
-            top: ${theme.spacing["16"]};
-            background-color: ${theme.colors.white};
-            border-radius: ${theme.spacing["3"]};
-            border-width: ${theme.spacing.px};
-            border-color: ${theme.colors.gray["300"]};
-            box-shadow: ${theme.boxShadow.newDefault};
-
-            flex-shrink: 0;
-            width: ${theme.maxWidth.xs};
-          `}
-        >
-          <VoterPanel delegateFragment={query.address} queryFragment={query} />
-        </VStack>
+        <VoterPanel delegateFragment={query.address} queryFragment={query} />
 
         <VStack gap="8">
           {wrappedDelegate.statement?.statement && (
