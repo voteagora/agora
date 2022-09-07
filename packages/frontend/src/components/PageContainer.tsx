@@ -16,7 +16,6 @@ export function PageContainer({ children }: Props) {
         position: relative;
 
         font-family: ${theme.fontFamily.sans};
-        width: 100%;
       `}
     >
       <RouteTransitionLoadingIndicator />
