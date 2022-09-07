@@ -169,7 +169,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
 
           <VoterPanelActions
             className={css`
-              margin-top: ${theme.spacing["8"]};
+              margin-top: ${theme.spacing["6"]};
             `}
             fragment={address.wrappedDelegate}
           />
@@ -328,7 +328,6 @@ function DelegateButton({
       <button
         className={css`
           ${buttonStyles};
-          padding: ${theme.spacing["2"]};
         `}
       >
         Delegate
