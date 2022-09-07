@@ -53,9 +53,9 @@ export function EditDelegatePage() {
 }
 
 export const buttonStyles = css`
-  border-radius: ${theme.borderRadius.default};
+  border-radius: ${theme.spacing["1"]};
   border-width: ${theme.spacing.px};
-  border-color: ${theme.colors.gray["300"]};
+  border-color: ${theme.colors.gray.eb};
   cursor: pointer;
   padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
 
