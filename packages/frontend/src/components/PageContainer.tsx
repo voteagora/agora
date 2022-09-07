@@ -20,24 +20,7 @@ export function PageContainer({ children }: Props) {
       `}
     >
       <RouteTransitionLoadingIndicator />
-      <div
-        className={css`
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          right: 0;
-
-          z-index: -10;
-
-          background-color: #fcfcfc;
-          background-image: radial-gradient(
-            rgba(0, 0, 0, 10%) 0.5px,
-            transparent 0
-          );
-          background-size: 8px 8px;
-        `}
-      />
+      <DottedBackground />
 
       <div
         className={css`
@@ -59,5 +42,28 @@ export function PageContainer({ children }: Props) {
 
       {children}
     </VStack>
+  );
+}
+
+function DottedBackground() {
+  return (
+    <div
+      className={css`
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+
+        z-index: -10;
+
+        background-color: #fcfcfc;
+        background-image: radial-gradient(
+          rgba(0, 0, 0, 10%) 0.5px,
+          transparent 0
+        );
+        background-size: 8px 8px;
+      `}
+    />
   );
 }
