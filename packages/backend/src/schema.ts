@@ -515,7 +515,7 @@ export async function makeGatewaySchema() {
       summary({ values: { delegateStatement } }) {
         return extractFirstParagraph(
           marked.lexer(delegateStatement.slice(0, 1000))
-        )?.slice(0, 260);
+        );
       },
 
       statement({ values: { delegateStatement } }) {
