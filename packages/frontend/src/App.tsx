@@ -8,6 +8,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { EditDelegatePage } from "./pages/EditDelegatePage/EditDelegatePage";
 import { createClient, WagmiConfig } from "wagmi";
 import { ConnectKitProvider, getDefaultClient } from "connectkit";
+import { PageContainer } from "./components/PageContainer";
+import { PageHeader } from "./components/PageHeader";
 
 const wagmiClient = createClient(
   getDefaultClient({
@@ -25,20 +27,24 @@ function App() {
         <WagmiConfig client={wagmiClient}>
           <ConnectKitProvider>
             <RelayEnvironmentProvider environment={relayEnvironment}>
-              <Suspense fallback={null}>
-                <BrowserRouter>
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    {/* todo: delegateId should have a canonical url instead */}
-                    <Route
-                      path="/delegate/:delegateId"
-                      element={<DelegatePage />}
-                    />
+              <BrowserRouter>
+                <PageContainer>
+                  <PageHeader />
 
-                    <Route path="/create" element={<EditDelegatePage />} />
-                  </Routes>
-                </BrowserRouter>
-              </Suspense>
+                  <Suspense fallback={null}>
+                    <Routes>
+                      <Route path="/" element={<HomePage />} />
+                      {/* todo: delegateId should have a canonical url instead */}
+                      <Route
+                        path="/delegate/:delegateId"
+                        element={<DelegatePage />}
+                      />
+
+                      <Route path="/create" element={<EditDelegatePage />} />
+                    </Routes>
+                  </Suspense>
+                </PageContainer>
+              </BrowserRouter>
             </RelayEnvironmentProvider>
           </ConnectKitProvider>
         </WagmiConfig>

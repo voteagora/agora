@@ -4,10 +4,8 @@ import graphql from "babel-plugin-relay/macro";
 import { DelegatePageQuery } from "./__generated__/DelegatePageQuery.graphql";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { PageHeader } from "../../components/PageHeader";
 import { VoterPanel } from "./VoterPanel";
 import { PastVotes } from "./PastVotes";
-import { PageContainer } from "../../components/PageContainer";
 import { Markdown } from "../../components/Markdown";
 import { HStack, VStack } from "../../components/VStack";
 import { issueDefinitions } from "../EditDelegatePage/TopIssuesFormSection";
@@ -55,9 +53,7 @@ export function DelegatePage() {
   }
 
   return (
-    <PageContainer>
-      <PageHeader />
-
+    <>
       <HStack
         justifyContent="space-between"
         gap="16"
@@ -163,6 +159,6 @@ export function DelegatePage() {
           )}
         </VStack>
       </HStack>
-    </PageContainer>
+    </>
   );
 }

@@ -11,24 +11,9 @@ import { useAccount } from "wagmi";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
+import { Suspense } from "react";
 
 export function PageHeader() {
-  const { address: accountAddress } = useAccount();
-
-  const { address } = useLazyLoadQuery<PageHeaderQuery>(
-    graphql`
-      query PageHeaderQuery($address: ID!, $skip: Boolean!) {
-        address(address: $address) @skip(if: $skip) {
-          ...PageHeaderFragment
-        }
-      }
-    `,
-    {
-      address: accountAddress ?? "",
-      skip: !accountAddress,
-    }
-  );
-
   return (
     <HStack
       className={css`
@@ -69,31 +54,57 @@ export function PageHeader() {
       >
         <ConnectKitButton mode="light" />
 
-        {address && (
-          <Link
-            to="/create"
-            className={css`
-              border-radius: ${theme.borderRadius.lg};
-              border-width: ${theme.spacing.px};
-              padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
-              color: ${theme.colors.gray["200"]};
-              background: ${theme.colors.black};
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-
-              :hover {
-                background: ${theme.colors.gray["800"]};
-              }
-            `}
-          >
-            <div>Create</div>
-          </Link>
-        )}
-
-        {address && <OwnedNounsPanel fragment={address} />}
+        <Suspense fallback={null}>
+          <PageHeaderContents />
+        </Suspense>
       </HStack>
     </HStack>
+  );
+}
+
+function PageHeaderContents() {
+  const { address: accountAddress } = useAccount();
+
+  const { address } = useLazyLoadQuery<PageHeaderQuery>(
+    graphql`
+      query PageHeaderQuery($address: ID!, $skip: Boolean!) {
+        address(address: $address) @skip(if: $skip) {
+          ...PageHeaderFragment
+        }
+      }
+    `,
+    {
+      address: accountAddress ?? "",
+      skip: !accountAddress,
+    }
+  );
+
+  return (
+    <>
+      {address && (
+        <Link
+          to="/create"
+          className={css`
+            border-radius: ${theme.borderRadius.lg};
+            border-width: ${theme.spacing.px};
+            padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
+            color: ${theme.colors.gray["200"]};
+            background: ${theme.colors.black};
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            :hover {
+              background: ${theme.colors.gray["800"]};
+            }
+          `}
+        >
+          <div>Create</div>
+        </Link>
+      )}
+
+      {address && <OwnedNounsPanel fragment={address} />}
+    </>
   );
 }
 
