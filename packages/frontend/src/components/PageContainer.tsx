@@ -1,7 +1,8 @@
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 import { css } from "@emotion/css";
 import * as theme from "../theme";
 import { VStack } from "./VStack";
+import { RouteTransitionLoadingIndicator } from "./RouteTransitionLoadingIndicator";
 
 type Props = {
   children: ReactNode;
@@ -18,6 +19,7 @@ export function PageContainer({ children }: Props) {
         width: 100%;
       `}
     >
+      <RouteTransitionLoadingIndicator />
       <div
         className={css`
           position: absolute;
