@@ -137,6 +137,7 @@ export function DelegatePage() {
                         border-radius: ${theme.spacing["3"]};
                         border: 1px solid #ebebeb;
                         box-shadow: ${theme.boxShadow.newDefault};
+                        background: ${theme.colors.white};
                         padding: ${theme.spacing["3"]};
                       `}
                     >
