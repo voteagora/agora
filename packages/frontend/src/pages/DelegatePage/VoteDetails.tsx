@@ -51,6 +51,7 @@ export function VoteDetails({ voteFragment }: Props) {
       `}
     >
       <VStack
+        gap="2"
         className={css`
           padding-top: ${theme.spacing["6"]};
           padding-left: ${theme.spacing["6"]};

@@ -104,16 +104,11 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
   return (
     <VStack
       className={css`
-        position: sticky;
-        top: ${theme.spacing["16"]};
         background-color: ${theme.colors.white};
         border-radius: ${theme.spacing["3"]};
         border-width: ${theme.spacing.px};
         border-color: ${theme.colors.gray["300"]};
         box-shadow: ${theme.boxShadow.newDefault};
-
-        flex-shrink: 0;
-        width: ${theme.maxWidth.xs};
       `}
     >
       <VStack
