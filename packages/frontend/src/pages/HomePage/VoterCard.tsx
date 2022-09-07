@@ -1,6 +1,5 @@
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { Link } from "react-router-dom";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql";
@@ -8,6 +7,7 @@ import { NounResolvedName } from "../../components/NounResolvedName";
 import { NounsRepresentedGrid } from "../../components/NounGrid";
 import { HStack, VStack } from "../../components/VStack";
 import { icons } from "../../icons/icons";
+import { Link } from "../../components/HammockRouter/HammockRouter";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;

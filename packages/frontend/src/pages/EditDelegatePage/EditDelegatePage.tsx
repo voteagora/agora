@@ -8,8 +8,8 @@ import { DelegateStatementForm } from "./DelegateStatementForm";
 import { Suspense } from "react";
 import { EditDelegatePageLazyVoterPanelQuery } from "./__generated__/EditDelegatePageLazyVoterPanelQuery.graphql";
 import { useAccount } from "wagmi";
-import { Navigate } from "react-router-dom";
 import { HStack } from "../../components/VStack";
+import { Navigate } from "../../components/HammockRouter/HammockRouter";
 
 export function EditDelegatePage() {
   const { address } = useAccount();
