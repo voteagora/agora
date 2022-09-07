@@ -31,7 +31,7 @@ export function NounGrid({
       className={css`
         display: grid;
         grid-template-columns: repeat(${columns}, ${imageSizeResolved});
-        grid-template-rows: repeat(${rows}, ${imageSizeResolved});
+        grid-template-rows: repeat(auto-fit, ${imageSizeResolved});
         gap: ${theme.spacing["4"]};
       `}
     >
