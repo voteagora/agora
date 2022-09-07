@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useState,
   useTransition,
 } from "react";
@@ -126,6 +127,10 @@ export function HammockRouter({ children }: Props) {
 
 export function HammockRouterContents() {
   const currentRoute = useCurrentRoute();
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentRoute]);
 
   const Element = routes[currentRoute.index].element;
   return <Element />;
