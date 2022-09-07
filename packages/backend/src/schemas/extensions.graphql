@@ -51,6 +51,7 @@ type WrappedDelegate {
 
 type DelegateStatement {
   statement: String!
+  summary: String
   topIssues: [TopIssue!]!
   mostValuableProposals: [Proposal!]!
   leastValuableProposals: [Proposal!]!

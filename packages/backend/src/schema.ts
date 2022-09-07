@@ -1,5 +1,8 @@
 import { stitchSchemas } from "@graphql-tools/stitch";
-import { getTitleFromProposalDescription } from "./utils/markdown";
+import {
+  extractFirstParagraph,
+  getTitleFromProposalDescription,
+} from "./utils/markdown";
 import { makeNounsSchema } from "./schemas/nouns-subgraph";
 import { delegateToSchema } from "@graphql-tools/delegate";
 import { mergeResolvers } from "@graphql-tools/merge";
@@ -33,6 +36,7 @@ import schema from "./schemas/extensions.graphql";
 import { fieldsMatching } from "./utils/graphql";
 import { parseSelectionSet } from "@graphql-tools/utils";
 import { ascendingValueComparator } from "./utils/sorting";
+import { marked } from "marked";
 
 const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
   [
@@ -142,43 +146,51 @@ function makeDelegateResolveInfo(
       .type as GraphQLNonNull<GraphQLObjectType>
   ).ofType;
 
+  const existingFieldNodes: FieldNode[] = info.fieldNodes
+    .flatMap((field): FieldNode[] => {
+      if (field.kind !== "Field" || field.name.value !== "wrappedDelegates") {
+        return [];
+      }
+
+      return [field];
+    })
+    .flatMap((field) =>
+      fieldsMatching(field.selectionSet, "edges", info.fragments)
+    )
+    .flatMap((field) =>
+      fieldsMatching(field.selectionSet, "node", info.fragments)
+    )
+    .flatMap((field) =>
+      fieldsMatching(field.selectionSet, "delegate", info.fragments)
+    );
+
+  const fieldNode =
+    existingFieldNodes[0] ??
+    ({
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        value: "delegate",
+      },
+    } as FieldNode);
+
+  function addSelectionsToFieldNode(
+    field: FieldNode,
+    selections: SelectionNode[]
+  ) {
+    return {
+      ...field,
+      selectionSet: {
+        ...field.selectionSet,
+        selections: [...(field.selectionSet?.selections ?? []), ...selections],
+      },
+    };
+  }
+
   return {
     ...info,
     fieldName: "delegate",
-    fieldNodes: [
-      ...info.fieldNodes
-        .flatMap((field): FieldNode[] => {
-          if (
-            field.kind !== "Field" ||
-            field.name.value !== "wrappedDelegates"
-          ) {
-            return [];
-          }
-
-          return [field];
-        })
-        .flatMap((field) =>
-          fieldsMatching(field.selectionSet, "edges", info.fragments)
-        )
-        .flatMap((field) =>
-          fieldsMatching(field.selectionSet, "node", info.fragments)
-        )
-        .flatMap((field) =>
-          fieldsMatching(field.selectionSet, "delegate", info.fragments)
-        )
-        .map((field): FieldNode => {
-          return {
-            ...field,
-            selectionSet: {
-              ...field.selectionSet,
-              selections: [
-                ...field.selectionSet.selections,
-                ...additionalSelections,
-              ],
-            },
-          };
-        }),
-    ],
+    fieldNodes: [addSelectionsToFieldNode(fieldNode, additionalSelections)],
     returnType: parentType.getFields()["delegate"].type,
     path: {
       prev: undefined,
@@ -500,6 +512,12 @@ export async function makeGatewaySchema() {
     },
 
     DelegateStatement: {
+      summary({ values: { delegateStatement } }) {
+        return extractFirstParagraph(
+          marked.lexer(delegateStatement.slice(0, 1000))
+        )?.slice(0, 260);
+      },
+
       statement({ values: { delegateStatement } }) {
         return delegateStatement;
       },
