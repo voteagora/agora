@@ -60,7 +60,15 @@ export function PageHeader() {
         </HStack>
       </Link>
 
-      <HStack alignItems="stretch" gap="3">
+      <HStack
+        alignItems="center"
+        gap="3"
+        className={css`
+          height: ${theme.spacing["6"]};
+        `}
+      >
+        <ConnectKitButton mode="light" />
+
         {address && (
           <Link
             to="/create"
@@ -82,8 +90,6 @@ export function PageHeader() {
             <div>Create</div>
           </Link>
         )}
-
-        <ConnectKitButton mode="light" />
 
         {address && <OwnedNounsPanel fragment={address} />}
       </HStack>
