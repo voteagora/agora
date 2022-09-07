@@ -12,7 +12,6 @@ import { VoterPanelDelegateFragment$key } from "./__generated__/VoterPanelDelega
 import { VoterPanelQueryFragment$key } from "./__generated__/VoterPanelQueryFragment.graphql";
 import { icons } from "../../icons/icons";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
-import { NounResolvedLinkFragment$key } from "../../components/__generated__/NounResolvedLinkFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { VoterPanelSocialButtonsFragment$key } from "./__generated__/VoterPanelSocialButtonsFragment.graphql";
 import { VoterPanelDelegateButtonFragment$key } from "./__generated__/VoterPanelDelegateButtonFragment.graphql";
@@ -20,6 +19,8 @@ import { VoterPanelActionsFragment$key } from "./__generated__/VoterPanelActions
 import { ReactNode, useMemo, useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { VoterPanelDelegateFromListFragment$key } from "./__generated__/VoterPanelDelegateFromListFragment.graphql";
+import { VoterPanelNameSectionFragment$key } from "./__generated__/VoterPanelNameSectionFragment.graphql";
+import { shortAddress } from "../../utils/address";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -31,7 +32,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
     graphql`
       fragment VoterPanelDelegateFragment on Address {
         resolvedName {
-          ...NounResolvedLinkFragment
+          ...VoterPanelNameSectionFragment
         }
 
         wrappedDelegate {
@@ -96,21 +97,25 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
     queryFragment
   );
 
-  if (!delegate) {
-    return <EmptyVoterPanel resolvedName={address.resolvedName} />;
-  }
-
   const lastTenProposals = new Set(
     recentProposals.slice(0, 10).map((proposal) => proposal.id)
   );
-  const votedProposals = new Set(
-    delegate.votes.map((vote) => vote.proposal.id)
-  );
-
-  const recentParticipation = intersection(lastTenProposals, votedProposals);
 
   return (
-    <>
+    <VStack
+      className={css`
+        position: sticky;
+        top: ${theme.spacing["16"]};
+        background-color: ${theme.colors.white};
+        border-radius: ${theme.spacing["3"]};
+        border-width: ${theme.spacing.px};
+        border-color: ${theme.colors.gray["300"]};
+        box-shadow: ${theme.boxShadow.newDefault};
+
+        flex-shrink: 0;
+        width: ${theme.maxWidth.xs};
+      `}
+    >
       <VStack
         alignItems="center"
         className={css`
@@ -118,62 +123,139 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           border-bottom: ${theme.spacing.px} solid ${theme.colors.gray["300"]};
         `}
       >
-        <NounsRepresentedGrid
-          fragmentKey={delegate}
-          imageSize="10"
-          gap="2"
-          overflowFontSize="base"
-          rows={3}
-          columns={6}
-        />
+        {!delegate ? (
+          <div
+            className={css`
+              padding: ${theme.spacing["8"]} ${theme.spacing["10"]};
+            `}
+          >
+            <HStack
+              gap="2"
+              alignItems="center"
+              className={css`
+                border-radius: ${theme.borderRadius.default};
+                border: 1px solid #ebebeb;
+                padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
+              `}
+            >
+              <div
+                className={css`
+                  background: #3dbf00;
+                  border-radius: ${theme.spacing["1"]};
+                  width: ${theme.spacing["1"]};
+                  height: ${theme.spacing["1"]};
+                `}
+              />
+
+              <div
+                className={css`
+                  font-size: ${theme.fontSize.xs};
+                  white-space: nowrap;
+                `}
+              >
+                Currently seeking delegation
+              </div>
+            </HStack>
+          </div>
+        ) : (
+          <NounsRepresentedGrid
+            fragmentKey={delegate}
+            imageSize="10"
+            gap="2"
+            overflowFontSize="base"
+            rows={3}
+            columns={6}
+          />
+        )}
       </VStack>
 
       <div
         className={css`
-          ${voterPanelDetailsContainerStyle};
+          ${css`
+            display: flex;
+            flex-direction: column;
+            padding: ${theme.spacing["6"]} ${theme.spacing["6"]};
+          `};
         `}
       >
-        <NameSection
-          resolvedName={address.resolvedName}
-          votes={delegate.nounsRepresented.length}
-        />
+        <NameSection resolvedName={address.resolvedName} />
 
         <div className={panelRowContainerStyles}>
           <PanelRow
+            title={"Nouns represented"}
+            detail={
+              !delegate ? "N/A" : `${delegate.nounsRepresented.length} votes`
+            }
+          />
+
+          <PanelRow
             title="Proposals voted"
-            detail={`${delegate.votes.length} (${(
-              (delegate.votes.length / Number(metrics.proposalCount)) *
-              100
-            ).toFixed(0)}%)`}
+            detail={
+              !delegate
+                ? "N/A"
+                : `${delegate.votes.length} (${(
+                    (delegate.votes.length / Number(metrics.proposalCount)) *
+                    100
+                  ).toFixed(0)}%)`
+            }
           />
 
           <PanelRow
             title="Voting power"
-            detail={`${(
-              (delegate.nounsRepresented.length / Number(metrics.totalSupply)) *
-              100
-            ).toFixed(0)}% all / ${(
-              (delegate.nounsRepresented.length / Number(metrics.quorumVotes)) *
-              100
-            ).toFixed(0)}% quorum`}
+            detail={
+              !delegate
+                ? "N/A"
+                : `${(
+                    (delegate.nounsRepresented.length /
+                      Number(metrics.totalSupply)) *
+                    100
+                  ).toFixed(0)}% all / ${(
+                    (delegate.nounsRepresented.length /
+                      Number(metrics.quorumVotes)) *
+                    100
+                  ).toFixed(0)}% quorum`
+            }
           />
 
           <PanelRow
             title="For / Against / Abstain"
-            detail={`${delegate.voteSummary.forVotes} / ${delegate.voteSummary.againstVotes} / ${delegate.voteSummary.abstainVotes}`}
+            detail={(() => {
+              if (!delegate) {
+                return "N/A";
+              }
+
+              return `${delegate.voteSummary.forVotes} / ${delegate.voteSummary.againstVotes} / ${delegate.voteSummary.abstainVotes}`;
+            })()}
           />
 
-          <PanelRow
-            title="Recent activity"
-            detail={`${recentParticipation.size} of ${lastTenProposals.size} last props`}
-          />
+          {(() => {
+            if (!delegate) {
+              return <PanelRow title="Recent activity" detail={`N/A`} />;
+            }
+
+            const votedProposals = new Set(
+              delegate.votes.map((vote) => vote.proposal.id)
+            );
+
+            const recentParticipation = intersection(
+              lastTenProposals,
+              votedProposals
+            );
+
+            return (
+              <PanelRow
+                title="Recent activity"
+                detail={`${recentParticipation.size} of ${lastTenProposals.size} last props`}
+              />
+            );
+          })()}
 
           <PanelRow
             title="Proposals created"
-            detail={`${delegate.proposals.length}`}
+            detail={`${delegate?.proposals?.length ?? "N/A"}`}
           />
 
-          <DelegateFromList fragment={delegate} />
+          {delegate && <DelegateFromList fragment={delegate} />}
 
           <VoterPanelActions
             className={css`
@@ -183,7 +265,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           />
         </div>
       </div>
-    </>
+    </VStack>
   );
 }
 
@@ -224,7 +306,7 @@ function DelegateFromList({
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <VStack gap="2">
+    <VStack gap="1">
       <PanelRow
         title="Delegated from"
         detail={
@@ -262,15 +344,21 @@ function DelegateFromList({
             <div
               className={css`
                 text-overflow: ellipsis;
+                white-space: nowrap;
                 overflow: hidden;
               `}
             >
               <NounResolvedLink resolvedName={holder.address.resolvedName} />
             </div>
 
-            <HStack gap="1">
+            <HStack
+              gap="1"
+              className={css`
+                flex-shrink: 0;
+              `}
+            >
               <NounGridChildren
-                count={3}
+                count={5}
                 nouns={holder.nouns}
                 overflowFontSize="xs"
                 imageSize="6"
@@ -397,7 +485,7 @@ function SocialButtonsContainer({
 const panelRowContainerStyles = css`
   display: flex;
   flex-direction: column;
-  margin-top: ${theme.spacing["4"]};
+  margin-top: ${theme.spacing["6"]};
   gap: ${theme.spacing["2"]};
 `;
 
@@ -431,127 +519,54 @@ const PanelRow = ({ title, detail }: PanelRowProps) => {
 };
 
 type NameSectionProps = {
-  resolvedName: NounResolvedLinkFragment$key;
-  votes: number;
+  resolvedName: VoterPanelNameSectionFragment$key;
 };
 
-function NameSection({ resolvedName, votes }: NameSectionProps) {
+function NameSection({ resolvedName }: NameSectionProps) {
+  const { address, name } = useFragment(
+    graphql`
+      fragment VoterPanelNameSectionFragment on ResolvedName {
+        address
+        name
+      }
+    `,
+    resolvedName
+  );
+
+  const renderedAddress = shortAddress(address);
+
   return (
-    <HStack gap="2" alignItems="baseline">
-      <span
-        className={css`
-          font-size: ${theme.fontSize["xl"]};
-          font-weight: bolder;
-        `}
-      >
-        <NounResolvedLink resolvedName={resolvedName} />
-      </span>
-      <span
-        className={css`
-          font-size: ${theme.fontSize.base};
-        `}
-      >
-        {votes} votes
-      </span>
-    </HStack>
+    <a href={`https://etherscan.io/address/${address}`}>
+      <VStack>
+        {name && (
+          <div
+            className={css`
+              color: #66676b;
+              font-size: ${theme.fontSize.xs};
+              font-weight: ${theme.fontWeight.medium};
+              line-height: ${theme.lineHeight.relaxed};
+            `}
+          >
+            {renderedAddress}
+          </div>
+        )}
+
+        <div
+          className={css`
+            font-weight: ${theme.fontWeight.black};
+            font-size: ${theme.fontSize["2xl"]};
+            line-height: ${theme.lineHeight.tight};
+          `}
+        >
+          {name ?? renderedAddress}
+        </div>
+      </VStack>
+    </a>
   );
 }
 
 export const shadow =
   "0px 4px 12px rgba(0, 0, 0, 0.02), 0px 2px 2px rgba(0, 0, 0, 0.03);";
-
-const containerStyles = css``;
-
-type EmptyVoterPanelProps = {
-  resolvedName: NounResolvedLinkFragment$key;
-};
-
-const voterPanelDetailsContainerStyle = css`
-  display: flex;
-  flex-direction: column;
-  padding: ${theme.spacing["6"]} ${theme.spacing["6"]};
-`;
-
-export function EmptyVoterPanel({ resolvedName }: EmptyVoterPanelProps) {
-  return (
-    <VStack
-      className={css`
-        ${containerStyles};
-      `}
-    >
-      <div
-        className={css`
-          padding: ${theme.spacing["8"]} ${theme.spacing["10"]};
-
-          border-bottom: 1px solid #ebebeb;
-        `}
-      >
-        <HStack
-          gap="2"
-          alignItems="center"
-          className={css`
-            border-radius: ${theme.borderRadius.default};
-            border: 1px solid #ebebeb;
-            padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
-          `}
-        >
-          <div
-            className={css`
-              background: #3dbf00;
-              border-radius: ${theme.spacing["1"]};
-              width: ${theme.spacing["1"]};
-              height: ${theme.spacing["1"]};
-            `}
-          />
-
-          <div
-            className={css`
-              font-size: ${theme.fontSize.xs};
-              white-space: nowrap;
-            `}
-          >
-            Currently seeking delegation
-          </div>
-        </HStack>
-      </div>
-
-      <div
-        className={css`
-          ${voterPanelDetailsContainerStyle};
-        `}
-      >
-        <NameSection resolvedName={resolvedName} votes={0} />
-
-        <div className={panelRowContainerStyles}>
-          <PanelRow title="Proposals voted" detail={`N/A`} />
-
-          <PanelRow title="Voting power" detail={`N/A`} />
-
-          <PanelRow title="For / Against / Abstain" detail="N/A" />
-
-          <PanelRow title="Recent activity" detail={`N/A`} />
-
-          <PanelRow title="Proposals created" detail={`N/A`} />
-
-          <PanelRow title="Delegated from" detail={`N/A`} />
-        </div>
-      </div>
-    </VStack>
-  );
-}
-
-export function LoadingVoterPanel() {
-  return (
-    <div
-      className={css`
-        padding: ${theme.spacing["8"]} ${theme.spacing["10"]};
-        ${containerStyles};
-      `}
-    >
-      Loading...
-    </div>
-  );
-}
 
 function descendingValueComparator<T>(
   getValueFor: (item: T) => number
