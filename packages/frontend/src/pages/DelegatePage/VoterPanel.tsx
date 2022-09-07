@@ -15,6 +15,8 @@ import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 import { NounResolvedLinkFragment$key } from "../../components/__generated__/NounResolvedLinkFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { VoterPanelSocialButtonsFragment$key } from "./__generated__/VoterPanelSocialButtonsFragment.graphql";
+import { VoterPanelDelegateButtonFragment$key } from "./__generated__/VoterPanelDelegateButtonFragment.graphql";
+import { VoterPanelActionsFragment$key } from "./__generated__/VoterPanelActionsFragment.graphql";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -30,9 +32,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
         }
 
         wrappedDelegate {
-          statement {
-            ...VoterPanelSocialButtonsFragment
-          }
+          ...VoterPanelActionsFragment
 
           delegate {
             id
@@ -109,8 +109,6 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
   if (!delegate) {
     return <EmptyVoterPanel resolvedName={address.resolvedName} />;
   }
-
-  const statement = address.wrappedDelegate.statement;
 
   const lastTenProposals = new Set(
     recentProposals.slice(0, 10).map((proposal) => proposal.id)
@@ -211,33 +209,80 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
               </HStack>
             ))}
           </>
-        </div>
 
-        <HStack
-          justifyContent="space-between"
-          alignItems="center"
-          className={css`
-            margin-top: ${theme.spacing["8"]};
-          `}
-        >
-          <SocialButtons fragment={statement} />
-          <a href={`https://nouns.wtf/delegate?to=${delegate.id}`}>
-            <div
-              className={css`
-                ${buttonStyles};
-                padding: ${theme.spacing["2"]};
-              `}
-            >
-              Delegate
-            </div>
-          </a>
-        </HStack>
+          <VoterPanelActions
+            className={css`
+              margin-top: ${theme.spacing["8"]};
+            `}
+            fragment={address.wrappedDelegate}
+          />
+        </div>
       </div>
     </div>
   );
 }
 
-export function SocialButtons({
+export function VoterPanelActions({
+  className,
+  fragment,
+}: {
+  className?: string;
+  fragment: VoterPanelActionsFragment$key;
+}) {
+  const wrappedDelegate = useFragment(
+    graphql`
+      fragment VoterPanelActionsFragment on WrappedDelegate {
+        statement {
+          ...VoterPanelSocialButtonsFragment
+        }
+
+        ...VoterPanelDelegateButtonFragment
+      }
+    `,
+    fragment
+  );
+
+  return (
+    <HStack
+      justifyContent="space-between"
+      alignItems="center"
+      className={className}
+    >
+      <SocialButtons fragment={wrappedDelegate.statement} />
+      <DelegateButton fragment={wrappedDelegate} />
+    </HStack>
+  );
+}
+
+function DelegateButton({
+  fragment,
+}: {
+  fragment: VoterPanelDelegateButtonFragment$key;
+}) {
+  const { id } = useFragment(
+    graphql`
+      fragment VoterPanelDelegateButtonFragment on WrappedDelegate {
+        id
+      }
+    `,
+    fragment
+  );
+
+  return (
+    <a href={`https://nouns.wtf/delegate?to=${id}`}>
+      <div
+        className={css`
+          ${buttonStyles};
+          padding: ${theme.spacing["2"]};
+        `}
+      >
+        Delegate
+      </div>
+    </a>
+  );
+}
+
+function SocialButtons({
   fragment,
 }: {
   fragment: VoterPanelSocialButtonsFragment$key | null;

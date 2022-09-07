@@ -8,7 +8,7 @@ import { NounsRepresentedGrid } from "../../components/NounGrid";
 import { HStack, VStack } from "../../components/VStack";
 import { icons } from "../../icons/icons";
 import { Link } from "../../components/HammockRouter/HammockRouter";
-import { SocialButtons } from "../DelegatePage/VoterPanel";
+import { VoterPanelActions } from "../DelegatePage/VoterPanel";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
@@ -19,6 +19,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
     graphql`
       fragment VoterCardFragment on WrappedDelegate {
         id
+        ...VoterPanelActionsFragment
 
         address {
           resolvedName {
@@ -29,8 +30,6 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
         statement {
           statement
           summary
-
-          ...VoterPanelSocialButtonsFragment
         }
 
         delegate {
@@ -48,10 +47,17 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
   );
 
   return (
-    <Link to={`/delegate/${delegate.id}`}>
+    <Link
+      to={`/delegate/${delegate.id}`}
+      className={css`
+        display: flex;
+        flex-direction: column;
+      `}
+    >
       <VStack
         gap="4"
         className={css`
+          flex: 1;
           padding: ${theme.spacing["6"]};
           border-radius: ${theme.spacing["3"]};
           background: ${theme.colors.white};
@@ -88,19 +94,16 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           )}
         </HStack>
 
-        {delegate?.statement?.summary && (
-          <div
-            className={css`
-              color: #66676b;
-            `}
-          >
-            {delegate?.statement?.summary}
-          </div>
-        )}
+        <div
+          className={css`
+            color: #66676b;
+            flex: 1;
+          `}
+        >
+          {delegate?.statement?.summary}
+        </div>
 
-        <HStack justifyContent="space-between">
-          <SocialButtons fragment={delegate.statement} />
-        </HStack>
+        <VoterPanelActions fragment={delegate} />
       </VStack>
     </Link>
   );
