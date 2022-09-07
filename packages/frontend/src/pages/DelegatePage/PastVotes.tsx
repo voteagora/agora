@@ -8,10 +8,9 @@ import { HStack, VStack } from "../../components/VStack";
 
 type Props = {
   fragment: PastVotesFragment$key;
-  dense: boolean;
 };
 
-export function PastVotes({ fragment, dense }: Props) {
+export function PastVotes({ fragment }: Props) {
   const { votes } = useFragment(
     graphql`
       fragment PastVotesFragment on Delegate {
@@ -44,10 +43,7 @@ export function PastVotes({ fragment, dense }: Props) {
         className={css`
           margin-top: ${theme.spacing["4"]};
           overflow-x: scroll;
-          ${dense &&
-          css`
-            flex-wrap: wrap;
-          `}
+          flex-wrap: wrap;
         `}
       >
         {votes.map((vote) => (
