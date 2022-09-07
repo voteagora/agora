@@ -70,7 +70,24 @@ export function DelegatePage() {
           max-width: ${theme.maxWidth["6xl"]};
         `}
       >
-        <VoterPanel delegateFragment={query.address} queryFragment={query} />
+        <VStack>
+          <VoterPanel delegateFragment={query.address} queryFragment={query} />
+
+          {!wrappedDelegate.statement && (
+            <div
+              className={css`
+                color: #66676b;
+                line-height: ${theme.lineHeight.normal};
+                font-size: ${theme.fontSize.xs};
+                padding: ${theme.spacing["2"]};
+              `}
+            >
+              This voter has not submitted a statement. Is this you? Connect
+              your wallet to verify your address, and tell your community what
+              you’d like to see.
+            </div>
+          )}
+        </VStack>
 
         <VStack
           gap="8"
