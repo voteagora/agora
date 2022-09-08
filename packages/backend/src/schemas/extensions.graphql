@@ -88,6 +88,8 @@ enum WrappedDelegatesWhere {
 enum WrappedDelegatesOrder {
   mostNounsRepresented
   mostRecentlyActive
+  mostVotesCast
+  leastVotesCast
 }
 
 type Query {
