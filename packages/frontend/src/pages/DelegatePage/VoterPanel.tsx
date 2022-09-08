@@ -24,6 +24,7 @@ import { shortAddress } from "../../utils/address";
 import { Textfit } from "react-textfit";
 import { DelegateDialog } from "../../components/DelegateDialog";
 import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
+import toast from "react-hot-toast";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -487,9 +488,17 @@ function SocialButtonsContainer({
       )}
 
       {discord && (
-        <a href={`https://discord.com`} onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toast("copied discord handle to clipboard");
+
+            navigator.clipboard.writeText(discord);
+          }}
+        >
           <img src={icons.discord} alt="discord" />
-        </a>
+        </button>
       )}
     </>
   );

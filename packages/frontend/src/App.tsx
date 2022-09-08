@@ -11,6 +11,7 @@ import {
   HammockRouterContents,
 } from "./components/HammockRouter/HammockRouter";
 import { FullPageLoadingIndicator } from "./components/FullPageLoadingIndicator";
+import { Toaster } from "react-hot-toast";
 
 const wagmiClient = createClient(
   getDefaultClient({
@@ -30,6 +31,7 @@ function App() {
             <RelayEnvironmentProvider environment={relayEnvironment}>
               <HammockRouter>
                 <PageContainer>
+                  <Toaster />
                   <Suspense fallback={<FullPageLoadingIndicator />}>
                     <PageHeader />
 

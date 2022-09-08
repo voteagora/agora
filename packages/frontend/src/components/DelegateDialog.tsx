@@ -61,6 +61,12 @@ export function DelegateDialog({
         `}
       >
         <Dialog.Panel
+          as={motion.div}
+          initial={{
+            scale: 0.9,
+            translateY: theme.spacing["8"],
+          }}
+          animate={{ translateY: 0, scale: 1 }}
           className={css`
             width: 100%;
             max-width: ${theme.maxWidth.md};
