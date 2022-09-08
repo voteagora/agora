@@ -2270,6 +2270,7 @@ type Vote {
 
   """Block number of vote"""
   blockNumber: BigInt!
+  createdAt: BigInt!
 }
 
 input Vote_filter {
