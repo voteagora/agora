@@ -3,6 +3,7 @@ import { css } from "@emotion/css";
 import * as theme from "../theme";
 import { VStack } from "./VStack";
 import { RouteTransitionLoadingIndicator } from "./RouteTransitionLoadingIndicator";
+import { inset0 } from "../theme";
 
 type Props = {
   children: ReactNode;
@@ -47,10 +48,7 @@ function DottedBackground() {
     <div
       className={css`
         position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        ${inset0};
 
         z-index: -10;
 

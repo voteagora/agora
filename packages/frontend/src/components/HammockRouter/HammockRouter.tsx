@@ -1,6 +1,7 @@
 import {
   createContext,
   ReactNode,
+  TransitionStartFunction,
   useCallback,
   useContext,
   useEffect,
@@ -48,6 +49,9 @@ const NavigateContext = createContext<
   ((nextPath: string, asTransition?: boolean) => void) | null
 >(null);
 const IsPendingContext = createContext<boolean | null>(null);
+const StartTransitionContext = createContext<TransitionStartFunction | null>(
+  null
+);
 
 function findMatchingRoute(path: string, routes: Route[]) {
   for (const { route, index } of routes.map((route, index) => ({
@@ -118,7 +122,9 @@ export function HammockRouter({ children }: Props) {
     <CurrentRouteContext.Provider value={currentRoute}>
       <NavigateContext.Provider value={navigate}>
         <IsPendingContext.Provider value={isPending}>
-          {children}
+          <StartTransitionContext.Provider value={startTransition}>
+            {children}
+          </StartTransitionContext.Provider>
         </IsPendingContext.Provider>
       </NavigateContext.Provider>
     </CurrentRouteContext.Provider>
@@ -150,6 +156,10 @@ export function useIsNavigationPending() {
 
 export function useParams() {
   return useCurrentRoute().match?.params as Record<string, string>;
+}
+
+export function useStartTransition() {
+  return useContext(StartTransitionContext)!;
 }
 
 type LinkProps = {
