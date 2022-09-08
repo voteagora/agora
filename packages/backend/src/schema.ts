@@ -636,6 +636,16 @@ export async function makeGatewaySchema() {
         },
       },
 
+      Vote: {
+        createdAt: {
+          selectionSet: `{ blockNumber }`,
+          async resolve({ blockNumber }: { blockNumber: string }) {
+            const block = await provider.getBlock(Number(blockNumber));
+            return block.timestamp.toString();
+          },
+        },
+      },
+
       Delegate: {
         resolvedName: {
           selectionSet: `{ id }`,
