@@ -21,6 +21,7 @@ import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { VoterPanelDelegateFromListFragment$key } from "./__generated__/VoterPanelDelegateFromListFragment.graphql";
 import { VoterPanelNameSectionFragment$key } from "./__generated__/VoterPanelNameSectionFragment.graphql";
 import { shortAddress } from "../../utils/address";
+import { Textfit } from "react-textfit";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -553,9 +554,12 @@ function NameSection({ resolvedName }: NameSectionProps) {
             font-weight: ${theme.fontWeight.black};
             font-size: ${theme.fontSize["2xl"]};
             line-height: ${theme.lineHeight.tight};
+            overflow: hidden;
           `}
         >
-          {name ?? renderedAddress}
+          <Textfit min={16} max={24} mode="single">
+            {name ?? renderedAddress}
+          </Textfit>
         </div>
       </VStack>
     </a>
