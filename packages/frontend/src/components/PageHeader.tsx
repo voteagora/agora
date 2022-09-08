@@ -142,6 +142,7 @@ function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
         border-width: ${theme.spacing.px};
         border-radius: ${theme.borderRadius.lg};
         box-shadow: ${theme.boxShadow.newDefault};
+        background: ${theme.colors.white};
       `}
     >
       <HStack
