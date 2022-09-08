@@ -397,16 +397,23 @@ export function VoterPanelActions({
       alignItems="stretch"
       className={className}
     >
-      <SocialButtons fragment={wrappedDelegate.statement} />
-      <DelegateButton fragment={wrappedDelegate} />
+      {wrappedDelegate.statement && (
+        <SocialButtons fragment={wrappedDelegate.statement} />
+      )}
+      <DelegateButton
+        fragment={wrappedDelegate}
+        full={!wrappedDelegate.statement}
+      />
     </HStack>
   );
 }
 
 function DelegateButton({
   fragment,
+  full,
 }: {
   fragment: VoterPanelDelegateButtonFragment$key;
+  full: boolean;
 }) {
   const wrappedDelegate = useFragment(
     graphql`
@@ -438,6 +445,10 @@ function DelegateButton({
         }}
         className={css`
           ${buttonStyles};
+          ${full &&
+          css`
+            width: 100%;
+          `}
         `}
       >
         Delegate
@@ -449,11 +460,11 @@ function DelegateButton({
 function SocialButtons({
   fragment,
 }: {
-  fragment: VoterPanelSocialButtonsFragment$key | null;
+  fragment: VoterPanelSocialButtonsFragment$key;
 }) {
   return (
     <HStack gap="4" alignItems="center">
-      {fragment && <SocialButtonsContainer fragment={fragment} />}
+      <SocialButtonsContainer fragment={fragment} />
     </HStack>
   );
 }
