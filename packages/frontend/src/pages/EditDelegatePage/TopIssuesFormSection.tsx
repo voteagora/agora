@@ -154,7 +154,10 @@ export function TopIssuesFormSection({ form }: Props) {
                   <CloseButton onClick={() => removeIssue(index)} />
                 </VStack>
                 <input
-                  className={sharedInputStyle}
+                  className={css`
+                    ${sharedInputStyle};
+                    padding-right: ${theme.spacing["12"]};
+                  `}
                   type="text"
                   placeholder={`On ${issueDef.title.toLowerCase()}, I believe...`}
                   value={issue.value}
