@@ -43,6 +43,8 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
 
             ...NounGridFragment
             nounsRepresented {
+              id
+
               owner {
                 id
               }
@@ -118,7 +120,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           border-bottom: ${theme.spacing.px} solid ${theme.colors.gray["300"]};
         `}
       >
-        {!delegate ? (
+        {!delegate?.nounsRepresented.length ? (
           <div
             className={css`
               padding: ${theme.spacing["8"]} ${theme.spacing["10"]};
