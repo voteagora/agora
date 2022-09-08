@@ -275,11 +275,6 @@ export async function makeGatewaySchema() {
                       id
                       blockNumber
                     }
-                    
-                    proposals(first: 1, orderBy: createdBlock, orderDirection: desc) {
-                      id
-                      createdBlock
-                    }
                   }
                 `
               );
@@ -379,15 +374,10 @@ export async function makeGatewaySchema() {
                     return -Infinity;
                   }
 
-                  const latestVote =
+                  return (
                     delegate.delegatedDelegate?.votes?.[0]?.blockNumber ??
-                    -Infinity;
-
-                  const latestProposal =
-                    delegate.delegatedDelegate?.proposals?.[0]?.createdBlock ??
-                    -Infinity;
-
-                  return Math.max(latestVote, latestProposal);
+                    -Infinity
+                  );
                 })
               );
 
