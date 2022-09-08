@@ -15,6 +15,7 @@ import { Dialog } from "@headlessui/react";
 import { DelegateDialogQuery } from "./__generated__/DelegateDialogQuery.graphql";
 import { DelegateDialogFragment$key } from "./__generated__/DelegateDialogFragment.graphql";
 import { NounGridFragment$data } from "./__generated__/NounGridFragment.graphql";
+import { icons } from "../icons/icons";
 
 export function DelegateDialog({
   fragment,
@@ -137,9 +138,36 @@ function DelegateDialogContents({
           font-size: ${theme.fontSize.xs};
         `}
       >
-        <Dialog.Title>Delegating your nouns</Dialog.Title>
+        {!address ? (
+          <VStack gap="3" alignItems="center">
+            <div>Delegating your nouns</div>
 
-        <NounsDisplay nouns={address?.account?.nouns ?? []} />
+            <HStack>
+              <img
+                className={css`
+                  width: ${theme.spacing["8"]};
+                  height: ${theme.spacing["8"]};
+                `}
+                src={icons.anonNoun}
+              />
+            </HStack>
+          </VStack>
+        ) : address?.account?.nouns.length ? (
+          <VStack gap="3" alignItems="center">
+            <div>Delegating your nouns</div>
+
+            <NounsDisplay nouns={address.account.nouns} />
+          </VStack>
+        ) : (
+          <div
+            className={css`
+              padding: ${theme.spacing["12"]};
+              padding-bottom: ${theme.spacing["4"]};
+            `}
+          >
+            You don’t have any nouns to delegate
+          </div>
+        )}
 
         <VStack
           className={css`
@@ -191,22 +219,28 @@ function DelegateDialogContents({
         <NounResolvedName resolvedName={wrappedDelegate.address.resolvedName} />
       </VStack>
 
-      <a
-        href={`https://nouns.wtf/delegate?to=${wrappedDelegate.address.resolvedName.address}`}
-        className={css`
-          text-align: center;
-          border-radius: ${theme.spacing["2"]};
-          border: 1px solid ${theme.colors.gray.eb};
-          font-weight: ${theme.fontWeight.semibold};
-          padding: ${theme.spacing["4"]} 0;
+      {(!address || !!address?.account?.nouns.length) && (
+        <a
+          href={`https://nouns.wtf/delegate?to=${wrappedDelegate.address.resolvedName.address}`}
+          className={css`
+            text-align: center;
+            border-radius: ${theme.spacing["2"]};
+            border: 1px solid ${theme.colors.gray.eb};
+            font-weight: ${theme.fontWeight.semibold};
+            padding: ${theme.spacing["4"]} 0;
 
-          :hover {
-            background: ${theme.colors.gray.eb};
-          }
-        `}
-      >
-        Delegate 3 votes
-      </a>
+            :hover {
+              background: ${theme.colors.gray.eb};
+            }
+          `}
+        >
+          {address ? (
+            <>Delegate {address?.account?.nouns?.length} votes</>
+          ) : (
+            <>Delegate your nouns</>
+          )}
+        </a>
+      )}
     </VStack>
   );
 }
