@@ -39,6 +39,10 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
             id
           }
 
+          nounsRepresented {
+            id
+          }
+
           ...NounGridFragment
         }
       }
@@ -68,7 +72,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           cursor: pointer;
         `}
       >
-        {delegate.delegate ? (
+        {!!delegate?.delegate?.nounsRepresented?.length ? (
           <HStack justifyContent="center">
             <NounsRepresentedGrid
               rows={3}
