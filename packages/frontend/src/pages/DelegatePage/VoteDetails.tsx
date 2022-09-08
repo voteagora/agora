@@ -7,6 +7,7 @@ import { VoteDetailsFragment$key } from "./__generated__/VoteDetailsFragment.gra
 import { VStack } from "../../components/VStack";
 import { shadow } from "./VoterPanel";
 import { useMemo } from "react";
+import { formatDistanceToNow } from "date-fns";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;
@@ -20,6 +21,7 @@ export function VoteDetails({ voteFragment }: Props) {
         reason
         supportDetailed
         votes
+        createdAt
 
         proposal {
           id
@@ -31,7 +33,6 @@ export function VoteDetails({ voteFragment }: Props) {
     `,
     voteFragment
   );
-
   const proposalHref = `https://nouns.wtf/vote/${vote.proposal.id}`;
 
   return (
@@ -71,6 +72,16 @@ export function VoteDetails({ voteFragment }: Props) {
             <ValuePart value={vote.proposal.totalValue} />
             &mdash; with {vote.votes} votes
           </div>
+          <div
+            className={css`
+              font-size: ${theme.fontSize.xs};
+              color: #66676b;
+            `}
+          >
+            voted {formatDistanceToNow(new Date(Number(vote.createdAt) * 1000))}{" "}
+            ago
+          </div>
+
           <h2
             className={css`
               font-size: ${theme.fontSize.base};
