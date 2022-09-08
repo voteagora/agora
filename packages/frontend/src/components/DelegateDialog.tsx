@@ -3,8 +3,8 @@ import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay";
 import { inset0 } from "../theme";
 import * as theme from "../theme";
-import { VStack } from "./VStack";
-import { NounGrid } from "./NounGrid";
+import { HStack, VStack } from "./VStack";
+import { NounGridChildren } from "./NounGrid";
 import { NounResolvedName } from "./NounResolvedName";
 import { shadow } from "../pages/DelegatePage/VoterPanel";
 import { useAccount } from "wagmi";
@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
 import { DelegateDialogQuery } from "./__generated__/DelegateDialogQuery.graphql";
 import { DelegateDialogFragment$key } from "./__generated__/DelegateDialogFragment.graphql";
+import { NounGridFragment$data } from "./__generated__/NounGridFragment.graphql";
 
 export function DelegateDialog({
   fragment,
@@ -138,13 +139,7 @@ function DelegateDialogContents({
       >
         <Dialog.Title>Delegating your nouns</Dialog.Title>
 
-        <NounGrid
-          gap="2"
-          columns={6}
-          overflowFontSize={"base"}
-          nouns={address?.account?.nouns ?? []}
-          imageSize={"8"}
-        />
+        <NounsDisplay nouns={address?.account?.nouns ?? []} />
 
         <VStack
           className={css`
@@ -189,12 +184,8 @@ function DelegateDialogContents({
           </VStack>
         </VStack>
 
-        <NounGrid
-          gap="2"
-          columns={6}
-          overflowFontSize={"base"}
+        <NounsDisplay
           nouns={wrappedDelegate.delegate?.nounsRepresented ?? []}
-          imageSize={"8"}
         />
 
         <NounResolvedName resolvedName={wrappedDelegate.address.resolvedName} />
@@ -217,5 +208,36 @@ function DelegateDialogContents({
         Delegate 3 votes
       </a>
     </VStack>
+  );
+}
+
+type NounsDisplayProps = {
+  nouns: NounGridFragment$data["nounsRepresented"];
+};
+
+function NounsDisplay({ nouns }: NounsDisplayProps) {
+  const columns = 6;
+  const imageSize = "8";
+  const gapSize = "2";
+
+  return (
+    <HStack
+      justifyContent="center"
+      gap={gapSize}
+      className={css`
+        max-width: calc(
+          ${theme.spacing[imageSize]} * ${columns} + ${theme.spacing[gapSize]} *
+            ${columns - 1}
+        );
+        flex-wrap: wrap;
+      `}
+    >
+      <NounGridChildren
+        count={Infinity}
+        nouns={nouns}
+        imageSize={imageSize}
+        overflowFontSize="base"
+      />
+    </HStack>
   );
 }
