@@ -43,7 +43,7 @@ export function VoteDetails({ voteFragment }: Props) {
         background: ${theme.colors.white};
         box-shadow: ${shadow};
 
-        padding: ${theme.spacing["6"]};
+        padding: ${theme.spacing["5"]};
       `}
     >
       <div
@@ -55,7 +55,7 @@ export function VoteDetails({ voteFragment }: Props) {
         <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
         <a href={proposalHref}>Prop {vote.proposal.id}</a>
         <ValuePart value={vote.proposal.totalValue} />
-        &mdash; with {vote.votes} votes
+         with {vote.votes} votes
       </div>
       <h2
         className={css`
