@@ -21,6 +21,8 @@ type Props = {
 const orderNames: { [K in WrappedDelegatesOrder]?: string } = {
   mostNounsRepresented: "Most nouns represented",
   mostRecentlyActive: "Most recently active",
+  mostVotesCast: "Most votes cast",
+  leastVotesCast: "Least votes cast",
 };
 
 export function DelegatesContainer({ fragmentKey }: Props) {
