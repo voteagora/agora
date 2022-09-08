@@ -73,7 +73,13 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
         `}
       >
         {!!delegate?.delegate?.nounsRepresented?.length ? (
-          <HStack justifyContent="center">
+          <VStack
+            justifyContent="center"
+            alignItems="center"
+            className={css`
+              flex: 1;
+            `}
+          >
             <NounsRepresentedGrid
               rows={3}
               columns={5}
@@ -82,7 +88,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
               overflowFontSize="base"
               fragmentKey={delegate.delegate}
             />
-          </HStack>
+          </VStack>
         ) : (
           <HStack>
             <img src={icons.anonNoun} />
@@ -108,16 +114,18 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           )}
         </HStack>
 
-        <div
-          className={css`
-            color: #66676b;
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          `}
-        >
-          {delegate?.statement?.summary}
-        </div>
+        {delegate.statement?.summary && (
+          <div
+            className={css`
+              color: #66676b;
+              flex: 1;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            `}
+          >
+            {delegate.statement.summary}
+          </div>
+        )}
 
         <VoterPanelActions fragment={delegate} />
       </VStack>
