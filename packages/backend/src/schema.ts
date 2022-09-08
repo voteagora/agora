@@ -35,7 +35,7 @@ import { WrappedDelegate } from "./model";
 import schema from "./schemas/extensions.graphql";
 import { fieldsMatching } from "./utils/graphql";
 import { parseSelectionSet } from "@graphql-tools/utils";
-import { ascendingValueComparator } from "./utils/sorting";
+import { descendingValueComparator, flipComparator } from "./utils/sorting";
 import { marked } from "marked";
 
 const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
@@ -273,6 +273,18 @@ export async function makeGatewaySchema() {
                 `
               );
 
+            case WrappedDelegatesOrder.LeastVotesCast:
+            case WrappedDelegatesOrder.MostVotesCast:
+              return parseSelection(
+                `
+                  {
+                    __internalSortTotalVotes: votes(first: 1000) {
+                      id
+                    }
+                  }
+                `
+              );
+
             case WrappedDelegatesOrder.MostNounsRepresented:
             default:
               return [];
@@ -363,7 +375,7 @@ export async function makeGatewaySchema() {
           switch (orderBy) {
             case WrappedDelegatesOrder.MostRecentlyActive:
               return filteredDelegates.slice().sort(
-                ascendingValueComparator((delegate) => {
+                descendingValueComparator((delegate) => {
                   if (!delegate.delegatedDelegate) {
                     return -Infinity;
                   }
@@ -373,6 +385,25 @@ export async function makeGatewaySchema() {
                       ?.blockNumber ?? -Infinity
                   );
                 })
+              );
+
+            case WrappedDelegatesOrder.LeastVotesCast:
+            case WrappedDelegatesOrder.MostVotesCast:
+              return filteredDelegates.slice().sort(
+                (orderBy === WrappedDelegatesOrder.LeastVotesCast
+                  ? flipComparator
+                  : (it) => it)(
+                  descendingValueComparator((delegate: any) => {
+                    if (!delegate.delegatedDelegate) {
+                      return -Infinity;
+                    }
+
+                    return (
+                      delegate.delegatedDelegate?.__internalSortTotalVotes
+                        ?.length ?? -Infinity
+                    );
+                  })
+                )
               );
 
             case WrappedDelegatesOrder.MostNounsRepresented:
