@@ -12,6 +12,10 @@ extend type Delegate {
   voteSummary: DelegateVotesSummary!
 }
 
+extend type Vote {
+  createdAt: BigInt!
+}
+
 type DelegateVotesSummary {
   forVotes: Int!
   againstVotes: Int!
