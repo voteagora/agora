@@ -10,10 +10,10 @@ import {
 
 type Props = {
   nouns: NounGridFragment$data["nounsRepresented"];
+  rows?: number;
 } & LayoutProps;
 
 type LayoutProps = {
-  rows: number;
   columns: number;
   imageSize: keyof typeof theme.spacing;
   gap: keyof typeof theme.spacing;
@@ -28,7 +28,7 @@ export function NounGrid({
   gap,
   overflowFontSize,
 }: Props) {
-  const possibleSlots = rows * columns;
+  const possibleSlots = rows ? rows * columns : nouns.length;
   const imageSizeResolved = theme.spacing[imageSize];
 
   return (
@@ -52,6 +52,7 @@ export function NounGrid({
 
 type NounsRepresentedGridProps = {
   fragmentKey: NounGridFragment$key;
+  rows: number;
 } & LayoutProps;
 
 type NounGridChildrenProps = {
