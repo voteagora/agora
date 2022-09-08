@@ -164,33 +164,27 @@ function makeDelegateResolveInfo(
       fieldsMatching(field.selectionSet, "delegate", info.fragments)
     );
 
-  const fieldNode =
-    existingFieldNodes[0] ??
-    ({
-      kind: Kind.FIELD,
-      name: {
-        kind: Kind.NAME,
-        value: "delegate",
-      },
-    } as FieldNode);
-
-  function addSelectionsToFieldNode(
-    field: FieldNode,
-    selections: SelectionNode[]
-  ) {
-    return {
-      ...field,
-      selectionSet: {
-        ...field.selectionSet,
-        selections: [...(field.selectionSet?.selections ?? []), ...selections],
-      },
-    };
-  }
-
   return {
     ...info,
     fieldName: "delegate",
-    fieldNodes: [addSelectionsToFieldNode(fieldNode, additionalSelections)],
+    fieldNodes: [
+      {
+        kind: Kind.FIELD,
+        name: {
+          kind: Kind.NAME,
+          value: "delegate",
+        },
+        selectionSet: {
+          kind: Kind.SELECTION_SET,
+          selections: [
+            ...existingFieldNodes.flatMap(
+              (field) => field.selectionSet.selections
+            ),
+            ...additionalSelections,
+          ],
+        },
+      },
+    ],
     returnType: parentType.getFields()["delegate"].type,
     path: {
       prev: undefined,
@@ -271,7 +265,7 @@ export async function makeGatewaySchema() {
               return parseSelection(
                 `
                   {
-                    votes(first: 1, orderBy: blockNumber, orderDirection:desc) {
+                    __internalSortVotes: votes(first: 1, orderBy: blockNumber, orderDirection:desc) {
                       id
                       blockNumber
                     }
@@ -375,8 +369,8 @@ export async function makeGatewaySchema() {
                   }
 
                   return (
-                    delegate.delegatedDelegate?.votes?.[0]?.blockNumber ??
-                    -Infinity
+                    delegate.delegatedDelegate?.__internalSortVotes?.[0]
+                      ?.blockNumber ?? -Infinity
                   );
                 })
               );

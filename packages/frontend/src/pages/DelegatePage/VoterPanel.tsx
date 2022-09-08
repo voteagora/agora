@@ -22,6 +22,8 @@ import { VoterPanelDelegateFromListFragment$key } from "./__generated__/VoterPan
 import { VoterPanelNameSectionFragment$key } from "./__generated__/VoterPanelNameSectionFragment.graphql";
 import { shortAddress } from "../../utils/address";
 import { Textfit } from "react-textfit";
+import { DelegateDialog } from "../../components/DelegateDialog";
+import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -405,28 +407,41 @@ function DelegateButton({
 }: {
   fragment: VoterPanelDelegateButtonFragment$key;
 }) {
-  const { id } = useFragment(
+  const wrappedDelegate = useFragment(
     graphql`
       fragment VoterPanelDelegateButtonFragment on WrappedDelegate {
         id
+
+        ...DelegateDialogFragment
       }
     `,
     fragment
   );
 
+  const startTransition = useStartTransition();
+  const [isDialogOpen, setDialogOpen] = useState(false);
+
   return (
-    <a
-      href={`https://nouns.wtf/delegate?to=${id}`}
-      onClick={(e) => e.stopPropagation()}
-    >
+    <>
+      <DelegateDialog
+        fragment={wrappedDelegate}
+        isOpen={isDialogOpen}
+        closeDialog={() => setDialogOpen(false)}
+      />
+
       <button
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          startTransition(() => setDialogOpen(true));
+        }}
         className={css`
           ${buttonStyles};
         `}
       >
         Delegate
       </button>
-    </a>
+    </>
   );
 }
 
