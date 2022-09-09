@@ -125,7 +125,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           border-bottom: ${theme.spacing.px} solid ${theme.colors.gray["300"]};
         `}
       >
-        <DelegateProfileImage fragment={address.wrappedDelegate} />
+        <DelegateProfileImage fragment={address.wrappedDelegate} dense />
       </VStack>
 
       <div
