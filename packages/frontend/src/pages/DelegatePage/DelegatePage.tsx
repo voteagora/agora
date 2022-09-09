@@ -147,6 +147,7 @@ export function DelegatePage() {
                         box-shadow: ${theme.boxShadow.newDefault};
                         background: ${theme.colors.white};
                         padding: ${theme.spacing["3"]};
+                        background-color: ${theme.colors.white};
                       `}
                     >
                       <HStack gap="4" alignItems="flex-start">
