@@ -1,12 +1,13 @@
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { NounImage } from "./NounImage";
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import * as theme from "../theme";
 import {
   NounGridFragment$data,
   NounGridFragment$key,
 } from "./__generated__/NounGridFragment.graphql";
+import { HStack } from "./VStack";
 
 type Props = {
   nouns: NounGridFragment$data["nounsRepresented"];
@@ -58,8 +59,9 @@ type NounsRepresentedGridProps = {
 type NounGridChildrenProps = {
   count: number;
   nouns: NounGridFragment$data["nounsRepresented"];
-  imageSize: keyof typeof theme.spacing;
+  imageSize?: keyof typeof theme.spacing;
   overflowFontSize: keyof typeof theme.fontSize;
+  className?: string;
 };
 
 export function NounGridChildren({
@@ -67,8 +69,9 @@ export function NounGridChildren({
   nouns,
   count,
   overflowFontSize,
+  className,
 }: NounGridChildrenProps) {
-  const imageSizeResolved = theme.spacing[imageSize];
+  const imageSizeResolved = imageSize ? theme.spacing[imageSize] : undefined;
 
   const overflowAmount = nouns.length - count;
 
@@ -77,12 +80,18 @@ export function NounGridChildren({
   ) {
     return (
       <NounImage
-        className={css`
-          border-radius: 50%;
-          width: ${imageSizeResolved};
-          height: ${imageSizeResolved};
-          aspect-ratio: 1/1;
-        `}
+        className={cx(
+          css`
+            border-radius: 50%;
+            ${imageSizeResolved &&
+            css`
+              width: ${imageSizeResolved};
+              height: ${imageSizeResolved};
+            `}
+            aspect-ratio: 1/1;
+          `,
+          className
+        )}
         key={noun.id}
         fragmentRef={noun}
       />
@@ -133,6 +142,32 @@ export function NounsRepresentedGrid({
     `,
     fragmentKey
   );
+
+  if (nounsRepresented.length < layoutProps.columns) {
+    return (
+      <HStack
+        justifyContent="space-evenly"
+        gap={(Number(layoutProps.gap) + 1).toString() as any}
+        className={css`
+          padding: ${theme.spacing["4"]};
+          max-height: calc(
+            ${theme.spacing[layoutProps.imageSize]} * ${layoutProps.rows} +
+              ${theme.spacing[layoutProps.gap]} * ${layoutProps.rows - 1}
+          );
+        `}
+      >
+        <NounGridChildren
+          className={css`
+            min-width: ${theme.spacing["8"]};
+            flex-basis: ${theme.spacing["24"]};
+          `}
+          count={layoutProps.columns}
+          nouns={nounsRepresented}
+          overflowFontSize={"base"}
+        />
+      </HStack>
+    );
+  }
 
   return <NounGrid nouns={nounsRepresented} {...layoutProps} />;
 }

@@ -40,11 +40,27 @@ import { marked } from "marked";
 
 const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
   [
+    "0xfe349ddff44ba087530c1efc3342e786dffc57b0",
+    {
+      address: "0xfe349ddff44ba087530c1efc3342e786dffc57b0",
+      values: {
+        delegateStatement: "Just a guy with a noun.",
+        openToSponsoringProposals: null,
+        twitter: "",
+        discord: "",
+        mostValuableProposals: [],
+        leastValuableProposals: [],
+        topIssues: [],
+        for: "nouns-agora",
+      },
+    },
+  ],
+  [
     "0xa1e4f7dc1983fefe37e2175524ebad87f1c78c3c",
     {
       address: "0xa1e4f7dc1983fefe37e2175524ebad87f1c78c3c",
       values: {
-        delegateStatement: "Just a guy with a couple nouns.",
+        delegateStatement: "Just a guy with a few nouns.",
         openToSponsoringProposals: null,
         twitter: "",
         discord: "",
