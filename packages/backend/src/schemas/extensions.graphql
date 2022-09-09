@@ -1,0 +1,120 @@
+extend type Proposal {
+  title: String!
+  totalValue: BigInt!
+}
+
+extend type Account {
+  address: Address!
+}
+
+extend type Delegate {
+  resolvedName: ResolvedName!
+  voteSummary: DelegateVotesSummary!
+}
+
+extend type Vote {
+  createdAt: BigInt!
+}
+
+type DelegateVotesSummary {
+  forVotes: Int!
+  againstVotes: Int!
+  abstainVotes: Int!
+}
+
+type Query {
+  metrics: OverallMetrics!
+  address(address: ID!): Address!
+}
+
+type Address {
+  resolvedName: ResolvedName!
+  account: Account
+  wrappedDelegate: WrappedDelegate!
+}
+
+type OverallMetrics {
+  totalSupply: BigInt!
+  proposalCount: BigInt!
+  quorumVotes: BigInt!
+  quorumVotesBPS: BigInt!
+  proposalThreshold: BigInt!
+}
+
+type ResolvedName {
+  address: ID!
+  name: String
+}
+
+type WrappedDelegate {
+  id: ID!
+  address: Address!
+  statement: DelegateStatement
+  delegate: Delegate
+}
+
+type DelegateStatement {
+  statement: String!
+  summary: String
+  topIssues: [TopIssue!]!
+  mostValuableProposals: [Proposal!]!
+  leastValuableProposals: [Proposal!]!
+  twitter: String!
+  discord: String!
+  openToSponsoringProposals: Boolean
+}
+
+type TopIssue {
+  type: String!
+  value: String!
+}
+
+type Mutation {
+  createNewDelegateStatement(
+    data: CreateNewDelegateStatementData
+  ): WrappedDelegate!
+}
+
+input CreateNewDelegateStatementData {
+  statementBodyJson: String!
+  statementBodyJsonSignature: String!
+}
+
+enum WrappedDelegatesWhere {
+  withStatement
+  seekingDelegation
+}
+
+enum WrappedDelegatesOrder {
+  mostNounsRepresented
+  mostRecentlyActive
+  mostVotesCast
+  leastVotesCast
+}
+
+type Query {
+  wrappedDelegates(
+    where: WrappedDelegatesWhere
+    orderBy: WrappedDelegatesOrder! = mostNounsRepresented
+    first: Int!
+    after: String
+  ): WrappedDelegatesConnection!
+}
+
+type WrappedDelegatesConnection {
+  pageInfo: PageInfo!
+  edges: [WrappedDelegatesEdge!]!
+}
+
+type WrappedDelegatesEdge {
+  node: WrappedDelegate!
+  cursor: String!
+}
+
+type PageInfo {
+  count: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String!
+  endCursor: String!
+}

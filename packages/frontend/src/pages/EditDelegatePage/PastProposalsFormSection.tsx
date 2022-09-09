@@ -4,65 +4,51 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { PastProposalsFormSectionProposalListFragment$key } from "./__generated__/PastProposalsFormSectionProposalListFragment.graphql";
-import { getTitleFromProposalDescription } from "../../utils/markdown";
 import {
   formSectionContainerStyles,
   sharedInputStyle,
 } from "./TopIssuesFormSection";
 import useClickOutside from "@restart/ui/useClickOutside";
 import { CloseButton } from "./CloseButton";
+import { Form } from "./DelegateStatementForm";
+import { VStack } from "../../components/VStack";
 
 type Props = {
   queryFragment: PastProposalsFormSectionProposalListFragment$key;
+  form: Form;
 };
 
 export const formSectionHeadingStyle = css`
   font-weight: bold;
 `;
 
-export function PastProposalsFormSection({ queryFragment }: Props) {
-  const [mostValuableProposals, setMostValuableProposals] = useState<
-    SelectedProposal[]
-  >([]);
-
-  const [leastValuableProposals, setLeastValuableProposals] = useState<
-    SelectedProposal[]
-  >([]);
-
+export function PastProposalsFormSection({ queryFragment, form }: Props) {
   return (
     <div className={formSectionContainerStyles}>
-      <div
-        className={css`
-          display: flex;
-          flex-direction: column;
-        `}
-      >
+      <VStack>
         <h3 className={formSectionHeadingStyle}>Views on past proposals</h3>
 
-        {/*  todo: so jank */}
-        <div
+        <VStack
+          gap="4"
           className={css`
-            display: flex;
-            flex-direction: column;
             margin-top: ${theme.spacing["4"]};
-            gap: ${theme.spacing["4"]};
           `}
         >
           <ProposalList
-            selectedProposals={mostValuableProposals}
-            setSelectedProposals={setMostValuableProposals}
+            selectedProposals={form.state.mostValuableProposals}
+            setSelectedProposals={form.onChange.mostValuableProposals}
             title="Most valuable"
             queryFragment={queryFragment}
           />
 
           <ProposalList
-            selectedProposals={leastValuableProposals}
-            setSelectedProposals={setLeastValuableProposals}
+            selectedProposals={form.state.leastValuableProposals}
+            setSelectedProposals={form.onChange.leastValuableProposals}
             title="Least valuable"
             queryFragment={queryFragment}
           />
-        </div>
-      </div>
+        </VStack>
+      </VStack>
     </div>
   );
 }
@@ -91,7 +77,7 @@ function ProposalList({
           orderBy: createdBlock
         ) {
           id
-          description
+          title
         }
       }
     `,
@@ -103,7 +89,7 @@ function ProposalList({
   const mappedProposals: SearchableProposal[] = useMemo(
     () =>
       allProposals.map((proposal) => {
-        const title = getTitleFromProposalDescription(proposal.description);
+        const title = proposal.title;
 
         return {
           id: proposal.id,
@@ -175,12 +161,10 @@ function ProposalList({
   useClickOutside(focusContainerRef, setBlurred);
 
   return (
-    <div
+    <VStack
+      gap="1"
       className={css`
-        display: flex;
-        flex-direction: column;
         flex: 1;
-        gap: ${theme.spacing["2"]};
       `}
     >
       <h3
@@ -220,17 +204,15 @@ function ProposalList({
           onChange={(e) => setFilterText(e.target.value)}
         />
 
-        <div
+        <VStack
           className={css`
-            display: flex;
-            flex-direction: column;
-            gap: ${theme.spacing["2"]};
             position: absolute;
-            background: white;
-
             top: 100%;
             left: 0;
             right: 0;
+            border-color: ${theme.colors.gray["300"]};
+            box-shadow: ${theme.boxShadow.newDefault};
+            z-index: 3;
           `}
         >
           {isFocused &&
@@ -241,13 +223,13 @@ function ProposalList({
                 onClick={() => handleSuggestedProposalClicked(proposal)}
               />
             ))}
-        </div>
+        </VStack>
       </div>
-    </div>
+    </VStack>
   );
 }
 
-type SelectedProposal = {
+export type SelectedProposal = {
   id: string;
 };
 
@@ -289,13 +271,11 @@ function ProposalCard({ proposal, onClick, onClose }: ProposalCardProps) {
     <div
       onClick={onClick}
       className={css`
-        border-radius: ${theme.borderRadius.md};
-        border-width: ${theme.spacing.px};
-        border-color: ${theme.colors.gray["300"]};
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
+        background-color: ${theme.colors.white};
 
         ${onClick &&
         css`
@@ -309,7 +289,7 @@ function ProposalCard({ proposal, onClick, onClose }: ProposalCardProps) {
     >
       <div
         className={css`
-          padding: ${theme.spacing["2"]};
+          padding: ${theme.spacing["3"]} ${theme.spacing["3"]};
         `}
       >
         #{proposal.id} - {proposal.title}

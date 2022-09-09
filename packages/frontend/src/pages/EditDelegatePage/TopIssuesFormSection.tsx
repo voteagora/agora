@@ -1,10 +1,13 @@
 import { icons } from "../../icons/icons";
-import { useCallback, useState } from "react";
+import { ReactNode, useCallback } from "react";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { Dropdown } from "./Dropdown";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
 import { CloseButton } from "./CloseButton";
+import { Form } from "./DelegateStatementForm";
+import { HStack, VStack } from "../../components/VStack";
+import { Menu } from "@headlessui/react";
+import { AnimatePresence, motion } from "framer-motion";
 
 type IssueTypeDefinition = {
   key: string;
@@ -12,7 +15,7 @@ type IssueTypeDefinition = {
   icon: keyof typeof icons;
 };
 
-const issueDefinitions: IssueTypeDefinition[] = [
+export const issueDefinitions: IssueTypeDefinition[] = [
   {
     title: "Proliferation",
     key: "proliferation",
@@ -30,7 +33,7 @@ const issueDefinitions: IssueTypeDefinition[] = [
   },
 ];
 
-type IssueState = {
+export type IssueState = {
   type: string;
   value: string;
 };
@@ -48,22 +51,21 @@ export const formSectionContainerStyles = css`
   border-color: ${theme.colors.gray["300"]};
 `;
 
-export function TopIssuesFormSection() {
-  const [topIssues, setTopIssues] = useState<IssueState[]>(() => [
-    initialIssueState("treasury"),
-    initialIssueState("proliferation"),
-  ]);
+export function initialTopIssues(): IssueState[] {
+  return [initialIssueState("treasury"), initialIssueState("proliferation")];
+}
+
+type Props = {
+  form: Form;
+};
+
+export function TopIssuesFormSection({ form }: Props) {
+  const topIssues = form.state.topIssues;
+  const setTopIssues = form.onChange.topIssues;
 
   const addIssue = useCallback(
     (selectionKey: string) => {
       setTopIssues((lastIssues) => {
-        const issueAlreadyExists = lastIssues.find(
-          (needle) => needle.type === selectionKey
-        );
-        if (issueAlreadyExists) {
-          return lastIssues;
-        }
-
         return [...lastIssues, initialIssueState(selectionKey)];
       });
     },
@@ -71,9 +73,27 @@ export function TopIssuesFormSection() {
   );
 
   const removeIssue = useCallback(
-    (selectionKey: string) => {
+    (index: number) => {
       setTopIssues((lastIssues) =>
-        lastIssues.filter((needle) => needle.type !== selectionKey)
+        lastIssues.filter((needle, needleIndex) => needleIndex !== index)
+      );
+    },
+    [setTopIssues]
+  );
+
+  const updateIssue = useCallback(
+    (key: string, value: string) => {
+      setTopIssues((lastIssues) =>
+        lastIssues.map((issue) => {
+          if (issue.type === key) {
+            return {
+              ...issue,
+              value,
+            };
+          }
+
+          return issue;
+        })
       );
     },
     [setTopIssues]
@@ -81,33 +101,15 @@ export function TopIssuesFormSection() {
 
   return (
     <div className={formSectionContainerStyles}>
-      <div
-        className={css`
-          display: flex;
-          flex-direction: row;
-          align-items: baseline;
-          justify-content: space-between;
-          gap: ${theme.spacing["4"]};
-        `}
-      >
+      <HStack gap="4" justifyContent="space-between" alignItems="baseline">
         <h3 className={formSectionHeadingStyle}>Views on top issues</h3>
+        <Dropdown addIssue={addIssue} />
+      </HStack>
 
-        <Dropdown
-          title="+ Add a new issue"
-          items={issueDefinitions.map((def) => ({
-            selectKey: def.key,
-            title: def.title,
-          }))}
-          onItemClicked={addIssue}
-        />
-      </div>
-
-      <div
+      <VStack
+        gap="4"
         className={css`
-          display: flex;
-          flex-direction: column;
           margin-top: ${theme.spacing["6"]};
-          gap: ${theme.spacing["4"]};
         `}
       >
         {topIssues.map((issue, index) => {
@@ -116,73 +118,172 @@ export function TopIssuesFormSection() {
           )!;
 
           return (
-            <div
-              key={index}
-              className={css`
-                display: flex;
-                flex-direction: row;
-                gap: ${theme.spacing["2"]};
-                align-items: center;
-              `}
-            >
+            <HStack gap="4" alignItems="center" key={index}>
               <div
                 className={css`
                   display: flex;
                   justify-content: center;
                   align-items: center;
-                  width: ${theme.spacing["10"]};
-                  height: ${theme.spacing["10"]};
-                  box-shadow: ${theme.boxShadow.md};
+                  width: ${theme.spacing["12"]};
+                  height: ${theme.spacing["12"]};
+                  background-color: ${theme.colors.white};
                   border-radius: ${theme.borderRadius.md};
+                  border-width: ${theme.spacing.px};
+                  border-color: ${theme.colors.gray["300"]};
+                  box-shadow: ${theme.boxShadow.newDefault};
                   padding: ${theme.spacing["2"]};
-                  background: #fbfbfb;
-                  border: 1px solid #ebebeb;
                 `}
               >
                 <img src={icons[issueDef.icon]} alt={issueDef.title} />
               </div>
 
-              <div
+              <VStack
                 className={css`
                   flex: 1;
-
-                  display: flex;
-                  flex-direction: column;
-
                   position: relative;
                 `}
               >
-                <div
+                <VStack
                   className={css`
                     position: absolute;
                     right: 0;
                     top: 0;
                     bottom: 0;
-
-                    display: flex;
-                    flex-direction: column;
                   `}
                 >
-                  <CloseButton onClick={() => removeIssue(issueDef.key)} />
-                </div>
+                  <CloseButton onClick={() => removeIssue(index)} />
+                </VStack>
                 <input
-                  className={sharedInputStyle}
+                  className={css`
+                    ${sharedInputStyle};
+                    padding-right: ${theme.spacing["12"]};
+                  `}
                   type="text"
                   placeholder={`On ${issueDef.title.toLowerCase()}, I believe...`}
+                  value={issue.value}
+                  onChange={(evt) =>
+                    updateIssue(issueDef.key, evt.target.value)
+                  }
                 />
-              </div>
-            </div>
+              </VStack>
+            </HStack>
           );
         })}
-      </div>
+      </VStack>
     </div>
   );
 }
 
-export const sharedInputStyle = css`
-  background: ${theme.colors.gray["200"]};
-  outline: none;
+type DropdownProps = {
+  addIssue: (key: string) => void;
+};
+
+export const dropdownContainerStyles = css`
+  position: relative;
+`;
+
+export const dropdownItemStyle = css`
+  white-space: nowrap;
+  border-radius: ${theme.spacing["3"]};
+  border: 1px solid transparent;
   padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
-  box-shadow: ${theme.boxShadow.inner};
+  cursor: pointer;
+  color: #66676b;
+`;
+
+export const dropdownItemActiveStyle = css`
+  background: white;
+  color: black;
+  border-color: ${theme.colors.gray.eb};
+`;
+
+type DropdownItemsProps = {
+  open: boolean;
+  children: ReactNode;
+};
+
+export function DropdownItems({ open, children }: DropdownItemsProps) {
+  return (
+    <div
+      className={css`
+        position: absolute;
+        z-index: 3;
+        outline: none;
+
+        top: calc(100% + ${theme.spacing["2"]});
+        right: 0;
+      `}
+    >
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            style={{ originY: "-100%", originX: "100%" }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.15 }}
+          >
+            <VStack
+              gap="1"
+              className={css`
+                background: #f7f7f7;
+                box-shadow: ${theme.boxShadow.newDefault};
+                border: 1px solid ${theme.colors.gray.eb};
+                padding: ${theme.spacing["2"]};
+                border-radius: ${theme.spacing["4"]};
+              `}
+            >
+              {children}
+            </VStack>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function Dropdown({ addIssue }: DropdownProps) {
+  return (
+    <Menu as="div" className={dropdownContainerStyles}>
+      {({ open }) => (
+        <>
+          <Menu.Button
+            className={css`
+              color: #66676b;
+            `}
+          >
+            + Add a new issue
+          </Menu.Button>
+          <Menu.Items static>
+            <DropdownItems open={open}>
+              {issueDefinitions.map((def) => (
+                <Menu.Item key={def.key}>
+                  {({ active }) => (
+                    <div
+                      onClick={() => addIssue(def.key)}
+                      className={css`
+                        ${dropdownItemStyle};
+                        ${active && dropdownItemActiveStyle}
+                      `}
+                    >
+                      {def.title}
+                    </div>
+                  )}
+                </Menu.Item>
+              ))}
+            </DropdownItems>
+          </Menu.Items>
+        </>
+      )}
+    </Menu>
+  );
+}
+
+export const sharedInputStyle = css`
+  background: ${theme.colors.gray["100"]};
+  outline: none;
+  padding: ${theme.spacing["3"]} ${theme.spacing["3"]};
+  border-width: ${theme.spacing.px};
+  border-color: ${theme.colors.gray["300"]};
   border-radius: ${theme.borderRadius.md};
 `;
