@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 const shimmer = keyframes`
     from {
-      opacity: 0.4;
+      opacity: 0.3;
     }
   
   to {
@@ -33,7 +33,7 @@ export function RouteTransitionLoadingIndicator() {
       <div
         className={css`
           position: fixed;
-          height: ${theme.spacing["1"]};
+          height: 2px;
           top: 0;
           left: 0;
           right: 0;
