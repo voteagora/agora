@@ -1,4 +1,5 @@
 import { stitchSchemas } from "@graphql-tools/stitch";
+import { mapSchema, MapperKind } from "@graphql-tools/utils";
 import {
   extractFirstParagraph,
   getTitleFromProposalDescription,
@@ -7,6 +8,7 @@ import { makeNounsSchema } from "./schemas/nouns-subgraph";
 import { delegateToSchema } from "@graphql-tools/delegate";
 import { mergeResolvers } from "@graphql-tools/merge";
 import {
+  defaultFieldResolver,
   FieldNode,
   GraphQLList,
   GraphQLNonNull,
@@ -756,11 +758,31 @@ export async function makeGatewaySchema() {
     },
   ]);
 
-  return stitchSchemas({
-    subschemas: [nounsSchema],
+  return mapSchema(
+    stitchSchemas({
+      subschemas: [nounsSchema],
 
-    typeDefs: schema,
+      typeDefs: schema,
 
-    resolvers,
-  });
+      resolvers,
+    }),
+    {
+      [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
+        if (fieldName !== "id") {
+          return fieldConfig;
+        }
+
+        return {
+          ...fieldConfig,
+          resolve: (...args) => {
+            const resolvedValue = (fieldConfig.resolve ?? defaultFieldResolver)(
+              ...args
+            );
+
+            return [typeName, resolvedValue].join("|");
+          },
+        };
+      },
+    }
+  );
 }
