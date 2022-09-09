@@ -3,10 +3,7 @@ import graphql from "babel-plugin-relay/macro";
 import { intersection } from "../../utils/set";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import {
-  NounGridChildren,
-  NounsRepresentedGrid,
-} from "../../components/NounGrid";
+import { NounGridChildren } from "../../components/NounGrid";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { VoterPanelDelegateFragment$key } from "./__generated__/VoterPanelDelegateFragment.graphql";
 import { VoterPanelQueryFragment$key } from "./__generated__/VoterPanelQueryFragment.graphql";
