@@ -166,6 +166,7 @@ export function DelegatePage() {
                           >
                             <img
                               src={icons[issueDef.icon]}
+                              alt={issueDef.title}
                               className={css`
                                 width: ${theme.spacing["6"]};
                                 height: ${theme.spacing["6"]};

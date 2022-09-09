@@ -91,7 +91,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           </VStack>
         ) : (
           <HStack>
-            <img src={icons.anonNoun} />
+            <img src={icons.anonNoun} alt="anon noun" />
           </HStack>
         )}
 

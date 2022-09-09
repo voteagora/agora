@@ -150,6 +150,7 @@ function DelegateDialogContents({
 
             <HStack>
               <img
+                alt="anon noun"
                 className={css`
                   width: ${theme.spacing["8"]};
                   height: ${theme.spacing["8"]};
