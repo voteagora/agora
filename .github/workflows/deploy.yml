@@ -19,7 +19,11 @@ jobs:
 
       - run: yarn install
 
-      - run: yarn run build-frontend
+      - run: yarn workspace nouns-agora run build
+
+      - run: yarn workspace nouns-agora-backend run generate
+
+      - run: yarn run
 
       - name: Publish
         uses: cloudflare/wrangler-action@2.0.0
