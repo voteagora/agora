@@ -1,5 +1,6 @@
 extend type Proposal {
   title: String!
+  number: Int!
   totalValue: BigInt!
 }
 
@@ -16,10 +17,15 @@ extend type Vote {
   createdAt: BigInt!
 }
 
+extend type Noun {
+  number: Int!
+}
+
 type DelegateVotesSummary {
   forVotes: Int!
   againstVotes: Int!
   abstainVotes: Int!
+  totalVotes: Int!
 }
 
 type Query {
