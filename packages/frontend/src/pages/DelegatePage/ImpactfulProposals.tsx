@@ -45,7 +45,7 @@ export function ImpactfulProposals({ fragment }: Props) {
           border: 1px solid ${theme.colors.gray.eb};
           box-shadow: ${theme.boxShadow.newDefault};
           padding: ${theme.spacing["4"]};
-          background-color: white;
+          background-color: ${theme.colors.white};
         `}
       >
         <HStack>
