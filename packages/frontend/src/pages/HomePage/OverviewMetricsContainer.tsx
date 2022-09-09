@@ -22,7 +22,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
           orderBy: tokenHoldersRepresentedAmount
           orderDirection: desc
         ) {
-          id
+          __typename
         }
 
         metrics {
