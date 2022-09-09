@@ -37,9 +37,8 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
 
         delegate {
           id
-
-          votes {
-            id
+          voteSummary {
+            totalVotes
           }
         }
       }
@@ -94,7 +93,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           </div>
 
           {delegate.delegate && (
-            <div>Voted {delegate.delegate.votes.length} times</div>
+            <div>Voted {delegate.delegate.voteSummary.totalVotes} times</div>
           )}
         </HStack>
 
