@@ -47,14 +47,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           delegate {
             id
 
-            nounsRepresented {
-              id
-
-              owner {
-                id
-              }
-            }
-
+            delegatedVotes
             ...VoterPanelDelegateFromListFragment
 
             voteSummary {
@@ -104,10 +97,6 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
     queryFragment
   );
 
-  const lastTenProposals = new Set(
-    recentProposals.slice(0, 10).map((proposal) => proposal.id)
-  );
-
   return (
     <VStack
       className={css`
@@ -143,7 +132,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           <PanelRow
             title={"Nouns represented"}
             detail={
-              !delegate ? "N/A" : `${delegate.nounsRepresented.length} votes`
+              !delegate ? "N/A" : `${Number(delegate.delegatedVotes)} votes`
             }
           />
 
@@ -165,11 +154,11 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
               !delegate
                 ? "N/A"
                 : `${(
-                    (delegate.nounsRepresented.length /
+                    (Number(delegate.delegatedVotes) /
                       Number(metrics.totalSupply)) *
                     100
                   ).toFixed(0)}% all / ${(
-                    (delegate.nounsRepresented.length /
+                    (Number(delegate.delegatedVotes) /
                       Number(metrics.quorumVotes)) *
                     100
                   ).toFixed(0)}% quorum`
@@ -191,6 +180,10 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
             if (!delegate) {
               return <PanelRow title="Recent activity" detail={`N/A`} />;
             }
+
+            const lastTenProposals = new Set(
+              recentProposals.slice(0, 10).map((proposal) => proposal.id)
+            );
 
             const votedProposals = new Set(
               delegate.votes.map((vote) => vote.proposal.id)
@@ -376,8 +369,6 @@ function DelegateButton({
   const wrappedDelegate = useFragment(
     graphql`
       fragment VoterPanelDelegateButtonFragment on WrappedDelegate {
-        id
-
         ...DelegateDialogFragment
       }
     `,
