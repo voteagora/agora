@@ -121,6 +121,7 @@ function Proposal({ fragment }: ProposalProps) {
     `,
     fragment
   );
+  console.log(proposal);
 
   return (
     <VStack
@@ -131,7 +132,17 @@ function Proposal({ fragment }: ProposalProps) {
         border-bottom: 1px solid ${theme.colors.gray.eb};
       `}
     >
-      {proposal.title} <ValuePart value={proposal.totalValue} />
+      <div
+        className={css`
+          font-size: ${theme.fontSize.xs};
+          font-weight: ${theme.fontWeight.medium};
+          color: #66676b;
+        `}
+      >
+        {"Prop " + proposal.id.substring(9)}{" "}
+        <ValuePart value={proposal.totalValue} />
+      </div>
+      {proposal.title}
     </VStack>
   );
 }

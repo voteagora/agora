@@ -63,14 +63,20 @@ export function EditDelegatePage() {
 }
 
 export const buttonStyles = css`
-  border-radius: ${theme.spacing["1"]};
+  border-radius: ${theme.spacing["2"]};
   border-width: ${theme.spacing.px};
   border-color: ${theme.colors.gray.eb};
+  font-weight: ${theme.fontWeight.medium};
+  box-shadow: ${theme.boxShadow.newDefault};
   cursor: pointer;
-  padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+  padding: ${theme.spacing["3"]} ${theme.spacing["4"]};
+  transition: all 200ms;
 
   :hover {
-    background: ${theme.colors.gray["200"]};
+    background: ${theme.colors.gray["100"]};
+  }
+  :active{
+    box-shadow: ${theme.boxShadow.none};
   }
 `;
 
