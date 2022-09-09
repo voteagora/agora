@@ -11,10 +11,10 @@ type Props = {
 };
 
 export function NounImage({ fragmentRef, className }: Props) {
-  const { id, seed } = useFragment<NounImageFragment$key>(
+  const { number, seed } = useFragment<NounImageFragment$key>(
     graphql`
       fragment NounImageFragment on Noun {
-        id
+        number
 
         seed {
           accessory
@@ -50,5 +50,5 @@ export function NounImage({ fragmentRef, className }: Props) {
     return `data:image/svg+xml;base64,${btoa(imageRaw)}`;
   }, [seed]);
 
-  return <img className={className} src={nounSvg} alt={`noun #${id}`} />;
+  return <img className={className} src={nounSvg} alt={`noun #${number}`} />;
 }
