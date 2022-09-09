@@ -4,18 +4,16 @@ import * as theme from "../../theme";
 import { icons } from "../../icons/icons";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { useNounsCount } from "../../hooks/useNounsCount";
-import { useQuorumVotes } from "../../hooks/useQuorumVotes";
 import { OverviewMetricsContainer$key } from "./__generated__/OverviewMetricsContainer.graphql";
-import { useQuorumBps } from "../../hooks/useQuorumBps";
-import { useProposalThreshold } from "../../hooks/useProposalThreshold";
+import { BigNumber } from "ethers";
+import { HStack, VStack } from "../../components/VStack";
 
 type Props = {
   fragmentRef: OverviewMetricsContainer$key;
 };
 
 export function OverviewMetricsContainer({ fragmentRef }: Props) {
-  const { delegates } = useFragment(
+  const { delegates, metrics } = useFragment(
     graphql`
       fragment OverviewMetricsContainer on Query {
         delegates(
@@ -26,29 +24,41 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
         ) {
           id
         }
+
+        metrics {
+          totalSupply
+          quorumVotes
+          quorumVotesBPS
+          proposalThreshold
+        }
       }
     `,
     fragmentRef
   );
 
-  const nounsCount = useNounsCount();
-  const quorumCount = useQuorumVotes();
-  const quorumBps = useQuorumBps();
-  const proposalThreshold = useProposalThreshold();
+  const nounsCount = BigNumber.from(metrics.totalSupply);
+  const quorumCount = BigNumber.from(metrics.quorumVotes);
+  const quorumBps = BigNumber.from(metrics.quorumVotesBPS);
+  const proposalThreshold = BigNumber.from(metrics.proposalThreshold);
 
   const votersCount = delegates.length;
 
   // todo: real values
   return (
-    <div
+    <HStack
+      justifyContent="space-between"
+      gap="4"
       className={css`
-        z-index: 1;
-        display: flex;
         max-width: ${theme.maxWidth["6xl"]};
-        gap: ${theme.spacing["4"]};
-        flex-direction: row;
+        width: 100%;
         flex-wrap: wrap;
-        justify-content: center;
+
+        padding-left: ${theme.spacing["4"]};
+        padding-right: ${theme.spacing["4"]};
+
+        @media (max-width: ${theme.maxWidth["6xl"]}) {
+          justify-content: center;
+        }
       `}
     >
       {/*todo: review this metric*/}
@@ -78,7 +88,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
 
       {/*todo: review this metric*/}
       <MetricContainer icon="pedestrian" title="Avg voter turnout" body="54%" />
-    </div>
+    </HStack>
   );
 }
 
@@ -92,17 +102,15 @@ const color = "#FBFBFB";
 
 function MetricContainer({ icon, title, body }: MetricContainerProps) {
   return (
-    <div
+    <HStack
+      gap="3"
       className={css`
-        display: flex;
         background: ${theme.colors.white};
-        flex-direction: row;
         border-radius: ${theme.spacing["3"]};
         padding: ${theme.spacing["3"]};
         border-width: ${theme.spacing.px};
         border-color: ${theme.colors.gray["300"]};
-        box-shadow: ${theme.boxShadow.sm};
-        gap: ${theme.spacing["3"]};
+        box-shadow: ${theme.boxShadow.newDefault};
       `}
     >
       <div
@@ -110,7 +118,7 @@ function MetricContainer({ icon, title, body }: MetricContainerProps) {
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: ${theme.spacing["3"]};
+          border-radius: ${theme.spacing["2"]};
           border-width: ${theme.spacing.px};
           border-color: ${theme.colors.gray["300"]};
           background: ${color};
@@ -128,10 +136,8 @@ function MetricContainer({ icon, title, body }: MetricContainerProps) {
         />
       </div>
 
-      <div
+      <VStack
         className={css`
-          display: flex;
-          flex-direction: column;
           padding-right: ${theme.spacing["1"]};
         `}
       >
@@ -154,7 +160,7 @@ function MetricContainer({ icon, title, body }: MetricContainerProps) {
         >
           {body}
         </div>
-      </div>
-    </div>
+      </VStack>
+    </HStack>
   );
 }

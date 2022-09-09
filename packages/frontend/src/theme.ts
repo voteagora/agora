@@ -1,6 +1,8 @@
 // Values taken from tailwindcss.
 // https://github.com/tailwindcss/tailwindcss/blob/ecffd24bd8321f95f270c69cba124eb00a60af54/stubs/defaultConfig.stub.js
 
+import { css } from "@emotion/css";
+
 export const screens = {
   sm: "640px",
   md: "768px",
@@ -31,16 +33,16 @@ export const spacing = {
 };
 
 export const fontSize = {
-  xs: "0.75rem",
-  sm: "0.875rem",
-  base: "1rem",
-  lg: "1.125rem",
-  xl: "1.25rem",
-  "2xl": "1.5rem",
-  "3xl": "1.875rem",
-  "4xl": "2.25rem",
-  "5xl": "3rem",
-  "6xl": "4rem",
+  xs: "0.75rem", //12
+  sm: "0.875rem", //14
+  base: "1rem", //16
+  lg: "1.125rem", //18
+  xl: "1.25rem", //20
+  "2xl": "1.5rem", //24
+  "3xl": "1.875rem", //30
+  "4xl": "2.25rem", //36
+  "5xl": "3rem", //48
+  "6xl": "4rem", //64
 };
 
 export const fontWeight = {
@@ -63,6 +65,7 @@ export const colors = {
   white: "#fff",
 
   gray: {
+    eb: "#ebebeb",
     100: "#f7fafc",
     200: "#edf2f7",
     300: "#e2e8f0",
@@ -210,6 +213,8 @@ export const lineHeight = {
 };
 
 export const boxShadow = {
+  newDefault:
+    "0px 4px 12px rgba(0, 0, 0, 0.02), 0px 2px 2px rgba(0, 0, 0, 0.03)",
   xs: "0 0 0 1px rgba(0, 0, 0, 0.05)",
   sm: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
   default: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
@@ -233,7 +238,7 @@ export const maxWidth = {
   "3xl": "48rem",
   "4xl": "56rem",
   "5xl": "64rem",
-  "6xl": "72rem",
+  "6xl": "76rem",
   full: "100%",
 };
 
@@ -284,3 +289,10 @@ export const timings = {
   "700": "700ms",
   "1000": "1000ms",
 };
+
+export const inset0 = css`
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+`;

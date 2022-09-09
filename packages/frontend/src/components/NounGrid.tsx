@@ -1,29 +1,35 @@
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { NounImage } from "./NounImage";
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import * as theme from "../theme";
 import {
   NounGridFragment$data,
   NounGridFragment$key,
 } from "./__generated__/NounGridFragment.graphql";
+import { HStack } from "./VStack";
 
 type Props = {
   nouns: NounGridFragment$data["nounsRepresented"];
   rows?: number;
-  columns?: number;
-  imageSize?: keyof typeof theme.spacing;
-  overflowFontSize?: keyof typeof theme.fontSize;
+} & LayoutProps;
+
+type LayoutProps = {
+  columns: number;
+  imageSize: keyof typeof theme.spacing;
+  gap: keyof typeof theme.spacing;
+  overflowFontSize: keyof typeof theme.fontSize;
 };
 
 export function NounGrid({
   nouns,
-  rows = 3,
-  columns = 5,
-  imageSize = "12",
-  overflowFontSize = "base",
+  rows,
+  columns,
+  imageSize,
+  gap,
+  overflowFontSize,
 }: Props) {
-  const possibleSlots = rows * columns;
+  const possibleSlots = rows ? rows * columns : nouns.length;
   const imageSizeResolved = theme.spacing[imageSize];
 
   return (
@@ -31,8 +37,8 @@ export function NounGrid({
       className={css`
         display: grid;
         grid-template-columns: repeat(${columns}, ${imageSizeResolved});
-        grid-template-rows: repeat(${rows}, ${imageSizeResolved});
-        gap: ${theme.spacing["1"]};
+        grid-template-rows: repeat(auto-fit, ${imageSizeResolved});
+        gap: ${theme.spacing[gap]};
       `}
     >
       <NounGridChildren
@@ -47,13 +53,15 @@ export function NounGrid({
 
 type NounsRepresentedGridProps = {
   fragmentKey: NounGridFragment$key;
-};
+  rows: number;
+} & LayoutProps;
 
 type NounGridChildrenProps = {
   count: number;
   nouns: NounGridFragment$data["nounsRepresented"];
-  imageSize: keyof typeof theme.spacing;
+  imageSize?: keyof typeof theme.spacing;
   overflowFontSize: keyof typeof theme.fontSize;
+  className?: string;
 };
 
 export function NounGridChildren({
@@ -61,8 +69,9 @@ export function NounGridChildren({
   nouns,
   count,
   overflowFontSize,
+  className,
 }: NounGridChildrenProps) {
-  const imageSizeResolved = theme.spacing[imageSize];
+  const imageSizeResolved = imageSize ? theme.spacing[imageSize] : undefined;
 
   const overflowAmount = nouns.length - count;
 
@@ -71,12 +80,18 @@ export function NounGridChildren({
   ) {
     return (
       <NounImage
-        className={css`
-          border-radius: 50%;
-          width: ${imageSizeResolved};
-          height: ${imageSizeResolved};
-          aspect-ratio: 1/1;
-        `}
+        className={cx(
+          css`
+            border-radius: 50%;
+            ${imageSizeResolved &&
+            css`
+              width: ${imageSizeResolved};
+              height: ${imageSizeResolved};
+            `}
+            aspect-ratio: 1/1;
+          `,
+          className
+        )}
         key={noun.id}
         fragmentRef={noun}
       />
@@ -89,15 +104,22 @@ export function NounGridChildren({
       <div
         key="overflowAmount"
         className={css`
+          min-width: ${imageSizeResolved};
+          min-height: ${imageSizeResolved};
+
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: bold;
+          font-weight: ${theme.fontWeight.medium};
+          color: ${theme.colors.gray[600]};
           font-size: ${theme.fontSize[overflowFontSize]};
           white-space: nowrap;
+          letter-spacing: ${theme.letterSpacing.tight};
+          background-color: ${theme.colors.gray[200]};
+          border-radius: ${theme.borderRadius.full};
         `}
       >
-        + {overflowAmount + 1}
+        +{overflowAmount + 1}
       </div>
     </>
   ) : (
@@ -107,6 +129,7 @@ export function NounGridChildren({
 
 export function NounsRepresentedGrid({
   fragmentKey,
+  ...layoutProps
 }: NounsRepresentedGridProps) {
   const { nounsRepresented } = useFragment<NounGridFragment$key>(
     graphql`
@@ -120,13 +143,31 @@ export function NounsRepresentedGrid({
     fragmentKey
   );
 
-  return (
-    <div
-      className={css`
-        margin: 0 auto;
-      `}
-    >
-      <NounGrid nouns={nounsRepresented} columns={5} rows={3} />
-    </div>
-  );
+  if (nounsRepresented.length < layoutProps.columns) {
+    return (
+      <HStack
+        justifyContent="space-evenly"
+        gap={(Number(layoutProps.gap) + 1).toString() as any}
+        className={css`
+          padding: ${theme.spacing["4"]};
+          max-height: calc(
+            ${theme.spacing[layoutProps.imageSize]} * ${layoutProps.rows} +
+              ${theme.spacing[layoutProps.gap]} * ${layoutProps.rows - 1}
+          );
+        `}
+      >
+        <NounGridChildren
+          className={css`
+            min-width: ${theme.spacing["8"]};
+            flex-basis: ${theme.spacing["24"]};
+          `}
+          count={layoutProps.columns}
+          nouns={nounsRepresented}
+          overflowFontSize={"base"}
+        />
+      </HStack>
+    );
+  }
+
+  return <NounGrid nouns={nounsRepresented} {...layoutProps} />;
 }

@@ -1,29 +1,91 @@
-import { usePrimaryAccount } from "../../components/EthersProviderProvider";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import { EditDelegatePageQuery } from "./__generated__/EditDelegatePageQuery.graphql";
-import { PageHeader } from "../../components/PageHeader";
 import * as theme from "../../theme";
-import { EmptyVoterPanel, VoterPanel } from "../DelegatePage/VoterPanel";
-import { PageContainer } from "../../components/PageContainer";
+import { VoterPanel } from "../DelegatePage/VoterPanel";
 import { DelegateStatementForm } from "./DelegateStatementForm";
+import { EditDelegatePageLazyVoterPanelQuery } from "./__generated__/EditDelegatePageLazyVoterPanelQuery.graphql";
+import { useAccount } from "wagmi";
+import { HStack } from "../../components/VStack";
+import { Navigate } from "../../components/HammockRouter/HammockRouter";
 
 export function EditDelegatePage() {
-  const address = usePrimaryAccount();
+  const { address } = useAccount();
 
   const query = useLazyLoadQuery<EditDelegatePageQuery>(
     graphql`
       query EditDelegatePageQuery($address: ID!) {
-        account(id: $address) {
-          ...PageHeaderFragment
-        }
+        ...DelegateStatementFormFragment @arguments(address: $address)
+      }
+    `,
+    { address: address ?? "" }
+  );
 
-        delegate(id: $address) {
+  if (!address) {
+    return <Navigate to="/" />;
+  }
+
+  return (
+    <HStack
+      justifyContent="space-between"
+      gap="16"
+      className={css`
+        padding-left: ${theme.spacing["4"]};
+        padding-right: ${theme.spacing["4"]};
+        margin-top: ${theme.spacing["8"]};
+        width: 100%;
+        max-width: ${theme.maxWidth["6xl"]};
+
+        @media (max-width: ${theme.maxWidth["6xl"]}) {
+          flex-direction: column-reverse;
+          align-items: center;
+        }
+      `}
+    >
+      <DelegateStatementForm
+        queryFragment={query}
+        className={css`
+          flex: 1;
+        `}
+      />
+
+      <div
+        className={css`
+          flex-shrink: 0;
+          width: ${theme.maxWidth.xs};
+        `}
+      >
+        <LazyVoterPanel address={address} />
+      </div>
+    </HStack>
+  );
+}
+
+export const buttonStyles = css`
+  border-radius: ${theme.spacing["1"]};
+  border-width: ${theme.spacing.px};
+  border-color: ${theme.colors.gray.eb};
+  cursor: pointer;
+  padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+
+  :hover {
+    background: ${theme.colors.gray["200"]};
+  }
+`;
+
+type LazyVoterPanelProps = {
+  address: string;
+};
+
+function LazyVoterPanel({ address }: LazyVoterPanelProps) {
+  const query = useLazyLoadQuery<EditDelegatePageLazyVoterPanelQuery>(
+    graphql`
+      query EditDelegatePageLazyVoterPanelQuery($address: ID!) {
+        address(address: $address) {
           ...VoterPanelDelegateFragment
         }
 
-        ...PastProposalsFormSectionProposalListFragment
         ...VoterPanelQueryFragment
       }
     `,
@@ -32,51 +94,5 @@ export function EditDelegatePage() {
     }
   );
 
-  return (
-    <PageContainer>
-      <PageHeader accountFragment={query.account} />
-
-      <div
-        className={css`
-          display: flex;
-          flex-direction: row;
-          justify-content: space-between;
-          gap: ${theme.spacing["16"]};
-          margin: ${theme.spacing["16"]};
-          margin-top: ${theme.spacing["8"]};
-          width: 100%;
-          max-width: ${theme.maxWidth["6xl"]};
-        `}
-      >
-        <DelegateStatementForm queryFragment={query} />
-
-        <div
-          className={css`
-            width: ${theme.maxWidth.sm};
-          `}
-        >
-          {query.delegate ? (
-            <VoterPanel
-              delegateFragment={query.delegate}
-              queryFragment={query}
-            />
-          ) : (
-            <EmptyVoterPanel address={address} />
-          )}
-        </div>
-      </div>
-    </PageContainer>
-  );
+  return <VoterPanel delegateFragment={query.address} queryFragment={query} />;
 }
-
-export const buttonStyles = css`
-  border-radius: ${theme.borderRadius.default};
-  border-width: ${theme.spacing.px};
-  border-color: ${theme.colors.gray["300"]};
-  cursor: pointer;
-  padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
-
-  :hover {
-    background: ${theme.colors.gray["200"]};
-  }
-`;

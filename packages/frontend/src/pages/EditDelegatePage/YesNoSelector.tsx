@@ -1,6 +1,7 @@
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { inputLabelStyle } from "./InputGroup";
+import { HStack, VStack } from "../../components/VStack";
 
 type Props = {
   onSelectionChanged: (newSelection: "yes" | "no") => void;
@@ -9,27 +10,22 @@ type Props = {
 
 export function YesNoSelector({ onSelectionChanged, selection }: Props) {
   return (
-    <div
-      className={css`
-        display: flex;
-        flex-direction: column;
-      `}
-    >
+    <VStack>
       <h4 className={inputLabelStyle}>Open to sponsoring proposals</h4>
 
-      <div
+      <HStack
         className={css`
-          display: flex;
-          flex-direction: row;
-
-          background: ${theme.colors.gray["200"]};
+          background: ${theme.colors.gray["100"]};
           border-radius: ${theme.borderRadius.md};
+          border-width: ${theme.spacing.px};
+          border-color: ${theme.colors.gray["300"]};
           overflow: hidden;
         `}
       >
         <div
           onClick={() => onSelectionChanged("yes")}
           className={css`
+            border-radius: 0.375rem 0 0 0.375rem;
             ${selection === "yes" && selectedStyle}
             ${yesNoOptionStyle};
           `}
@@ -39,28 +35,31 @@ export function YesNoSelector({ onSelectionChanged, selection }: Props) {
         <div
           onClick={() => onSelectionChanged("no")}
           className={css`
+            border-radius: 0 0.375rem 0.375rem 0;
             ${selection === "no" && selectedStyle}
             ${yesNoOptionStyle};
           `}
         >
           No
         </div>
-      </div>
-    </div>
+      </HStack>
+    </VStack>
   );
 }
 
 const yesNoOptionStyle = css`
-  padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
+  padding: ${theme.spacing["3"]} ${theme.spacing["3"]};
   flex: 1;
   text-align: center;
   cursor: pointer;
 
   :hover {
-    background: ${theme.colors.gray["400"]};
+    background: ${theme.colors.white};
   }
 `;
 
 const selectedStyle = css`
-  background: ${theme.colors.gray["500"]};
+  background: ${theme.colors.white};
+  border-radius: ${theme.borderRadius.md};
+  box-shadow: ${theme.boxShadow.newDefault};
 `;
