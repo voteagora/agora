@@ -119,7 +119,7 @@ export function DelegatePage() {
                         border: 1px solid #ebebeb;
                         box-shadow: ${theme.boxShadow.newDefault};
                         padding: ${theme.spacing["3"]};
-                        background-color:white;
+                        background-color: ${theme.colors.white};
                       `}
                     >
                       <HStack gap="4">
