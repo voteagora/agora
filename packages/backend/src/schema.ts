@@ -663,11 +663,27 @@ export async function makeGatewaySchema() {
   const resolvers = mergeResolvers([
     typedResolvers,
     {
+      Noun: {
+        number: {
+          selectionSet: `{ id }`,
+          resolve({ id }) {
+            return id;
+          },
+        },
+      },
+
       Proposal: {
         title: {
           selectionSet: `{ description }`,
           resolve({ description }) {
             return getTitleFromProposalDescription(description);
+          },
+        },
+
+        number: {
+          selectionSet: `{ id }`,
+          resolve({ id }) {
+            return id;
           },
         },
 
@@ -705,23 +721,26 @@ export async function makeGatewaySchema() {
         voteSummary: {
           selectionSet: `{ votes(first: 1000) { supportDetailed } }`,
           resolve({ votes }) {
-            return votes.reduce(
-              (acc, { supportDetailed }) => {
-                switch (supportDetailed) {
-                  case 0:
-                    return { ...acc, againstVotes: acc.againstVotes + 1 };
-                  case 1:
-                    return { ...acc, forVotes: acc.forVotes + 1 };
-                  case 2:
-                    return { ...acc, abstainVotes: acc.abstainVotes + 1 };
+            return {
+              ...votes.reduce(
+                (acc, { supportDetailed }) => {
+                  switch (supportDetailed) {
+                    case 0:
+                      return { ...acc, againstVotes: acc.againstVotes + 1 };
+                    case 1:
+                      return { ...acc, forVotes: acc.forVotes + 1 };
+                    case 2:
+                      return { ...acc, abstainVotes: acc.abstainVotes + 1 };
+                  }
+                },
+                {
+                  forVotes: 0,
+                  againstVotes: 0,
+                  abstainVotes: 0,
                 }
-              },
-              {
-                forVotes: 0,
-                againstVotes: 0,
-                abstainVotes: 0,
-              }
-            );
+              ),
+              totalVotes: votes.length,
+            };
           },
         },
       },
