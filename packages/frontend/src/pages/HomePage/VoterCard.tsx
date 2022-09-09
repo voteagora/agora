@@ -19,13 +19,13 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
   const delegate = useFragment(
     graphql`
       fragment VoterCardFragment on WrappedDelegate {
-        id
         ...VoterPanelActionsFragment
 
         ...VoterCardDelegateProfileImage
 
         address {
           resolvedName {
+            address
             ...NounResolvedNameFragment
           }
         }
@@ -49,7 +49,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
 
   return (
     <Link
-      to={`/delegate/${delegate.id}`}
+      to={`/delegate/${delegate.address.resolvedName.address}`}
       className={css`
         display: flex;
         flex-direction: column;
