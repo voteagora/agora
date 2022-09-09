@@ -2,7 +2,10 @@ import { createServer } from "@graphql-yoga/common";
 import { makeGatewaySchema } from "./schema";
 import { createInMemoryCache } from "@envelop/response-cache";
 import { makeCachePlugin } from "./cache";
-import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
+import {
+  getAssetFromKV,
+  serveSinglePageApp,
+} from "@cloudflare/kv-asset-handler";
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
 const assetManifest = JSON.parse(manifestJSON);
 
@@ -65,6 +68,7 @@ export default {
         {
           ASSET_NAMESPACE: env.__STATIC_CONTENT,
           ASSET_MANIFEST: assetManifest,
+          mapRequestToAsset: serveSinglePageApp,
         }
       );
     }
