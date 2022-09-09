@@ -1,9 +1,14 @@
 import { stitchSchemas } from "@graphql-tools/stitch";
-import { getTitleFromProposalDescription } from "./utils/markdown";
+import { mapSchema, MapperKind } from "@graphql-tools/utils";
+import {
+  extractFirstParagraph,
+  getTitleFromProposalDescription,
+} from "./utils/markdown";
 import { makeNounsSchema } from "./schemas/nouns-subgraph";
 import { delegateToSchema } from "@graphql-tools/delegate";
 import { mergeResolvers } from "@graphql-tools/merge";
 import {
+  defaultFieldResolver,
   FieldNode,
   GraphQLList,
   GraphQLNonNull,
@@ -32,9 +37,43 @@ import { WrappedDelegate } from "./model";
 import schema from "./schemas/extensions.graphql";
 import { fieldsMatching } from "./utils/graphql";
 import { parseSelectionSet } from "@graphql-tools/utils";
-import { ascendingValueComparator } from "./utils/sorting";
+import { descendingValueComparator, flipComparator } from "./utils/sorting";
+import { marked } from "marked";
 
 const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
+  [
+    "0xfe349ddff44ba087530c1efc3342e786dffc57b0",
+    {
+      address: "0xfe349ddff44ba087530c1efc3342e786dffc57b0",
+      values: {
+        delegateStatement: "Just a guy with a noun.",
+        openToSponsoringProposals: null,
+        twitter: "",
+        discord: "",
+        mostValuableProposals: [],
+        leastValuableProposals: [],
+        topIssues: [],
+        for: "nouns-agora",
+      },
+    },
+  ],
+  [
+    "0xa1e4f7dc1983fefe37e2175524ebad87f1c78c3c",
+    {
+      address: "0xa1e4f7dc1983fefe37e2175524ebad87f1c78c3c",
+      values: {
+        delegateStatement: "Just a guy with a few nouns.",
+        openToSponsoringProposals: null,
+        twitter: "",
+        discord: "",
+        mostValuableProposals: [],
+        leastValuableProposals: [],
+        topIssues: [],
+        for: "nouns-agora",
+      },
+    },
+  ],
+
   [
     "0x2573c60a6d127755aa2dc85e342f7da2378a0cc5",
     {
@@ -82,7 +121,7 @@ const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
           "I am the co-founder of Vector DAO and builder of prop 87. As long time designer and software builder, I plan on using my votes to advocate for and shepard through high quality projects that either creatively proliferate the meme, and contribute software to better functioning of the DAO.",
         for: "nouns-agora",
         twitter: "zhayitong",
-        discord: "",
+        discord: "yitong#9038",
 
         mostValuableProposals: [
           {
@@ -142,42 +181,44 @@ function makeDelegateResolveInfo(
       .type as GraphQLNonNull<GraphQLObjectType>
   ).ofType;
 
+  const existingFieldNodes: FieldNode[] = info.fieldNodes
+    .flatMap((field): FieldNode[] => {
+      if (field.kind !== "Field" || field.name.value !== "wrappedDelegates") {
+        return [];
+      }
+
+      return [field];
+    })
+    .flatMap((field) =>
+      fieldsMatching(field.selectionSet, "edges", info.fragments)
+    )
+    .flatMap((field) =>
+      fieldsMatching(field.selectionSet, "node", info.fragments)
+    )
+    .flatMap((field) =>
+      fieldsMatching(field.selectionSet, "delegate", info.fragments)
+    );
+
   return {
     ...info,
     fieldName: "delegate",
     fieldNodes: [
-      ...info.fieldNodes
-        .flatMap((field): FieldNode[] => {
-          if (
-            field.kind !== "Field" ||
-            field.name.value !== "wrappedDelegates"
-          ) {
-            return [];
-          }
-
-          return [field];
-        })
-        .flatMap((field) =>
-          fieldsMatching(field.selectionSet, "edges", info.fragments)
-        )
-        .flatMap((field) =>
-          fieldsMatching(field.selectionSet, "node", info.fragments)
-        )
-        .flatMap((field) =>
-          fieldsMatching(field.selectionSet, "delegate", info.fragments)
-        )
-        .map((field): FieldNode => {
-          return {
-            ...field,
-            selectionSet: {
-              ...field.selectionSet,
-              selections: [
-                ...field.selectionSet.selections,
-                ...additionalSelections,
-              ],
-            },
-          };
-        }),
+      {
+        kind: Kind.FIELD,
+        name: {
+          kind: Kind.NAME,
+          value: "delegate",
+        },
+        selectionSet: {
+          kind: Kind.SELECTION_SET,
+          selections: [
+            ...existingFieldNodes.flatMap(
+              (field) => field.selectionSet.selections
+            ),
+            ...additionalSelections,
+          ],
+        },
+      },
     ],
     returnType: parentType.getFields()["delegate"].type,
     path: {
@@ -259,14 +300,21 @@ export async function makeGatewaySchema() {
               return parseSelection(
                 `
                   {
-                    votes(first: 1, orderBy: blockNumber, orderDirection:desc) {
+                    __internalSortVotes: votes(first: 1, orderBy: blockNumber, orderDirection:desc) {
                       id
                       blockNumber
                     }
-                    
-                    proposals(first: 1, orderBy: createdBlock, orderDirection: desc) {
+                  }
+                `
+              );
+
+            case WrappedDelegatesOrder.LeastVotesCast:
+            case WrappedDelegatesOrder.MostVotesCast:
+              return parseSelection(
+                `
+                  {
+                    __internalSortTotalVotes: votes(first: 1000) {
                       id
-                      createdBlock
                     }
                   }
                 `
@@ -362,21 +410,35 @@ export async function makeGatewaySchema() {
           switch (orderBy) {
             case WrappedDelegatesOrder.MostRecentlyActive:
               return filteredDelegates.slice().sort(
-                ascendingValueComparator((delegate) => {
+                descendingValueComparator((delegate) => {
                   if (!delegate.delegatedDelegate) {
                     return -Infinity;
                   }
 
-                  const latestVote =
-                    delegate.delegatedDelegate?.votes?.[0]?.blockNumber ??
-                    -Infinity;
-
-                  const latestProposal =
-                    delegate.delegatedDelegate?.proposals?.[0]?.createdBlock ??
-                    -Infinity;
-
-                  return Math.max(latestVote, latestProposal);
+                  return (
+                    delegate.delegatedDelegate?.__internalSortVotes?.[0]
+                      ?.blockNumber ?? -Infinity
+                  );
                 })
+              );
+
+            case WrappedDelegatesOrder.LeastVotesCast:
+            case WrappedDelegatesOrder.MostVotesCast:
+              return filteredDelegates.slice().sort(
+                (orderBy === WrappedDelegatesOrder.LeastVotesCast
+                  ? flipComparator
+                  : (it) => it)(
+                  descendingValueComparator((delegate: any) => {
+                    if (!delegate.delegatedDelegate) {
+                      return -Infinity;
+                    }
+
+                    return (
+                      delegate.delegatedDelegate?.__internalSortTotalVotes
+                        ?.length ?? -Infinity
+                    );
+                  })
+                )
               );
 
             case WrappedDelegatesOrder.MostNounsRepresented:
@@ -500,6 +562,12 @@ export async function makeGatewaySchema() {
     },
 
     DelegateStatement: {
+      summary({ values: { delegateStatement } }) {
+        return extractFirstParagraph(
+          marked.lexer(delegateStatement.slice(0, 1000))
+        );
+      },
+
       statement({ values: { delegateStatement } }) {
         return delegateStatement;
       },
@@ -597,11 +665,27 @@ export async function makeGatewaySchema() {
   const resolvers = mergeResolvers([
     typedResolvers,
     {
+      Noun: {
+        number: {
+          selectionSet: `{ id }`,
+          resolve({ id }) {
+            return id;
+          },
+        },
+      },
+
       Proposal: {
         title: {
           selectionSet: `{ description }`,
           resolve({ description }) {
             return getTitleFromProposalDescription(description);
+          },
+        },
+
+        number: {
+          selectionSet: `{ id }`,
+          resolve({ id }) {
+            return id;
           },
         },
 
@@ -618,6 +702,16 @@ export async function makeGatewaySchema() {
         },
       },
 
+      Vote: {
+        createdAt: {
+          selectionSet: `{ blockNumber }`,
+          async resolve({ blockNumber }: { blockNumber: string }) {
+            const block = await provider.getBlock(Number(blockNumber));
+            return block.timestamp.toString();
+          },
+        },
+      },
+
       Delegate: {
         resolvedName: {
           selectionSet: `{ id }`,
@@ -629,23 +723,26 @@ export async function makeGatewaySchema() {
         voteSummary: {
           selectionSet: `{ votes(first: 1000) { supportDetailed } }`,
           resolve({ votes }) {
-            return votes.reduce(
-              (acc, { supportDetailed }) => {
-                switch (supportDetailed) {
-                  case 0:
-                    return { ...acc, againstVotes: acc.againstVotes + 1 };
-                  case 1:
-                    return { ...acc, forVotes: acc.forVotes + 1 };
-                  case 2:
-                    return { ...acc, abstainVotes: acc.abstainVotes + 1 };
+            return {
+              ...votes.reduce(
+                (acc, { supportDetailed }) => {
+                  switch (supportDetailed) {
+                    case 0:
+                      return { ...acc, againstVotes: acc.againstVotes + 1 };
+                    case 1:
+                      return { ...acc, forVotes: acc.forVotes + 1 };
+                    case 2:
+                      return { ...acc, abstainVotes: acc.abstainVotes + 1 };
+                  }
+                },
+                {
+                  forVotes: 0,
+                  againstVotes: 0,
+                  abstainVotes: 0,
                 }
-              },
-              {
-                forVotes: 0,
-                againstVotes: 0,
-                abstainVotes: 0,
-              }
-            );
+              ),
+              totalVotes: votes.length,
+            };
           },
         },
       },
@@ -661,11 +758,31 @@ export async function makeGatewaySchema() {
     },
   ]);
 
-  return stitchSchemas({
-    subschemas: [nounsSchema],
+  return mapSchema(
+    stitchSchemas({
+      subschemas: [nounsSchema],
 
-    typeDefs: schema,
+      typeDefs: schema,
 
-    resolvers,
-  });
+      resolvers,
+    }),
+    {
+      [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
+        if (fieldName !== "id") {
+          return fieldConfig;
+        }
+
+        return {
+          ...fieldConfig,
+          resolve: (...args) => {
+            const resolvedValue = (fieldConfig.resolve ?? defaultFieldResolver)(
+              ...args
+            );
+
+            return [typeName, resolvedValue].join("|");
+          },
+        };
+      },
+    }
+  );
 }

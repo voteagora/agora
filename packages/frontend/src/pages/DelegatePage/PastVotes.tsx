@@ -4,7 +4,7 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoteDetails } from "./VoteDetails";
 import { PastVotesFragment$key } from "./__generated__/PastVotesFragment.graphql";
-import { VStack } from "../../components/VStack";
+import { HStack, VStack } from "../../components/VStack";
 
 type Props = {
   fragment: PastVotesFragment$key;
@@ -38,16 +38,18 @@ export function PastVotes({ fragment }: Props) {
         Past Votes
       </h2>
 
-      <VStack
+      <HStack
         gap="4"
         className={css`
           margin-top: ${theme.spacing["4"]};
+          overflow-x: scroll;
+          flex-wrap: wrap;
         `}
       >
         {votes.map((vote) => (
           <VoteDetails key={vote.id} voteFragment={vote} />
         ))}
-      </VStack>
+      </HStack>
     </VStack>
   );
 }

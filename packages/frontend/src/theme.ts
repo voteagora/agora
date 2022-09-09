@@ -1,6 +1,8 @@
 // Values taken from tailwindcss.
 // https://github.com/tailwindcss/tailwindcss/blob/ecffd24bd8321f95f270c69cba124eb00a60af54/stubs/defaultConfig.stub.js
 
+import { css } from "@emotion/css";
+
 export const screens = {
   sm: "640px",
   md: "768px",
@@ -236,7 +238,7 @@ export const maxWidth = {
   "3xl": "48rem",
   "4xl": "56rem",
   "5xl": "64rem",
-  "6xl": "72rem",
+  "6xl": "76rem",
   full: "100%",
 };
 
@@ -287,3 +289,10 @@ export const timings = {
   "700": "700ms",
   "1000": "1000ms",
 };
+
+export const inset0 = css`
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+`;

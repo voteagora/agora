@@ -3,9 +3,8 @@ import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import { EditDelegatePageQuery } from "./__generated__/EditDelegatePageQuery.graphql";
 import * as theme from "../../theme";
-import { LoadingVoterPanel, VoterPanel } from "../DelegatePage/VoterPanel";
+import { VoterPanel } from "../DelegatePage/VoterPanel";
 import { DelegateStatementForm } from "./DelegateStatementForm";
-import { Suspense } from "react";
 import { EditDelegatePageLazyVoterPanelQuery } from "./__generated__/EditDelegatePageLazyVoterPanelQuery.graphql";
 import { useAccount } from "wagmi";
 import { HStack } from "../../components/VStack";
@@ -32,31 +31,41 @@ export function EditDelegatePage() {
       justifyContent="space-between"
       gap="16"
       className={css`
-        margin: ${theme.spacing["16"]};
+        padding-left: ${theme.spacing["4"]};
+        padding-right: ${theme.spacing["4"]};
         margin-top: ${theme.spacing["8"]};
         width: 100%;
         max-width: ${theme.maxWidth["6xl"]};
+
+        @media (max-width: ${theme.maxWidth["6xl"]}) {
+          flex-direction: column-reverse;
+          align-items: center;
+        }
       `}
     >
-      <DelegateStatementForm queryFragment={query} />
+      <DelegateStatementForm
+        queryFragment={query}
+        className={css`
+          flex: 1;
+        `}
+      />
 
       <div
         className={css`
-          width: ${theme.maxWidth.sm};
+          flex-shrink: 0;
+          width: ${theme.maxWidth.xs};
         `}
       >
-        <Suspense fallback={<LoadingVoterPanel />}>
-          <LazyVoterPanel address={address} />
-        </Suspense>
+        <LazyVoterPanel address={address} />
       </div>
     </HStack>
   );
 }
 
 export const buttonStyles = css`
-  border-radius: ${theme.borderRadius.default};
+  border-radius: ${theme.spacing["1"]};
   border-width: ${theme.spacing.px};
-  border-color: ${theme.colors.gray["300"]};
+  border-color: ${theme.colors.gray.eb};
   cursor: pointer;
   padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
 
@@ -74,10 +83,6 @@ function LazyVoterPanel({ address }: LazyVoterPanelProps) {
     graphql`
       query EditDelegatePageLazyVoterPanelQuery($address: ID!) {
         address(address: $address) {
-          resolvedName {
-            ...NounResolvedLinkFragment
-          }
-
           ...VoterPanelDelegateFragment
         }
 
