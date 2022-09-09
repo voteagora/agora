@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 const shimmer = keyframes`
     from {
-      opacity: 0.5;
+      opacity: 0.3;
     }
   
   to {
@@ -26,20 +26,20 @@ export function RouteTransitionLoadingIndicator() {
         opacity: isPending ? 1 : 0,
       }}
       transition={{
-        duration: 0.3,
+        duration: 0.6,
         delay: isPending ? 0.3 : 0,
       }}
     >
       <div
         className={css`
           position: fixed;
-          height: ${theme.spacing["2"]};
+          height: 2px;
           top: 0;
           left: 0;
           right: 0;
-          background: #a0aec0;
+          background: #181a1d;
 
-          animation: ${shimmer} 0.3s alternate-reverse infinite ease-out;
+          animation: ${shimmer} 0.6s alternate-reverse infinite ease-out;
         `}
       />
     </motion.div>

@@ -9,8 +9,8 @@ import { HStack, VStack } from "../../components/VStack";
 import { Tab } from "@headlessui/react";
 
 export const tipTextStyle = css`
-  font-size: ${theme.fontSize.xs};
-  color: ${theme.colors.gray["600"]};
+  font-size: ${theme.fontSize.sm};
+  color: ${theme.colors.gray["800"]};
 `;
 
 type DisplayMode = "write" | "preview";
