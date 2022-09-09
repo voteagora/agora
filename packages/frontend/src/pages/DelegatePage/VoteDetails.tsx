@@ -43,7 +43,7 @@ export function VoteDetails({ voteFragment }: Props) {
         border-color: ${theme.colors.gray.eb};
         background: ${theme.colors.white};
         box-shadow: ${shadow};
-        padding-bottom: ${theme.spacing["6"]};
+        padding-bottom: ${theme.spacing["5"]};
         min-width: 24rem;
         max-width: 24rem;
         max-height: 15rem;
@@ -53,44 +53,58 @@ export function VoteDetails({ voteFragment }: Props) {
       <VStack
         gap="2"
         className={css`
-          padding-top: ${theme.spacing["6"]};
-          padding-left: ${theme.spacing["6"]};
-          padding-right: ${theme.spacing["6"]};
+          padding-top: ${theme.spacing["5"]};
+          padding-left: ${theme.spacing["5"]};
+          padding-right: ${theme.spacing["5"]};
           overflow-y: scroll;
+          height:100%;
         `}
       >
-        <VStack>
+        <VStack
+          justifyContent="center"
+          className={css`
+          height:100%;
+        `}
+        >
           <div
             className={css`
               font-size: ${theme.fontSize.xs};
+              font-weight: ${theme.fontWeight.medium};
               color: #66676b;
             `}
           >
             <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
             <a href={proposalHref}>Prop {vote.proposal.number}</a>
             <ValuePart value={vote.proposal.totalValue} />
-            &mdash; with {vote.votes} votes
+            with {vote.votes} votes
           </div>
           <div
             className={css`
               font-size: ${theme.fontSize.xs};
+              font-weight: ${theme.fontWeight.medium};
               color: #66676b;
             `}
-          >
-            voted {formatDistanceToNow(new Date(Number(vote.createdAt) * 1000))}{" "}
-            ago
-          </div>
+          ></div>
 
           <h2
             className={css`
               font-size: ${theme.fontSize.base};
-
+              padding:${theme.spacing[1]} 0;
               overflow: hidden;
               text-overflow: ellipsis;
             `}
           >
             <a href={proposalHref}>{vote.proposal.title}</a>
           </h2>
+          <div
+            className={css`
+              font-size: ${theme.fontSize.xs};
+              font-weight: ${theme.fontWeight.medium};
+              color: #66676b;
+            `}
+          >
+            {formatDistanceToNow(new Date(Number(vote.createdAt) * 1000))} ago
+          </div>
         </VStack>
 
         <span

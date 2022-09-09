@@ -200,7 +200,7 @@ export function DelegateStatementForm({
           disabled={!canSubmit}
           onClick={() => submitMutation.mutate()}
         >
-          Submit
+          Submit delegate profile
         </button>
       </HStack>
     </VStack>
