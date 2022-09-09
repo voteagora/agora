@@ -17,9 +17,12 @@ export function PageHeader() {
   return (
     <HStack
       className={css`
-        width: ${theme.maxWidth["6xl"]};
+        width: 100%;
+        max-width: ${theme.maxWidth["6xl"]};
         margin: ${theme.spacing["8"]} auto;
         justify-content: space-between;
+        padding-left: ${theme.spacing["4"]};
+        padding-right: ${theme.spacing["4"]};
       `}
     >
       <Link
@@ -35,6 +38,7 @@ export function PageHeader() {
 
           <span
             className={css`
+              white-space: nowrap;
               font-size: ${theme.fontSize.base};
               font-weight: ${theme.fontWeight.semibold};
               color: ${theme.colors.gray["800"]};
@@ -138,6 +142,7 @@ function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
         border-width: ${theme.spacing.px};
         border-radius: ${theme.borderRadius.lg};
         box-shadow: ${theme.boxShadow.newDefault};
+        background: ${theme.colors.white};
       `}
     >
       <HStack

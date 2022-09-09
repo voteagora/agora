@@ -1,5 +1,6 @@
 extend type Proposal {
   title: String!
+  number: Int!
   totalValue: BigInt!
 }
 
@@ -12,10 +13,19 @@ extend type Delegate {
   voteSummary: DelegateVotesSummary!
 }
 
+extend type Vote {
+  createdAt: BigInt!
+}
+
+extend type Noun {
+  number: Int!
+}
+
 type DelegateVotesSummary {
   forVotes: Int!
   againstVotes: Int!
   abstainVotes: Int!
+  totalVotes: Int!
 }
 
 type Query {
@@ -51,6 +61,7 @@ type WrappedDelegate {
 
 type DelegateStatement {
   statement: String!
+  summary: String
   topIssues: [TopIssue!]!
   mostValuableProposals: [Proposal!]!
   leastValuableProposals: [Proposal!]!
@@ -83,6 +94,8 @@ enum WrappedDelegatesWhere {
 enum WrappedDelegatesOrder {
   mostNounsRepresented
   mostRecentlyActive
+  mostVotesCast
+  leastVotesCast
 }
 
 type Query {
