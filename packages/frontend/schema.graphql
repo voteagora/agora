@@ -1687,6 +1687,7 @@ type Noun {
 
   """Historical votes for the Noun"""
   votes(skip: Int = 0, first: Int = 100, orderBy: Vote_orderBy, orderDirection: OrderDirection, where: Vote_filter): [Vote!]!
+  number: Int!
 }
 
 input Noun_filter {
@@ -1826,6 +1827,7 @@ type Proposal {
   """Votes associated to this proposal"""
   votes(skip: Int = 0, first: Int = 100, orderBy: Vote_orderBy, orderDirection: OrderDirection, where: Vote_filter): [Vote!]!
   title: String!
+  number: Int!
   totalValue: BigInt!
 }
 
@@ -2409,6 +2411,7 @@ type DelegateVotesSummary {
   forVotes: Int!
   againstVotes: Int!
   abstainVotes: Int!
+  totalVotes: Int!
 }
 
 type Address {
