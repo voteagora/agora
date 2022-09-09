@@ -180,6 +180,7 @@ export function DelegatePage() {
                           <div
                             className={css`
                               font-size: ${theme.fontSize.xs};
+                              font-weight: ${theme.fontWeight.medium};
                               color: #66676b;
                             `}
                           >

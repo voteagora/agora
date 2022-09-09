@@ -45,7 +45,6 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
     `,
     fragmentRef
   );
-
   return (
     <Link
       to={`/delegate/${delegate.address.resolvedName.address}`}
