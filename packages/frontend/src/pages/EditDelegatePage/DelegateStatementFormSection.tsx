@@ -1,10 +1,12 @@
-import { css, cx } from "@emotion/css";
+import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
 import { formSectionContainerStyles } from "./TopIssuesFormSection";
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkBreaks from "remark-breaks";
+import { Form } from "./DelegateStatementForm";
+import { Markdown } from "../../components/Markdown";
+import { HStack, VStack } from "../../components/VStack";
+import { Tab } from "@headlessui/react";
 
 export const tipTextStyle = css`
   font-size: ${theme.fontSize.xs};
@@ -15,101 +17,131 @@ type DisplayMode = "write" | "preview";
 
 const displayModeSelectorStyles = css`
   cursor: pointer;
+  font-size: ${theme.fontSize.sm};
+  font-weight: ${theme.fontWeight.medium};
   color: ${theme.colors.gray["600"]};
-  padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
-  border-radius: ${theme.borderRadius.default};
+  padding: ${theme.spacing["1"]} ${theme.spacing["3"]};
+  border-radius: ${theme.borderRadius.full};
+
+  :hover {
+    background: ${theme.colors.gray["100"]};
+    color: ${theme.colors.gray["900"]};
+  }
+`;
+
+const displayModeSelectorSelectedStyles = css`
+  background: ${theme.colors.gray["200"]};
+  color: ${theme.colors.gray["900"]};
+  border-radius: ${theme.borderRadius.full};
 
   :hover {
     background: ${theme.colors.gray["200"]};
   }
 `;
 
-const displayModeSelectorSelectedStyles = css`
-  background: ${theme.colors.gray["400"]};
+type DelegateStatementFormSectionProps = {
+  form: Form;
+};
 
-  :hover {
-    background: ${theme.colors.gray["400"]};
-  }
-`;
-
-export function DelegateStatementFormSection() {
+export function DelegateStatementFormSection({
+  form,
+}: DelegateStatementFormSectionProps) {
   const [displayMode, setDisplayMode] = useState<DisplayMode>("write");
-  const [delegateStatement, setDelegateStatement] = useState("");
 
   return (
-    <div
+    <VStack
       className={css`
-        display: flex;
-        flex-direction: column;
         ${formSectionContainerStyles}
       `}
     >
-      <div
-        className={css`
-          display: flex;
-          flex-direction: row;
-          align-items: baseline;
-          justify-content: space-between;
-          gap: ${theme.spacing["4"]};
-        `}
-      >
+      <HStack alignItems="baseline" justifyContent="space-between" gap="4">
         <h3 className={formSectionHeadingStyle}>Delegate statement</h3>
 
-        <div
-          className={css`
-            display: flex;
-            flex-direction: row;
-            gap: ${theme.spacing["2"]};
-          `}
-        >
-          <div
-            className={css`
-              ${displayModeSelectorStyles}
-              ${displayMode === "write" && displayModeSelectorSelectedStyles}
-            `}
-            onClick={() => setDisplayMode("write")}
-          >
-            Write
-          </div>
+        <Tab.Group
+          manual
+          selectedIndex={(() => {
+            switch (displayMode) {
+              case "preview":
+                return 1;
 
-          <div
-            className={css`
-              ${displayModeSelectorStyles}
-              ${displayMode === "preview" && displayModeSelectorSelectedStyles}
-            `}
-            onClick={() => setDisplayMode("preview")}
-          >
-            Preview
-          </div>
-        </div>
-      </div>
+              case "write":
+                return 0;
+            }
+          })()}
+          onChange={(index) => {
+            switch (index) {
+              case 0:
+                setDisplayMode("write");
+                return;
+
+              case 1:
+                setDisplayMode("preview");
+                return;
+            }
+          }}
+        >
+          <Tab.List>
+            <HStack gap="1">
+              <Tab
+                className={css`
+                  outline: none;
+                `}
+              >
+                {({ selected }) => (
+                  <div
+                    className={css`
+                      ${displayModeSelectorStyles}
+                      ${selected && displayModeSelectorSelectedStyles}
+                    `}
+                  >
+                    Write
+                  </div>
+                )}
+              </Tab>
+
+              <Tab
+                className={css`
+                  outline: none;
+                `}
+              >
+                {({ selected }) => (
+                  <div
+                    className={css`
+                      ${displayModeSelectorStyles}
+                      ${selected && displayModeSelectorSelectedStyles}
+                    `}
+                  >
+                    Preview
+                  </div>
+                )}
+              </Tab>
+            </HStack>
+          </Tab.List>
+        </Tab.Group>
+      </HStack>
 
       {displayMode === "write" && (
         <textarea
           className={css`
-            background: ${theme.colors.gray["200"]};
+            background: ${theme.colors.gray["100"]};
             padding: ${theme.spacing["4"]};
             margin-top: ${theme.spacing["2"]};
             border-radius: ${theme.borderRadius.md};
             outline: none;
             width: 100%;
             min-height: ${theme.spacing["64"]};
-            box-shadow: ${theme.boxShadow.inner};
+            border-width: ${theme.spacing.px};
+            border-color: ${theme.colors.gray["300"]};
           `}
-          value={delegateStatement}
-          onChange={(e) => setDelegateStatement(e.target.value)}
+          value={form.state.delegateStatement}
+          onChange={(e) => form.onChange.delegateStatement(e.target.value)}
           placeholder="I believe that..."
         />
       )}
 
       {displayMode === "preview" && (
-        <ReactMarkdown
-          children={delegateStatement}
-          remarkPlugins={[remarkBreaks]}
-          // tailwind prose + max-width override disabled
-          className={cx("prose", "max-w-none")}
-        />
+        <Markdown markdown={form.state.delegateStatement} />
       )}
-    </div>
+    </VStack>
   );
 }

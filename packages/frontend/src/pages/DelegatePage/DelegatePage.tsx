@@ -1,71 +1,207 @@
-import { Navigate, useParams } from "react-router-dom";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { DelegatePageQuery } from "./__generated__/DelegatePageQuery.graphql";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { PageHeader } from "../../components/PageHeader";
 import { VoterPanel } from "./VoterPanel";
 import { PastVotes } from "./PastVotes";
-import { usePrimaryAccount } from "../../components/EthersProviderProvider";
-import { PageContainer } from "../../components/PageContainer";
+import { Markdown } from "../../components/Markdown";
+import { HStack, VStack } from "../../components/VStack";
+import { issueDefinitions } from "../EditDelegatePage/TopIssuesFormSection";
+import { icons } from "../../icons/icons";
+import { ImpactfulProposals } from "./ImpactfulProposals";
+import {
+  Navigate,
+  useParams,
+} from "../../components/HammockRouter/HammockRouter";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
-  const address = usePrimaryAccount();
 
   const query = useLazyLoadQuery<DelegatePageQuery>(
     graphql`
-      query DelegatePageQuery($id: ID!, $address: ID!) {
+      query DelegatePageQuery($id: ID!) {
         ...VoterPanelQueryFragment
 
-        delegate(id: $id) {
-          ...VoterPanelDelegateFragment
-          ...PastVotesFragment
-        }
+        address(address: $id) {
+          wrappedDelegate {
+            delegate {
+              ...PastVotesFragment
+            }
 
-        account(id: $address) {
-          ...PageHeaderFragment
+            statement {
+              ...ImpactfulProposalsFragment
+              statement
+              topIssues {
+                type
+                value
+              }
+            }
+          }
+
+          ...VoterPanelDelegateFragment
         }
       }
     `,
     {
       id: delegateId ?? "",
-      address,
     }
   );
 
-  if (!query.delegate) {
+  const wrappedDelegate = query.address.wrappedDelegate;
+
+  if (!wrappedDelegate.delegate && !wrappedDelegate.statement) {
     // todo: handle delegate not found
     return <Navigate to="/" />;
   }
 
   return (
-    <PageContainer>
-      <PageHeader accountFragment={query.account} />
-
-      <div
+    <>
+      <HStack
+        gap="16"
+        justifyContent="space-between"
+        alignItems="flex-start"
         className={css`
-          display: flex;
-          flex-direction: row;
-          justify-content: space-between;
-          gap: ${theme.spacing["16"]};
           margin: ${theme.spacing["16"]};
           margin-top: ${theme.spacing["8"]};
+          padding-left: ${theme.spacing["4"]};
+          padding-right: ${theme.spacing["4"]};
           width: 100%;
           max-width: ${theme.maxWidth["6xl"]};
         `}
       >
-        <div
+        <VStack
           className={css`
-            width: ${theme.maxWidth.sm};
+            position: sticky;
+            top: ${theme.spacing["16"]};
+            flex-shrink: 0;
+            width: ${theme.maxWidth.xs};
           `}
         >
-          <VoterPanel delegateFragment={query.delegate} queryFragment={query} />
-        </div>
+          <VoterPanel delegateFragment={query.address} queryFragment={query} />
 
-        <PastVotes fragment={query.delegate} />
-      </div>
-    </PageContainer>
+          {!wrappedDelegate.statement && (
+            <div
+              className={css`
+                color: #66676b;
+                line-height: ${theme.lineHeight.normal};
+                font-size: ${theme.fontSize.xs};
+                padding: ${theme.spacing["2"]};
+              `}
+            >
+              This voter has not submitted a statement. Is this you? Connect
+              your wallet to verify your address, and tell your community what
+              you’d like to see.
+            </div>
+          )}
+        </VStack>
+
+        <VStack
+          gap="8"
+          className={css`
+            min-width: 0;
+            flex: 1;
+          `}
+        >
+          {wrappedDelegate.statement?.statement && (
+            <VStack gap="4">
+              <h2
+                className={css`
+                  font-size: ${theme.fontSize["2xl"]};
+                  font-weight: bold;
+                `}
+              >
+                Delegate statement
+              </h2>
+
+              <Markdown markdown={wrappedDelegate.statement.statement} />
+            </VStack>
+          )}
+
+          {wrappedDelegate.statement?.topIssues.length && (
+            <VStack gap="4">
+              <h2
+                className={css`
+                  font-size: ${theme.fontSize["2xl"]};
+                  font-weight: bold;
+                `}
+              >
+                Top Issues
+              </h2>
+
+              <VStack gap="4">
+                {wrappedDelegate.statement.topIssues.flatMap((topIssue) => {
+                  const issueDef = issueDefinitions.find(
+                    (issue) => issue.key === topIssue.type
+                  );
+
+                  if (!issueDef) {
+                    return [];
+                  }
+
+                  return (
+                    <div
+                      className={css`
+                        border-radius: ${theme.spacing["3"]};
+                        border: 1px solid #ebebeb;
+                        box-shadow: ${theme.boxShadow.newDefault};
+                        background: ${theme.colors.white};
+                        padding: ${theme.spacing["3"]};
+                      `}
+                    >
+                      <HStack gap="4" alignItems="flex-start">
+                        <VStack
+                          justifyContent="center"
+                          className={css`
+                            flex-shrink: 0;
+                          `}
+                        >
+                          <VStack
+                            className={css`
+                              padding: ${theme.spacing["3"]};
+                              border-radius: ${theme.spacing["2"]};
+                              box-shadow: ${theme.boxShadow.newDefault};
+                              border: 1px solid #ebebeb;
+                            `}
+                          >
+                            <img
+                              src={icons[issueDef.icon]}
+                              className={css`
+                                width: ${theme.spacing["6"]};
+                                height: ${theme.spacing["6"]};
+                              `}
+                            />
+                          </VStack>
+                        </VStack>
+
+                        <VStack>
+                          <div
+                            className={css`
+                              font-size: ${theme.fontSize.xs};
+                              color: #66676b;
+                            `}
+                          >
+                            {issueDef.title}
+                          </div>
+                          <div>{topIssue.value}</div>
+                        </VStack>
+                      </HStack>
+                    </div>
+                  );
+                })}
+              </VStack>
+            </VStack>
+          )}
+
+          {wrappedDelegate.statement && (
+            <ImpactfulProposals fragment={wrappedDelegate.statement} />
+          )}
+
+          {wrappedDelegate.delegate && (
+            <PastVotes fragment={wrappedDelegate.delegate} />
+          )}
+        </VStack>
+      </HStack>
+    </>
   );
 }

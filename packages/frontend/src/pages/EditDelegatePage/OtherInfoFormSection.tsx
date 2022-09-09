@@ -4,8 +4,13 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { InputGroup } from "./InputGroup";
 import { YesNoSelector } from "./YesNoSelector";
+import { Form } from "./DelegateStatementForm";
 
-export function OtherInfoFormSection() {
+type Props = {
+  form: Form;
+};
+
+export function OtherInfoFormSection({ form }: Props) {
   return (
     <div className={formSectionContainerStyles}>
       <h3 className={formSectionHeadingStyle}>Other info</h3>
@@ -19,14 +24,29 @@ export function OtherInfoFormSection() {
           margin-top: ${theme.spacing["4"]};
         `}
       >
-        <InputGroup title="Twitter" placeholder="@yourname" />
-        <InputGroup title="Discord" placeholder="yourname#2142" />
+        <InputGroup
+          title="Twitter"
+          placeholder="@yourname"
+          value={form.state.twitter}
+          onChange={form.onChange.twitter}
+        />
+        <InputGroup
+          title="Discord"
+          placeholder="yourname#2142"
+          value={form.state.discord}
+          onChange={form.onChange.discord}
+        />
         <InputGroup
           title="Email (will not be public)"
           placeholder="you@gmail.com"
+          value={form.state.email}
+          onChange={form.onChange.email}
         />
 
-        <YesNoSelector selection={"yes"} onSelectionChanged={console.log} />
+        <YesNoSelector
+          selection={form.state.openToSponsoringProposals}
+          onSelectionChanged={form.onChange.openToSponsoringProposals}
+        />
       </div>
     </div>
   );

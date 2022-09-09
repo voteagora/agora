@@ -5,46 +5,33 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
 import { DelegatesContainer } from "./DelegatesContainer";
-import { PageHeader } from "../../components/PageHeader";
-import { usePrimaryAccount } from "../../components/EthersProviderProvider";
-import { PageContainer } from "../../components/PageContainer";
+import { VStack } from "../../components/VStack";
 
 export function HomePage() {
-  const address = usePrimaryAccount();
-
   const result = useLazyLoadQuery<HomePageQuery>(
     graphql`
-      query HomePageQuery($address: ID!) {
+      query HomePageQuery {
         ...DelegatesContainerFragment
         ...OverviewMetricsContainer
-
-        account(id: $address) {
-          ...PageHeaderFragment
-        }
       }
     `,
-    {
-      address,
-    }
+    {}
   );
 
   return (
-    <PageContainer>
-      <PageHeader accountFragment={result.account} />
+    <>
       <Hero />
       <OverviewMetricsContainer fragmentRef={result} />
       <PageDivider />
       <DelegatesContainer fragmentKey={result} />
-    </PageContainer>
+    </>
   );
 }
 
 function Hero() {
   return (
-    <div
+    <VStack
       className={css`
-        display: flex;
-        flex-direction: column;
         max-width: ${theme.maxWidth["xl"]};
         text-align: center;
 
@@ -53,8 +40,8 @@ function Hero() {
     >
       <h1
         className={css`
-          font-weight: bolder;
-          font-size: ${theme.fontSize["3xl"]};
+          font-weight: ${theme.fontWeight.extrabold};
+          font-size: ${theme.fontSize["2xl"]};
         `}
       >
         Agora is the home of nouns voters
@@ -63,13 +50,13 @@ function Hero() {
       <p
         className={css`
           color: ${theme.colors.gray["700"]};
-          font-size: ${theme.fontSize.sm};
+          font-size: ${theme.fontSize.base};
         `}
       >
         Nouns voters are the stewards for the DAO. You can see them all below,
         delegate your votes to them, or contact them about your ideas.
       </p>
-    </div>
+    </VStack>
   );
 }
 

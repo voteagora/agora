@@ -1,0 +1,14 @@
+schema: ./src/schemas/*.graphql
+generates:
+  src/generated/types.ts:
+    plugins:
+      - "@graphql-codegen/typescript"
+      - "@graphql-codegen/typescript-resolvers"
+    config:
+      mappers:
+        OverallMetrics: ../model#OverallMetrics
+        Address: ../model#Address
+        ResolvedName: ../model#ResolvedName
+        WrappedDelegate: ../model#WrappedDelegate
+        DelegateStatement: ../model#DelegateStatement
+

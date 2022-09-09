@@ -3,8 +3,11 @@ import graphql from "babel-plugin-relay/macro";
 import { BigNumber, utils } from "ethers";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { VoteDetailsFragment$key } from "./__generated__/VoteDetailsFragment.graphql";
+import { VStack } from "../../components/VStack";
+import { shadow } from "./VoterPanel";
+import { useMemo } from "react";
+import { formatDistanceToNow } from "date-fns";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;
@@ -18,66 +21,101 @@ export function VoteDetails({ voteFragment }: Props) {
         reason
         supportDetailed
         votes
+        createdAt
 
         proposal {
           id
-          description
+          title
 
-          values
+          totalValue
         }
       }
     `,
     voteFragment
   );
-
-  // todo: check target
-  const totalValue =
-    vote.proposal.values?.reduce<BigNumber>(
-      (acc, value) => BigNumber.from(value).add(acc),
-      BigNumber.from(0)
-    ) ?? BigNumber.from(0);
-
   const proposalHref = `https://nouns.wtf/vote/${vote.proposal.id}`;
 
   return (
-    <div
+    <VStack
+      gap="3"
       className={css`
         border-radius: ${theme.borderRadius.lg};
         border-width: ${theme.spacing.px};
-        border-color: ${theme.colors.gray["300"]};
+        border-color: ${theme.colors.gray.eb};
         background: ${theme.colors.white};
-        box-shadow: ${theme.boxShadow.default};
-
-        display: flex;
-        flex-direction: column;
-        padding: ${theme.spacing["2"]};
+        box-shadow: ${shadow};
+        padding-bottom: ${theme.spacing["6"]};
+        min-width: 24rem;
+        max-width: 24rem;
+        max-height: 15rem;
+        overflow: hidden;
       `}
     >
-      <div
+      <VStack
+        gap="2"
         className={css`
-          font-size: ${theme.fontSize.sm};
-          color: ${theme.colors.gray["700"]};
+          padding-top: ${theme.spacing["6"]};
+          padding-left: ${theme.spacing["6"]};
+          padding-right: ${theme.spacing["6"]};
+          overflow-y: scroll;
         `}
       >
-        <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
-        <a href={proposalHref}>Prop {vote.proposal.id}</a>
-        {!totalValue.isZero() ? (
-          <> for {utils.formatEther(totalValue)} ETH</>
-        ) : null}{" "}
-        &mdash; with {vote.votes} votes
-      </div>
-      <h2
-        className={css`
-          font-weight: bold;
-          font-size: ${theme.fontSize.lg};
-        `}
-      >
-        <a href={proposalHref}>
-          {getTitleFromProposalDescription(vote.proposal.description)}
-        </a>
-      </h2>
-      <p>{vote.reason}</p>
-    </div>
+        <VStack>
+          <div
+            className={css`
+              font-size: ${theme.fontSize.xs};
+              color: #66676b;
+            `}
+          >
+            <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
+            <a href={proposalHref}>Prop {vote.proposal.id}</a>
+            <ValuePart value={vote.proposal.totalValue} />
+            &mdash; with {vote.votes} votes
+          </div>
+          <div
+            className={css`
+              font-size: ${theme.fontSize.xs};
+              color: #66676b;
+            `}
+          >
+            voted {formatDistanceToNow(new Date(Number(vote.createdAt) * 1000))}{" "}
+            ago
+          </div>
+
+          <h2
+            className={css`
+              font-size: ${theme.fontSize.base};
+
+              overflow: hidden;
+              text-overflow: ellipsis;
+            `}
+          >
+            <a href={proposalHref}>{vote.proposal.title}</a>
+          </h2>
+        </VStack>
+
+        <span
+          className={css`
+            color: #66676b;
+            line-height: ${theme.lineHeight.snug};
+          `}
+        >
+          {vote.reason}
+        </span>
+      </VStack>
+    </VStack>
+  );
+}
+
+type ValuePartProps = {
+  value: string;
+};
+
+export function ValuePart({ value }: ValuePartProps) {
+  const amount = useMemo(() => BigNumber.from(value), [value]);
+
+  return (
+    <>{!amount.isZero() ? <> for {utils.formatEther(amount)} ETH</> : null} </>
   );
 }
 

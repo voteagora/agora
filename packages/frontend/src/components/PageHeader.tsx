@@ -1,28 +1,28 @@
 import { css } from "@emotion/css";
 import * as theme from "../theme";
 import logo from "../logo.svg";
-import { Link } from "react-router-dom";
-import { NounResolvedName } from "./NounResolvedName";
 import { NounGridChildren } from "./NounGrid";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { PageHeaderFragment$key } from "./__generated__/PageHeaderFragment.graphql";
-import { usePrimaryAccount } from "./EthersProviderProvider";
+import { ConnectKitButton } from "connectkit";
+import { useAccount } from "wagmi";
+import { useLazyLoadQuery } from "react-relay/hooks";
+import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
+import { HStack } from "./VStack";
+import { Suspense } from "react";
+import { Link } from "./HammockRouter/HammockRouter";
 
-type Props = {
-  accountFragment: PageHeaderFragment$key | null;
-};
-
-export function PageHeader({ accountFragment }: Props) {
+export function PageHeader() {
   return (
-    <div
+    <HStack
       className={css`
-        display: flex;
-        flex-direction: row;
-        width: ${theme.maxWidth["6xl"]};
+        width: 100%;
+        max-width: ${theme.maxWidth["6xl"]};
         margin: ${theme.spacing["8"]} auto;
-        padding: 0 ${theme.spacing["4"]};
         justify-content: space-between;
+        padding-left: ${theme.spacing["4"]};
+        padding-right: ${theme.spacing["4"]};
       `}
     >
       <Link
@@ -33,34 +33,59 @@ export function PageHeader({ accountFragment }: Props) {
         `}
         to="/"
       >
-        <div
-          className={css`
-            display: flex;
-            flex-direction: row;
-            gap: ${theme.spacing["4"]};
-          `}
-        >
+        <HStack gap="3">
           <img alt="logo" src={logo} />
 
           <span
             className={css`
-              font-size: ${theme.fontSize.sm};
-              color: ${theme.colors.gray["700"]};
+              white-space: nowrap;
+              font-size: ${theme.fontSize.base};
+              font-weight: ${theme.fontWeight.semibold};
+              color: ${theme.colors.gray["800"]};
             `}
           >
             Nouns Agora
           </span>
-        </div>
+        </HStack>
       </Link>
 
-      <div
+      <HStack
+        alignItems="center"
+        gap="3"
         className={css`
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          gap: ${theme.spacing["3"]};
+          height: ${theme.spacing["6"]};
         `}
       >
+        <ConnectKitButton mode="light" />
+
+        <Suspense fallback={null}>
+          <PageHeaderContents />
+        </Suspense>
+      </HStack>
+    </HStack>
+  );
+}
+
+function PageHeaderContents() {
+  const { address: accountAddress } = useAccount();
+
+  const { address } = useLazyLoadQuery<PageHeaderQuery>(
+    graphql`
+      query PageHeaderQuery($address: ID!, $skip: Boolean!) {
+        address(address: $address) @skip(if: $skip) {
+          ...PageHeaderFragment
+        }
+      }
+    `,
+    {
+      address: accountAddress ?? "",
+      skip: !accountAddress,
+    }
+  );
+
+  return (
+    <>
+      {address && (
         <Link
           to="/create"
           className={css`
@@ -69,76 +94,60 @@ export function PageHeader({ accountFragment }: Props) {
             padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
             color: ${theme.colors.gray["200"]};
             background: ${theme.colors.black};
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
 
             :hover {
               background: ${theme.colors.gray["800"]};
             }
           `}
         >
-          Create
+          <div>Create</div>
         </Link>
-        <OwnedNounsPanel accountFragment={accountFragment} />
-      </div>
-    </div>
+      )}
+
+      {address && <OwnedNounsPanel fragment={address} />}
+    </>
   );
 }
 
 type OwnedNounsPanelProps = {
-  accountFragment: PageHeaderFragment$key | null;
+  fragment: PageHeaderFragment$key;
 };
 
-function OwnedNounsPanel({ accountFragment }: OwnedNounsPanelProps) {
-  const address = usePrimaryAccount();
+function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
+  const { account } = useFragment(
+    graphql`
+      fragment PageHeaderFragment on Address {
+        account {
+          nouns {
+            id
+            ...NounImageFragment
+          }
+        }
+      }
+    `,
+    fragment
+  );
+
+  if (!account || !account.nouns.length) {
+    return null;
+  }
 
   return (
-    <div
+    <HStack
       className={css`
         border-color: ${theme.colors.gray["300"]};
         border-width: ${theme.spacing.px};
         border-radius: ${theme.borderRadius.lg};
-        box-shadow: ${theme.boxShadow.md};
-
-        display: flex;
-        flex-direction: row;
+        box-shadow: ${theme.boxShadow.newDefault};
+        background: ${theme.colors.white};
       `}
     >
-      {accountFragment && <OwnedNouns accountFragment={accountFragment} />}
-
-      <div
+      <HStack
+        gap="1"
         className={css`
-          padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
-        `}
-      >
-        <NounResolvedName address={address} />
-      </div>
-    </div>
-  );
-}
-
-type OwnedNounsProps = {
-  accountFragment: PageHeaderFragment$key;
-};
-
-export function OwnedNouns({ accountFragment }: OwnedNounsProps) {
-  const account = useFragment(
-    graphql`
-      fragment PageHeaderFragment on Account {
-        nouns {
-          id
-          ...NounImageFragment
-        }
-      }
-    `,
-    accountFragment
-  );
-
-  return (
-    <>
-      <div
-        className={css`
-          display: flex;
-          flex-direction: row;
-          gap: ${theme.spacing["1"]};
           align-items: center;
 
           padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
@@ -150,14 +159,7 @@ export function OwnedNouns({ accountFragment }: OwnedNounsProps) {
           imageSize={"5"}
           overflowFontSize={"sm"}
         />
-      </div>
-
-      <div
-        className={css`
-          width: ${theme.spacing.px};
-          background: ${theme.colors.gray["300"]};
-        `}
-      />
-    </>
+      </HStack>
+    </HStack>
   );
 }
