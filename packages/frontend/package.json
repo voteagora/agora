@@ -2,7 +2,7 @@
   "name": "nouns-agora",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://nouns-agora-dev.act.workers.dev/",
+  "proxy": "http://localhost:4001/",
   "dependencies": {
     "@emotion/css": "^11.10.0",
     "@graphql-tools/schema": "^9.0.2",
