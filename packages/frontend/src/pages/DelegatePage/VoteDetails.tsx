@@ -17,14 +17,13 @@ export function VoteDetails({ voteFragment }: Props) {
   const vote = useFragment(
     graphql`
       fragment VoteDetailsFragment on Vote {
-        id
         reason
         supportDetailed
         votes
         createdAt
 
         proposal {
-          id
+          number
           title
 
           totalValue
@@ -33,7 +32,7 @@ export function VoteDetails({ voteFragment }: Props) {
     `,
     voteFragment
   );
-  const proposalHref = `https://nouns.wtf/vote/${vote.proposal.id}`;
+  const proposalHref = `https://nouns.wtf/vote/${vote.proposal.number}`;
 
   return (
     <VStack
@@ -68,7 +67,7 @@ export function VoteDetails({ voteFragment }: Props) {
             `}
           >
             <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
-            <a href={proposalHref}>Prop {vote.proposal.id}</a>
+            <a href={proposalHref}>Prop {vote.proposal.number}</a>
             <ValuePart value={vote.proposal.totalValue} />
             &mdash; with {vote.votes} votes
           </div>

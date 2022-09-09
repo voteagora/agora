@@ -77,6 +77,7 @@ function ProposalList({
           orderBy: createdBlock
         ) {
           id
+          number
           title
         }
       }
@@ -94,7 +95,7 @@ function ProposalList({
         return {
           id: proposal.id,
           title,
-          searchValue: `#${proposal.id} ${title ?? ""}`.toLowerCase(),
+          searchValue: `#${proposal.number} ${title ?? ""}`.toLowerCase(),
         };
       }),
     [allProposals]
