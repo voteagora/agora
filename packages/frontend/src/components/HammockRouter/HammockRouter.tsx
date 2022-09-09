@@ -1,9 +1,11 @@
 import {
   createContext,
   ReactNode,
+  TransitionStartFunction,
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useState,
   useTransition,
 } from "react";
@@ -47,6 +49,9 @@ const NavigateContext = createContext<
   ((nextPath: string, asTransition?: boolean) => void) | null
 >(null);
 const IsPendingContext = createContext<boolean | null>(null);
+const StartTransitionContext = createContext<TransitionStartFunction | null>(
+  null
+);
 
 function findMatchingRoute(path: string, routes: Route[]) {
   for (const { route, index } of routes.map((route, index) => ({
@@ -117,7 +122,9 @@ export function HammockRouter({ children }: Props) {
     <CurrentRouteContext.Provider value={currentRoute}>
       <NavigateContext.Provider value={navigate}>
         <IsPendingContext.Provider value={isPending}>
-          {children}
+          <StartTransitionContext.Provider value={startTransition}>
+            {children}
+          </StartTransitionContext.Provider>
         </IsPendingContext.Provider>
       </NavigateContext.Provider>
     </CurrentRouteContext.Provider>
@@ -126,6 +133,10 @@ export function HammockRouter({ children }: Props) {
 
 export function HammockRouterContents() {
   const currentRoute = useCurrentRoute();
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentRoute]);
 
   const Element = routes[currentRoute.index].element;
   return <Element />;
@@ -147,11 +158,19 @@ export function useParams() {
   return useCurrentRoute().match?.params as Record<string, string>;
 }
 
+export function useStartTransition() {
+  return useContext(StartTransitionContext)!;
+}
+
 type LinkProps = {
   to: string;
   className?: string;
   children: ReactNode;
 };
+
+function isModifiedEvent(event: React.MouseEvent) {
+  return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
+}
 
 export function Link({ to, className, children }: LinkProps) {
   const navigate = useNavigate();
@@ -161,6 +180,14 @@ export function Link({ to, className, children }: LinkProps) {
       className={className}
       href={to}
       onClick={(event) => {
+        if (event.button !== 0) {
+          return;
+        }
+
+        if (isModifiedEvent(event)) {
+          return;
+        }
+
         event.preventDefault();
         navigate(to, true);
       }}

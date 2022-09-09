@@ -58,24 +58,51 @@ export function DelegatePage() {
   return (
     <>
       <HStack
-        justifyContent="space-between"
         gap="16"
+        justifyContent="space-between"
+        alignItems="flex-start"
         className={css`
           margin: ${theme.spacing["16"]};
           margin-top: ${theme.spacing["8"]};
+          padding-left: ${theme.spacing["4"]};
+          padding-right: ${theme.spacing["4"]};
           width: 100%;
           max-width: ${theme.maxWidth["6xl"]};
         `}
       >
-        <div
+        <VStack
           className={css`
-            width: ${theme.maxWidth.sm};
+            position: sticky;
+            top: ${theme.spacing["16"]};
+            flex-shrink: 0;
+            width: ${theme.maxWidth.xs};
           `}
         >
           <VoterPanel delegateFragment={query.address} queryFragment={query} />
-        </div>
 
-        <VStack gap="8">
+          {!wrappedDelegate.statement && (
+            <div
+              className={css`
+                color: #66676b;
+                line-height: ${theme.lineHeight.normal};
+                font-size: ${theme.fontSize.xs};
+                padding: ${theme.spacing["2"]};
+              `}
+            >
+              This voter has not submitted a statement. Is this you? Connect
+              your wallet to verify your address, and tell your community what
+              you’d like to see.
+            </div>
+          )}
+        </VStack>
+
+        <VStack
+          gap="8"
+          className={css`
+            min-width: 0;
+            flex: 1;
+          `}
+        >
           {wrappedDelegate.statement?.statement && (
             <VStack gap="4">
               <h2
@@ -118,21 +145,35 @@ export function DelegatePage() {
                         border-radius: ${theme.spacing["3"]};
                         border: 1px solid #ebebeb;
                         box-shadow: ${theme.boxShadow.newDefault};
+                        background: ${theme.colors.white};
                         padding: ${theme.spacing["3"]};
                         background-color: ${theme.colors.white};
                       `}
                     >
-                      <HStack gap="4">
-                        <VStack justifyContent="center">
-                          <img
-                            src={icons[issueDef.icon]}
+                      <HStack gap="4" alignItems="flex-start">
+                        <VStack
+                          justifyContent="center"
+                          className={css`
+                            flex-shrink: 0;
+                          `}
+                        >
+                          <VStack
                             className={css`
                               padding: ${theme.spacing["3"]};
                               border-radius: ${theme.spacing["2"]};
                               box-shadow: ${theme.boxShadow.newDefault};
                               border: 1px solid #ebebeb;
                             `}
-                          />
+                          >
+                            <img
+                              src={icons[issueDef.icon]}
+                              alt={issueDef.title}
+                              className={css`
+                                width: ${theme.spacing["6"]};
+                                height: ${theme.spacing["6"]};
+                              `}
+                            />
+                          </VStack>
                         </VStack>
 
                         <VStack>

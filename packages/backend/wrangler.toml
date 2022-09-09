@@ -1,6 +1,7 @@
 name = "nouns-agora-dev"
 compatibility_date = "2022-09-04"
 main = "dist/worker.js"
+account_id = "86fdf8ef811b4d0aa8954fa036684ea3"
 
 vars = { ENVIRONMENT = "dev" }
 
@@ -13,7 +14,7 @@ name = "nouns-agora"
 vars = { ENVIRONMENT = "prod" }
 
 [build]
-command = "yarn bundle-worker"
+command = "yarn build-worker"
 
 [site]
 bucket = "../frontend/build"
