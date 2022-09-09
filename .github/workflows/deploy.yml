@@ -36,4 +36,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           workingDirectory: ./packages/backend
-          command: publish --env ${{ github.event.inputs.environment || "staging" }}
+          command: publish --env ${{ github.event.inputs.environment || 'staging' }}
