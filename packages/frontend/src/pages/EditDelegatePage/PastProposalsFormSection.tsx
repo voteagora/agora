@@ -93,7 +93,7 @@ function ProposalList({
         const title = proposal.title;
 
         return {
-          id: proposal.id,
+          number: proposal.number,
           title,
           searchValue: `#${proposal.number} ${title ?? ""}`.toLowerCase(),
         };
@@ -116,9 +116,9 @@ function ProposalList({
   );
 
   const removeSelectedProposal = useCallback(
-    function removeSelectedProposal(id: string) {
+    function removeSelectedProposal(number: number) {
       setSelectedProposals((oldProposals) =>
-        oldProposals.filter((proposal) => proposal.id !== id)
+        oldProposals.filter((proposal) => proposal.number !== number)
       );
     },
     [setSelectedProposals]
@@ -128,7 +128,7 @@ function ProposalList({
     () =>
       selectedProposals.flatMap((selectedProposal) => {
         const proposal = mappedProposals.find(
-          (needle) => needle.id === selectedProposal.id
+          (needle) => needle.number === selectedProposal.number
         );
         if (!proposal) {
           return [];
@@ -151,7 +151,7 @@ function ProposalList({
 
   const handleSuggestedProposalClicked = useCallback(
     function handleSuggestedProposalClicked(proposal: SearchableProposal) {
-      setSelectedProposals((last) => [...last, { id: proposal.id }]);
+      setSelectedProposals((last) => [...last, { number: proposal.number }]);
       setFilterText("");
       setBlurred();
     },
@@ -180,7 +180,7 @@ function ProposalList({
       {selectedProposalsWithSearchableProposal.map((proposal) => (
         <ProposalCard
           proposal={proposal}
-          onClose={() => removeSelectedProposal(proposal.id)}
+          onClose={() => removeSelectedProposal(proposal.number)}
         />
       ))}
 
@@ -219,7 +219,7 @@ function ProposalList({
           {isFocused &&
             filteredProposals.map((proposal) => (
               <ProposalCard
-                key={proposal.id}
+                key={proposal.number}
                 proposal={proposal}
                 onClick={() => handleSuggestedProposalClicked(proposal)}
               />
@@ -231,11 +231,11 @@ function ProposalList({
 }
 
 export type SelectedProposal = {
-  id: string;
+  number: number;
 };
 
 type SearchableProposal = {
-  id: string;
+  number: number;
   title: string | null;
   searchValue: string;
 };
@@ -247,7 +247,8 @@ function proposalsNotIncludingSelected(
   return proposals.filter(
     (searchableProposal) =>
       !selected.find(
-        (selectedProposal) => selectedProposal.id === searchableProposal.id
+        (selectedProposal) =>
+          selectedProposal.number === searchableProposal.number
       )
   );
 }
@@ -293,7 +294,7 @@ function ProposalCard({ proposal, onClick, onClose }: ProposalCardProps) {
           padding: ${theme.spacing["3"]} ${theme.spacing["3"]};
         `}
       >
-        #{proposal.id} - {proposal.title}
+        #{proposal.number} - {proposal.title}
       </div>
 
       {onClose && <CloseButton onClick={onClose} />}
