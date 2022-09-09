@@ -68,11 +68,11 @@ export function DelegateStatementForm({
             statement {
               statement
               mostValuableProposals {
-                id
+                number
               }
 
               leastValuableProposals {
-                id
+                number
               }
 
               discord
