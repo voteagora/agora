@@ -13,7 +13,7 @@ name = "nouns-agora"
 vars = { ENVIRONMENT = "prod" }
 
 [build]
-command = "yarn bundle-worker"
+command = "yarn build-worker"
 
 [site]
 bucket = "../frontend/build"
