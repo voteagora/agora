@@ -33,3 +33,8 @@ const removeItalics = (text: string | null): string | null =>
 export function getTitleFromProposalDescription(description: string) {
   return removeItalics(removeBold(extractTitle(description))) ?? "Untitled";
 }
+
+export function extractFirstParagraph(tokens: any[]): null | string {
+  const firstParagraph = tokens.find((token) => token.type === "paragraph");
+  return firstParagraph?.text;
+}

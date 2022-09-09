@@ -7,6 +7,7 @@ import { VoteDetailsFragment$key } from "./__generated__/VoteDetailsFragment.gra
 import { VStack } from "../../components/VStack";
 import { shadow } from "./VoterPanel";
 import { useMemo } from "react";
+import { formatDistanceToNow } from "date-fns";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;
@@ -16,13 +17,13 @@ export function VoteDetails({ voteFragment }: Props) {
   const vote = useFragment(
     graphql`
       fragment VoteDetailsFragment on Vote {
-        id
         reason
         supportDetailed
         votes
+        createdAt
 
         proposal {
-          id
+          number
           title
 
           totalValue
@@ -31,40 +32,75 @@ export function VoteDetails({ voteFragment }: Props) {
     `,
     voteFragment
   );
-
-  const proposalHref = `https://nouns.wtf/vote/${vote.proposal.id}`;
+  const proposalHref = `https://nouns.wtf/vote/${vote.proposal.number}`;
 
   return (
     <VStack
+      gap="3"
       className={css`
         border-radius: ${theme.borderRadius.lg};
         border-width: ${theme.spacing.px};
         border-color: ${theme.colors.gray.eb};
         background: ${theme.colors.white};
         box-shadow: ${shadow};
-
-        padding: ${theme.spacing["5"]};
+        padding-bottom: ${theme.spacing["6"]};
+        min-width: 24rem;
+        max-width: 24rem;
+        max-height: 15rem;
+        overflow: hidden;
       `}
     >
-      <div
+      <VStack
+        gap="2"
         className={css`
-          font-size: ${theme.fontSize.xs};
-          color: ${theme.colors.gray["700"]};
+          padding-top: ${theme.spacing["6"]};
+          padding-left: ${theme.spacing["6"]};
+          padding-right: ${theme.spacing["6"]};
+          overflow-y: scroll;
+          color: #66676b;
         `}
       >
-        <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
-        <a href={proposalHref}>Prop {vote.proposal.id}</a>
-        <ValuePart value={vote.proposal.totalValue} />
-         with {vote.votes} votes
-      </div>
-      <h2
-        className={css`
-          font-size: ${theme.fontSize.base};
-        `}
-      >
-        <a href={proposalHref}>{vote.proposal.title}</a>
-      </h2>
-      <p>{vote.reason}</p>
+        <VStack>
+          <div
+            className={css`
+              font-size: ${theme.fontSize.xs};
+            `}
+          >
+            <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
+            <a href={proposalHref}>Prop {vote.proposal.number}</a>
+            <ValuePart value={vote.proposal.totalValue} />
+            &mdash; with {vote.votes} votes
+          </div>
+          <div
+            className={css`
+              font-size: ${theme.fontSize.xs};
+            `}
+          >
+            voted {formatDistanceToNow(new Date(Number(vote.createdAt) * 1000))}{" "}
+            ago
+          </div>
+
+          <h2
+            className={css`
+              font-size: ${theme.fontSize.base};
+
+              overflow: hidden;
+              text-overflow: ellipsis;
+            `}
+          >
+            <a href={proposalHref}>{vote.proposal.title}</a>
+          </h2>
+        </VStack>
+
+        <span
+          className={css`
+            color: #66676b;
+            line-height: ${theme.lineHeight.snug};
+          `}
+        >
+          {vote.reason}
+        </span>
+      </VStack>
     </VStack>
   );
 }

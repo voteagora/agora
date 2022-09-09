@@ -5,13 +5,14 @@ import * as theme from "../../theme";
 import { VoterCard } from "./VoterCard";
 import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import {
   WrappedDelegatesOrder,
   WrappedDelegatesWhere,
 } from "./__generated__/DelegatesContainerPaginationQuery.graphql";
 import { Selector, SelectorItem } from "./Selector";
 import { motion } from "framer-motion";
+import InfiniteScroll from "react-infinite-scroller";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -20,6 +21,8 @@ type Props = {
 const orderNames: { [K in WrappedDelegatesOrder]?: string } = {
   mostNounsRepresented: "Most nouns represented",
   mostRecentlyActive: "Most recently active",
+  mostVotesCast: "Most votes cast",
+  leastVotesCast: "Least votes cast",
 };
 
 export function DelegatesContainer({ fragmentKey }: Props) {
@@ -68,6 +71,10 @@ export function DelegatesContainer({ fragmentKey }: Props) {
     fragmentKey
   );
 
+  const loadMore = useCallback(() => {
+    loadNext(30);
+  }, [loadNext]);
+
   return (
     <VStack
       alignItems="center"
@@ -76,8 +83,8 @@ export function DelegatesContainer({ fragmentKey }: Props) {
         max-width: ${theme.maxWidth["6xl"]};
         padding-top: ${theme.spacing["16"]};
         padding-bottom: ${theme.spacing["16"]};
-        /* padding-left: ${theme.spacing["4"]}; */
-        /* padding-right: ${theme.spacing["4"]}; */
+        padding-left: ${theme.spacing["4"]};
+        padding-right: ${theme.spacing["4"]};
       `}
     >
       <VStack
@@ -145,21 +152,43 @@ export function DelegatesContainer({ fragmentKey }: Props) {
       <motion.div
         initial={{ opacity: 1 }}
         animate={{ opacity: isPending ? 0.3 : 1 }}
-        transition={{ duration: 0.3, delay: 0.3 }}
+        transition={{ duration: 0.3, delay: isPending ? 0.3 : 0 }}
         className={css`
-          display: grid;
-          grid-template-columns: repeat(3, calc(${theme.spacing["12"]} * 7.55));
-          gap: ${theme.spacing["8"]};
           width: 100%;
           /* max-width: ${theme.maxWidth["6xl"]}; */
         `}
       >
-        {voters.edges.map(({ node: voter }) => (
-          <VoterCard key={voter.id} fragmentRef={voter} />
-        ))}
+        <InfiniteScroll loadMore={loadMore} hasMore={hasNext}>
+          <div
+            className={css`
+              display: grid;
+              grid-auto-flow: row;
+              justify-content: space-between;
+              grid-template-columns: repeat(3, 23rem);
+              gap: ${theme.spacing["8"]};
 
-        {isLoadingNext && <div>loading</div>}
-        {hasNext && <button onClick={() => loadNext(30)}>Load More!</button>}
+              @media (max-width: ${theme.maxWidth["6xl"]}) {
+                grid-template-columns: repeat(auto-fit, 23rem);
+                justify-content: space-around;
+              }
+            `}
+          >
+            {voters.edges.map(({ node: voter }) => (
+              <VoterCard key={voter.id} fragmentRef={voter} />
+            ))}
+          </div>
+        </InfiniteScroll>
+
+        {isLoadingNext && (
+          <HStack
+            justifyContent="center"
+            className={css`
+              padding-top: ${theme.spacing["16"]};
+            `}
+          >
+            Loading...
+          </HStack>
+        )}
       </motion.div>
     </VStack>
   );

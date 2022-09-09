@@ -22,7 +22,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
           orderBy: tokenHoldersRepresentedAmount
           orderDirection: desc
         ) {
-          id
+          __typename
         }
 
         metrics {
@@ -49,10 +49,16 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
       justifyContent="space-between"
       gap="4"
       className={css`
-        z-index: 1;
-        width: 100%;
         max-width: ${theme.maxWidth["6xl"]};
+        width: 100%;
         flex-wrap: wrap;
+
+        padding-left: ${theme.spacing["4"]};
+        padding-right: ${theme.spacing["4"]};
+
+        @media (max-width: ${theme.maxWidth["6xl"]}) {
+          justify-content: center;
+        }
       `}
     >
       {/*todo: review this metric*/}

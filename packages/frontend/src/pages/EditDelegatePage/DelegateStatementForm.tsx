@@ -1,4 +1,4 @@
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import * as theme from "../../theme";
 import {
   DelegateStatementFormSection,
@@ -26,6 +26,7 @@ import { DelegateStatementFormFragment$key } from "./__generated__/DelegateState
 
 type DelegateStatementFormProps = {
   queryFragment: DelegateStatementFormFragment$key;
+  className: string;
 };
 
 type FormValues = {
@@ -56,6 +57,7 @@ export type Form = UseForm<FormValues>;
 
 export function DelegateStatementForm({
   queryFragment,
+  className,
 }: DelegateStatementFormProps) {
   const data = useFragment(
     graphql`
@@ -66,11 +68,11 @@ export function DelegateStatementForm({
             statement {
               statement
               mostValuableProposals {
-                id
+                number
               }
 
               leastValuableProposals {
-                id
+                number
               }
 
               discord
@@ -165,14 +167,17 @@ export function DelegateStatementForm({
 
   return (
     <VStack
-      className={css`
-        width: 100%;
-        background-color: ${theme.colors.white};
-        border-radius: ${theme.spacing["3"]};
-        border-width: ${theme.spacing.px};
-        border-color: ${theme.colors.gray["300"]};
-        box-shadow: ${theme.boxShadow.newDefault};
-      `}
+      className={cx(
+        css`
+          width: 100%;
+          background-color: ${theme.colors.white};
+          border-radius: ${theme.spacing["3"]};
+          border-width: ${theme.spacing.px};
+          border-color: ${theme.colors.gray["300"]};
+          box-shadow: ${theme.boxShadow.newDefault};
+        `,
+        className
+      )}
     >
       <DelegateStatementFormSection form={form} />
       <TopIssuesFormSection form={form} />
