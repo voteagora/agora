@@ -146,6 +146,7 @@ export function DelegateProfileImage({
         border-radius: ${theme.borderRadius.full};
         border: 1px solid ${theme.colors.gray.eb};
         box-shadow: ${theme.boxShadow.newDefault};
+        margin: ${theme.spacing["4"]} 0;
       `}
     >
       <img src={icons.anonNoun} alt={"anon noun"} />
@@ -160,20 +161,23 @@ export function DelegateProfileImage({
       </div>
     </HStack>
   ) : !delegate.delegate.nounsRepresented.length ? (
-    <div
+    <VStack
+      justifyContent="center"
+      alignItems="center"
       className={css`
         color: #afafaf;
+        min-height: 44px;
+        font-size: ${theme.fontSize.sm};
         margin: 0 ${theme.spacing["10"]};
-        text-align: center;
         border-radius: ${theme.borderRadius.full};
         border: 1px solid ${theme.colors.gray.eb};
         box-shadow: ${theme.boxShadow.newDefault};
-        padding: ${theme.spacing["4"]};
+        margin: ${theme.spacing["4"]} 0;
         width: 100%;
       `}
     >
       No longer has votes
-    </div>
+    </VStack>
   ) : (
     <NounsRepresentedGrid
       rows={3}
