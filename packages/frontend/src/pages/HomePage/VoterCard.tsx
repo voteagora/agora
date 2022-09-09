@@ -1,11 +1,14 @@
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { Link } from "react-router-dom";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql";
 import { NounResolvedName } from "../../components/NounResolvedName";
 import { NounsRepresentedGrid } from "../../components/NounGrid";
+import { HStack, VStack } from "../../components/VStack";
+import { icons } from "../../icons/icons";
+import { Link } from "../../components/HammockRouter/HammockRouter";
+import { VoterPanelActions } from "../DelegatePage/VoterPanel";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
@@ -14,57 +17,118 @@ type VoterCardProps = {
 export function VoterCard({ fragmentRef }: VoterCardProps) {
   const delegate = useFragment(
     graphql`
-      fragment VoterCardFragment on Delegate {
+      fragment VoterCardFragment on WrappedDelegate {
         id
+        ...VoterPanelActionsFragment
 
-        votes {
-          id
+        address {
+          resolvedName {
+            ...NounResolvedNameFragment
+          }
         }
 
-        ...NounGridFragment
+        statement {
+          statement
+          summary
+        }
+
+        delegate {
+          id
+
+          votes {
+            id
+          }
+
+          nounsRepresented {
+            id
+          }
+
+          ...NounGridFragment
+        }
       }
     `,
     fragmentRef
   );
 
   return (
-    <Link to={`/delegate/${delegate.id}`}>
-      <div
+    <Link
+      to={`/delegate/${delegate.id}`}
+      className={css`
+        display: flex;
+        flex-direction: column;
+      `}
+    >
+      <VStack
+        gap="4"
         className={css`
-          display: flex;
-          flex-direction: column;
-          padding: ${theme.spacing["4"]};
-
-          border-radius: ${theme.borderRadius.lg};
+          max-height: 28rem;
+          height: 100%;
+          padding: ${theme.spacing["6"]};
+          border-radius: ${theme.spacing["3"]};
           background: ${theme.colors.white};
           border-width: ${theme.spacing.px};
-          border: ${theme.colors.gray["300"]};
-          border-style: solid;
-          box-shadow: ${theme.boxShadow.lg};
+          border-color: ${theme.colors.gray["300"]};
+          box-shadow: ${theme.boxShadow.newDefault};
           cursor: pointer;
-
-          :hover {
-            box-shadow: ${theme.boxShadow.xl};
-          }
         `}
       >
-        <NounsRepresentedGrid fragmentKey={delegate} />
-        <div
-          className={css`
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
+        {!!delegate?.delegate?.nounsRepresented?.length ? (
+          <VStack
+            justifyContent="center"
+            alignItems="center"
+            className={css`
+              flex: 1;
+            `}
+          >
+            <NounsRepresentedGrid
+              rows={3}
+              columns={5}
+              gap="4"
+              imageSize="12"
+              overflowFontSize="base"
+              fragmentKey={delegate.delegate}
+            />
+          </VStack>
+        ) : (
+          <HStack>
+            <img src={icons.anonNoun} />
+          </HStack>
+        )}
 
-            margin-top: ${theme.spacing["4"]};
+        <HStack
+          justifyContent="space-between"
+          className={css`
+            margin-top: ${theme.spacing["2"]};
           `}
         >
-          <div>
-            <NounResolvedName address={delegate.id} />
+          <div
+            className={css`
+              font-weight: ${theme.fontWeight.semibold};
+            `}
+          >
+            <NounResolvedName resolvedName={delegate.address.resolvedName} />
           </div>
 
-          <div>Voted {delegate.votes.length} times</div>
-        </div>
-      </div>
+          {delegate.delegate && (
+            <div>Voted {delegate.delegate.votes.length} times</div>
+          )}
+        </HStack>
+
+        {delegate.statement?.summary && (
+          <div
+            className={css`
+              color: #66676b;
+              flex: 1;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            `}
+          >
+            {delegate.statement.summary}
+          </div>
+        )}
+
+        <VoterPanelActions fragment={delegate} />
+      </VStack>
     </Link>
   );
 }

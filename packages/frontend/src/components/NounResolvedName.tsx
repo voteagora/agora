@@ -1,27 +1,26 @@
-import { useQuery } from "@tanstack/react-query";
-import {
-  lookupNounNameServiceOrEthereumNameServiceName,
-  shortAddress,
-} from "../utils/address";
-import { useEthersProvider } from "./EthersProviderProvider";
+import { shortAddress } from "../utils/address";
+import { useFragment } from "react-relay";
+import graphql from "babel-plugin-relay/macro";
+import { NounResolvedNameFragment$key } from "./__generated__/NounResolvedNameFragment.graphql";
 
 type Props = {
-  address: string;
+  resolvedName: NounResolvedNameFragment$key;
 };
 
-export function NounResolvedName({ address }: Props) {
-  const provider = useEthersProvider();
+export function NounResolvedName({ resolvedName }: Props) {
+  const { address, name } = useFragment(
+    graphql`
+      fragment NounResolvedNameFragment on ResolvedName {
+        address
+        name
+      }
+    `,
+    resolvedName
+  );
 
-  const { data } = useQuery(["noun-name", address.toLowerCase()], async () => {
-    return await lookupNounNameServiceOrEthereumNameServiceName(
-      provider,
-      address
-    );
-  });
-
-  if (!data) {
+  if (!name) {
     return <>{shortAddress(address)}</>;
   }
 
-  return <>{data}</>;
+  return <>{name}</>;
 }

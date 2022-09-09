@@ -1,8 +1,5 @@
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { useNounsCount } from "../../hooks/useNounsCount";
-import { useProposalsCount } from "../../hooks/useProposalsCount";
-import { useQuorumVotes } from "../../hooks/useQuorumVotes";
 import { intersection } from "../../utils/set";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
@@ -15,6 +12,19 @@ import { VoterPanelDelegateFragment$key } from "./__generated__/VoterPanelDelega
 import { VoterPanelQueryFragment$key } from "./__generated__/VoterPanelQueryFragment.graphql";
 import { icons } from "../../icons/icons";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
+import { HStack, VStack } from "../../components/VStack";
+import { VoterPanelSocialButtonsFragment$key } from "./__generated__/VoterPanelSocialButtonsFragment.graphql";
+import { VoterPanelDelegateButtonFragment$key } from "./__generated__/VoterPanelDelegateButtonFragment.graphql";
+import { VoterPanelActionsFragment$key } from "./__generated__/VoterPanelActionsFragment.graphql";
+import { ReactNode, useMemo, useState } from "react";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { VoterPanelDelegateFromListFragment$key } from "./__generated__/VoterPanelDelegateFromListFragment.graphql";
+import { VoterPanelNameSectionFragment$key } from "./__generated__/VoterPanelNameSectionFragment.graphql";
+import { shortAddress } from "../../utils/address";
+import { Textfit } from "react-textfit";
+import { DelegateDialog } from "../../components/DelegateDialog";
+import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
+import toast from "react-hot-toast";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -22,361 +32,585 @@ type Props = {
 };
 
 export function VoterPanel({ delegateFragment, queryFragment }: Props) {
-  const delegate = useFragment(
+  const address = useFragment(
     graphql`
-      fragment VoterPanelDelegateFragment on Delegate {
-        id
-
-        ...NounGridFragment
-        nounsRepresented {
-          owner {
-            id
-          }
+      fragment VoterPanelDelegateFragment on Address {
+        resolvedName {
+          ...VoterPanelNameSectionFragment
         }
 
-        tokenHoldersRepresented {
-          id
+        wrappedDelegate {
+          ...VoterPanelActionsFragment
 
-          nouns {
+          delegate {
             id
-            ...NounImageFragment
+
+            ...NounGridFragment
+            nounsRepresented {
+              id
+
+              owner {
+                id
+              }
+            }
+
+            ...VoterPanelDelegateFromListFragment
+
+            voteSummary {
+              forVotes
+              againstVotes
+              abstainVotes
+            }
+
+            votes(orderBy: blockNumber, orderDirection: desc) {
+              id
+
+              proposal {
+                id
+              }
+            }
+
+            proposals {
+              id
+            }
           }
-        }
-
-        votes(orderBy: blockNumber, orderDirection: desc) {
-          id
-
-          proposal {
-            id
-          }
-        }
-
-        proposals {
-          id
         }
       }
     `,
     delegateFragment
   );
 
-  const { proposals } = useFragment(
+  const delegate = address.wrappedDelegate.delegate;
+
+  const { recentProposals, metrics } = useFragment(
     graphql`
       fragment VoterPanelQueryFragment on Query {
-        proposals(orderBy: createdBlock, orderDirection: desc, first: 10) {
+        recentProposals: proposals(
+          orderBy: createdBlock
+          orderDirection: desc
+          first: 10
+        ) {
           id
+        }
+
+        metrics {
+          totalSupply
+          proposalCount
+          quorumVotes
         }
       }
     `,
     queryFragment
   );
 
-  // todo: there is a waterfall here
-  const totalSupply = useNounsCount();
-  const proposalsCount = useProposalsCount();
-  const quorumVotes = useQuorumVotes();
-
   const lastTenProposals = new Set(
-    proposals.slice(0, 10).map((proposal) => proposal.id)
-  );
-  const votedProposals = new Set(
-    delegate.votes.map((vote) => vote.proposal.id)
-  );
-
-  const recentParticipation = intersection(lastTenProposals, votedProposals);
-
-  const tokenHolders = delegate.tokenHoldersRepresented.filter(
-    (holder) => !!holder.nouns.length
+    recentProposals.slice(0, 10).map((proposal) => proposal.id)
   );
 
   return (
-    <div className={containerStyles}>
-      <div
+    <VStack
+      className={css`
+        background-color: ${theme.colors.white};
+        border-radius: ${theme.spacing["3"]};
+        border-width: ${theme.spacing.px};
+        border-color: ${theme.colors.gray["300"]};
+        box-shadow: ${theme.boxShadow.newDefault};
+      `}
+    >
+      <VStack
+        alignItems="center"
         className={css`
           padding: ${theme.spacing["4"]};
           border-bottom: ${theme.spacing.px} solid ${theme.colors.gray["300"]};
         `}
       >
-        <NounsRepresentedGrid fragmentKey={delegate} />
-      </div>
+        {!delegate?.nounsRepresented.length ? (
+          <div
+            className={css`
+              padding: ${theme.spacing["8"]} ${theme.spacing["10"]};
+            `}
+          >
+            <HStack
+              gap="2"
+              alignItems="center"
+              className={css`
+                border-radius: ${theme.borderRadius.default};
+                border: 1px solid #ebebeb;
+                padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
+              `}
+            >
+              <div
+                className={css`
+                  background: #3dbf00;
+                  border-radius: ${theme.spacing["1"]};
+                  width: ${theme.spacing["1"]};
+                  height: ${theme.spacing["1"]};
+                `}
+              />
+
+              <div
+                className={css`
+                  font-size: ${theme.fontSize.xs};
+                  white-space: nowrap;
+                `}
+              >
+                Currently seeking delegation
+              </div>
+            </HStack>
+          </div>
+        ) : (
+          <NounsRepresentedGrid
+            fragmentKey={delegate}
+            imageSize="10"
+            gap="2"
+            overflowFontSize="base"
+            rows={3}
+            columns={6}
+          />
+        )}
+      </VStack>
 
       <div
         className={css`
-          ${voterPanelDetailsContainerStyle};
+          ${css`
+            display: flex;
+            flex-direction: column;
+            padding: ${theme.spacing["6"]} ${theme.spacing["6"]};
+          `};
         `}
       >
-        <NameSection
-          address={delegate.id}
-          votes={delegate.nounsRepresented.length}
-        />
+        <NameSection resolvedName={address.resolvedName} />
 
         <div className={panelRowContainerStyles}>
           <PanelRow
+            title={"Nouns represented"}
+            detail={
+              !delegate ? "N/A" : `${delegate.nounsRepresented.length} votes`
+            }
+          />
+
+          <PanelRow
             title="Proposals voted"
-            detail={`${delegate.votes.length} (${(
-              (delegate.votes.length / proposalsCount.toNumber()) *
-              100
-            ).toFixed(0)}%)`}
+            detail={
+              !delegate
+                ? "N/A"
+                : `${delegate.votes.length} (${(
+                    (delegate.votes.length / Number(metrics.proposalCount)) *
+                    100
+                  ).toFixed(0)}%)`
+            }
           />
 
           <PanelRow
             title="Voting power"
-            detail={`${(
-              (delegate.nounsRepresented.length / totalSupply.toNumber()) *
-              100
-            ).toFixed(0)}% all / ${(
-              (delegate.nounsRepresented.length / quorumVotes.toNumber()) *
-              100
-            ).toFixed(0)}% quorum`}
+            detail={
+              !delegate
+                ? "N/A"
+                : `${(
+                    (delegate.nounsRepresented.length /
+                      Number(metrics.totalSupply)) *
+                    100
+                  ).toFixed(0)}% all / ${(
+                    (delegate.nounsRepresented.length /
+                      Number(metrics.quorumVotes)) *
+                    100
+                  ).toFixed(0)}% quorum`
+            }
           />
 
           <PanelRow
-            title="Recent activity"
-            detail={`${recentParticipation.size} of ${lastTenProposals.size} last props`}
+            title="For / Against / Abstain"
+            detail={(() => {
+              if (!delegate) {
+                return "N/A";
+              }
+
+              return `${delegate.voteSummary.forVotes} / ${delegate.voteSummary.againstVotes} / ${delegate.voteSummary.abstainVotes}`;
+            })()}
           />
+
+          {(() => {
+            if (!delegate) {
+              return <PanelRow title="Recent activity" detail={`N/A`} />;
+            }
+
+            const votedProposals = new Set(
+              delegate.votes.map((vote) => vote.proposal.id)
+            );
+
+            const recentParticipation = intersection(
+              lastTenProposals,
+              votedProposals
+            );
+
+            return (
+              <PanelRow
+                title="Recent activity"
+                detail={`${recentParticipation.size} of ${lastTenProposals.size} last props`}
+              />
+            );
+          })()}
 
           <PanelRow
             title="Proposals created"
-            detail={`${delegate.proposals.length}`}
+            detail={`${delegate?.proposals?.length ?? "N/A"}`}
           />
 
-          <PanelRow
-            title="Delegated from"
-            detail={`${tokenHolders.length} addresses`}
-          />
+          {delegate && <DelegateFromList fragment={delegate} />}
 
-          <>
-            {tokenHolders.map((holder) => (
-              <div
-                className={css`
-                  display: flex;
-                  flex-direction: row;
-                  justify-content: space-between;
-                `}
-              >
-                <div
-                  className={css`
-                    text-overflow: ellipsis;
-                    overflow: hidden;
-                  `}
-                >
-                  <NounResolvedLink address={holder.id} />
-                </div>
-
-                <div
-                  className={css`
-                    display: flex;
-                    flex-direction: row;
-                    gap: ${theme.spacing["1"]};
-                  `}
-                >
-                  <NounGridChildren
-                    count={3}
-                    nouns={holder.nouns}
-                    overflowFontSize="xs"
-                    imageSize="6"
-                  />
-                </div>
-              </div>
-            ))}
-          </>
-        </div>
-
-        <div
-          className={css`
-            margin-top: ${theme.spacing["8"]};
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-          `}
-        >
-          <div
+          <VoterPanelActions
             className={css`
-              display: flex;
-              flex-direction: row;
-              gap: ${theme.spacing["4"]};
-              height: ${theme.spacing["6"]};
+              margin-top: ${theme.spacing["6"]};
             `}
-          >
-            <a href={`https://twitter.com`}>
-              <img src={icons.twitter} alt="twitter" />
-            </a>
-            <a href={`https://discord.com`}>
-              <img src={icons.discord} alt="discord" />
-            </a>
-          </div>
-
-          <a href={`https://nouns.wtf/delegate?to=${delegate.id}`}>
-            <div
-              className={css`
-                ${buttonStyles};
-                padding: ${theme.spacing["2"]};
-              `}
-            >
-              Delegate
-            </div>
-          </a>
+            fragment={address.wrappedDelegate}
+          />
         </div>
       </div>
-    </div>
+    </VStack>
+  );
+}
+
+function DelegateFromList({
+  fragment,
+}: {
+  fragment: VoterPanelDelegateFromListFragment$key;
+}) {
+  const { tokenHoldersRepresented } = useFragment(
+    graphql`
+      fragment VoterPanelDelegateFromListFragment on Delegate {
+        tokenHoldersRepresented {
+          id
+
+          address {
+            resolvedName {
+              ...NounResolvedLinkFragment
+            }
+          }
+
+          nouns {
+            id
+            ...NounImageFragment
+          }
+        }
+      }
+    `,
+    fragment
+  );
+
+  const tokenHolders = useMemo(() => {
+    return tokenHoldersRepresented
+      .filter((holder) => !!holder.nouns.length)
+      .slice()
+      .sort(descendingValueComparator((item) => item.nouns.length));
+  }, [tokenHoldersRepresented]);
+
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <VStack gap="1">
+      <PanelRow
+        title="Delegated from"
+        detail={
+          <div onClick={() => setIsExpanded((lastValue) => !lastValue)}>
+            <HStack
+              alignItems="center"
+              gap="1"
+              className={css`
+                cursor: pointer;
+                user-select: none;
+              `}
+            >
+              <div>{tokenHolders.length} addresses</div>
+              <ChevronDownIcon
+                aria-hidden="true"
+                className={css`
+                  margin-bottom: -0.125rem;
+                  transition: transform 0.3s;
+                  width: ${theme.spacing["4"]};
+                  height: ${theme.spacing["4"]};
+                  ${isExpanded &&
+                  css`
+                    transform: rotateZ(180deg);
+                  `}
+                `}
+              />
+            </HStack>
+          </div>
+        }
+      />
+
+      {isExpanded &&
+        tokenHolders.map((holder) => (
+          <HStack justifyContent="space-between">
+            <div
+              className={css`
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+              `}
+            >
+              <NounResolvedLink resolvedName={holder.address.resolvedName} />
+            </div>
+
+            <HStack
+              gap="1"
+              className={css`
+                flex-shrink: 0;
+              `}
+            >
+              <NounGridChildren
+                count={5}
+                nouns={holder.nouns}
+                overflowFontSize="xs"
+                imageSize="6"
+              />
+            </HStack>
+          </HStack>
+        ))}
+    </VStack>
+  );
+}
+
+export function VoterPanelActions({
+  className,
+  fragment,
+}: {
+  className?: string;
+  fragment: VoterPanelActionsFragment$key;
+}) {
+  const wrappedDelegate = useFragment(
+    graphql`
+      fragment VoterPanelActionsFragment on WrappedDelegate {
+        statement {
+          ...VoterPanelSocialButtonsFragment
+        }
+
+        ...VoterPanelDelegateButtonFragment
+      }
+    `,
+    fragment
+  );
+
+  return (
+    <HStack
+      justifyContent="space-between"
+      alignItems="stretch"
+      className={className}
+    >
+      {wrappedDelegate.statement && (
+        <SocialButtons fragment={wrappedDelegate.statement} />
+      )}
+      <DelegateButton
+        fragment={wrappedDelegate}
+        full={!wrappedDelegate.statement}
+      />
+    </HStack>
+  );
+}
+
+function DelegateButton({
+  fragment,
+  full,
+}: {
+  fragment: VoterPanelDelegateButtonFragment$key;
+  full: boolean;
+}) {
+  const wrappedDelegate = useFragment(
+    graphql`
+      fragment VoterPanelDelegateButtonFragment on WrappedDelegate {
+        id
+
+        ...DelegateDialogFragment
+      }
+    `,
+    fragment
+  );
+
+  const startTransition = useStartTransition();
+  const [isDialogOpen, setDialogOpen] = useState(false);
+
+  return (
+    <>
+      <DelegateDialog
+        fragment={wrappedDelegate}
+        isOpen={isDialogOpen}
+        closeDialog={() => setDialogOpen(false)}
+      />
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          startTransition(() => setDialogOpen(true));
+        }}
+        className={css`
+          ${buttonStyles};
+          ${full &&
+          css`
+            width: 100%;
+          `}
+        `}
+      >
+        Delegate
+      </button>
+    </>
+  );
+}
+
+function SocialButtons({
+  fragment,
+}: {
+  fragment: VoterPanelSocialButtonsFragment$key;
+}) {
+  return (
+    <HStack gap="4" alignItems="center">
+      <SocialButtonsContainer fragment={fragment} />
+    </HStack>
+  );
+}
+
+function SocialButtonsContainer({
+  fragment,
+}: {
+  fragment: VoterPanelSocialButtonsFragment$key;
+}) {
+  const { discord, twitter } = useFragment(
+    graphql`
+      fragment VoterPanelSocialButtonsFragment on DelegateStatement {
+        discord
+        twitter
+      }
+    `,
+    fragment
+  );
+
+  return (
+    <>
+      {twitter && (
+        <a
+          className={css`
+            padding: ${theme.spacing["1"]};
+          `}
+          href={`https://twitter.com/${twitter}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <img src={icons.twitter} alt="twitter" />
+        </a>
+      )}
+
+      {discord && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toast("copied discord handle to clipboard");
+
+            navigator.clipboard.writeText(discord);
+          }}
+        >
+          <img src={icons.discord} alt="discord" />
+        </button>
+      )}
+    </>
   );
 }
 
 const panelRowContainerStyles = css`
   display: flex;
   flex-direction: column;
-  margin-top: ${theme.spacing["4"]};
+  margin-top: ${theme.spacing["6"]};
   gap: ${theme.spacing["2"]};
 `;
 
 type PanelRowProps = {
   title: string;
-  detail: string;
+  detail: ReactNode;
 };
 
 const PanelRow = ({ title, detail }: PanelRowProps) => {
   return (
-    <div
-      className={css`
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-      `}
-    >
-      <span>{title}</span>
+    <HStack gap="4" justifyContent="space-between">
+      <span
+        className={css`
+          white-space: nowrap;
+        `}
+      >
+        {title}
+      </span>
 
       <span
         className={css`
           font-size: ${theme.fontSize.sm};
           color: #66676b;
+          text-align: right;
         `}
       >
         {detail}
       </span>
-    </div>
+    </HStack>
   );
 };
 
 type NameSectionProps = {
-  address: string;
-  votes: number;
+  resolvedName: VoterPanelNameSectionFragment$key;
 };
 
-function NameSection({ address, votes }: NameSectionProps) {
+function NameSection({ resolvedName }: NameSectionProps) {
+  const { address, name } = useFragment(
+    graphql`
+      fragment VoterPanelNameSectionFragment on ResolvedName {
+        address
+        name
+      }
+    `,
+    resolvedName
+  );
+
+  const renderedAddress = shortAddress(address);
+
   return (
-    <div
-      className={css`
-        display: flex;
-        flex-direction: row;
-        align-items: baseline;
-        gap: ${theme.spacing["2"]};
-      `}
-    >
-      <span
-        className={css`
-          font-size: ${theme.fontSize["xl"]};
-          font-weight: bolder;
-        `}
-      >
-        <NounResolvedLink address={address} />
-      </span>
-      <span
-        className={css`
-          font-size: ${theme.fontSize.base};
-        `}
-      >
-        {votes} votes
-      </span>
-    </div>
+    <a href={`https://etherscan.io/address/${address}`}>
+      <VStack>
+        {name && (
+          <div
+            className={css`
+              color: #66676b;
+              font-size: ${theme.fontSize.xs};
+              font-weight: ${theme.fontWeight.medium};
+              line-height: ${theme.lineHeight.relaxed};
+            `}
+          >
+            {renderedAddress}
+          </div>
+        )}
+
+        <div
+          className={css`
+            font-weight: ${theme.fontWeight.black};
+            font-size: ${theme.fontSize["2xl"]};
+            line-height: ${theme.lineHeight.tight};
+            overflow: hidden;
+          `}
+        >
+          <Textfit min={16} max={24} mode="single">
+            {name ?? renderedAddress}
+          </Textfit>
+        </div>
+      </VStack>
+    </a>
   );
 }
 
-const containerStyles = css`
-  position: sticky;
-  top: ${theme.spacing["16"]};
-  border-radius: ${theme.spacing["3"]};
-  border-width: ${theme.spacing.px};
-  border-color: ${theme.colors.gray["300"]};
-  box-shadow: ${theme.boxShadow.lg};
-`;
+export const shadow =
+  "0px 4px 12px rgba(0, 0, 0, 0.02), 0px 2px 2px rgba(0, 0, 0, 0.03);";
 
-type EmptyVoterPanelProps = {
-  address: string;
-};
+function descendingValueComparator<T>(
+  getValueFor: (item: T) => number
+): (a: T, b: T) => number {
+  return (a, b) => {
+    const aValue = getValueFor(a);
+    const bValue = getValueFor(b);
 
-const voterPanelDetailsContainerStyle = css`
-  display: flex;
-  flex-direction: column;
-  padding: ${theme.spacing["6"]} ${theme.spacing["6"]};
-`;
-
-export function EmptyVoterPanel({ address }: EmptyVoterPanelProps) {
-  return (
-    <div
-      className={css`
-        ${containerStyles};
-
-        display: flex;
-        flex-direction: column;
-      `}
-    >
-      <div
-        className={css`
-          padding: ${theme.spacing["8"]} ${theme.spacing["10"]};
-
-          border-bottom: 1px solid #ebebeb;
-        `}
-      >
-        <div
-          className={css`
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: ${theme.spacing["2"]};
-            border-radius: ${theme.borderRadius.default};
-            border: 1px solid #ebebeb;
-            padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
-          `}
-        >
-          <div
-            className={css`
-              background: #3dbf00;
-              border-radius: ${theme.spacing["1"]};
-              width: ${theme.spacing["1"]};
-              height: ${theme.spacing["1"]};
-            `}
-          />
-
-          <div
-            className={css`
-              font-size: ${theme.fontSize.xs};
-              white-space: nowrap;
-            `}
-          >
-            Currently seeking delegation
-          </div>
-        </div>
-      </div>
-
-      <div
-        className={css`
-          ${voterPanelDetailsContainerStyle};
-        `}
-      >
-        <NameSection address={address} votes={0} />
-
-        <div className={panelRowContainerStyles}>
-          <PanelRow title="Proposals voted" detail={`N/A`} />
-
-          <PanelRow title="Voting power" detail={`N/A`} />
-
-          <PanelRow title="Recent activity" detail={`N/A`} />
-
-          <PanelRow title="Proposals created" detail={`N/A`} />
-
-          <PanelRow title="Delegated from" detail={`N/A`} />
-        </div>
-      </div>
-    </div>
-  );
+    return bValue - aValue;
+  };
 }
