@@ -5,6 +5,7 @@
     "./packages/backend"
   ],
   "scripts": {
+    "build-frontend": "yarn workspace nouns-agora run build",
     "start-frontend": "yarn workspace nouns-agora run start",
     "start-backend": "yarn workspace nouns-agora-backend run start",
     "prettier": "prettier --write . --ignore-path .gitignore"
