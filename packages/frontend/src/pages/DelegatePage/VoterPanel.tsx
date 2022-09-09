@@ -25,6 +25,7 @@ import { Textfit } from "react-textfit";
 import { DelegateDialog } from "../../components/DelegateDialog";
 import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
 import toast from "react-hot-toast";
+import { DelegateProfileImage } from "../HomePage/VoterCard";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -40,12 +41,12 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
         }
 
         wrappedDelegate {
+          ...VoterCardDelegateProfileImage
           ...VoterPanelActionsFragment
 
           delegate {
             id
 
-            ...NounGridFragment
             nounsRepresented {
               id
 
@@ -124,50 +125,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           border-bottom: ${theme.spacing.px} solid ${theme.colors.gray["300"]};
         `}
       >
-        {!delegate?.nounsRepresented.length ? (
-          <div
-            className={css`
-              padding: ${theme.spacing["8"]} ${theme.spacing["10"]};
-            `}
-          >
-            <HStack
-              gap="2"
-              alignItems="center"
-              className={css`
-                border-radius: ${theme.borderRadius.default};
-                border: 1px solid #ebebeb;
-                padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
-              `}
-            >
-              <div
-                className={css`
-                  background: #3dbf00;
-                  border-radius: ${theme.spacing["1"]};
-                  width: ${theme.spacing["1"]};
-                  height: ${theme.spacing["1"]};
-                `}
-              />
-
-              <div
-                className={css`
-                  font-size: ${theme.fontSize.xs};
-                  white-space: nowrap;
-                `}
-              >
-                Currently seeking delegation
-              </div>
-            </HStack>
-          </div>
-        ) : (
-          <NounsRepresentedGrid
-            fragmentKey={delegate}
-            imageSize="10"
-            gap="2"
-            overflowFontSize="base"
-            rows={3}
-            columns={6}
-          />
-        )}
+        <DelegateProfileImage fragment={address.wrappedDelegate} />
       </VStack>
 
       <div

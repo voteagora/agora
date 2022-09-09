@@ -9,6 +9,7 @@ import { HStack, VStack } from "../../components/VStack";
 import { icons } from "../../icons/icons";
 import { Link } from "../../components/HammockRouter/HammockRouter";
 import { VoterPanelActions } from "../DelegatePage/VoterPanel";
+import { VoterCardDelegateProfileImage$key } from "./__generated__/VoterCardDelegateProfileImage.graphql";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
@@ -20,6 +21,8 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
       fragment VoterCardFragment on WrappedDelegate {
         id
         ...VoterPanelActionsFragment
+
+        ...VoterCardDelegateProfileImage
 
         address {
           resolvedName {
@@ -38,12 +41,6 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           votes {
             id
           }
-
-          nounsRepresented {
-            id
-          }
-
-          ...NounGridFragment
         }
       }
     `,
@@ -72,28 +69,15 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           cursor: pointer;
         `}
       >
-        {!!delegate?.delegate?.nounsRepresented?.length ? (
-          <VStack
-            justifyContent="center"
-            alignItems="center"
-            className={css`
-              flex: 1;
-            `}
-          >
-            <NounsRepresentedGrid
-              rows={3}
-              columns={5}
-              gap="4"
-              imageSize="12"
-              overflowFontSize="base"
-              fragmentKey={delegate.delegate}
-            />
-          </VStack>
-        ) : (
-          <HStack>
-            <img src={icons.anonNoun} alt="anon noun" />
-          </HStack>
-        )}
+        <VStack
+          justifyContent="center"
+          alignItems="center"
+          className={css`
+            flex: 1;
+          `}
+        >
+          <DelegateProfileImage fragment={delegate} />
+        </VStack>
 
         <HStack
           justifyContent="space-between"
@@ -130,5 +114,74 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
         <VoterPanelActions fragment={delegate} />
       </VStack>
     </Link>
+  );
+}
+
+export function DelegateProfileImage({
+  fragment,
+  dense,
+}: {
+  fragment: VoterCardDelegateProfileImage$key;
+  dense?: boolean;
+}) {
+  const delegate = useFragment(
+    graphql`
+      fragment VoterCardDelegateProfileImage on WrappedDelegate {
+        delegate {
+          nounsRepresented {
+            id
+          }
+
+          ...NounGridFragment
+        }
+      }
+    `,
+    fragment
+  );
+
+  return !delegate.delegate ? (
+    <HStack
+      alignItems="center"
+      className={css`
+        border-radius: ${theme.borderRadius.full};
+        border: 1px solid ${theme.colors.gray.eb};
+        box-shadow: ${theme.boxShadow.newDefault};
+      `}
+    >
+      <img src={icons.anonNoun} alt={"anon noun"} />
+      <div
+        className={css`
+          font-size: ${theme.fontSize.sm};
+          font-weight: ${theme.fontWeight.semibold};
+          padding: 0 ${theme.spacing["4"]};
+        `}
+      >
+        Currently seeking delegation
+      </div>
+    </HStack>
+  ) : !delegate.delegate.nounsRepresented.length ? (
+    <div
+      className={css`
+        color: #afafaf;
+        margin: 0 ${theme.spacing["10"]};
+        text-align: center;
+        border-radius: ${theme.borderRadius.full};
+        border: 1px solid ${theme.colors.gray.eb};
+        box-shadow: ${theme.boxShadow.newDefault};
+        padding: ${theme.spacing["4"]};
+        width: 100%;
+      `}
+    >
+      No longer has votes
+    </div>
+  ) : (
+    <NounsRepresentedGrid
+      rows={3}
+      columns={dense ? 6 : 5}
+      gap={dense ? "2" : "4"}
+      imageSize={dense ? "10" : "12"}
+      overflowFontSize="base"
+      fragmentKey={delegate.delegate}
+    />
   );
 }
