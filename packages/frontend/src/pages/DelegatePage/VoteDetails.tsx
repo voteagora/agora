@@ -57,13 +57,13 @@ export function VoteDetails({ voteFragment }: Props) {
           padding-left: ${theme.spacing["6"]};
           padding-right: ${theme.spacing["6"]};
           overflow-y: scroll;
-          color: #66676b;
         `}
       >
         <VStack>
           <div
             className={css`
               font-size: ${theme.fontSize.xs};
+              color: #66676b;
             `}
           >
             <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
@@ -74,6 +74,7 @@ export function VoteDetails({ voteFragment }: Props) {
           <div
             className={css`
               font-size: ${theme.fontSize.xs};
+              color: #66676b;
             `}
           >
             voted {formatDistanceToNow(new Date(Number(vote.createdAt) * 1000))}{" "}
