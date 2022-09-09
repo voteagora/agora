@@ -61,10 +61,9 @@ export function ImpactfulProposals({ fragment }: Props) {
             </h1>
             <div
               className={css`
-                border: 1px solid #ebebeb;
+                border: 1px solid ${theme.colors.gray.eb};
                 box-shadow: ${theme.boxShadow.newDefault};
-                border-radius:${theme.spacing["2"]} 0 0 ${theme.spacing["2"]};
-                /* padding:${theme.spacing["2"]} 0}; */
+                border-radius: ${theme.spacing["2"]} 0 0 ${theme.spacing["2"]};
               `}
             >
               <VStack>
@@ -87,12 +86,11 @@ export function ImpactfulProposals({ fragment }: Props) {
             </h1>
             <div
               className={css`
-                border: 1px solid #ebebeb;
+                border: 1px solid ${theme.colors.gray.eb};
                 box-shadow: ${theme.boxShadow.newDefault};
                 position: relative;
-                left:-1px;
-                border-radius:0 ${theme.spacing["2"]} ${theme.spacing["2"]} 0;
-                /* padding:${theme.spacing["2"]} 0}; */
+                left: -1px;
+                border-radius: 0 ${theme.spacing["2"]} ${theme.spacing["2"]} 0;
               `}
             >
               <VStack>
@@ -126,11 +124,11 @@ function Proposal({ fragment }: ProposalProps) {
 
   return (
     <VStack
+      justifyContent="center"
       className={css`
         padding: ${theme.spacing["0"]} ${theme.spacing["5"]};
-        height:${theme.spacing["20"]};
-        justify-content:center;
-        border-bottom: 1px solid #ebebeb;
+        height: ${theme.spacing["20"]};
+        border-bottom: 1px solid ${theme.colors.gray.eb};
       `}
     >
       {proposal.title} <ValuePart value={proposal.totalValue} />
