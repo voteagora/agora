@@ -2,6 +2,7 @@ import { useIsNavigationPending } from "./HammockRouter/HammockRouter";
 import React from "react";
 import { css, keyframes } from "@emotion/css";
 import { motion } from "framer-motion";
+import * as theme from "../theme";
 
 const shimmer = keyframes`
     from {
@@ -32,7 +33,7 @@ export function RouteTransitionLoadingIndicator() {
       <div
         className={css`
           position: fixed;
-          height: 2px;
+          height: ${theme.spacing["1"]};
           top: 0;
           left: 0;
           right: 0;
