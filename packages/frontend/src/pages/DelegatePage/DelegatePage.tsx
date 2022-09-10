@@ -68,6 +68,11 @@ export function DelegatePage() {
           padding-right: ${theme.spacing["4"]};
           width: 100%;
           max-width: ${theme.maxWidth["6xl"]};
+
+          @media (max-width: ${theme.maxWidth["6xl"]}) {
+            flex-direction: column;
+            align-items: center;
+          }
         `}
       >
         <VStack
@@ -76,6 +81,10 @@ export function DelegatePage() {
             top: ${theme.spacing["16"]};
             flex-shrink: 0;
             width: ${theme.maxWidth.xs};
+
+            @media (max-width: ${theme.maxWidth["6xl"]}) {
+              position: static;
+            }
           `}
         >
           <VoterPanel delegateFragment={query.address} queryFragment={query} />
