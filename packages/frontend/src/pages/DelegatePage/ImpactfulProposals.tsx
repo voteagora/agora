@@ -114,7 +114,7 @@ function Proposal({ fragment }: ProposalProps) {
   const proposal = useFragment(
     graphql`
       fragment ImpactfulProposalsProposalFragment on Proposal {
-        id
+        number
         title
         totalValue
       }
@@ -139,8 +139,7 @@ function Proposal({ fragment }: ProposalProps) {
           color: #66676b;
         `}
       >
-        {"Prop " + proposal.id.substring(9)}{" "}
-        <ValuePart value={proposal.totalValue} />
+        {"Prop " + proposal.number} <ValuePart value={proposal.totalValue} />
       </div>
       {proposal.title}
     </VStack>
