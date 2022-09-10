@@ -118,7 +118,7 @@ export function DelegatePage() {
             </VStack>
           )}
 
-          {wrappedDelegate.statement?.topIssues.length && (
+          {!!wrappedDelegate.statement?.topIssues.length && (
             <VStack gap="4">
               <h2
                 className={css`
