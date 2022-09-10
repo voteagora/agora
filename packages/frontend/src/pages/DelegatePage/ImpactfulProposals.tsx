@@ -6,6 +6,7 @@ import { HStack, VStack } from "../../components/VStack";
 import { ImpactfulProposalsFragment$key } from "./__generated__/ImpactfulProposalsFragment.graphql";
 import { ImpactfulProposalsProposalFragment$key } from "./__generated__/ImpactfulProposalsProposalFragment.graphql";
 import { ValuePart } from "./VoteDetails";
+import { Link } from "../../components/HammockRouter/HammockRouter";
 
 export type Props = {
   fragment: ImpactfulProposalsFragment$key;
@@ -39,69 +40,72 @@ export function ImpactfulProposals({ fragment }: Props) {
       >
         Views on past issues
       </h2>
-      <div
+
+      <HStack
+        gap="4"
         className={css`
-          border-radius: ${theme.spacing["3"]};
-          border: 1px solid ${theme.colors.gray.eb};
-          box-shadow: ${theme.boxShadow.newDefault};
-          padding: ${theme.spacing["4"]};
-          background-color: ${theme.colors.white};
+          flex-wrap: wrap;
         `}
       >
-        <HStack>
-          <VStack>
-            <h1
-              className={css`
-                font-weight: ${theme.fontWeight.medium};
-                font-size: ${theme.fontSize.sm};
-                margin-bottom: ${theme.spacing[2]};
-              `}
-            >
-              Most Impactful
-            </h1>
-            <div
-              className={css`
-                border: 1px solid ${theme.colors.gray.eb};
-                box-shadow: ${theme.boxShadow.newDefault};
-                border-radius: ${theme.spacing["2"]} 0 0 ${theme.spacing["2"]};
-              `}
-            >
-              <VStack>
-                {impactfulProposals.mostValuableProposals.map((proposal) => (
-                  <Proposal key={proposal.id} fragment={proposal} />
-                ))}
-              </VStack>
-            </div>
-          </VStack>
+        <VStack
+          className={css`
+            min-width: 24rem;
+            flex: 1;
+          `}
+        >
+          <h1
+            className={css`
+              font-weight: ${theme.fontWeight.medium};
+              font-size: ${theme.fontSize.sm};
+              margin-bottom: ${theme.spacing[2]};
+            `}
+          >
+            Most Impactful
+          </h1>
 
-          <VStack>
-            <h1
-              className={css`
-                font-weight: ${theme.fontWeight.medium};
-                font-size: ${theme.fontSize.sm};
-                margin-bottom: ${theme.spacing[2]};
-              `}
-            >
-              Least Impactful
-            </h1>
-            <div
-              className={css`
-                border: 1px solid ${theme.colors.gray.eb};
-                box-shadow: ${theme.boxShadow.newDefault};
-                position: relative;
-                left: -1px;
-                border-radius: 0 ${theme.spacing["2"]} ${theme.spacing["2"]} 0;
-              `}
-            >
-              <VStack>
-                {impactfulProposals.leastValuableProposals.map((proposal) => (
-                  <Proposal key={proposal.id} fragment={proposal} />
-                ))}
-              </VStack>
-            </div>
+          <VStack
+            className={css`
+              border: 1px solid ${theme.colors.gray.eb};
+              box-shadow: ${theme.boxShadow.newDefault};
+              border-radius: ${theme.spacing["2"]};
+              background: ${theme.colors.white};
+            `}
+          >
+            {impactfulProposals.mostValuableProposals.map((proposal) => (
+              <Proposal key={proposal.id} fragment={proposal} />
+            ))}
           </VStack>
-        </HStack>
-      </div>
+        </VStack>
+
+        <VStack
+          className={css`
+            min-width: 24rem;
+            flex: 1;
+          `}
+        >
+          <h1
+            className={css`
+              font-weight: ${theme.fontWeight.medium};
+              font-size: ${theme.fontSize.sm};
+              margin-bottom: ${theme.spacing[2]};
+            `}
+          >
+            Least Impactful
+          </h1>
+          <VStack
+            className={css`
+              background: ${theme.colors.white};
+              border: 1px solid ${theme.colors.gray.eb};
+              box-shadow: ${theme.boxShadow.newDefault};
+              border-radius: ${theme.spacing["2"]};
+            `}
+          >
+            {impactfulProposals.leastValuableProposals.map((proposal) => (
+              <Proposal key={proposal.id} fragment={proposal} />
+            ))}
+          </VStack>
+        </VStack>
+      </HStack>
     </VStack>
   );
 }
@@ -121,27 +125,28 @@ function Proposal({ fragment }: ProposalProps) {
     `,
     fragment
   );
-  console.log(proposal);
 
   return (
-    <VStack
-      justifyContent="center"
-      className={css`
-        padding: ${theme.spacing["0"]} ${theme.spacing["5"]};
-        height: ${theme.spacing["20"]};
-        border-bottom: 1px solid ${theme.colors.gray.eb};
-      `}
-    >
-      <div
+    <Link to={`https://nouns.wtf/vote/${proposal.number}`}>
+      <VStack
+        justifyContent="center"
         className={css`
-          font-size: ${theme.fontSize.xs};
-          font-weight: ${theme.fontWeight.medium};
-          color: #66676b;
+          padding: ${theme.spacing["0"]} ${theme.spacing["5"]};
+          height: ${theme.spacing["20"]};
+          border-bottom: 1px solid ${theme.colors.gray.eb};
         `}
       >
-        {"Prop " + proposal.number} <ValuePart value={proposal.totalValue} />
-      </div>
-      {proposal.title}
-    </VStack>
+        <div
+          className={css`
+            font-size: ${theme.fontSize.xs};
+            font-weight: ${theme.fontWeight.medium};
+            color: #66676b;
+          `}
+        >
+          {"Prop " + proposal.number} <ValuePart value={proposal.totalValue} />
+        </div>
+        {proposal.title}
+      </VStack>
+    </Link>
   );
 }

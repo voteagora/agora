@@ -45,7 +45,7 @@ export function VoteDetails({ voteFragment }: Props) {
         box-shadow: ${shadow};
         padding-bottom: ${theme.spacing["5"]};
         min-width: 24rem;
-        max-width: 24rem;
+        flex: 1;
         max-height: 15rem;
         overflow: hidden;
       `}
