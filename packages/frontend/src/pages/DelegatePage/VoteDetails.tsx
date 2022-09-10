@@ -57,14 +57,14 @@ export function VoteDetails({ voteFragment }: Props) {
           padding-left: ${theme.spacing["5"]};
           padding-right: ${theme.spacing["5"]};
           overflow-y: scroll;
-          height:100%;
+          height: 100%;
         `}
       >
         <VStack
           justifyContent="center"
           className={css`
-          height:100%;
-        `}
+            height: 100%;
+          `}
         >
           <div
             className={css`
@@ -89,7 +89,7 @@ export function VoteDetails({ voteFragment }: Props) {
           <h2
             className={css`
               font-size: ${theme.fontSize.base};
-              padding:${theme.spacing[1]} 0;
+              padding: ${theme.spacing[1]} 0;
               overflow: hidden;
               text-overflow: ellipsis;
             `}
