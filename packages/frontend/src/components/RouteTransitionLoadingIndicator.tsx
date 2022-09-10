@@ -1,6 +1,5 @@
 import { useIsNavigationPending } from "./HammockRouter/HammockRouter";
 import React from "react";
-import * as theme from "../theme";
 import { css, keyframes } from "@emotion/css";
 import { motion } from "framer-motion";
 
