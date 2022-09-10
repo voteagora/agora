@@ -93,7 +93,16 @@ export function DelegatesContainer({ fragmentKey }: Props) {
           margin-bottom: ${theme.spacing["8"]};
         `}
       >
-        <HStack alignItems="baseline" gap="2" justifyContent="space-between">
+        <HStack
+          alignItems="baseline"
+          gap="2"
+          justifyContent="space-between"
+          className={css`
+            @media (max-width: ${theme.maxWidth.lg}) {
+              flex-direction: column;
+            }
+          `}
+        >
           <h2
             className={css`
               font-size: ${theme.fontSize["2xl"]};
@@ -103,7 +112,15 @@ export function DelegatesContainer({ fragmentKey }: Props) {
             Voters
           </h2>
 
-          <HStack gap="4">
+          <HStack
+            gap="4"
+            className={css`
+              @media (max-width: ${theme.maxWidth.lg}) {
+                flex-direction: column;
+                justify-content: center;
+              }
+            `}
+          >
             <Selector
               items={
                 [
