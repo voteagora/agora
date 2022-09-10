@@ -330,7 +330,8 @@ export function VoterPanelActions({
     graphql`
       fragment VoterPanelActionsFragment on WrappedDelegate {
         statement {
-          ...VoterPanelSocialButtonsFragment
+          twitter
+          discord
         }
 
         ...VoterPanelDelegateButtonFragment
@@ -339,18 +340,46 @@ export function VoterPanelActions({
     fragment
   );
 
+  const statement = wrappedDelegate.statement;
+
   return (
     <HStack
       justifyContent="space-between"
       alignItems="stretch"
       className={className}
     >
-      {wrappedDelegate.statement && (
-        <SocialButtons fragment={wrappedDelegate.statement} />
+      {statement && (
+        <HStack gap="4" alignItems="center">
+          {statement.twitter && (
+            <a
+              className={css`
+                padding: ${theme.spacing["1"]};
+              `}
+              href={`https://twitter.com/${statement.twitter}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img src={icons.twitter} alt="twitter" />
+            </a>
+          )}
+
+          {statement.discord && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toast("copied discord handle to clipboard");
+
+                navigator.clipboard.writeText(statement.discord);
+              }}
+            >
+              <img src={icons.discord} alt="discord" />
+            </button>
+          )}
+        </HStack>
       )}
       <DelegateButton
         fragment={wrappedDelegate}
-        full={!wrappedDelegate.statement}
+        full={!statement || (!statement.twitter && !statement.discord)}
       />
     </HStack>
   );
@@ -399,64 +428,6 @@ function DelegateButton({
       >
         Delegate
       </button>
-    </>
-  );
-}
-
-function SocialButtons({
-  fragment,
-}: {
-  fragment: VoterPanelSocialButtonsFragment$key;
-}) {
-  return (
-    <HStack gap="4" alignItems="center">
-      <SocialButtonsContainer fragment={fragment} />
-    </HStack>
-  );
-}
-
-function SocialButtonsContainer({
-  fragment,
-}: {
-  fragment: VoterPanelSocialButtonsFragment$key;
-}) {
-  const { discord, twitter } = useFragment(
-    graphql`
-      fragment VoterPanelSocialButtonsFragment on DelegateStatement {
-        discord
-        twitter
-      }
-    `,
-    fragment
-  );
-
-  return (
-    <>
-      {twitter && (
-        <a
-          className={css`
-            padding: ${theme.spacing["1"]};
-          `}
-          href={`https://twitter.com/${twitter}`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <img src={icons.twitter} alt="twitter" />
-        </a>
-      )}
-
-      {discord && (
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toast("copied discord handle to clipboard");
-
-            navigator.clipboard.writeText(discord);
-          }}
-        >
-          <img src={icons.discord} alt="discord" />
-        </button>
-      )}
     </>
   );
 }
