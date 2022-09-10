@@ -57,15 +57,9 @@ export function VoteDetails({ voteFragment }: Props) {
           padding-left: ${theme.spacing["5"]};
           padding-right: ${theme.spacing["5"]};
           overflow-y: scroll;
-          height: 100%;
         `}
       >
-        <VStack
-          justifyContent="center"
-          className={css`
-            height: 100%;
-          `}
-        >
+        <VStack>
           <div
             className={css`
               font-size: ${theme.fontSize.xs};
