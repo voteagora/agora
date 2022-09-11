@@ -7,6 +7,8 @@ import {
   serveSinglePageApp,
 } from "@cloudflare/kv-asset-handler";
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
+import { z } from "zod";
+import { AgoraContextType, StatementStorage, StoredStatement } from "./model";
 const assetManifest = JSON.parse(manifestJSON);
 
 /**
@@ -29,12 +31,50 @@ export interface Env {
   // Example binding to R2. Learn more at https://developers.cloudflare.com/workers/runtime-apis/r2/
   // MY_BUCKET: R2Bucket;
   ENVIRONMENT: "prod" | "dev" | "staging";
-  __STATIC_CONTENT: any;
+  STATEMENTS: KVNamespace;
+  __STATIC_CONTENT: KVNamespace;
 }
 
-let makeGatewaySchemaPromise = null;
-
 const cache = createInMemoryCache();
+
+const storedStatementSchema = z.object({
+  address: z.string(),
+  signature: z.string(),
+  signedPayload: z.string(),
+});
+
+function makeStatementStorage(kvNamespace: KVNamespace): StatementStorage {
+  return {
+    async addStatement(statement: StoredStatement): Promise<void> {
+      await kvNamespace.put(
+        statement.address.toLowerCase(),
+        JSON.stringify(statement)
+      );
+    },
+
+    async getStatement(address: string): Promise<StoredStatement | null> {
+      const serializedValue = await kvNamespace.get(address.toLowerCase());
+      if (!serializedValue) {
+        return null;
+      }
+
+      const parsedStatement = JSON.parse(serializedValue);
+
+      // todo: test the validation here and ensure it works
+      return storedStatementSchema.parse(parsedStatement);
+    },
+
+    async listStatements(): Promise<string[]> {
+      const entries = await kvNamespace.list();
+      return entries.keys.map((item) => item.name);
+    },
+  };
+}
+
+// Initializing the schema takes about 250ms. We should avoid doing it once
+// per request. We need to move this calculation into some kind of compile time
+// step.
+let gatewaySchema = null;
 
 export default {
   async fetch(
@@ -45,12 +85,17 @@ export default {
     const isProduction = env.ENVIRONMENT === "prod";
     const url = new URL(request.url);
     if (url.pathname === "/graphql") {
-      if (!makeGatewaySchemaPromise) {
-        makeGatewaySchemaPromise = makeGatewaySchema();
+      if (!gatewaySchema) {
+        gatewaySchema = makeGatewaySchema();
       }
-      const schema = await makeGatewaySchemaPromise;
+
+      const context: AgoraContextType = {
+        statementStorage: makeStatementStorage(env.STATEMENTS),
+      };
+
       const server = createServer({
-        schema,
+        schema: gatewaySchema,
+        context,
         maskedErrors: isProduction,
         graphiql: !isProduction,
         plugins: [makeCachePlugin(cache)],

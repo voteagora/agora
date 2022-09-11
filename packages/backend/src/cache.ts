@@ -6,8 +6,8 @@ export function makeCachePlugin(cache: Cache) {
     session: () => null,
     ttl: 10_000,
     ttlPerSchemaCoordinate: {
-      "Query.metrics": 60_000,
-      "ResolvedName.name": 60_000,
+      "Query.metrics": 60_000 * 10,
+      "ResolvedName.name": 60_000 * 60,
     },
   });
 }

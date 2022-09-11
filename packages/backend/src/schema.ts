@@ -32,7 +32,7 @@ import {
   WrappedDelegatesOrder,
   WrappedDelegatesWhere,
 } from "./generated/types";
-import { validateForm } from "./formSchema";
+import { formSchema, validateForm } from "./formSchema";
 import { WrappedDelegate } from "./model";
 import schema from "./schemas/extensions.graphql";
 import { fieldsMatching } from "./utils/graphql";
@@ -40,147 +40,6 @@ import { parseSelectionSet } from "@graphql-tools/utils";
 import { descendingValueComparator, flipComparator } from "./utils/sorting";
 import { marked } from "marked";
 import { resolveEnsOrNnsName } from "./utils/resolveName";
-
-const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
-  [
-    "0xfe349ddff44ba087530c1efc3342e786dffc57b0",
-    {
-      address: "0xfe349ddff44ba087530c1efc3342e786dffc57b0",
-      values: {
-        delegateStatement: "Just a guy with a noun.",
-        openToSponsoringProposals: null,
-        twitter: "",
-        discord: "",
-        mostValuableProposals: [],
-        leastValuableProposals: [],
-        topIssues: [],
-        for: "nouns-agora",
-      },
-    },
-  ],
-  [
-    "0xf1544ba9a1ad3c8c8b507de3e1f5243c3697e367",
-    {
-      address: "0xf1544ba9a1ad3c8c8b507de3e1f5243c3697e367",
-      values: {
-        delegateStatement:
-          "I'm optimistic on the future and believe all spending is useful.",
-        openToSponsoringProposals: null,
-        twitter: "",
-        discord: "",
-        mostValuableProposals: [
-          {
-            id: "121",
-          },
-          {
-            id: "87",
-          },
-          {
-            id: "77",
-          },
-        ],
-
-        leastValuableProposals: [],
-        topIssues: [],
-        for: "nouns-agora",
-      },
-    },
-  ],
-  [
-    "0xa1e4f7dc1983fefe37e2175524ebad87f1c78c3c",
-    {
-      address: "0xa1e4f7dc1983fefe37e2175524ebad87f1c78c3c",
-      values: {
-        delegateStatement: "Just a guy with a few nouns.",
-        openToSponsoringProposals: null,
-        twitter: "",
-        discord: "",
-        mostValuableProposals: [],
-        leastValuableProposals: [],
-        topIssues: [],
-        for: "nouns-agora",
-      },
-    },
-  ],
-
-  [
-    "0x2573c60a6d127755aa2dc85e342f7da2378a0cc5",
-    {
-      address: "0x2573c60a6d127755aa2dc85e342f7da2378a0cc5",
-      values: {
-        delegateStatement:
-          "We are a group of Nounish builders and representatives from launched Nounish NFT extension projects, coming together to participate in Nouns DAO governance.",
-        openToSponsoringProposals: null,
-        twitter: "nouncil",
-        discord: "",
-        mostValuableProposals: [
-          {
-            id: "121",
-          },
-          {
-            id: "87",
-          },
-          {
-            id: "77",
-          },
-        ],
-        leastValuableProposals: [{ id: "127" }, { id: "122" }, { id: "74" }],
-        topIssues: [
-          {
-            type: "proliferation",
-            value:
-              "Proliferation, above revenue generation, should be the number one focus.",
-          },
-          {
-            type: "treasury",
-            value:
-              "We believe that active management of the treasury is a distraction.",
-          },
-        ],
-        for: "nouns-agora",
-      },
-    },
-  ],
-  [
-    "0xc3fdadbae46798cd8762185a09c5b672a7aa36bb",
-    {
-      address: "0xc3fdadbae46798cd8762185a09c5b672a7aa36bb",
-      values: {
-        delegateStatement:
-          "I am the co-founder of Vector DAO and builder of prop 87. As long time designer and software builder, I plan on using my votes to advocate for and shepard through high quality projects that either creatively proliferate the meme, and contribute software to better functioning of the DAO.",
-        for: "nouns-agora",
-        twitter: "zhayitong",
-        discord: "yitong#9038",
-
-        mostValuableProposals: [
-          {
-            id: "121",
-          },
-          {
-            id: "87",
-          },
-          {
-            id: "77",
-          },
-        ],
-        leastValuableProposals: [{ id: "127" }, { id: "122" }, { id: "74" }],
-        topIssues: [
-          {
-            type: "proliferation",
-            value:
-              "Proliferation, above revenue generation, should be the number one focus.",
-          },
-          {
-            type: "treasury",
-            value:
-              "We believe that active management of the treasury is a distraction.",
-          },
-        ],
-        openToSponsoringProposals: null,
-      },
-    },
-  ],
-]);
 
 function makeSimpleFieldNode(name: string): FieldNode {
   return {
@@ -258,8 +117,8 @@ function makeDelegateResolveInfo(
   };
 }
 
-export async function makeGatewaySchema() {
-  const nounsSchema = await makeNounsSchema();
+export function makeGatewaySchema() {
+  const nounsSchema = makeNounsSchema();
 
   const provider = new ethers.providers.CloudflareProvider();
   const nounsDaoLogicV1 = NounsDAOLogicV1__factory.connect(
@@ -327,6 +186,7 @@ export async function makeGatewaySchema() {
         context,
         info
       ) {
+        const { statementStorage } = context;
         const selectionsForOrdering = (() => {
           switch (orderBy) {
             case WrappedDelegatesOrder.MostRecentlyActive:
@@ -376,40 +236,45 @@ export async function makeGatewaySchema() {
           first: 1000,
         };
 
-        const remoteDelegates = await fetchRemoteDelegates(
-          context,
-          queryDelegatesArgs,
-          info,
-          [...selectionsForOrdering, ...selectionsForWhere]
-        );
+        const [remoteDelegates, delegateStatements] = await Promise.all([
+          await fetchRemoteDelegates(context, queryDelegatesArgs, info, [
+            ...selectionsForOrdering,
+            ...selectionsForWhere,
+          ]),
+          statementStorage.listStatements(),
+        ]);
+
+        type NormalizedDelegate = {
+          id: string;
+          delegateStatementExists: boolean;
+          delegatedDelegate: any | null;
+        };
 
         const remoteDelegateSet = new Set(remoteDelegates.map(({ id }) => id));
 
-        const delegates = [
+        const delegates: NormalizedDelegate[] = [
           ...remoteDelegates.map((delegatedDelegate) => {
-            const delegateStatement = delegateStatements.get(
+            const hasDelegateStatement = delegateStatements.includes(
               delegatedDelegate.id
             );
 
             return {
               id: delegatedDelegate.id,
-              delegateStatement: delegateStatement?.values,
+              delegateStatementExists: hasDelegateStatement,
               delegatedDelegate,
             };
           }),
-          ...Array.from(delegateStatements.values()).flatMap(
-            (delegateStatement) => {
-              if (remoteDelegateSet.has(delegateStatement.address)) {
-                return [];
-              }
-
-              return {
-                id: delegateStatement.address,
-                delegateStatement: delegateStatement.values,
-                delegatedDelegate: null,
-              };
+          ...delegateStatements.flatMap((address) => {
+            if (remoteDelegateSet.has(address)) {
+              return [];
             }
-          ),
+
+            return {
+              id: address,
+              delegateStatementExists: true,
+              delegatedDelegate: null,
+            };
+          }),
         ];
 
         const filteredDelegates = (() => {
@@ -423,13 +288,13 @@ export async function makeGatewaySchema() {
                 return (
                   BigNumber.from(
                     delegate.delegatedDelegate.delegatedVotes
-                  ).isZero() && delegate.delegateStatement
+                  ).isZero() && delegate.delegateStatementExists
                 );
               });
 
             case WrappedDelegatesWhere.WithStatement: {
               return delegates.filter(
-                (delegate) => !!delegate.delegateStatement
+                (delegate) => delegate.delegateStatementExists
               );
             }
 
@@ -500,8 +365,8 @@ export async function makeGatewaySchema() {
             count: sortedDelegates.length,
             hasPreviousPage: offset > 0,
             hasNextPage: offset + count < sortedDelegates.length,
-            startCursor: `${edges[0].cursor}`,
-            endCursor: `${edges[edges.length - 1].cursor}`,
+            startCursor: `${edges[0]?.cursor ?? ""}`,
+            endCursor: `${edges[edges.length - 1]?.cursor ?? ""}`,
           },
         };
       },
@@ -593,8 +458,17 @@ export async function makeGatewaySchema() {
         });
       },
 
-      statement({ address }) {
-        return delegateStatements.get(address);
+      async statement({ address }, _args, { statementStorage }) {
+        const statement = await statementStorage.getStatement(address);
+        if (!statement) {
+          return null;
+        }
+
+        const values = formSchema.parse(JSON.parse(statement.signedPayload));
+        return {
+          address,
+          values,
+        };
       },
 
       address({ address }) {
@@ -688,13 +562,22 @@ export async function makeGatewaySchema() {
     },
 
     Mutation: {
-      createNewDelegateStatement: (parent, args, context, info) => {
+      async createNewDelegateStatement(
+        parent,
+        args,
+        { statementStorage },
+        info
+      ) {
         const validated = validateForm(
           args.data.statementBodyJson,
           args.data.statementBodyJsonSignature
         );
 
-        delegateStatements.set(validated.address, validated);
+        await statementStorage.addStatement({
+          address: validated.address,
+          signedPayload: args.data.statementBodyJson,
+          signature: args.data.statementBodyJsonSignature,
+        });
 
         return {
           address: validated.address,
