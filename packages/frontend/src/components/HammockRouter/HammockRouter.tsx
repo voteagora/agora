@@ -20,8 +20,9 @@ import {
   useRecoilValue_TRANSITION_SUPPORT_UNSTABLE,
 } from "recoil";
 import { History } from "history";
+import { isEqual } from "lodash";
 
-const browserHistory = createBrowserHistory();
+export const browserHistory = createBrowserHistory();
 
 type Route = {
   path: string;
@@ -121,21 +122,23 @@ function mergeUpdateWithPreviousValue(
   update: NavigateUpdate
 ): Location {
   return {
-    search: Object.fromEntries(
-      Object.entries({
-        ...previousLocation.search,
-        ...update.search,
-      })
-        .map(([key, value]) => ({ key, value }))
-        .flatMap(({ key, value }) => {
-          if (!value) {
-            return [];
-          }
+    search: update.search
+      ? Object.fromEntries(
+          Object.entries({
+            ...previousLocation.search,
+            ...update.search,
+          })
+            .map(([key, value]) => ({ key, value }))
+            .flatMap(({ key, value }) => {
+              if (!value) {
+                return [];
+              }
 
-          return [{ key, value }];
-        })
-        .map(({ key, value }) => [key, value])
-    ),
+              return [{ key, value }];
+            })
+            .map(({ key, value }) => [key, value])
+        )
+      : {},
     pathname: update.path ?? previousLocation.pathname,
   };
 }
@@ -155,15 +158,25 @@ const routingStateAtom = atom<RoutingState>({
   effects: [
     ({ onSet, setSelf }) => {
       onSet((updatedRoutingState) => {
-        browserHistory.replace(
-          serializedPathFromLocation(updatedRoutingState.location)
+        const nextLocation = updatedRoutingState.location;
+        const currentLocation = locationFromHistoryLocation(
+          browserHistory.location
         );
+
+        if (isEqual(nextLocation, currentLocation)) {
+          return;
+        }
+
+        browserHistory.push(serializedPathFromLocation(nextLocation));
       });
       return browserHistory.listen((update) =>
         setSelf(
           routingStateForLocation(locationFromHistoryLocation(update.location))
         )
       );
+    },
+    ({ onSet }) => {
+      onSet((value) => console.log(value));
     },
   ],
 });
