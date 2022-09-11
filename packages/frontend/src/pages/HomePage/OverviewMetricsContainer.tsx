@@ -13,50 +13,43 @@ type Props = {
 };
 
 export function OverviewMetricsContainer({ fragmentRef }: Props) {
-  const { delegates, metrics, recentlyCompletedProposals } = useFragment(
-    graphql`
-      fragment OverviewMetricsContainer on Query {
-        delegates(
-          first: 1000
-          where: { tokenHoldersRepresentedAmount_gt: 0 }
-          orderBy: tokenHoldersRepresentedAmount
-          orderDirection: desc
-        ) {
-          __typename
-        }
+  const { metrics, recentlyCompletedProposals, currentGovernance } =
+    useFragment(
+      graphql`
+        fragment OverviewMetricsContainer on Query {
+          recentlyCompletedProposals: proposals(
+            first: 10
+            orderBy: createdBlock
+            orderDirection: desc
+            where: { status_in: [QUEUED, EXECUTED, PENDING, ACTIVE] }
+          ) {
+            totalVotes
 
-        recentlyCompletedProposals: proposals(
-          first: 10
-          orderBy: createdBlock
-          orderDirection: desc
-          where: { status_in: [QUEUED, EXECUTED, PENDING, ACTIVE] }
-        ) {
-          totalVotes
+            createdBlockGovernance {
+              delegatedVotes
+            }
+          }
 
-          createdBlockGovernance {
-            delegatedVotes
+          metrics {
+            totalSupply
+            quorumVotes
+            quorumVotesBPS
+            proposalThreshold
+          }
+
+          currentGovernance: governance(id: "GOVERNANCE") {
+            currentTokenHolders
+            currentDelegates
           }
         }
+      `,
+      fragmentRef
+    );
 
-        metrics {
-          totalSupply
-          quorumVotes
-          quorumVotesBPS
-          proposalThreshold
-        }
-      }
-    `,
-    fragmentRef
-  );
-
-  const nounsCount = BigNumber.from(metrics.totalSupply);
   const quorumCount = BigNumber.from(metrics.quorumVotes);
   const quorumBps = BigNumber.from(metrics.quorumVotesBPS);
   const proposalThreshold = BigNumber.from(metrics.proposalThreshold);
 
-  const votersCount = delegates.length;
-
-  // todo: real values
   return (
     <HStack
       justifyContent="space-between"
@@ -74,15 +67,20 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
         }
       `}
     >
-      {/*todo: review this metric*/}
-      <MetricContainer
-        icon="community"
-        title="Voters / Nouns"
-        body={`${votersCount} / ${nounsCount} (${(
-          (1 - votersCount / nounsCount.toNumber()) *
-          100
-        ).toFixed(0)}% delegation)`}
-      />
+      {currentGovernance && (
+        <MetricContainer
+          icon="community"
+          title="Voters / Noun Holders"
+          body={`${currentGovernance.currentDelegates} / ${
+            currentGovernance.currentTokenHolders
+          } (${(
+            (1 -
+              Number(currentGovernance.currentDelegates) /
+                Number(currentGovernance.currentTokenHolders)) *
+            100
+          ).toPrecision(2)}% delegation)`}
+        />
+      )}
 
       <MetricContainer
         icon="ballot"
