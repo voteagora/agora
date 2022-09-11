@@ -26,6 +26,8 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
         address {
           resolvedName {
             address
+            name
+
             ...NounResolvedNameFragment
           }
         }
@@ -47,7 +49,10 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
   );
   return (
     <Link
-      to={`/delegate/${delegate.address.resolvedName.address}`}
+      to={`/delegate/${
+        delegate.address.resolvedName.name ??
+        delegate.address.resolvedName.address
+      }`}
       className={css`
         display: flex;
         flex-direction: column;
