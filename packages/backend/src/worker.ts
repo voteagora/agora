@@ -60,8 +60,7 @@ function makeStatementStorage(kvNamespace: KVNamespace): StatementStorage {
 
       const parsedStatement = JSON.parse(serializedValue);
 
-      // todo: test the validation here and ensure it works
-      return storedStatementSchema.parse(parsedStatement);
+      return storedStatementSchema.parse(parsedStatement) as any;
     },
 
     async listStatements(): Promise<string[]> {
