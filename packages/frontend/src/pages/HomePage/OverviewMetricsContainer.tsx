@@ -13,7 +13,7 @@ type Props = {
 };
 
 export function OverviewMetricsContainer({ fragmentRef }: Props) {
-  const { delegates, metrics } = useFragment(
+  const { delegates, metrics, recentlyCompletedProposals } = useFragment(
     graphql`
       fragment OverviewMetricsContainer on Query {
         delegates(
@@ -23,6 +23,19 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
           orderDirection: desc
         ) {
           __typename
+        }
+
+        recentlyCompletedProposals: proposals(
+          first: 10
+          orderBy: createdBlock
+          orderDirection: desc
+          where: { status_in: [QUEUED, EXECUTED, PENDING, ACTIVE] }
+        ) {
+          totalVotes
+
+          createdBlockGovernance {
+            delegatedVotes
+          }
         }
 
         metrics {
@@ -86,8 +99,30 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
         body={`${proposalThreshold} noun`}
       />
 
-      {/*todo: review this metric*/}
-      <MetricContainer icon="pedestrian" title="Avg voter turnout" body="54%" />
+      <MetricContainer
+        icon="pedestrian"
+        title="Avg voter turnout"
+        body={(() => {
+          if (!recentlyCompletedProposals.length) {
+            return "N/A";
+          }
+
+          const total = recentlyCompletedProposals.reduce<number>(
+            (acc, value) => {
+              return (
+                acc +
+                value.totalVotes / value.createdBlockGovernance.delegatedVotes
+              );
+            },
+            0
+          );
+
+          return (
+            ((total / recentlyCompletedProposals.length) * 100).toPrecision(2) +
+            "%"
+          );
+        })()}
+      />
     </HStack>
   );
 }
