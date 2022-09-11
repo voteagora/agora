@@ -378,7 +378,9 @@ export function makeGatewaySchema() {
       },
 
       async proposalCount() {
-        return (await nounsDaoLogicV1.proposalCount()).toString();
+        return (
+          (await nounsDaoLogicV1.proposalCount()).toNumber() + 1
+        ).toString();
       },
 
       async quorumVotes() {
