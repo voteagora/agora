@@ -29,6 +29,13 @@ export function ImpactfulProposals({ fragment }: Props) {
     fragment
   );
 
+  if (
+    !impactfulProposals.mostValuableProposals.length &&
+    !impactfulProposals.leastValuableProposals.length
+  ) {
+    return null;
+  }
+
   return (
     <VStack gap="4">
       <h2
@@ -46,64 +53,68 @@ export function ImpactfulProposals({ fragment }: Props) {
           flex-wrap: wrap;
         `}
       >
-        <VStack
-          className={css`
-            min-width: 24rem;
-            flex: 1;
-          `}
-        >
-          <h1
-            className={css`
-              font-weight: ${theme.fontWeight.medium};
-              font-size: ${theme.fontSize.sm};
-              margin-bottom: ${theme.spacing[2]};
-            `}
-          >
-            Most Impactful
-          </h1>
-
+        {!!impactfulProposals.mostValuableProposals.length && (
           <VStack
             className={css`
-              border: 1px solid ${theme.colors.gray.eb};
-              box-shadow: ${theme.boxShadow.newDefault};
-              border-radius: ${theme.spacing["2"]};
-              background: ${theme.colors.white};
+              min-width: 24rem;
+              flex: 1;
             `}
           >
-            {impactfulProposals.mostValuableProposals.map((proposal) => (
-              <Proposal key={proposal.id} fragment={proposal} />
-            ))}
-          </VStack>
-        </VStack>
+            <h1
+              className={css`
+                font-weight: ${theme.fontWeight.medium};
+                font-size: ${theme.fontSize.sm};
+                margin-bottom: ${theme.spacing[2]};
+              `}
+            >
+              Most Impactful
+            </h1>
 
-        <VStack
-          className={css`
-            min-width: 24rem;
-            flex: 1;
-          `}
-        >
-          <h1
-            className={css`
-              font-weight: ${theme.fontWeight.medium};
-              font-size: ${theme.fontSize.sm};
-              margin-bottom: ${theme.spacing[2]};
-            `}
-          >
-            Least Impactful
-          </h1>
+            <VStack
+              className={css`
+                border: 1px solid ${theme.colors.gray.eb};
+                box-shadow: ${theme.boxShadow.newDefault};
+                border-radius: ${theme.spacing["2"]};
+                background: ${theme.colors.white};
+              `}
+            >
+              {impactfulProposals.mostValuableProposals.map((proposal) => (
+                <Proposal key={proposal.id} fragment={proposal} />
+              ))}
+            </VStack>
+          </VStack>
+        )}
+
+        {!!impactfulProposals.leastValuableProposals.length && (
           <VStack
             className={css`
-              background: ${theme.colors.white};
-              border: 1px solid ${theme.colors.gray.eb};
-              box-shadow: ${theme.boxShadow.newDefault};
-              border-radius: ${theme.spacing["2"]};
+              min-width: 24rem;
+              flex: 1;
             `}
           >
-            {impactfulProposals.leastValuableProposals.map((proposal) => (
-              <Proposal key={proposal.id} fragment={proposal} />
-            ))}
+            <h1
+              className={css`
+                font-weight: ${theme.fontWeight.medium};
+                font-size: ${theme.fontSize.sm};
+                margin-bottom: ${theme.spacing[2]};
+              `}
+            >
+              Least Impactful
+            </h1>
+            <VStack
+              className={css`
+                background: ${theme.colors.white};
+                border: 1px solid ${theme.colors.gray.eb};
+                box-shadow: ${theme.boxShadow.newDefault};
+                border-radius: ${theme.spacing["2"]};
+              `}
+            >
+              {impactfulProposals.leastValuableProposals.map((proposal) => (
+                <Proposal key={proposal.id} fragment={proposal} />
+              ))}
+            </VStack>
           </VStack>
-        </VStack>
+        )}
       </HStack>
     </VStack>
   );

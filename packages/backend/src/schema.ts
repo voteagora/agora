@@ -58,6 +58,34 @@ const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
     },
   ],
   [
+    "0xf1544ba9a1ad3c8c8b507de3e1f5243c3697e367",
+    {
+      address: "0xf1544ba9a1ad3c8c8b507de3e1f5243c3697e367",
+      values: {
+        delegateStatement:
+          "I'm optimistic on the future and believe all spending is useful.",
+        openToSponsoringProposals: null,
+        twitter: "",
+        discord: "",
+        mostValuableProposals: [
+          {
+            id: "121",
+          },
+          {
+            id: "87",
+          },
+          {
+            id: "77",
+          },
+        ],
+
+        leastValuableProposals: [],
+        topIssues: [],
+        for: "nouns-agora",
+      },
+    },
+  ],
+  [
     "0xa1e4f7dc1983fefe37e2175524ebad87f1c78c3c",
     {
       address: "0xa1e4f7dc1983fefe37e2175524ebad87f1c78c3c",
