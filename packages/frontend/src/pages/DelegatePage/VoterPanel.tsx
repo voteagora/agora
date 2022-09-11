@@ -10,7 +10,6 @@ import { VoterPanelQueryFragment$key } from "./__generated__/VoterPanelQueryFrag
 import { icons } from "../../icons/icons";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 import { HStack, VStack } from "../../components/VStack";
-import { VoterPanelSocialButtonsFragment$key } from "./__generated__/VoterPanelSocialButtonsFragment.graphql";
 import { VoterPanelDelegateButtonFragment$key } from "./__generated__/VoterPanelDelegateButtonFragment.graphql";
 import { VoterPanelActionsFragment$key } from "./__generated__/VoterPanelActionsFragment.graphql";
 import { ReactNode, useMemo, useState } from "react";

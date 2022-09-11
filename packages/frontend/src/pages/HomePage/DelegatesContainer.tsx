@@ -13,9 +13,12 @@ import {
 import { Selector, SelectorItem } from "./Selector";
 import { motion } from "framer-motion";
 import InfiniteScroll from "react-infinite-scroller";
+import { useNavigate } from "../../components/HammockRouter/HammockRouter";
+import { locationToVariables } from "./HomePage";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
+  variables: ReturnType<typeof locationToVariables>;
 };
 
 const orderNames: { [K in WrappedDelegatesOrder]?: string } = {
@@ -25,21 +28,22 @@ const orderNames: { [K in WrappedDelegatesOrder]?: string } = {
   leastVotesCast: "Least votes cast",
 };
 
-export function DelegatesContainer({ fragmentKey }: Props) {
-  const [orderBy, setOrderBy] = useState<WrappedDelegatesOrder>(
-    "mostNounsRepresented"
+export function DelegatesContainer({ fragmentKey, variables }: Props) {
+  const [isPending, startTransition] = useTransition();
+  const [localOrderBy, setLocalOrderBy] = useState<WrappedDelegatesOrder>(
+    variables.orderBy
   );
 
-  const [filterBy, setFilterBy] = useState<WrappedDelegatesWhere | null>(null);
+  const [localFilterBy, setLocalFilterBy] =
+    useState<WrappedDelegatesWhere | null>(variables.filterBy);
 
-  const [isPending, startTransition] = useTransition();
+  const navigate = useNavigate();
 
   const {
     data: { voters },
     loadNext,
     hasNext,
     isLoadingNext,
-    refetch,
   } = usePaginationFragment(
     graphql`
       fragment DelegatesContainerFragment on Query
@@ -138,11 +142,11 @@ export function DelegatesContainer({ fragmentKey }: Props) {
                   },
                 ] as SelectorItem<WrappedDelegatesWhere | null>[]
               }
-              value={filterBy}
+              value={isPending ? localFilterBy : variables.filterBy}
               onChange={(filterBy) => {
-                setFilterBy(filterBy);
+                setLocalFilterBy(filterBy);
                 startTransition(() => {
-                  refetch({ filterBy, orderBy });
+                  navigate({ search: { filterBy: filterBy ?? null } });
                 });
               }}
             />
@@ -154,11 +158,18 @@ export function DelegatesContainer({ fragmentKey }: Props) {
                   value: value as WrappedDelegatesOrder,
                 })
               )}
-              value={orderBy}
+              value={isPending ? localOrderBy : variables.orderBy}
               onChange={(orderBy) => {
-                setOrderBy(orderBy);
+                setLocalOrderBy(orderBy);
                 startTransition(() => {
-                  refetch({ filterBy, orderBy });
+                  navigate({
+                    search: {
+                      orderBy:
+                        orderBy === "mostNounsRepresented"
+                          ? null
+                          : orderBy ?? null,
+                    },
+                  });
                 });
               }}
             />

@@ -7,9 +7,9 @@ import { NounResolvedName } from "../../components/NounResolvedName";
 import { NounsRepresentedGrid } from "../../components/NounGrid";
 import { HStack, VStack } from "../../components/VStack";
 import { icons } from "../../icons/icons";
-import { Link } from "../../components/HammockRouter/HammockRouter";
 import { VoterPanelActions } from "../DelegatePage/VoterPanel";
 import { VoterCardDelegateProfileImage$key } from "./__generated__/VoterCardDelegateProfileImage.graphql";
+import { Link } from "../../components/HammockRouter/Link";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;

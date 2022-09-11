@@ -4,9 +4,7 @@ import {
   TransitionStartFunction,
   useCallback,
   useContext,
-  useEffect,
   useLayoutEffect,
-  useState,
   useTransition,
 } from "react";
 import { HomePage } from "../../pages/HomePage/HomePage";
@@ -15,6 +13,13 @@ import { EditDelegatePage } from "../../pages/EditDelegatePage/EditDelegatePage"
 import { matchPath, PathMatch } from "react-router-dom";
 
 import { createBrowserHistory } from "history";
+import {
+  atom,
+  selector,
+  useRecoilState_TRANSITION_SUPPORT_UNSTABLE,
+  useRecoilValue_TRANSITION_SUPPORT_UNSTABLE,
+} from "recoil";
+import { History } from "history";
 
 const browserHistory = createBrowserHistory();
 
@@ -41,19 +46,32 @@ const routes: Route[] = [
 type RouteMatch = {
   match?: PathMatch;
   index: number;
-  path: string;
 };
 
-const CurrentRouteContext = createContext<RouteMatch | null>(null);
+export type Location = {
+  pathname: string;
+  search: Record<string, string>;
+};
+
+type RoutingState = {
+  location: Location;
+  match: RouteMatch;
+};
+
+type NavigateUpdate = {
+  path?: string;
+  search?: Record<string, string | null>;
+};
+
 const NavigateContext = createContext<
-  ((nextPath: string, asTransition?: boolean) => void) | null
+  ((update: NavigateUpdate, asTransition?: boolean) => void) | null
 >(null);
 const IsPendingContext = createContext<boolean | null>(null);
 const StartTransitionContext = createContext<TransitionStartFunction | null>(
   null
 );
 
-function findMatchingRoute(path: string, routes: Route[]) {
+function findMatchingRoute(path: string, routes: Route[]): RouteMatch {
   for (const { route, index } of routes.map((route, index) => ({
     route,
     index,
@@ -63,14 +81,12 @@ function findMatchingRoute(path: string, routes: Route[]) {
       return {
         index,
         match,
-        path,
       };
     }
   }
 
   return {
     index: 0,
-    path,
   };
 }
 
@@ -78,14 +94,87 @@ type Props = {
   children: ReactNode;
 };
 
+function locationFromHistoryLocation(location: History["location"]): Location {
+  return {
+    pathname: location.pathname,
+    search: Object.fromEntries(new URLSearchParams(location.search).entries()),
+  };
+}
+
+function routingStateForLocation(location: Location): RoutingState {
+  return {
+    match: findMatchingRoute(location.pathname, routes),
+    location,
+  };
+}
+
+function serializedPathFromLocation(location: Location): string {
+  const searchSerialized = new URLSearchParams(location.search).toString();
+
+  return `${location.pathname}${
+    !!searchSerialized ? "?" + searchSerialized : ""
+  }`;
+}
+
+function mergeUpdateWithPreviousValue(
+  previousLocation: Location,
+  update: NavigateUpdate
+): Location {
+  return {
+    search: Object.fromEntries(
+      Object.entries({
+        ...previousLocation.search,
+        ...update.search,
+      })
+        .map(([key, value]) => ({ key, value }))
+        .flatMap(({ key, value }) => {
+          if (!value) {
+            return [];
+          }
+
+          return [{ key, value }];
+        })
+        .map(({ key, value }) => [key, value])
+    ),
+    pathname: update.path ?? previousLocation.pathname,
+  };
+}
+
+// We use recoil here because recoil is able to schedule updates to an external
+// store (browserHistory) AFTER the updated state has been committed.
+const routingStateAtom = atom<RoutingState>({
+  key: "RoutingState",
+  default: selector({
+    key: "RoutingStateInitializer",
+    get() {
+      return routingStateForLocation(
+        locationFromHistoryLocation(browserHistory.location)
+      );
+    },
+  }),
+  effects: [
+    ({ onSet, setSelf }) => {
+      onSet((updatedRoutingState) => {
+        browserHistory.replace(
+          serializedPathFromLocation(updatedRoutingState.location)
+        );
+      });
+      return browserHistory.listen((update) =>
+        setSelf(
+          routingStateForLocation(locationFromHistoryLocation(update.location))
+        )
+      );
+    },
+  ],
+});
+
 export function HammockRouter({ children }: Props) {
-  const [currentRoute, setCurrentRoute] = useState<RouteMatch>(() =>
-    findMatchingRoute(browserHistory.location.pathname, routes)
-  );
+  const [currentRoute, setCurrentRoute] =
+    useRecoilState_TRANSITION_SUPPORT_UNSTABLE(routingStateAtom);
   const [isPending, startTransition] = useTransition();
 
   const navigate = useCallback(
-    (nextPath: string, asTransition: boolean = true) => {
+    (update: NavigateUpdate, asTransition: boolean = true) => {
       const configureUpdateContext = (() => {
         if (!asTransition) {
           return (callback: () => void): void => {
@@ -96,54 +185,47 @@ export function HammockRouter({ children }: Props) {
         return startTransition;
       })();
 
-      const matching: RouteMatch = findMatchingRoute(nextPath, routes);
-
       configureUpdateContext(() => {
-        browserHistory.push(nextPath);
-        setCurrentRoute(matching);
+        browserHistory.push(
+          serializedPathFromLocation(
+            mergeUpdateWithPreviousValue(currentRoute.location, update)
+          )
+        );
+
+        setCurrentRoute((previousValue) => {
+          const nextLocation = mergeUpdateWithPreviousValue(
+            previousValue.location,
+            update
+          );
+          return routingStateForLocation(nextLocation);
+        });
       });
     },
-    [setCurrentRoute, startTransition]
+    [setCurrentRoute, currentRoute, startTransition]
   );
 
-  useEffect(() => {
-    return browserHistory.listen((update) => {
-      if (currentRoute.path === update.location.pathname) {
-        return;
-      }
-
-      startTransition(() => {
-        setCurrentRoute(findMatchingRoute(update.location.pathname, routes));
-      });
-    });
-  }, [navigate, currentRoute]);
-
   return (
-    <CurrentRouteContext.Provider value={currentRoute}>
-      <NavigateContext.Provider value={navigate}>
-        <IsPendingContext.Provider value={isPending}>
-          <StartTransitionContext.Provider value={startTransition}>
-            {children}
-          </StartTransitionContext.Provider>
-        </IsPendingContext.Provider>
-      </NavigateContext.Provider>
-    </CurrentRouteContext.Provider>
+    <NavigateContext.Provider value={navigate}>
+      <IsPendingContext.Provider value={isPending}>
+        <StartTransitionContext.Provider value={startTransition}>
+          {children}
+        </StartTransitionContext.Provider>
+      </IsPendingContext.Provider>
+    </NavigateContext.Provider>
   );
 }
 
 export function HammockRouterContents() {
-  const currentRoute = useCurrentRoute();
+  const currentRoute =
+    useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(routingStateAtom);
+  console.log(currentRoute);
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
   }, [currentRoute]);
 
-  const Element = routes[currentRoute.index].element;
+  const Element = routes[currentRoute.match.index].element;
   return <Element />;
-}
-
-export function useCurrentRoute() {
-  return useContext(CurrentRouteContext)!;
 }
 
 export function useNavigate() {
@@ -154,58 +236,15 @@ export function useIsNavigationPending() {
   return useContext(IsPendingContext)!;
 }
 
-export function useParams() {
-  return useCurrentRoute().match?.params as Record<string, string>;
-}
-
 export function useStartTransition() {
   return useContext(StartTransitionContext)!;
 }
 
-type LinkProps = {
-  to: string;
-  className?: string;
-  children: ReactNode;
-};
-
-function isModifiedEvent(event: React.MouseEvent) {
-  return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
+export function useLocation(): Location {
+  return useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(routingStateAtom).location;
 }
 
-export function Link({ to, className, children }: LinkProps) {
-  const navigate = useNavigate();
-
-  return (
-    <a
-      className={className}
-      href={to}
-      onClick={(event) => {
-        if (event.button !== 0) {
-          return;
-        }
-
-        if (isModifiedEvent(event)) {
-          return;
-        }
-
-        event.preventDefault();
-        navigate(to, true);
-      }}
-    >
-      {children}
-    </a>
-  );
-}
-
-type NavigateProps = {
-  to: string;
-};
-
-export function Navigate({ to }: NavigateProps) {
-  const navigate = useNavigate();
-  useEffect(() => {
-    navigate(to);
-  }, [navigate, to]);
-
-  return null;
+export function useParams() {
+  return useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(routingStateAtom).match
+    ?.match?.params as Record<string, string>;
 }
