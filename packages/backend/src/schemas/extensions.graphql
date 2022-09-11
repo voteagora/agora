@@ -2,6 +2,8 @@ extend type Proposal {
   title: String!
   number: Int!
   totalValue: BigInt!
+  totalVotes: BigInt!
+  createdBlockGovernance: Governance!
 }
 
 extend type Account {
