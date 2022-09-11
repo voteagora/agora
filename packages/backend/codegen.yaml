@@ -5,6 +5,7 @@ generates:
       - "@graphql-codegen/typescript"
       - "@graphql-codegen/typescript-resolvers"
     config:
+      contextType: ../model#AgoraContextType
       mappers:
         OverallMetrics: ../model#OverallMetrics
         Address: ../model#Address
