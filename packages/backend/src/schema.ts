@@ -561,6 +561,14 @@ export async function makeGatewaySchema() {
           return null;
         }
 
+        const forwardResolvedAddress = await resolveEnsOrNnsName(
+          resolved,
+          provider
+        );
+        if (address.toLowerCase() !== forwardResolvedAddress.toLowerCase()) {
+          return null;
+        }
+
         return resolved;
       },
     },
