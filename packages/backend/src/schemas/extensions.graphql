@@ -30,7 +30,7 @@ type DelegateVotesSummary {
 
 type Query {
   metrics: OverallMetrics!
-  address(address: ID!): Address!
+  address(addressOrEnsName: String!): Address
 }
 
 type Address {

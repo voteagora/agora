@@ -18,10 +18,10 @@ export function DelegatePage() {
 
   const query = useLazyLoadQuery<DelegatePageQuery>(
     graphql`
-      query DelegatePageQuery($id: ID!) {
+      query DelegatePageQuery($addressOrEnsName: String!) {
         ...VoterPanelQueryFragment
 
-        address(address: $id) {
+        address(addressOrEnsName: $addressOrEnsName) {
           wrappedDelegate {
             delegate {
               ...PastVotesFragment
@@ -42,9 +42,13 @@ export function DelegatePage() {
       }
     `,
     {
-      id: delegateId ?? "",
+      addressOrEnsName: delegateId ?? "",
     }
   );
+
+  if (!query.address) {
+    return <Navigate to="/" />;
+  }
 
   const wrappedDelegate = query.address.wrappedDelegate;
 

@@ -15,7 +15,7 @@ export function EditDelegatePage() {
 
   const query = useLazyLoadQuery<EditDelegatePageQuery>(
     graphql`
-      query EditDelegatePageQuery($address: ID!) {
+      query EditDelegatePageQuery($address: String!) {
         ...DelegateStatementFormFragment @arguments(address: $address)
       }
     `,
@@ -87,8 +87,8 @@ type LazyVoterPanelProps = {
 function LazyVoterPanel({ address }: LazyVoterPanelProps) {
   const query = useLazyLoadQuery<EditDelegatePageLazyVoterPanelQuery>(
     graphql`
-      query EditDelegatePageLazyVoterPanelQuery($address: ID!) {
-        address(address: $address) {
+      query EditDelegatePageLazyVoterPanelQuery($address: String!) {
+        address(addressOrEnsName: $address) {
           ...VoterPanelDelegateFragment
         }
 
@@ -99,6 +99,10 @@ function LazyVoterPanel({ address }: LazyVoterPanelProps) {
       address,
     }
   );
+
+  if (!query.address) {
+    return <Navigate to="/" />;
+  }
 
   return <VoterPanel delegateFragment={query.address} queryFragment={query} />;
 }

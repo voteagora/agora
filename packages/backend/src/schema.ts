@@ -39,6 +39,7 @@ import { fieldsMatching } from "./utils/graphql";
 import { parseSelectionSet } from "@graphql-tools/utils";
 import { descendingValueComparator, flipComparator } from "./utils/sorting";
 import { marked } from "marked";
+import { resolveEnsOrNnsName } from "./utils/resolveName";
 
 const delegateStatements = new Map<string, ReturnType<typeof validateForm>>([
   [
@@ -311,8 +312,12 @@ export async function makeGatewaySchema() {
       },
 
       address: {
-        resolve(_, { address }) {
-          return { address: address.toLowerCase() };
+        async resolve(_, { addressOrEnsName }) {
+          return {
+            address: (
+              await resolveEnsOrNnsName(addressOrEnsName, provider)
+            ).toLowerCase(),
+          };
         },
       },
 
