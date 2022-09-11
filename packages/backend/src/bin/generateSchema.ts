@@ -2,7 +2,7 @@ import { makeGatewaySchema } from "../schema";
 import { printSchema } from "graphql";
 
 async function main() {
-  const schema = await makeGatewaySchema();
+  const schema = makeGatewaySchema();
   console.log(printSchema(schema));
 }
 
