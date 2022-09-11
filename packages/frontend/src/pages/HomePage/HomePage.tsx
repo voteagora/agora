@@ -6,16 +6,54 @@ import * as theme from "../../theme";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
 import { DelegatesContainer } from "./DelegatesContainer";
 import { VStack } from "../../components/VStack";
+import {
+  useLocation,
+  Location,
+} from "../../components/HammockRouter/HammockRouter";
+
+const filterByValidValues: HomePageQuery["variables"]["filterBy"][] = [
+  "seekingDelegation",
+  "withStatement",
+];
+
+const orderByValidValues: HomePageQuery["variables"]["orderBy"][] = [
+  "mostNounsRepresented",
+  "leastVotesCast",
+  "mostRecentlyActive",
+  "mostVotesCast",
+];
+
+export function locationToVariables(location: Location) {
+  return {
+    filterBy:
+      filterByValidValues.find(
+        (needle) => needle === location.search["filterBy"]
+      ) ?? null,
+    orderBy:
+      orderByValidValues.find(
+        (needle) => needle === location.search["orderBy"]
+      ) ?? "mostNounsRepresented",
+  };
+}
 
 export function HomePage() {
+  const location = useLocation();
+  const variables = locationToVariables(location);
+
   const result = useLazyLoadQuery<HomePageQuery>(
     graphql`
-      query HomePageQuery {
+      query HomePageQuery(
+        $orderBy: WrappedDelegatesOrder!
+        $filterBy: WrappedDelegatesWhere
+      ) {
         ...DelegatesContainerFragment
+          @arguments(orderBy: $orderBy, filterBy: $filterBy)
         ...OverviewMetricsContainer
       }
     `,
-    {}
+    {
+      ...variables,
+    }
   );
 
   return (
@@ -23,7 +61,7 @@ export function HomePage() {
       <Hero />
       <OverviewMetricsContainer fragmentRef={result} />
       <PageDivider />
-      <DelegatesContainer fragmentKey={result} />
+      <DelegatesContainer fragmentKey={result} variables={variables} />
     </>
   );
 }
