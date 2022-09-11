@@ -1,4 +1,5 @@
 import { validateForm } from "./formSchema";
+import { Executor } from "@graphql-tools/utils";
 
 export type OverallMetrics = {};
 
@@ -32,4 +33,5 @@ export interface StatementStorage {
 
 export type AgoraContextType = {
   statementStorage: StatementStorage;
+  nounsExecutor: Executor;
 };
