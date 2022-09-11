@@ -218,7 +218,6 @@ export function HammockRouter({ children }: Props) {
 export function HammockRouterContents() {
   const currentRoute =
     useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(routingStateAtom);
-  console.log(currentRoute);
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
