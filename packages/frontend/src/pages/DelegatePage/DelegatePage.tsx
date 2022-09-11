@@ -83,6 +83,10 @@ export function DelegatePage() {
             @media (max-width: ${theme.maxWidth["6xl"]}) {
               position: static;
             }
+
+            @media (max-width: ${theme.maxWidth.lg}) {
+              width: 100%;
+            }
           `}
         >
           <VoterPanel delegateFragment={query.address} queryFragment={query} />
