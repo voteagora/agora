@@ -9,6 +9,7 @@ import {
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
 import { z } from "zod";
 import { AgoraContextType, StatementStorage, StoredStatement } from "./model";
+import { makeNounsExecutor } from "./schemas/nouns-subgraph";
 const assetManifest = JSON.parse(manifestJSON);
 
 /**
@@ -90,6 +91,7 @@ export default {
 
       const context: AgoraContextType = {
         statementStorage: makeStatementStorage(env.STATEMENTS),
+        nounsExecutor: makeNounsExecutor(),
       };
 
       const server = createServer({
