@@ -626,6 +626,46 @@ export function makeGatewaySchema() {
             ).toString();
           },
         },
+
+        createdBlockGovernance: {
+          selectionSet: `{ createdBlock }`,
+          resolve(
+            { createdBlock }: { createdBlock: string },
+            args,
+            context,
+            info
+          ) {
+            return delegateToSchema({
+              schema: nounsSchema,
+              operation: OperationTypeNode.QUERY,
+              fieldName: "governance",
+              args: {
+                id: "GOVERNANCE",
+                block: { number: Number(createdBlock) },
+              },
+              context,
+              info,
+            });
+          },
+        },
+
+        totalVotes: {
+          selectionSet: `{ forVotes againstVotes abstainVotes }`,
+          resolve({
+            forVotes,
+            againstVotes,
+            abstainVotes,
+          }: {
+            forVotes: string;
+            againstVotes: string;
+            abstainVotes: string;
+          }) {
+            return BigNumber.from(forVotes)
+              .add(againstVotes)
+              .add(abstainVotes)
+              .toString();
+          },
+        },
       },
 
       Vote: {
