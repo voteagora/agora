@@ -10,10 +10,8 @@ import { HStack, VStack } from "../../components/VStack";
 import { issueDefinitions } from "../EditDelegatePage/TopIssuesFormSection";
 import { icons } from "../../icons/icons";
 import { ImpactfulProposals } from "./ImpactfulProposals";
-import {
-  Navigate,
-  useParams,
-} from "../../components/HammockRouter/HammockRouter";
+import { useParams } from "../../components/HammockRouter/HammockRouter";
+import { Navigate } from "../../components/HammockRouter/Navigate";
 
 export function DelegatePage() {
   const { delegateId } = useParams();

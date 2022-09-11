@@ -12,6 +12,7 @@ import {
 } from "./components/HammockRouter/HammockRouter";
 import { FullPageLoadingIndicator } from "./components/FullPageLoadingIndicator";
 import { Toaster } from "react-hot-toast";
+import { RecoilRoot } from "recoil";
 
 const wagmiClient = createClient(
   getDefaultClient({
@@ -25,24 +26,26 @@ function App() {
 
   return (
     <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <WagmiConfig client={wagmiClient}>
-          <ConnectKitProvider>
-            <RelayEnvironmentProvider environment={relayEnvironment}>
-              <HammockRouter>
-                <PageContainer>
-                  <Toaster />
-                  <Suspense fallback={<FullPageLoadingIndicator />}>
-                    <PageHeader />
+      <RecoilRoot>
+        <QueryClientProvider client={queryClient}>
+          <WagmiConfig client={wagmiClient}>
+            <ConnectKitProvider>
+              <RelayEnvironmentProvider environment={relayEnvironment}>
+                <HammockRouter>
+                  <PageContainer>
+                    <Toaster />
+                    <Suspense fallback={<FullPageLoadingIndicator />}>
+                      <PageHeader />
 
-                    <HammockRouterContents />
-                  </Suspense>
-                </PageContainer>
-              </HammockRouter>
-            </RelayEnvironmentProvider>
-          </ConnectKitProvider>
-        </WagmiConfig>
-      </QueryClientProvider>
+                      <HammockRouterContents />
+                    </Suspense>
+                  </PageContainer>
+                </HammockRouter>
+              </RelayEnvironmentProvider>
+            </ConnectKitProvider>
+          </WagmiConfig>
+        </QueryClientProvider>
+      </RecoilRoot>
     </React.StrictMode>
   );
 }
