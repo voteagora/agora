@@ -71,8 +71,8 @@ function PageHeaderContents() {
 
   const { address } = useLazyLoadQuery<PageHeaderQuery>(
     graphql`
-      query PageHeaderQuery($address: ID!, $skip: Boolean!) {
-        address(address: $address) @skip(if: $skip) {
+      query PageHeaderQuery($address: String!, $skip: Boolean!) {
+        address(addressOrEnsName: $address) @skip(if: $skip) {
           ...PageHeaderFragment
         }
       }
