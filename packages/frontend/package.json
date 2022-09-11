@@ -2,7 +2,7 @@
   "name": "nouns-agora",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://nouns-agora-staging.act.workers.dev/",
+  "proxy": "http://localhost:4001/",
   "dependencies": {
     "@emotion/css": "^11.10.0",
     "@graphql-tools/schema": "^9.0.2",
@@ -75,6 +75,7 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.7",
+    "@types/lodash": "^4.14.184",
     "@types/react-infinite-scroller": "^1.2.3",
     "@types/react-relay": "^14.1.1",
     "@types/react-textfit": "^1.1.0",
