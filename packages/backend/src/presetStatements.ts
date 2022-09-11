@@ -1,7 +1,7 @@
 import { validateForm } from "./formSchema";
 import { StoredStatement } from "./model";
 
-function initialFields(): ReturnType<typeof validateForm>["values"] {
+export function initialFields(): ReturnType<typeof validateForm>["values"] {
   return {
     delegateStatement: "",
     openToSponsoringProposals: null,
