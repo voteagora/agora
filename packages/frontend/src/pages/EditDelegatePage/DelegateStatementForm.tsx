@@ -68,8 +68,8 @@ export function DelegateStatementForm({
   const data = useFragment(
     graphql`
       fragment DelegateStatementFormFragment on Query
-      @argumentDefinitions(address: { type: "ID!" }) {
-        address(address: $address) {
+      @argumentDefinitions(address: { type: "String!" }) {
+        address(addressOrEnsName: $address) {
           wrappedDelegate {
             statement {
               statement
@@ -100,7 +100,7 @@ export function DelegateStatementForm({
   );
 
   const [initialFormValuesState] = useState((): FormValues => {
-    if (!data.address.wrappedDelegate.statement) {
+    if (!data.address?.wrappedDelegate?.statement) {
       return initialFormValues();
     }
 

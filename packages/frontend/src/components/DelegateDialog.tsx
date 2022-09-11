@@ -90,8 +90,8 @@ function DelegateDialogContents({
   const { address: accountAddress } = useAccount();
   const { address } = useLazyLoadQuery<DelegateDialogQuery>(
     graphql`
-      query DelegateDialogQuery($address: ID!, $skip: Boolean!) {
-        address(address: $address) @skip(if: $skip) {
+      query DelegateDialogQuery($address: String!, $skip: Boolean!) {
+        address(addressOrEnsName: $address) @skip(if: $skip) {
           account {
             nouns {
               id
