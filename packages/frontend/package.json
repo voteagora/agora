@@ -23,6 +23,7 @@
     "date-fns": "^2.29.2",
     "ethers": "^5.7.0",
     "framer-motion": "^7.2.1",
+    "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.3.0",
