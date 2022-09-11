@@ -178,6 +178,8 @@ const routingStateAtom = atom<RoutingState>({
   ],
 });
 
+export class BlockNavigationError extends Error {}
+
 export function HammockRouter({ children }: Props) {
   const [currentRoute, setCurrentRoute] =
     useRecoilState_TRANSITION_SUPPORT_UNSTABLE(routingStateAtom);
@@ -196,19 +198,27 @@ export function HammockRouter({ children }: Props) {
       })();
 
       configureUpdateContext(() => {
-        browserHistory.push(
-          serializedPathFromLocation(
-            mergeUpdateWithPreviousValue(currentRoute.location, update)
-          )
-        );
-
-        setCurrentRoute((previousValue) => {
-          const nextLocation = mergeUpdateWithPreviousValue(
-            previousValue.location,
-            update
+        try {
+          browserHistory.push(
+            serializedPathFromLocation(
+              mergeUpdateWithPreviousValue(currentRoute.location, update)
+            )
           );
-          return routingStateForLocation(nextLocation);
-        });
+
+          setCurrentRoute((previousValue) => {
+            const nextLocation = mergeUpdateWithPreviousValue(
+              previousValue.location,
+              update
+            );
+            return routingStateForLocation(nextLocation);
+          });
+        } catch (e) {
+          if (e instanceof BlockNavigationError) {
+            return;
+          } else {
+            throw e;
+          }
+        }
       });
     },
     [setCurrentRoute, currentRoute, startTransition]
