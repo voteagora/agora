@@ -378,9 +378,7 @@ export function makeGatewaySchema() {
       },
 
       async proposalCount() {
-        return (
-          (await nounsDaoLogicV1.proposalCount()).toNumber() + 1
-        ).toString();
+        return (await nounsDaoLogicV1.proposalCount()).toString();
       },
 
       async quorumVotes() {
@@ -392,7 +390,7 @@ export function makeGatewaySchema() {
       },
 
       async proposalThreshold() {
-        return (await nounsDaoLogicV1.proposalThreshold()).toString();
+        return (await nounsDaoLogicV1.proposalThreshold()).add(1).toString();
       },
     },
 
