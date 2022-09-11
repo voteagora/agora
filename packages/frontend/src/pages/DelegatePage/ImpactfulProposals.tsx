@@ -6,7 +6,6 @@ import { HStack, VStack } from "../../components/VStack";
 import { ImpactfulProposalsFragment$key } from "./__generated__/ImpactfulProposalsFragment.graphql";
 import { ImpactfulProposalsProposalFragment$key } from "./__generated__/ImpactfulProposalsProposalFragment.graphql";
 import { ValuePart } from "./VoteDetails";
-import { Link } from "../../components/HammockRouter/HammockRouter";
 
 export type Props = {
   fragment: ImpactfulProposalsFragment$key;
@@ -127,7 +126,7 @@ function Proposal({ fragment }: ProposalProps) {
   );
 
   return (
-    <Link to={`https://nouns.wtf/vote/${proposal.number}`}>
+    <a href={`https://nouns.wtf/vote/${proposal.number}`}>
       <VStack
         justifyContent="center"
         className={css`
@@ -147,6 +146,6 @@ function Proposal({ fragment }: ProposalProps) {
         </div>
         {proposal.title}
       </VStack>
-    </Link>
+    </a>
   );
 }

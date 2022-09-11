@@ -8,7 +8,7 @@ import { DelegateStatementForm } from "./DelegateStatementForm";
 import { EditDelegatePageLazyVoterPanelQuery } from "./__generated__/EditDelegatePageLazyVoterPanelQuery.graphql";
 import { useAccount } from "wagmi";
 import { HStack } from "../../components/VStack";
-import { Navigate } from "../../components/HammockRouter/HammockRouter";
+import { Navigate } from "../../components/HammockRouter/Navigate";
 
 export function EditDelegatePage() {
   const { address } = useAccount();
@@ -75,7 +75,7 @@ export const buttonStyles = css`
   :hover {
     background: ${theme.colors.gray["100"]};
   }
-  :active{
+  :active {
     box-shadow: ${theme.boxShadow.none};
   }
 `;

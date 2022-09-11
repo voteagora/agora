@@ -11,7 +11,7 @@ import { useLazyLoadQuery } from "react-relay/hooks";
 import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
 import { Suspense } from "react";
-import { Link } from "./HammockRouter/HammockRouter";
+import { Link } from "./HammockRouter/Link";
 
 export function PageHeader() {
   return (
