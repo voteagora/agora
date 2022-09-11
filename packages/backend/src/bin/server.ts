@@ -6,6 +6,7 @@ import { createInMemoryCache } from "@envelop/response-cache";
 import { makeCachePlugin } from "../cache";
 import { AgoraContextType, StatementStorage, StoredStatement } from "../model";
 import { presetDelegateStatements } from "../presetStatements";
+import { makeNounsExecutor } from "../schemas/nouns-subgraph";
 
 async function main() {
   const delegateStatements = new Map(presetDelegateStatements);
@@ -14,6 +15,7 @@ async function main() {
   const cache = createInMemoryCache();
   const context: AgoraContextType = {
     statementStorage: makeStatementStorageFromMap(delegateStatements),
+    nounsExecutor: makeNounsExecutor(),
   };
 
   const server = createServer({
