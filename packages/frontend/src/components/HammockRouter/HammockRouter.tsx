@@ -175,9 +175,6 @@ const routingStateAtom = atom<RoutingState>({
         )
       );
     },
-    ({ onSet }) => {
-      onSet((value) => console.log(value));
-    },
   ],
 });
 
