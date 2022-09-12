@@ -23,11 +23,12 @@ import graphql from "babel-plugin-relay/macro";
 import { DelegateStatementFormMutation } from "./__generated__/DelegateStatementFormMutation.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { DelegateStatementFormFragment$key } from "./__generated__/DelegateStatementFormFragment.graphql";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { isEqual } from "lodash";
 import {
   BlockNavigationError,
   browserHistory,
+  useNavigate,
 } from "../../components/HammockRouter/HammockRouter";
 
 type DelegateStatementFormProps = {
@@ -70,6 +71,11 @@ export function DelegateStatementForm({
       fragment DelegateStatementFormFragment on Query
       @argumentDefinitions(address: { type: "String!" }) {
         address(addressOrEnsName: $address) {
+          resolvedName {
+            address
+            name
+          }
+
           wrappedDelegate {
             statement {
               statement
@@ -99,7 +105,7 @@ export function DelegateStatementForm({
     queryFragment
   );
 
-  const [initialFormValuesState] = useState((): FormValues => {
+  const initialFormValuesState = useMemo((): FormValues => {
     if (!data.address?.wrappedDelegate?.statement) {
       return initialFormValues();
     }
@@ -122,7 +128,7 @@ export function DelegateStatementForm({
         return statement.openToSponsoringProposals ? "yes" : "no";
       })(),
     };
-  });
+  }, [data]);
 
   const form = useForm<FormValues>(() => initialFormValuesState);
 
@@ -137,6 +143,10 @@ export function DelegateStatementForm({
     }
 
     return browserHistory.block((transition) => {
+      if (currentlyIgnoringBlock) {
+        return;
+      }
+
       const allowedToProceed = window.confirm(
         "You have pending changes, are you sure you want to navigate?"
       );
@@ -154,11 +164,31 @@ export function DelegateStatementForm({
           $input: CreateNewDelegateStatementData
         ) {
           createNewDelegateStatement(data: $input) {
-            id
+            statement {
+              statement
+              mostValuableProposals {
+                number
+              }
+
+              leastValuableProposals {
+                number
+              }
+
+              discord
+              twitter
+              topIssues {
+                type
+                value
+              }
+
+              openToSponsoringProposals
+            }
           }
         }
       `
     );
+
+  const navigate = useNavigate();
 
   const { data: signer } = useSigner();
   const submitMutation = useReactQueryMutation(["submit"], async () => {
@@ -181,18 +211,38 @@ export function DelegateStatementForm({
 
     const signature = await signer.signMessage(serializedBody);
 
-    createNewDelegateStatement({
-      variables: {
-        input: {
-          statementBodyJson: serializedBody,
-          statementBodyJsonSignature: signature,
+    await new Promise<void>((resolve, reject) =>
+      createNewDelegateStatement({
+        variables: {
+          input: {
+            statementBodyJson: serializedBody,
+            statementBodyJsonSignature: signature,
+          },
         },
-      },
+        onCompleted() {
+          resolve();
+        },
+        onError(error) {
+          reject(error);
+        },
+      })
+    );
+
+    withIgnoringBlock(() => {
+      if (!data.address) {
+        return;
+      }
+
+      navigate({
+        path: `/delegate/${
+          data.address.resolvedName.name ?? data.address.resolvedName.address
+        }`,
+      });
     });
   });
 
   const canSubmit =
-    !!signer && !isMutationInFlight && !submitMutation.isLoading;
+    !!signer && !isMutationInFlight && !submitMutation.isLoading && isDirty;
 
   return (
     <VStack
@@ -234,4 +284,14 @@ export function DelegateStatementForm({
       </HStack>
     </VStack>
   );
+}
+
+let currentlyIgnoringBlock = false;
+function withIgnoringBlock(fn: () => void) {
+  currentlyIgnoringBlock = true;
+  try {
+    fn();
+  } finally {
+    currentlyIgnoringBlock = false;
+  }
 }

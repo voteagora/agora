@@ -34,6 +34,7 @@ export function EditDelegatePage() {
         padding-left: ${theme.spacing["4"]};
         padding-right: ${theme.spacing["4"]};
         margin-top: ${theme.spacing["8"]};
+        margin-bottom: ${theme.spacing["8"]};
         width: 100%;
         max-width: ${theme.maxWidth["6xl"]};
 
@@ -75,8 +76,14 @@ export const buttonStyles = css`
   :hover {
     background: ${theme.colors.gray["100"]};
   }
+
   :active {
     box-shadow: ${theme.boxShadow.none};
+  }
+
+  :disabled {
+    background: ${theme.colors.gray.eb};
+    color: ${theme.colors.gray["700"]};
   }
 `;
 
