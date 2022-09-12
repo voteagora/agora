@@ -8,8 +8,14 @@ import {
 } from "@cloudflare/kv-asset-handler";
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
 import { z } from "zod";
-import { AgoraContextType, StatementStorage, StoredStatement } from "./model";
+import {
+  AgoraContextType,
+  EmailStorage,
+  StatementStorage,
+  StoredStatement,
+} from "./model";
 import { makeNounsExecutor } from "./schemas/nouns-subgraph";
+import { ValidatedMessage } from "./utils/signing";
 const assetManifest = JSON.parse(manifestJSON);
 
 /**
@@ -33,6 +39,7 @@ export interface Env {
   // MY_BUCKET: R2Bucket;
   ENVIRONMENT: "prod" | "dev" | "staging";
   STATEMENTS: KVNamespace;
+  EMAILS: KVNamespace;
   __STATIC_CONTENT: KVNamespace;
 }
 
@@ -71,6 +78,20 @@ function makeStatementStorage(kvNamespace: KVNamespace): StatementStorage {
   };
 }
 
+function makeEmailStorage(kvNamespace: KVNamespace): EmailStorage {
+  return {
+    async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
+      kvNamespace.put(
+        verifiedEmail.address,
+        JSON.stringify({
+          signature: verifiedEmail.signature,
+          value: verifiedEmail.value,
+        })
+      );
+    },
+  };
+}
+
 // Initializing the schema takes about 250ms. We should avoid doing it once
 // per request. We need to move this calculation into some kind of compile time
 // step.
@@ -91,6 +112,7 @@ export default {
 
       const context: AgoraContextType = {
         statementStorage: makeStatementStorage(env.STATEMENTS),
+        emailStorage: makeEmailStorage(env.EMAILS),
         nounsExecutor: makeNounsExecutor(),
       };
 

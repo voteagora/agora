@@ -17,10 +17,13 @@ import { OtherInfoFormSection } from "./OtherInfoFormSection";
 import { buttonStyles } from "./EditDelegatePage";
 import { UseForm, useForm } from "./useForm";
 import { useSigner } from "wagmi";
-import { useFragment, useMutation } from "react-relay";
+import { useFragment, useMutation, VariablesOf } from "react-relay";
 import { useMutation as useReactQueryMutation } from "@tanstack/react-query";
 import graphql from "babel-plugin-relay/macro";
-import { DelegateStatementFormMutation } from "./__generated__/DelegateStatementFormMutation.graphql";
+import {
+  DelegateStatementFormMutation,
+  ValueWithSignature,
+} from "./__generated__/DelegateStatementFormMutation.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { DelegateStatementFormFragment$key } from "./__generated__/DelegateStatementFormFragment.graphql";
 import { useEffect, useMemo } from "react";
@@ -30,6 +33,7 @@ import {
   browserHistory,
   useNavigate,
 } from "../../components/HammockRouter/HammockRouter";
+import { Signer } from "ethers";
 
 type DelegateStatementFormProps = {
   queryFragment: DelegateStatementFormFragment$key;
@@ -209,16 +213,18 @@ export function DelegateStatementForm({
     };
     const serializedBody = JSON.stringify(signingBody, undefined, "\t");
 
-    const signature = await signer.signMessage(serializedBody);
+    const variables: VariablesOf<DelegateStatementFormMutation> = {
+      input: {
+        statement: await makeSignedValue(signer, serializedBody),
+        email: formState.email
+          ? await makeSignedValue(signer, formState.email)
+          : null,
+      },
+    };
 
     await new Promise<void>((resolve, reject) =>
       createNewDelegateStatement({
-        variables: {
-          input: {
-            statementBodyJson: serializedBody,
-            statementBodyJsonSignature: signature,
-          },
-        },
+        variables,
         onCompleted() {
           resolve();
         },
@@ -294,4 +300,14 @@ function withIgnoringBlock(fn: () => void) {
   } finally {
     currentlyIgnoringBlock = false;
   }
+}
+
+async function makeSignedValue(
+  signer: Signer,
+  value: string
+): Promise<ValueWithSignature> {
+  return {
+    value,
+    signature: await signer.signMessage(value),
+  };
 }

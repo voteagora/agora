@@ -1,17 +1,4 @@
 import { z, ZodArray, ZodTypeAny } from "zod";
-import { ethers } from "ethers";
-
-export function validateForm(serializedContents: string, signature: string) {
-  const address = ethers.utils.verifyMessage(serializedContents, signature);
-
-  const body = JSON.parse(serializedContents);
-  const values = formSchema.parse(body);
-
-  return {
-    address: address.toLowerCase(),
-    values,
-  };
-}
 
 const topIssueSchema = z
   .object({
