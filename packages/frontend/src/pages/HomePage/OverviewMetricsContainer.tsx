@@ -94,7 +94,11 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
       <MetricContainer
         icon="measure"
         title="Proposal threshold"
-        body={`${proposalThreshold} noun`}
+        body={`${
+          proposalThreshold.eq(1)
+            ? `1 noun`
+            : `${proposalThreshold.toString()} nouns`
+        }`}
       />
 
       <MetricContainer
