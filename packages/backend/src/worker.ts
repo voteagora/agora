@@ -46,6 +46,7 @@ export interface Env {
 const cache = createInMemoryCache();
 
 const storedStatementSchema = z.object({
+  updatedAt: z.number(),
   address: z.string(),
   signature: z.string(),
   signedPayload: z.string(),
@@ -73,7 +74,7 @@ function makeStatementStorage(kvNamespace: KVNamespace): StatementStorage {
 
     async listStatements(): Promise<string[]> {
       const entries = await kvNamespace.list();
-      return entries.keys.map((item) => item.name);
+      return entries.keys.map((item) => item.name.toLowerCase());
     },
   };
 }

@@ -28,6 +28,7 @@ export type StoredStatement = {
   address: string;
   signature: string;
   signedPayload: string;
+  updatedAt: number;
 };
 
 export interface StatementStorage {
