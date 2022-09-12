@@ -1,7 +1,8 @@
-import { validateForm } from "./formSchema";
+import { z } from "zod";
+import { formSchema } from "./formSchema";
 import { StoredStatement } from "./model";
 
-export function initialFields(): ReturnType<typeof validateForm>["values"] {
+export function initialFields(): z.TypeOf<typeof formSchema> {
   return {
     delegateStatement: "",
     openToSponsoringProposals: null,
@@ -16,7 +17,7 @@ export function initialFields(): ReturnType<typeof validateForm>["values"] {
 
 function makeStoredStatementEntry(
   address: string,
-  fields: Partial<ReturnType<typeof validateForm>>["values"]
+  fields: Partial<z.TypeOf<typeof formSchema>>
 ): [string, StoredStatement] {
   return [
     address.toLowerCase(),

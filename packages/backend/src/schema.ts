@@ -32,7 +32,7 @@ import {
   WrappedDelegatesOrder,
   WrappedDelegatesWhere,
 } from "./generated/types";
-import { formSchema, validateForm } from "./formSchema";
+import { formSchema } from "./formSchema";
 import { WrappedDelegate } from "./model";
 import schema from "./schemas/extensions.graphql";
 import { fieldsMatching } from "./utils/graphql";
@@ -40,6 +40,7 @@ import { parseSelectionSet } from "@graphql-tools/utils";
 import { descendingValueComparator, flipComparator } from "./utils/sorting";
 import { marked } from "marked";
 import { resolveEnsOrNnsName } from "./utils/resolveName";
+import { validateSigned } from "./utils/signing";
 
 function makeSimpleFieldNode(name: string): FieldNode {
   return {
@@ -565,19 +566,20 @@ export function makeGatewaySchema() {
       async createNewDelegateStatement(
         parent,
         args,
-        { statementStorage },
+        { statementStorage, emailStorage },
         info
       ) {
-        const validated = validateForm(
-          args.data.statementBodyJson,
-          args.data.statementBodyJsonSignature
-        );
+        const validated = validateSigned(args.data.statement);
 
         await statementStorage.addStatement({
           address: validated.address,
-          signedPayload: args.data.statementBodyJson,
-          signature: args.data.statementBodyJsonSignature,
+          signedPayload: validated.value,
+          signature: validated.signature,
         });
+
+        if (args.data.email) {
+          await emailStorage.addEmail(validateSigned(args.data.email));
+        }
 
         return {
           address: validated.address,

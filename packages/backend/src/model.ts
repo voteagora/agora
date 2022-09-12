@@ -1,5 +1,7 @@
-import { validateForm } from "./formSchema";
 import { Executor } from "@graphql-tools/utils";
+import { z } from "zod";
+import { formSchema } from "./formSchema";
+import { ValidatedMessage } from "./utils/signing";
 
 export type OverallMetrics = {};
 
@@ -17,7 +19,10 @@ export type WrappedDelegate = {
   underlyingDelegate?: any;
 };
 
-export type DelegateStatement = ReturnType<typeof validateForm>;
+export type DelegateStatement = {
+  address: string;
+  values: z.TypeOf<typeof formSchema>;
+};
 
 export type StoredStatement = {
   address: string;
@@ -31,7 +36,12 @@ export interface StatementStorage {
   listStatements(): Promise<string[]>;
 }
 
+export interface EmailStorage {
+  addEmail(verifiedEmail: ValidatedMessage): Promise<void>;
+}
+
 export type AgoraContextType = {
   statementStorage: StatementStorage;
+  emailStorage: EmailStorage;
   nounsExecutor: Executor;
 };

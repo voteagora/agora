@@ -7,6 +7,7 @@ import { makeCachePlugin } from "../cache";
 import { AgoraContextType, StatementStorage, StoredStatement } from "../model";
 import { presetDelegateStatements } from "../presetStatements";
 import { makeNounsExecutor } from "../schemas/nouns-subgraph";
+import { ValidatedMessage } from "../utils/signing";
 
 async function main() {
   const delegateStatements = new Map(presetDelegateStatements);
@@ -16,6 +17,11 @@ async function main() {
   const context: AgoraContextType = {
     statementStorage: makeStatementStorageFromMap(delegateStatements),
     nounsExecutor: makeNounsExecutor(),
+    emailStorage: {
+      async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
+        console.log({ verifiedEmail });
+      },
+    },
   };
 
   const server = createServer({
