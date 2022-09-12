@@ -2463,8 +2463,13 @@ type Mutation {
 }
 
 input CreateNewDelegateStatementData {
-  statementBodyJson: String!
-  statementBodyJsonSignature: String!
+  statement: ValueWithSignature!
+  email: ValueWithSignature
+}
+
+input ValueWithSignature {
+  value: String!
+  signature: String!
 }
 
 enum WrappedDelegatesWhere {
