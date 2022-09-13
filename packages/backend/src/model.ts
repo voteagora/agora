@@ -2,6 +2,7 @@ import { Executor } from "@graphql-tools/utils";
 import { z } from "zod";
 import { formSchema } from "./formSchema";
 import { ValidatedMessage } from "./utils/signing";
+import { ExpiringCache } from "./utils/cache";
 
 export type OverallMetrics = {};
 
@@ -43,6 +44,7 @@ export interface EmailStorage {
 
 export type AgoraContextType = {
   statementStorage: StatementStorage;
+  cache: ExpiringCache;
   emailStorage: EmailStorage;
   nounsExecutor: Executor;
 };
