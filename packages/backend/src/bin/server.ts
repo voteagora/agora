@@ -2,21 +2,23 @@ import "isomorphic-fetch";
 import { createServer } from "@graphql-yoga/node";
 import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
-import { createInMemoryCache } from "@envelop/response-cache";
-import { makeCachePlugin } from "../cache";
 import { AgoraContextType, StatementStorage, StoredStatement } from "../model";
 import { presetDelegateStatements } from "../presetStatements";
 import { makeNounsExecutor } from "../schemas/nouns-subgraph";
 import { ValidatedMessage } from "../utils/signing";
+import { makeInMemoryCache } from "../utils/cache";
+import { makeCachePlugin } from "../cache";
+import { createInMemoryCache } from "@envelop/response-cache";
 
 async function main() {
   const delegateStatements = new Map(presetDelegateStatements);
   const schema = makeGatewaySchema();
-
   const cache = createInMemoryCache();
+
   const context: AgoraContextType = {
     statementStorage: makeStatementStorageFromMap(delegateStatements),
     nounsExecutor: makeNounsExecutor(),
+    cache: makeInMemoryCache(),
     emailStorage: {
       async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
         console.log({ verifiedEmail });
@@ -29,7 +31,7 @@ async function main() {
     context,
     port: 4001,
     maskedErrors: false,
-    plugins: [useTiming(), makeCachePlugin(cache)],
+    plugins: [useTiming()],
   });
   await server.start();
 }
