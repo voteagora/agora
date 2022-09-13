@@ -14,6 +14,7 @@ import {
 } from "./model";
 import { makeNounsExecutor } from "./schemas/nouns-subgraph";
 import { ValidatedMessage } from "./utils/signing";
+import Toucan from "toucan-js";
 import { ExpiringCache } from "./utils/cache";
 const assetManifest = JSON.parse(manifestJSON);
 
@@ -37,6 +38,9 @@ export interface Env {
   // Example binding to R2. Learn more at https://developers.cloudflare.com/workers/runtime-apis/r2/
   // MY_BUCKET: R2Bucket;
   ENVIRONMENT: "prod" | "dev" | "staging";
+  SENTRY_DSN: string;
+  GITHUB_SHA: string;
+
   STATEMENTS: KVNamespace;
   APPLICATION_CACHE: KVNamespace;
   EMAILS: KVNamespace;
@@ -117,42 +121,58 @@ export default {
     env: Env,
     ctx: ExecutionContext
   ): Promise<Response> {
-    const isProduction = env.ENVIRONMENT === "prod";
-    const url = new URL(request.url);
-    if (url.pathname === "/graphql") {
-      if (!gatewaySchema) {
-        gatewaySchema = makeGatewaySchema();
-      }
+    const sentry = new Toucan({
+      dsn: env.SENTRY_DSN,
+      environment: env.ENVIRONMENT,
+      release: env.GITHUB_SHA,
+      context: ctx,
+      request,
+      rewriteFrames: {
+        root: "/",
+      },
+    });
 
-      const context: AgoraContextType = {
-        statementStorage: makeStatementStorage(env.STATEMENTS),
-        emailStorage: makeEmailStorage(env.EMAILS),
-        nounsExecutor: makeNounsExecutor(),
-        cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
-      };
-
-      const server = createServer({
-        schema: gatewaySchema,
-        context,
-        maskedErrors: isProduction,
-        graphiql: !isProduction,
-      });
-
-      return server.handleRequest(request, { env, ctx });
-    } else {
-      return await getAssetFromKV(
-        {
-          request,
-          waitUntil(promise) {
-            return ctx.waitUntil(promise);
-          },
-        },
-        {
-          ASSET_NAMESPACE: env.__STATIC_CONTENT,
-          ASSET_MANIFEST: assetManifest,
-          mapRequestToAsset: serveSinglePageApp,
+    try {
+      const isProduction = env.ENVIRONMENT === "prod";
+      const url = new URL(request.url);
+      if (url.pathname === "/graphql") {
+        if (!gatewaySchema) {
+          gatewaySchema = makeGatewaySchema();
         }
-      );
+
+        const context: AgoraContextType = {
+          statementStorage: makeStatementStorage(env.STATEMENTS),
+          emailStorage: makeEmailStorage(env.EMAILS),
+          nounsExecutor: makeNounsExecutor(),
+          cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
+        };
+
+        const server = createServer({
+          schema: gatewaySchema,
+          context,
+          maskedErrors: isProduction,
+          graphiql: !isProduction,
+        });
+
+        return server.handleRequest(request, { env, ctx });
+      } else {
+        return await getAssetFromKV(
+          {
+            request,
+            waitUntil(promise) {
+              return ctx.waitUntil(promise);
+            },
+          },
+          {
+            ASSET_NAMESPACE: env.__STATIC_CONTENT,
+            ASSET_MANIFEST: assetManifest,
+            mapRequestToAsset: serveSinglePageApp,
+          }
+        );
+      }
+    } catch (e) {
+      sentry.captureException(e);
+      throw e;
     }
   },
 };
