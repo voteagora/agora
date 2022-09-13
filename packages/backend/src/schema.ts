@@ -33,7 +33,7 @@ import {
   WrappedDelegatesWhere,
 } from "./generated/types";
 import { formSchema } from "./formSchema";
-import { WrappedDelegate } from "./model";
+import { AgoraContextType, WrappedDelegate } from "./model";
 import schema from "./schemas/extensions.graphql";
 import { fieldsMatching } from "./utils/graphql";
 import { parseSelectionSet } from "@graphql-tools/utils";
@@ -41,6 +41,11 @@ import { descendingValueComparator, flipComparator } from "./utils/sorting";
 import { marked } from "marked";
 import { resolveEnsOrNnsName } from "./utils/resolveName";
 import { validateSigned } from "./utils/signing";
+import {
+  fetchWithCache,
+  makeDefinitionWithFixedTtl,
+  makeSimpleCacheDefinition,
+} from "./utils/cache";
 
 function makeSimpleFieldNode(name: string): FieldNode {
   return {
@@ -136,6 +141,51 @@ export function makeGatewaySchema() {
     "0x5982cE3554B18a5CF02169049e81ec43BFB73961",
     provider
   );
+
+  const resolvedNameCacheDef = makeDefinitionWithFixedTtl<
+    { resolvedName: string | null },
+    { address: string }
+  >({
+    baseKey: "ResolvedName",
+    ttl: 60 * 60,
+    generateKeyFromParams({ address }): string {
+      return address;
+    },
+    async computeIfAbsent({ address }) {
+      const resolved = await resolver.resolve(address);
+      if (!resolved) {
+        return { resolvedName: null };
+      }
+
+      const forwardResolvedAddress = await resolveEnsOrNnsName(
+        resolved,
+        provider
+      );
+
+      if (address.toLowerCase() !== forwardResolvedAddress.toLowerCase()) {
+        return { resolvedName: null };
+      }
+
+      return {
+        resolvedName: resolved,
+      };
+    },
+  });
+
+  const blockTimestampCacheDefinition = makeDefinitionWithFixedTtl<
+    { timestamp: string },
+    { blockNumber: string }
+  >({
+    baseKey: "BlockNumber",
+    generateKeyFromParams({ blockNumber }): string {
+      return blockNumber;
+    },
+    async computeIfAbsent({ blockNumber }) {
+      const block = await provider.getBlock(Number(blockNumber));
+      return { timestamp: block.timestamp.toString() };
+    },
+    ttl: Infinity,
+  });
 
   async function fetchRemoteDelegates(
     context: any,
@@ -374,24 +424,66 @@ export function makeGatewaySchema() {
     },
 
     OverallMetrics: {
-      async totalSupply() {
-        return (await nounsToken.totalSupply()).toString();
+      async totalSupply(_, _args, { cache }) {
+        const cacheDefinition = makeSimpleCacheDefinition({
+          baseKey: "OverallMetrics.totalSupply",
+          ttl: 60 * 60,
+          async computeIfAbsent() {
+            return (await nounsToken.totalSupply()).toString();
+          },
+        });
+
+        return await fetchWithCache(cache, cacheDefinition, undefined);
       },
 
-      async proposalCount() {
-        return (await nounsDaoLogicV1.proposalCount()).toString();
+      async proposalCount(_, _args, { cache }) {
+        const cacheDefinition = makeSimpleCacheDefinition({
+          baseKey: "OverallMetrics.proposalCount",
+          ttl: 60 * 60,
+          async computeIfAbsent() {
+            return (await nounsDaoLogicV1.proposalCount()).toString();
+          },
+        });
+
+        return await fetchWithCache(cache, cacheDefinition, undefined);
       },
 
-      async quorumVotes() {
-        return (await nounsDaoLogicV1.quorumVotes()).toString();
+      async quorumVotes(_, _args, { cache }) {
+        const cacheDefinition = makeSimpleCacheDefinition({
+          baseKey: "OverallMetrics.quorumVotes",
+          ttl: 60 * 60,
+          async computeIfAbsent() {
+            return (await nounsDaoLogicV1.quorumVotes()).toString();
+          },
+        });
+
+        return await fetchWithCache(cache, cacheDefinition, undefined);
       },
 
-      async quorumVotesBPS() {
-        return (await nounsDaoLogicV1.quorumVotesBPS()).toString();
+      async quorumVotesBPS(_, _args, { cache }) {
+        const cacheDefinition = makeSimpleCacheDefinition({
+          baseKey: "OverallMetrics.quorumVotesBPS",
+          ttl: 60 * 60,
+          async computeIfAbsent() {
+            return (await nounsDaoLogicV1.quorumVotesBPS()).toString();
+          },
+        });
+
+        return await fetchWithCache(cache, cacheDefinition, undefined);
       },
 
-      async proposalThreshold() {
-        return (await nounsDaoLogicV1.proposalThreshold()).add(1).toString();
+      async proposalThreshold(_, _args, { cache }) {
+        const cacheDefinition = makeSimpleCacheDefinition({
+          baseKey: "OverallMetrics.proposalThreshold",
+          ttl: 60 * 60,
+          async computeIfAbsent() {
+            return (await nounsDaoLogicV1.proposalThreshold())
+              .add(1)
+              .toString();
+          },
+        });
+
+        return await fetchWithCache(cache, cacheDefinition, undefined);
       },
     },
 
@@ -421,21 +513,9 @@ export function makeGatewaySchema() {
     },
 
     ResolvedName: {
-      async name({ address }) {
-        const resolved = await resolver.resolve(address);
-        if (!resolved) {
-          return null;
-        }
-
-        const forwardResolvedAddress = await resolveEnsOrNnsName(
-          resolved,
-          provider
-        );
-        if (address.toLowerCase() !== forwardResolvedAddress.toLowerCase()) {
-          return null;
-        }
-
-        return resolved;
+      async name({ address }, _args, { cache }) {
+        return (await fetchWithCache(cache, resolvedNameCacheDef, { address }))
+          .resolvedName;
       },
     },
 
@@ -590,7 +670,7 @@ export function makeGatewaySchema() {
     },
   };
 
-  const resolvers = mergeResolvers([
+  const resolvers = mergeResolvers<unknown, AgoraContextType>([
     typedResolvers,
     {
       Noun: {
@@ -673,9 +753,16 @@ export function makeGatewaySchema() {
       Vote: {
         createdAt: {
           selectionSet: `{ blockNumber }`,
-          async resolve({ blockNumber }: { blockNumber: string }) {
-            const block = await provider.getBlock(Number(blockNumber));
-            return block.timestamp.toString();
+          async resolve(
+            { blockNumber }: { blockNumber: string },
+            args,
+            { cache }
+          ) {
+            return (
+              await fetchWithCache(cache, blockTimestampCacheDefinition, {
+                blockNumber,
+              })
+            ).timestamp;
           },
         },
       },

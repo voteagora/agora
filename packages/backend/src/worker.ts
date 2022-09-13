@@ -1,7 +1,5 @@
 import { createServer } from "@graphql-yoga/common";
 import { makeGatewaySchema } from "./schema";
-import { createInMemoryCache } from "@envelop/response-cache";
-import { makeCachePlugin } from "./cache";
 import {
   getAssetFromKV,
   serveSinglePageApp,
@@ -16,6 +14,7 @@ import {
 } from "./model";
 import { makeNounsExecutor } from "./schemas/nouns-subgraph";
 import { ValidatedMessage } from "./utils/signing";
+import { ExpiringCache } from "./utils/cache";
 const assetManifest = JSON.parse(manifestJSON);
 
 /**
@@ -39,11 +38,10 @@ export interface Env {
   // MY_BUCKET: R2Bucket;
   ENVIRONMENT: "prod" | "dev" | "staging";
   STATEMENTS: KVNamespace;
+  APPLICATION_CACHE: KVNamespace;
   EMAILS: KVNamespace;
   __STATIC_CONTENT: KVNamespace;
 }
-
-const cache = createInMemoryCache();
 
 const storedStatementSchema = z.object({
   updatedAt: z.number(),
@@ -82,12 +80,27 @@ function makeStatementStorage(kvNamespace: KVNamespace): StatementStorage {
 function makeEmailStorage(kvNamespace: KVNamespace): EmailStorage {
   return {
     async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
-      kvNamespace.put(
+      await kvNamespace.put(
         verifiedEmail.address,
         JSON.stringify({
           signature: verifiedEmail.signature,
           value: verifiedEmail.value,
         })
+      );
+    },
+  };
+}
+
+function makeCacheFromKvNamespace(kvNamespace: KVNamespace): ExpiringCache {
+  return {
+    async get(key: string): Promise<string | null> {
+      return await kvNamespace.get(key);
+    },
+    async put(key: string, value: string, ttl: number): Promise<void> {
+      await kvNamespace.put(
+        key,
+        value,
+        ttl === Infinity ? undefined : { expirationTtl: ttl }
       );
     },
   };
@@ -115,6 +128,7 @@ export default {
         statementStorage: makeStatementStorage(env.STATEMENTS),
         emailStorage: makeEmailStorage(env.EMAILS),
         nounsExecutor: makeNounsExecutor(),
+        cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
       };
 
       const server = createServer({
@@ -122,7 +136,6 @@ export default {
         context,
         maskedErrors: isProduction,
         graphiql: !isProduction,
-        plugins: [makeCachePlugin(cache)],
       });
 
       return server.handleRequest(request, { env, ctx });
