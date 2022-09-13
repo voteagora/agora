@@ -18,7 +18,10 @@ async function main() {
   const context: AgoraContextType = {
     statementStorage: makeStatementStorageFromMap(delegateStatements),
     nounsExecutor: makeNounsExecutor(),
-    cache: makeInMemoryCache(),
+    cache: {
+      cache: makeInMemoryCache(),
+      waitUntil: () => {},
+    },
     emailStorage: {
       async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
         console.log({ verifiedEmail });

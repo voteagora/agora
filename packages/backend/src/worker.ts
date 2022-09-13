@@ -1,4 +1,9 @@
-import { createServer } from "@graphql-yoga/common";
+import {
+  createServer,
+  EnvelopError,
+  handleStreamOrSingleExecutionResult,
+  Plugin,
+} from "@graphql-yoga/common";
 import { makeGatewaySchema } from "./schema";
 import {
   getAssetFromKV,
@@ -16,6 +21,15 @@ import { makeNounsExecutor } from "./schemas/nouns-subgraph";
 import { ValidatedMessage } from "./utils/signing";
 import Toucan from "toucan-js";
 import { ExpiringCache } from "./utils/cache";
+import {
+  GraphQLError,
+  Kind,
+  OperationDefinitionNode,
+  print,
+  responsePathAsArray,
+} from "graphql";
+import { Scope } from "toucan-js/dist/scope";
+
 const assetManifest = JSON.parse(manifestJSON);
 
 /**
@@ -100,12 +114,131 @@ function makeCacheFromKvNamespace(kvNamespace: KVNamespace): ExpiringCache {
     async get(key: string): Promise<string | null> {
       return await kvNamespace.get(key);
     },
-    async put(key: string, value: string, ttl: number): Promise<void> {
-      await kvNamespace.put(
-        key,
-        value,
-        ttl === Infinity ? undefined : { expirationTtl: ttl }
-      );
+    async put(key: string, value: string): Promise<void> {
+      await kvNamespace.put(key, value, { expirationTtl: 60 * 60 * 24 * 7 });
+    },
+  };
+}
+
+function skipError(error: Error): boolean {
+  return error instanceof EnvelopError;
+}
+
+function addEventId(err: GraphQLError, eventId: string): GraphQLError {
+  return new GraphQLError(
+    err.message,
+    err.nodes,
+    err.source,
+    err.positions,
+    err.path,
+    undefined,
+    {
+      ...err.extensions,
+      sentryEventId: eventId,
+    }
+  );
+}
+
+function withSentryScope<T>(toucan: Toucan, fn: (scope: Scope) => T): T {
+  let returnValue: T;
+
+  toucan.withScope((scope) => {
+    returnValue = fn(scope);
+  });
+
+  return returnValue;
+}
+
+const sentryTracingSymbol = Symbol("sentryTracing");
+
+type SentryTracingContext = {
+  opName: string;
+  operationType: string;
+};
+
+function useSentry(sentry: Toucan): Plugin {
+  return {
+    onResolverCalled({ info, context }) {
+      const { opName, operationType } = context[
+        sentryTracingSymbol
+      ] as SentryTracingContext;
+
+      return ({ result }) => {
+        if (result instanceof Error && !skipError(result)) {
+          const errorPath = responsePathAsArray(info.path)
+            .map((v) => (typeof v === "number" ? "$index" : v))
+            .join(" > ");
+
+          withSentryScope(sentry, (scope) => {
+            scope.setFingerprint(["graphql", errorPath, opName, operationType]);
+
+            sentry.captureException(result);
+          });
+        }
+      };
+    },
+
+    onExecute({ args, extendContext }) {
+      const rootOperation = args.document.definitions.find(
+        (o) => o.kind === Kind.OPERATION_DEFINITION
+      ) as OperationDefinitionNode;
+
+      const opName = args.operationName || rootOperation.name?.value;
+
+      const operationType = rootOperation.operation;
+
+      const sentryContext: SentryTracingContext = {
+        opName,
+        operationType,
+      };
+      extendContext({ [sentryTracingSymbol]: sentryContext });
+
+      return {
+        onExecuteDone(payload) {
+          return handleStreamOrSingleExecutionResult(
+            payload,
+            ({ result, setResult }) => {
+              if (!result.errors?.length) {
+                return;
+              }
+
+              const errors = result.errors.map((error) => {
+                const errorPathWithIndex = (error.path ?? [])
+                  .map((v) => (typeof v === "number" ? "$index" : v))
+                  .join(" > ");
+
+                const eventId = withSentryScope(sentry, (scope) => {
+                  scope.setTag("operation", operationType);
+
+                  if (opName) {
+                    scope.setTag("operationName", opName);
+                  }
+
+                  scope.setExtra("document", print(args.document));
+                  scope.setExtra("variables", args.variableValues);
+                  scope.setExtra("path", error.path);
+
+                  scope.setFingerprint([
+                    "graphql",
+                    errorPathWithIndex,
+                    opName ?? "Anonymous Operation",
+                    operationType,
+                  ]);
+
+                  return sentry.captureException(error);
+                });
+
+                return addEventId(error, eventId);
+              });
+
+              setResult({
+                ...result,
+                errors,
+              });
+            }
+          );
+        },
+      };
     },
   };
 }
@@ -144,7 +277,12 @@ export default {
           statementStorage: makeStatementStorage(env.STATEMENTS),
           emailStorage: makeEmailStorage(env.EMAILS),
           nounsExecutor: makeNounsExecutor(),
-          cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
+          cache: {
+            cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
+            waitUntil(promise) {
+              return ctx.waitUntil(promise);
+            },
+          },
         };
 
         const server = createServer({
@@ -152,6 +290,7 @@ export default {
           context,
           maskedErrors: isProduction,
           graphiql: !isProduction,
+          plugins: [useSentry(sentry)],
         });
 
         return server.handleRequest(request, { env, ctx });
