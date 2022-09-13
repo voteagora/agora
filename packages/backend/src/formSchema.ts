@@ -13,7 +13,7 @@ const topIssueSchema = z
 
 const selectedProposalSchema = z
   .object({
-    id: z.string(),
+    number: z.number(),
   })
   .strict();
 
@@ -28,19 +28,13 @@ function ensureUnique<T extends ZodTypeAny>(
   );
 }
 
-const proposalsListSchema = ensureUnique(
-  z.array(selectedProposalSchema),
-  (it) => it.id,
-  "same proposal selected multiple times"
-);
-
 export const formSchema = z
   .object({
     for: z.literal("nouns-agora"),
     delegateStatement: z.string(),
     topIssues: z.array(topIssueSchema),
-    mostValuableProposals: proposalsListSchema,
-    leastValuableProposals: proposalsListSchema,
+    mostValuableProposals: z.array(selectedProposalSchema),
+    leastValuableProposals: z.array(selectedProposalSchema),
     twitter: z.string(),
     discord: z.string(),
     openToSponsoringProposals: z.union([
@@ -49,14 +43,4 @@ export const formSchema = z
       z.null(),
     ]),
   })
-  .strict()
-  .refine(
-    (value) =>
-      value.leastValuableProposals.length +
-        value.mostValuableProposals.length ===
-      new Set([
-        ...value.leastValuableProposals.map((it) => it.id),
-        ...value.mostValuableProposals.map((it) => it.id),
-      ]).size,
-    "same proposals in both least valuable and most valuable"
-  );
+  .strict();
