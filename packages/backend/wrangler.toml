@@ -1,8 +1,9 @@
-name = "nouns-agora-dev"
+name = "nouns-agora"
 compatibility_date = "2022-09-04"
 main = "dist/worker.js"
 account_id = "86fdf8ef811b4d0aa8954fa036684ea3"
 
+[env.dev]
 vars = { ENVIRONMENT = "dev" }
 kv_namespaces = [
     { binding = "STATEMENTS", id = "f1794afcd31a4dd0884c310251251f00", preview_id = "a0f4891449204b0fbdf564d0d1f339dd" },
