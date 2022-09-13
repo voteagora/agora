@@ -1,6 +1,6 @@
 export type ExpiringCache = {
   get(key: string): Promise<string | null>;
-  put(key: string, value: string, ttl: number): Promise<void>;
+  put(key: string, value: string): Promise<void>;
 };
 
 export type CacheRetrievalDefinition<Value, Params> = {
@@ -18,27 +18,49 @@ export type ComputeIfAbsentResult<Value> = {
   value: Value;
 };
 
+type WaitUntil = (promise: Promise<any>) => void;
+
+export type CacheDependencies = {
+  cache: ExpiringCache;
+  waitUntil: WaitUntil;
+};
+
 export async function fetchWithCache<Value, Params>(
-  cache: ExpiringCache,
+  { cache, waitUntil }: CacheDependencies,
   definition: CacheRetrievalDefinition<Value, Params>,
   params: Params
 ): Promise<Value> {
+  type CacheValue = {
+    value: any;
+    expiresAt: number;
+  };
+
+  async function computeAndStoreCacheValue(): Promise<Value> {
+    const cacheResult = await definition.computeIfAbsent(params);
+    const value: CacheValue = {
+      value: cacheResult.value,
+      expiresAt: cacheResult.ttl * 1000 + Date.now(),
+    };
+
+    await cache.put(computedKey, JSON.stringify(value));
+
+    return value.value;
+  }
+
   const computedKey = `${definition.baseKey}|${definition.generateKeyFromParams(
     params
   )}`;
   const fromCache = await cache.get(computedKey);
-  if (fromCache) {
-    return JSON.parse(fromCache) as any;
+  if (!fromCache) {
+    return await computeAndStoreCacheValue();
   }
 
-  const cacheResult = await definition.computeIfAbsent(params);
-  await cache.put(
-    computedKey,
-    JSON.stringify(cacheResult.value),
-    cacheResult.ttl
-  );
+  const cacheValue = JSON.parse(fromCache) as CacheValue;
+  if (Date.now() > cacheValue.expiresAt) {
+    waitUntil(computeAndStoreCacheValue());
+  }
 
-  return cacheResult.value;
+  return cacheValue.value;
 }
 
 export function makeDefinitionWithFixedTtl<Value, Params>({
@@ -88,11 +110,11 @@ export function makeSimpleCacheDefinition<Value>({
 }
 
 export function makeInMemoryCache(): ExpiringCache {
-  const storage = new Map<string, { value: string; expiresAt: number }>();
+  const storage = new Map<string, string>();
 
   return {
-    async put(key: string, value: string, ttl: number): Promise<void> {
-      storage.set(key, { value, expiresAt: Date.now() + 1000 * ttl });
+    async put(key: string, value: string): Promise<void> {
+      storage.set(key, value);
     },
     async get(key: string): Promise<string | null> {
       const fromMap = storage.get(key);
@@ -100,12 +122,7 @@ export function makeInMemoryCache(): ExpiringCache {
         return null;
       }
 
-      if (Date.now() > fromMap.expiresAt) {
-        storage.delete(key);
-        return null;
-      }
-
-      return fromMap.value;
+      return fromMap;
     },
   };
 }
