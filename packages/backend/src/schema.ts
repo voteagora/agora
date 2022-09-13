@@ -584,7 +584,7 @@ export function makeGatewaySchema() {
               schema: nounsSchema,
               operation: OperationTypeNode.QUERY,
               fieldName: "proposal",
-              args: { id: proposal.id },
+              args: { id: proposal.number },
               context,
               returnType: (
                 (info.returnType as GraphQLNonNull<any>)
@@ -608,7 +608,7 @@ export function makeGatewaySchema() {
               schema: nounsSchema,
               operation: OperationTypeNode.QUERY,
               fieldName: "proposal",
-              args: { id: proposal.id },
+              args: { id: proposal.number },
               context,
               returnType: (
                 (info.returnType as GraphQLNonNull<any>)
