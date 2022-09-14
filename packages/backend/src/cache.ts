@@ -1,8 +1,9 @@
 import { Cache, useResponseCache } from "@envelop/response-cache";
 
-export function makeCachePlugin(cache: Cache) {
+export function makeCachePlugin(cache: Cache, isProduction: boolean = false) {
   return useResponseCache({
     cache,
+    includeExtensionMetadata: !isProduction,
     session: () => null,
     ttl: 10_000,
     ttlPerSchemaCoordinate: {
