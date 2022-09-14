@@ -171,8 +171,12 @@ function useSentry(sentry: Toucan, span: Span): Plugin<AgoraContextType> {
       ] as SentryTracingContext;
 
       const path = responsePathAsArray(info.path);
-      const parentPath = stringifyPath(path.slice(0, -1));
-      const stringPath = stringifyPath(path);
+      const filteredPath = path.filter(
+        (segment) => typeof segment === "string"
+      );
+
+      const parentPath = stringifyPath(filteredPath.slice(0, -1));
+      const stringPath = stringifyPath(filteredPath);
 
       const retrievedParentSpan = spanMap.get(parentPath);
       const parentSpan = retrievedParentSpan ?? rootSpan;
@@ -203,7 +207,7 @@ function useSentry(sentry: Toucan, span: Span): Plugin<AgoraContextType> {
           withSentryScope(sentry, (scope) => {
             scope.setFingerprint([
               "graphql",
-              stringPath,
+              stringifyPath(path),
               opName,
               operationType,
             ]);
