@@ -6,7 +6,11 @@ import { AgoraContextType, StatementStorage, StoredStatement } from "../model";
 import { presetDelegateStatements } from "../presetStatements";
 import { makeNounsExecutor } from "../schemas/nouns-subgraph";
 import { ValidatedMessage } from "../utils/signing";
-import { makeFakeSpan, makeInMemoryCache } from "../utils/cache";
+import {
+  makeEmptyTracingContext,
+  makeFakeSpan,
+  makeInMemoryCache,
+} from "../utils/cache";
 import { makeCachePlugin } from "../cache";
 import { createInMemoryCache } from "@envelop/response-cache";
 
@@ -28,6 +32,7 @@ async function main() {
         console.log({ verifiedEmail });
       },
     },
+    tracingContext: makeEmptyTracingContext(),
   };
 
   const server = createServer({

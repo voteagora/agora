@@ -14,8 +14,10 @@ import {
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLResolveInfo,
+  GraphQLSchema,
   Kind,
   OperationTypeNode,
+  responsePathAsArray,
   SelectionNode,
 } from "graphql";
 import { BigNumber, ethers } from "ethers";
@@ -33,7 +35,7 @@ import {
   WrappedDelegatesWhere,
 } from "./generated/types";
 import { formSchema } from "./formSchema";
-import { AgoraContextType, WrappedDelegate } from "./model";
+import { AgoraContextType, TracingContext, WrappedDelegate } from "./model";
 import schema from "./schemas/extensions.graphql";
 import { fieldsMatching } from "./utils/graphql";
 import { parseSelectionSet } from "@graphql-tools/utils";
@@ -46,6 +48,7 @@ import {
   makeDefinitionWithFixedTtl,
   makeSimpleCacheDefinition,
 } from "./utils/cache";
+import { Span } from "@cloudflare/workers-honeycomb-logger";
 
 function makeSimpleFieldNode(name: string): FieldNode {
   return {
@@ -824,31 +827,102 @@ export function makeGatewaySchema() {
     },
   ]);
 
-  return mapSchema(
-    stitchSchemas({
-      subschemas: [nounsSchema],
+  return attachTracingContextInjection(
+    mapSchema(
+      stitchSchemas({
+        subschemas: [nounsSchema],
 
-      typeDefs: schema,
+        typeDefs: schema,
 
-      resolvers,
-    }),
-    {
-      [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
-        if (fieldName !== "id") {
-          return fieldConfig;
-        }
+        resolvers,
+      }),
+      {
+        [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
+          if (fieldName !== "id") {
+            return fieldConfig;
+          }
 
-        return {
-          ...fieldConfig,
-          resolve: (...args) => {
-            const resolvedValue = (fieldConfig.resolve ?? defaultFieldResolver)(
-              ...args
-            );
+          return {
+            ...fieldConfig,
+            resolve: (...args) => {
+              const resolvedValue = (
+                fieldConfig.resolve ?? defaultFieldResolver
+              )(...args);
 
-            return [typeName, resolvedValue].join("|");
-          },
-        };
-      },
-    }
+              return [typeName, resolvedValue].join("|");
+            },
+          };
+        },
+      }
+    )
   );
+}
+
+function attachTracingContextInjection(schema: GraphQLSchema): GraphQLSchema {
+  return mapSchema(schema, {
+    [MapperKind.OBJECT_FIELD](fieldConfig) {
+      // Only apply to user-implemented resolvers. Default resolvers will
+      // probably not have interesting information.
+      if (
+        !fieldConfig.resolve ||
+        fieldConfig.resolve === defaultFieldResolver
+      ) {
+        return fieldConfig;
+      }
+
+      return {
+        ...fieldConfig,
+        async resolve(...resolverArgs) {
+          const [parentValue, args, context, info] = resolverArgs;
+
+          const tracingContext: TracingContext = context.tracingContext;
+          function getFirstMatchingParentSpan(
+            path: ReadonlyArray<string | number>
+          ): Span {
+            if (!path.length) {
+              return tracingContext.rootSpan as any;
+            }
+
+            const parentSpan = tracingContext.spanMap.get(path.join(" > "));
+            if (parentSpan) {
+              return parentSpan as any;
+            }
+
+            return getFirstMatchingParentSpan(path.slice(0, -1));
+          }
+
+          const path = responsePathAsArray(info.path);
+          const parentSpan = getFirstMatchingParentSpan(path.slice(0, -1));
+
+          const span = parentSpan.startChildSpan(
+            `${info.parentType.name}.${info.fieldName}`
+          );
+
+          span.addData({
+            graphql: {
+              path,
+              args,
+            },
+          });
+
+          tracingContext.spanMap.set(path.join(" > "), span);
+
+          const nextContext: AgoraContextType = {
+            ...context,
+            cache: { ...context.cache, span },
+          };
+          const response = await fieldConfig.resolve(
+            parentValue,
+            args,
+            nextContext,
+            info
+          );
+
+          span.finish();
+
+          return response;
+        },
+      };
+    },
+  });
 }

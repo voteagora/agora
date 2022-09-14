@@ -20,7 +20,6 @@ import {
 import { makeNounsExecutor } from "./schemas/nouns-subgraph";
 import { ValidatedMessage } from "./utils/signing";
 import Toucan from "toucan-js";
-import { ExpiringCache, makeFakeSpan } from "./utils/cache";
 import {
   GraphQLError,
   Kind,
@@ -29,12 +28,8 @@ import {
   responsePathAsArray,
 } from "graphql";
 import { Scope } from "toucan-js/dist/scope";
-import { wrapModule, Span } from "@cloudflare/workers-honeycomb-logger";
-import {
-  CacheEntityRecord,
-  Cache,
-  createInMemoryCache,
-} from "@envelop/response-cache";
+import { Span, wrapModule } from "@cloudflare/workers-honeycomb-logger";
+import { createInMemoryCache } from "@envelop/response-cache";
 import { makeCachePlugin } from "./cache";
 
 const assetManifest = JSON.parse(manifestJSON);
@@ -159,8 +154,6 @@ function withSentryScope<T>(toucan: Toucan, fn: (scope: Scope) => T): T {
 const sentryTracingSymbol = Symbol("sentryTracing");
 
 type SentryTracingContext = {
-  spanMap: Map<string, Span>;
-  rootSpan: Span;
   opName: string;
   operationType: string;
 };
@@ -169,68 +162,36 @@ function stringifyPath(path: ReadonlyArray<string | number>): string {
   return path.map((v) => (typeof v === "number" ? "$index" : v)).join(" > ");
 }
 
-function useSentry(sentry: Toucan, span: Span): Plugin<AgoraContextType> {
+const honeycombTracingSymbol = Symbol("honeycombTracing");
+
+type SpanMap = Map<string, Span>;
+
+function useSentry(sentry: Toucan): Plugin<AgoraContextType> {
   return {
-    onResolverCalled({ info, context, resolverFn, replaceResolverFn }) {
-      const { rootSpan, opName, operationType, spanMap } = context[
-        sentryTracingSymbol
-      ] as SentryTracingContext;
-
-      function getParentSpan(path: ReadonlyArray<string | number>): Span {
-        if (!path.length) {
-          return rootSpan;
-        }
-
-        const parentSpan = spanMap.get(path.join(" > "));
-        if (parentSpan) {
-          return parentSpan;
-        }
-
-        return getParentSpan(path.slice(0, -1));
-      }
-
-      const path = responsePathAsArray(info.path);
-      const parentSpan = getParentSpan(path);
-
-      const span = parentSpan.startChildSpan(
-        `${info.parentType.name}.${info.fieldName}`
-      );
-      span.addData({
-        graphql: {
-          path,
-        },
-      });
-      spanMap.set(path.join(" > "), span);
-
-      // todo: this is not a reliable way of injecting a span
-      replaceResolverFn((parentValue, args, context, info) => {
-        return resolverFn(
-          parentValue,
-          args,
-          { ...context, cache: { ...context.cache, span } },
-          info
-        );
-      });
-
+    onResolverCalled({ info, context }) {
       return ({ result }) => {
-        span.finish();
-
-        if (result instanceof Error && !skipError(result)) {
-          withSentryScope(sentry, (scope) => {
-            scope.setFingerprint([
-              "graphql",
-              stringifyPath(path),
-              opName,
-              operationType,
-            ]);
-
-            sentry.captureException(result);
-          });
+        if (!(result instanceof Error) || skipError(result)) {
+          return;
         }
+
+        const { opName, operationType } = context[
+          sentryTracingSymbol
+        ] as SentryTracingContext;
+        const path = responsePathAsArray(info.path);
+        withSentryScope(sentry, (scope) => {
+          scope.setFingerprint([
+            "graphql",
+            stringifyPath(path),
+            opName,
+            operationType,
+          ]);
+
+          sentry.captureException(result);
+        });
       };
     },
 
-    onExecute({ args, extendContext, executeFn, setExecuteFn }) {
+    onExecute({ args, extendContext }) {
       const rootOperation = args.document.definitions.find(
         (o) => o.kind === Kind.OPERATION_DEFINITION
       ) as OperationDefinitionNode;
@@ -240,18 +201,7 @@ function useSentry(sentry: Toucan, span: Span): Plugin<AgoraContextType> {
       const operationType = rootOperation.operation;
       const document = print(args.document);
 
-      const rootSpan = span.startChildSpan(opName);
-      rootSpan.addData({
-        graphql: {
-          document,
-          variables: args.variableValues,
-          operationType,
-        },
-      });
-
       const sentryContext: SentryTracingContext = {
-        spanMap: new Map<string, Span>(),
-        rootSpan,
         opName,
         operationType,
       };
@@ -262,8 +212,6 @@ function useSentry(sentry: Toucan, span: Span): Plugin<AgoraContextType> {
           return handleStreamOrSingleExecutionResult(
             payload,
             ({ result, setResult }) => {
-              rootSpan.finish();
-
               if (!result.errors?.length) {
                 return;
               }
@@ -341,6 +289,10 @@ export default wrapModule(
             statementStorage: makeStatementStorage(env.STATEMENTS),
             emailStorage: makeEmailStorage(env.EMAILS),
             nounsExecutor: makeNounsExecutor(),
+            tracingContext: {
+              spanMap: new Map(),
+              rootSpan: request.tracer,
+            },
             cache: {
               cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
               waitUntil(promise) {
@@ -356,8 +308,8 @@ export default wrapModule(
             maskedErrors: isProduction,
             graphiql: !isProduction,
             plugins: [
-              makeCachePlugin(inMemoryResponseCache, isProduction),
-              useSentry(sentry, request.tracer),
+              // makeCachePlugin(inMemoryResponseCache, isProduction),
+              useSentry(sentry),
             ],
           });
 
