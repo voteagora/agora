@@ -225,6 +225,9 @@ export function DelegateStatementForm({
     await new Promise<void>((resolve, reject) =>
       createNewDelegateStatement({
         variables,
+        updater(store) {
+          store.invalidateStore();
+        },
         onCompleted() {
           resolve();
         },
