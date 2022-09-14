@@ -404,6 +404,7 @@ export function makeGatewaySchema() {
           .map((node, index) => ({
             node: {
               address: node.id,
+              delegateStatementExists: node.delegateStatementExists,
               underlyingDelegate: node.delegatedDelegate,
             },
             cursor: `${index}`,
@@ -508,6 +509,7 @@ export function makeGatewaySchema() {
       wrappedDelegate({ address }) {
         return {
           address,
+          delegateStatementExists: null,
         };
       },
     },
@@ -539,7 +541,15 @@ export function makeGatewaySchema() {
         });
       },
 
-      async statement({ address }, _args, { statementStorage }) {
+      async statement(
+        { address, delegateStatementExists },
+        _args,
+        { statementStorage }
+      ) {
+        if (delegateStatementExists === false) {
+          return null;
+        }
+
         const statement = await statementStorage.getStatement(address);
         if (!statement) {
           return null;
@@ -665,6 +675,7 @@ export function makeGatewaySchema() {
 
         return {
           address: validated.address,
+          delegateStatementExists: true,
         };
       },
     },
