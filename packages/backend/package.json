@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@cloudflare/kv-asset-handler": "^0.2.0",
+    "@cloudflare/workers-honeycomb-logger": "^2.3.3",
     "@envelop/core": "^2.6.0",
     "@envelop/response-cache": "^3.2.0",
     "@graphql-codegen/cli": "^2.12.0",

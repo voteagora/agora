@@ -4,7 +4,7 @@ main = "dist/worker.js"
 account_id = "86fdf8ef811b4d0aa8954fa036684ea3"
 
 [env.dev]
-vars = { ENVIRONMENT = "dev" }
+vars = { ENVIRONMENT = "dev", HONEYCOMB_DATASET = "nouns-agora-dev" }
 kv_namespaces = [
     { binding = "STATEMENTS", id = "f1794afcd31a4dd0884c310251251f00", preview_id = "a0f4891449204b0fbdf564d0d1f339dd" },
     { binding = "EMAILS", id = "4f97982037324363a82d515a65605d40", preview_id = "bb754b77fdac44b4a17521045bd056ad" },
@@ -13,7 +13,7 @@ kv_namespaces = [
 
 [env.staging]
 name = "nouns-agora-staging"
-vars = { ENVIRONMENT = "staging" }
+vars = { ENVIRONMENT = "staging", HONEYCOMB_DATASET = "nouns-agora-staging" }
 kv_namespaces = [
     { binding = "STATEMENTS", id = "dc57f476cdbd4728962dd2b6bf679f32" },
     { binding = "EMAILS", id = "bb85e58040c74a11af5eb80a29eaf30c" },
