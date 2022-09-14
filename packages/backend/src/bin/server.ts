@@ -9,6 +9,31 @@ import { ValidatedMessage } from "../utils/signing";
 import { makeInMemoryCache } from "../utils/cache";
 import { makeCachePlugin } from "../cache";
 import { createInMemoryCache } from "@envelop/response-cache";
+import { Plugin } from "@envelop/core";
+
+function makeEmptySpanPlugin(): Plugin<AgoraContextType> {
+  const fakeSpan = {
+    startChildSpan() {
+      return fakeSpan;
+    },
+
+    finish() {},
+    addData() {},
+  };
+
+  return {
+    onResolverCalled({ resolverFn, replaceResolverFn }) {
+      replaceResolverFn((parentValue, args, context, info) => {
+        return resolverFn(
+          parentValue,
+          args,
+          { ...context, cache: { ...context.cache, span: fakeSpan } },
+          info
+        );
+      });
+    },
+  };
+}
 
 async function main() {
   const delegateStatements = new Map(presetDelegateStatements);
@@ -34,7 +59,7 @@ async function main() {
     context,
     port: 4001,
     maskedErrors: false,
-    plugins: [useTiming()],
+    plugins: [useTiming(), makeEmptySpanPlugin()],
   });
   await server.start();
 }

@@ -1,4 +1,5 @@
 import { Executor } from "@graphql-tools/utils";
+import type { Span } from "@cloudflare/workers-honeycomb-logger";
 import { z } from "zod";
 import { formSchema } from "./formSchema";
 import { ValidatedMessage } from "./utils/signing";
