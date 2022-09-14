@@ -170,16 +170,21 @@ function useSentry(sentry: Toucan, span: Span): Plugin<AgoraContextType> {
         sentryTracingSymbol
       ] as SentryTracingContext;
 
+      function getParentSpan(path: ReadonlyArray<string | number>): Span {
+        if (!path.length) {
+          return rootSpan;
+        }
+
+        const parentSpan = spanMap.get(path.join(" > "));
+        if (parentSpan) {
+          return parentSpan;
+        }
+
+        return getParentSpan(path.slice(0, -1));
+      }
+
       const path = responsePathAsArray(info.path);
-      const filteredPath = path.filter(
-        (segment) => typeof segment === "string"
-      );
-
-      const parentPath = stringifyPath(filteredPath.slice(0, -1));
-      const stringPath = stringifyPath(filteredPath);
-
-      const retrievedParentSpan = spanMap.get(parentPath);
-      const parentSpan = retrievedParentSpan ?? rootSpan;
+      const parentSpan = getParentSpan(path);
 
       const span = parentSpan.startChildSpan(
         `${info.parentType.name}.${info.fieldName}`
@@ -189,7 +194,7 @@ function useSentry(sentry: Toucan, span: Span): Plugin<AgoraContextType> {
           path,
         },
       });
-      spanMap.set(stringPath, span);
+      spanMap.set(path.join(" > "), span);
 
       replaceResolverFn((parentValue, args, context, info) => {
         return resolverFn(
