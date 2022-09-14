@@ -1,9 +1,8 @@
 import { Executor } from "@graphql-tools/utils";
-import type { Span } from "@cloudflare/workers-honeycomb-logger";
 import { z } from "zod";
 import { formSchema } from "./formSchema";
 import { ValidatedMessage } from "./utils/signing";
-import { CacheDependencies } from "./utils/cache";
+import { CacheDependencies, Span } from "./utils/cache";
 
 export type OverallMetrics = {};
 
@@ -44,7 +43,28 @@ export interface EmailStorage {
   addEmail(verifiedEmail: ValidatedMessage): Promise<void>;
 }
 
+type SpanMap = {
+  get(key: string): Span | undefined;
+  set(key: string, span: Span): void;
+};
+
+export function makeNopSpanMap() {
+  return {
+    get(key: string): Span | undefined {
+      return undefined;
+    },
+
+    set(key: string, span: Span) {},
+  };
+}
+
+export type TracingContext = {
+  spanMap: SpanMap;
+  rootSpan: Span;
+};
+
 export type AgoraContextType = {
+  tracingContext: TracingContext;
   statementStorage: StatementStorage;
   cache: CacheDependencies;
   emailStorage: EmailStorage;
