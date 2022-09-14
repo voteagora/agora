@@ -29,6 +29,7 @@ import {
   responsePathAsArray,
 } from "graphql";
 import { Scope } from "toucan-js/dist/scope";
+import { wrapModule, Span } from "@cloudflare/workers-honeycomb-logger";
 
 const assetManifest = JSON.parse(manifestJSON);
 
@@ -152,25 +153,60 @@ function withSentryScope<T>(toucan: Toucan, fn: (scope: Scope) => T): T {
 const sentryTracingSymbol = Symbol("sentryTracing");
 
 type SentryTracingContext = {
+  spanMap: Map<string, Span>;
+  rootSpan: Span;
   opName: string;
   operationType: string;
 };
 
-function useSentry(sentry: Toucan): Plugin {
+function stringifyPath(path: ReadonlyArray<string | number>): string {
+  return path.map((v) => (typeof v === "number" ? "$index" : v)).join(" > ");
+}
+
+function useSentry(sentry: Toucan, span: Span): Plugin<AgoraContextType> {
   return {
-    onResolverCalled({ info, context }) {
-      const { opName, operationType } = context[
+    onResolverCalled({ info, context, resolverFn, replaceResolverFn }) {
+      const { rootSpan, opName, operationType, spanMap } = context[
         sentryTracingSymbol
       ] as SentryTracingContext;
 
-      return ({ result }) => {
-        if (result instanceof Error && !skipError(result)) {
-          const errorPath = responsePathAsArray(info.path)
-            .map((v) => (typeof v === "number" ? "$index" : v))
-            .join(" > ");
+      const path = responsePathAsArray(info.path);
+      const parentPath = stringifyPath(path.slice(0, -1));
+      const stringPath = stringifyPath(path);
 
+      const retrievedParentSpan = spanMap.get(parentPath);
+      const parentSpan = retrievedParentSpan ?? rootSpan;
+
+      const span = parentSpan.startChildSpan(
+        `${info.parentType.name}.${info.fieldName}`
+      );
+      span.addData({
+        graphql: {
+          path,
+        },
+      });
+      spanMap.set(stringPath, span);
+
+      replaceResolverFn((parentValue, args, context, info) => {
+        return resolverFn(
+          parentValue,
+          args,
+          { ...context, cache: { ...context.cache, span } },
+          info
+        );
+      });
+
+      return ({ result }) => {
+        span.finish();
+
+        if (result instanceof Error && !skipError(result)) {
           withSentryScope(sentry, (scope) => {
-            scope.setFingerprint(["graphql", errorPath, opName, operationType]);
+            scope.setFingerprint([
+              "graphql",
+              stringPath,
+              opName,
+              operationType,
+            ]);
 
             sentry.captureException(result);
           });
@@ -178,7 +214,7 @@ function useSentry(sentry: Toucan): Plugin {
       };
     },
 
-    onExecute({ args, extendContext }) {
+    onExecute({ args, extendContext, executeFn, setExecuteFn }) {
       const rootOperation = args.document.definitions.find(
         (o) => o.kind === Kind.OPERATION_DEFINITION
       ) as OperationDefinitionNode;
@@ -186,26 +222,38 @@ function useSentry(sentry: Toucan): Plugin {
       const opName = args.operationName || rootOperation.name?.value;
 
       const operationType = rootOperation.operation;
+      const document = print(args.document);
+
+      const rootSpan = span.startChildSpan(opName);
+      rootSpan.addData({
+        graphql: {
+          document,
+          variables: args.variableValues,
+          operationType,
+        },
+      });
 
       const sentryContext: SentryTracingContext = {
+        spanMap: new Map<string, Span>(),
+        rootSpan,
         opName,
         operationType,
       };
-      extendContext({ [sentryTracingSymbol]: sentryContext });
+      extendContext({ [sentryTracingSymbol]: sentryContext } as any);
 
       return {
         onExecuteDone(payload) {
           return handleStreamOrSingleExecutionResult(
             payload,
             ({ result, setResult }) => {
+              rootSpan.finish();
+
               if (!result.errors?.length) {
                 return;
               }
 
               const errors = result.errors.map((error) => {
-                const errorPathWithIndex = (error.path ?? [])
-                  .map((v) => (typeof v === "number" ? "$index" : v))
-                  .join(" > ");
+                const errorPathWithIndex = stringifyPath(error.path ?? []);
 
                 const eventId = withSentryScope(sentry, (scope) => {
                   scope.setTag("operation", operationType);
@@ -214,7 +262,7 @@ function useSentry(sentry: Toucan): Plugin {
                     scope.setTag("operationName", opName);
                   }
 
-                  scope.setExtra("document", print(args.document));
+                  scope.setExtra("document", document);
                   scope.setExtra("variables", args.variableValues);
                   scope.setExtra("path", error.path);
 
@@ -248,70 +296,69 @@ function useSentry(sentry: Toucan): Plugin {
 // step.
 let gatewaySchema = null;
 
-export default {
-  async fetch(
-    request: Request,
-    env: Env,
-    ctx: ExecutionContext
-  ): Promise<Response> {
-    const sentry = new Toucan({
-      dsn: env.SENTRY_DSN,
-      environment: env.ENVIRONMENT,
-      release: env.GITHUB_SHA,
-      context: ctx,
-      request,
-      rewriteFrames: {
-        root: "/",
-      },
-    });
+export default wrapModule(
+  {},
+  {
+    async fetch(request, env: Env, ctx: ExecutionContext): Promise<Response> {
+      const sentry = new Toucan({
+        dsn: env.SENTRY_DSN,
+        environment: env.ENVIRONMENT,
+        release: env.GITHUB_SHA,
+        context: ctx,
+        request,
+        rewriteFrames: {
+          root: "/",
+        },
+      });
 
-    try {
-      const isProduction = env.ENVIRONMENT === "prod";
-      const url = new URL(request.url);
-      if (url.pathname === "/graphql") {
-        if (!gatewaySchema) {
-          gatewaySchema = makeGatewaySchema();
-        }
-
-        const context: AgoraContextType = {
-          statementStorage: makeStatementStorage(env.STATEMENTS),
-          emailStorage: makeEmailStorage(env.EMAILS),
-          nounsExecutor: makeNounsExecutor(),
-          cache: {
-            cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
-            waitUntil(promise) {
-              return ctx.waitUntil(promise);
-            },
-          },
-        };
-
-        const server = createServer({
-          schema: gatewaySchema,
-          context,
-          maskedErrors: isProduction,
-          graphiql: !isProduction,
-          plugins: [useSentry(sentry)],
-        });
-
-        return server.handleRequest(request, { env, ctx });
-      } else {
-        return await getAssetFromKV(
-          {
-            request,
-            waitUntil(promise) {
-              return ctx.waitUntil(promise);
-            },
-          },
-          {
-            ASSET_NAMESPACE: env.__STATIC_CONTENT,
-            ASSET_MANIFEST: assetManifest,
-            mapRequestToAsset: serveSinglePageApp,
+      try {
+        const isProduction = env.ENVIRONMENT === "prod";
+        const url = new URL(request.url);
+        if (url.pathname === "/graphql") {
+          if (!gatewaySchema) {
+            gatewaySchema = makeGatewaySchema();
           }
-        );
+
+          const context: AgoraContextType = {
+            statementStorage: makeStatementStorage(env.STATEMENTS),
+            emailStorage: makeEmailStorage(env.EMAILS),
+            nounsExecutor: makeNounsExecutor(),
+            cache: {
+              cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
+              waitUntil(promise) {
+                return ctx.waitUntil(promise);
+              },
+            } as any,
+          };
+
+          const server = createServer({
+            schema: gatewaySchema,
+            context,
+            maskedErrors: isProduction,
+            graphiql: !isProduction,
+            plugins: [useSentry(sentry, request.tracer)],
+          });
+
+          return server.handleRequest(request, { env, ctx });
+        } else {
+          return await getAssetFromKV(
+            {
+              request,
+              waitUntil(promise) {
+                return ctx.waitUntil(promise);
+              },
+            },
+            {
+              ASSET_NAMESPACE: env.__STATIC_CONTENT,
+              ASSET_MANIFEST: assetManifest,
+              mapRequestToAsset: serveSinglePageApp,
+            }
+          );
+        }
+      } catch (e) {
+        sentry.captureException(e);
+        throw e;
       }
-    } catch (e) {
-      sentry.captureException(e);
-      throw e;
-    }
-  },
-};
+    },
+  }
+);
