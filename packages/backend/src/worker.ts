@@ -346,7 +346,7 @@ export default wrapModule(
               waitUntil(promise) {
                 return ctx.waitUntil(promise);
               },
-              span: makeFakeSpan(),
+              span: request.tracer,
             },
           };
 
