@@ -18,6 +18,7 @@ export type ResolvedName = {
 export type WrappedDelegate = {
   address: string;
 
+  delegateStatementExists: boolean;
   underlyingDelegate?: any;
 };
 
