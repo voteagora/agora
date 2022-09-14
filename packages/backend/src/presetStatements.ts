@@ -23,6 +23,7 @@ function makeStoredStatementEntry(
     address.toLowerCase(),
     {
       address: address.toLowerCase(),
+      updatedAt: Date.now(),
       signature: "",
       signedPayload: JSON.stringify({
         ...initialFields(),
@@ -41,13 +42,13 @@ export const presetDelegateStatements = new Map<string, StoredStatement>([
       "I'm optimistic on the future and believe all spending is useful.",
     mostValuableProposals: [
       {
-        id: "121",
+        number: 121,
       },
       {
-        id: "87",
+        number: 87,
       },
       {
-        id: "77",
+        number: 77,
       },
     ],
   }),
@@ -62,16 +63,16 @@ export const presetDelegateStatements = new Map<string, StoredStatement>([
     twitter: "nouncil",
     mostValuableProposals: [
       {
-        id: "121",
+        number: 121,
       },
       {
-        id: "87",
+        number: 87,
       },
       {
-        id: "77",
+        number: 77,
       },
     ],
-    leastValuableProposals: [{ id: "127" }, { id: "122" }, { id: "74" }],
+    leastValuableProposals: [{ number: 127 }, { number: 122 }, { number: 74 }],
     topIssues: [
       {
         type: "proliferation",
@@ -94,16 +95,16 @@ export const presetDelegateStatements = new Map<string, StoredStatement>([
 
     mostValuableProposals: [
       {
-        id: "121",
+        number: 121,
       },
       {
-        id: "87",
+        number: 87,
       },
       {
-        id: "77",
+        number: 77,
       },
     ],
-    leastValuableProposals: [{ id: "127" }, { id: "122" }, { id: "74" }],
+    leastValuableProposals: [{ number: 127 }, { number: 122 }, { number: 74 }],
     topIssues: [
       {
         type: "proliferation",
