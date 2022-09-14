@@ -82,10 +82,10 @@ export function TopIssuesFormSection({ form }: Props) {
   );
 
   const updateIssue = useCallback(
-    (key: string, value: string) => {
+    (index: number, value: string) => {
       setTopIssues((lastIssues) =>
-        lastIssues.map((issue) => {
-          if (issue.type === key) {
+        lastIssues.map((issue, needleIdx) => {
+          if (needleIdx === index) {
             return {
               ...issue,
               value,
@@ -161,9 +161,7 @@ export function TopIssuesFormSection({ form }: Props) {
                   type="text"
                   placeholder={`On ${issueDef.title.toLowerCase()}, I believe...`}
                   value={issue.value}
-                  onChange={(evt) =>
-                    updateIssue(issueDef.key, evt.target.value)
-                  }
+                  onChange={(evt) => updateIssue(index, evt.target.value)}
                 />
               </VStack>
             </HStack>
