@@ -128,7 +128,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           <PanelRow
             title={"Nouns represented"}
             detail={
-              !delegate ? "N/A" : `${Number(delegate.delegatedVotes)} votes`
+              !delegate ? "N/A" : `${Number(delegate.delegatedVotes)} noun`
             }
           />
 
