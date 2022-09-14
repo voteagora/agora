@@ -196,6 +196,7 @@ function useSentry(sentry: Toucan, span: Span): Plugin<AgoraContextType> {
       });
       spanMap.set(path.join(" > "), span);
 
+      // todo: this is not a reliable way of injecting a span
       replaceResolverFn((parentValue, args, context, info) => {
         return resolverFn(
           parentValue,
