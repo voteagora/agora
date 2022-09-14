@@ -20,7 +20,7 @@ import {
 import { makeNounsExecutor } from "./schemas/nouns-subgraph";
 import { ValidatedMessage } from "./utils/signing";
 import Toucan from "toucan-js";
-import { ExpiringCache } from "./utils/cache";
+import { ExpiringCache, makeFakeSpan } from "./utils/cache";
 import {
   GraphQLError,
   Kind,
@@ -346,7 +346,8 @@ export default wrapModule(
               waitUntil(promise) {
                 return ctx.waitUntil(promise);
               },
-            } as any,
+              span: makeFakeSpan(),
+            },
           };
 
           const server = createServer({
