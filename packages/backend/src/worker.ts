@@ -30,6 +30,12 @@ import {
 } from "graphql";
 import { Scope } from "toucan-js/dist/scope";
 import { wrapModule, Span } from "@cloudflare/workers-honeycomb-logger";
+import {
+  CacheEntityRecord,
+  Cache,
+  createInMemoryCache,
+} from "@envelop/response-cache";
+import { makeCachePlugin } from "./cache";
 
 const assetManifest = JSON.parse(manifestJSON);
 
@@ -306,6 +312,8 @@ function useSentry(sentry: Toucan, span: Span): Plugin<AgoraContextType> {
 // step.
 let gatewaySchema = null;
 
+const inMemoryResponseCache = createInMemoryCache();
+
 export default wrapModule(
   {},
   {
@@ -346,7 +354,10 @@ export default wrapModule(
             context,
             maskedErrors: isProduction,
             graphiql: !isProduction,
-            plugins: [useSentry(sentry, request.tracer)],
+            plugins: [
+              makeCachePlugin(inMemoryResponseCache, isProduction),
+              useSentry(sentry, request.tracer),
+            ],
           });
 
           return server.handleRequest(request, { env, ctx });
