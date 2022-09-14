@@ -1,3 +1,6 @@
+import { Plugin } from "@envelop/core";
+import { AgoraContextType } from "../model";
+
 export type Span = {
   startChildSpan(name: string): Span;
   addData(data: any);
@@ -169,6 +172,36 @@ export function makeInMemoryCache(): ExpiringCache {
       }
 
       return fromMap;
+    },
+  };
+}
+
+export function makeFakeSpan() {
+  const fakeSpan = {
+    startChildSpan() {
+      return fakeSpan;
+    },
+
+    finish() {},
+    addData() {},
+  };
+
+  return fakeSpan;
+}
+
+export function makeEmptySpanPlugin(): Plugin<AgoraContextType> {
+  const fakeSpan = makeFakeSpan();
+
+  return {
+    onResolverCalled({ resolverFn, replaceResolverFn }) {
+      replaceResolverFn((parentValue, args, context, info) => {
+        return resolverFn(
+          parentValue,
+          args,
+          { ...context, cache: { ...context.cache, span: fakeSpan } },
+          info
+        );
+      });
     },
   };
 }
