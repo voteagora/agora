@@ -99,6 +99,7 @@ enum WrappedDelegatesWhere {
 }
 
 enum WrappedDelegatesOrder {
+  mostRelevant
   mostNounsRepresented
   mostRecentlyActive
   mostVotesCast
