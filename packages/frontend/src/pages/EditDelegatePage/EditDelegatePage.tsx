@@ -38,7 +38,7 @@ export function EditDelegatePage() {
         width: 100%;
         max-width: ${theme.maxWidth["6xl"]};
 
-        @media (max-width: ${theme.maxWidth["6xl"]}) {
+        @media (max-width: ${theme.maxWidth["4xl"]}) {
           flex-direction: column-reverse;
           align-items: center;
         }
@@ -55,6 +55,10 @@ export function EditDelegatePage() {
         className={css`
           flex-shrink: 0;
           width: ${theme.maxWidth.xs};
+
+          @media (max-width: ${theme.maxWidth.lg}) {
+            width: 100%;
+          }
         `}
       >
         <LazyVoterPanel address={address} />
