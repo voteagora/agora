@@ -26,6 +26,18 @@ jobs:
       - run: yarn install
 
       - run: yarn workspace nouns-agora run build
+        env:
+          REACT_APP_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          REACT_APP_GITHUB_SHA: ${{ github.sha }}
+          REACT_APP_DEPLOY_ENV: ${{ github.event.inputs.environment || 'staging' }}
+
+      - uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: nouns-agora-frontend
+        with:
+          sourcemaps: './packages/frontend/build/'
 
       - run: yarn workspace nouns-agora-backend run generate
 
