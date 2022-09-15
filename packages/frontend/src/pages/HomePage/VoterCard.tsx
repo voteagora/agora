@@ -1,6 +1,6 @@
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql";
 import { NounResolvedName } from "../../components/NounResolvedName";
@@ -10,6 +10,8 @@ import { icons } from "../../icons/icons";
 import { VoterPanelActions } from "../DelegatePage/VoterPanel";
 import { VoterCardDelegateProfileImage$key } from "./__generated__/VoterCardDelegateProfileImage.graphql";
 import { Link } from "../../components/HammockRouter/Link";
+import { UserIcon, PencilIcon } from "@heroicons/react/20/solid";
+import { ReactNode } from "react";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
@@ -39,6 +41,10 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
 
         delegate {
           id
+          nounsRepresented {
+            __typename
+          }
+
           voteSummary {
             totalVotes
           }
@@ -96,9 +102,24 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
             <NounResolvedName resolvedName={delegate.address.resolvedName} />
           </div>
 
-          {!!delegate.delegate && (
-            <div>Voted {delegate.delegate.voteSummary.totalVotes} times</div>
-          )}
+          <HStack
+            gap="2"
+            className={css`
+              color: #66676b;
+            `}
+          >
+            <TitleDetail
+              icon={<UserIcon />}
+              label="nouns represented"
+              value={delegate.delegate?.nounsRepresented?.length ?? 0}
+            />
+
+            <TitleDetail
+              icon={<PencilIcon />}
+              label="votes cast"
+              value={delegate.delegate?.voteSummary?.totalVotes ?? 0}
+            />
+          </HStack>
         </HStack>
 
         {!!delegate.statement?.summary && (
@@ -123,6 +144,61 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
         <VoterPanelActions fragment={delegate} />
       </VStack>
     </Link>
+  );
+}
+
+type TitleDetailProps = {
+  icon: ReactNode;
+  label: string;
+  value: number;
+};
+
+function TitleDetail({ label, value, icon }: TitleDetailProps) {
+  return (
+    <HStack
+      gap="1"
+      alignItems="center"
+      className={css`
+        position: relative;
+
+        &:hover .test {
+          visibility: visible;
+        }
+      `}
+    >
+      <div
+        className={css`
+          width: ${theme.spacing["4"]};
+          height: ${theme.spacing["4"]};
+        `}
+      >
+        {icon}
+      </div>
+
+      <div>{value}</div>
+
+      <div
+        className={cx(
+          css`
+            position: absolute;
+            top: calc(100% + ${theme.spacing["1"]});
+            right: -${theme.spacing["2"]};
+
+            font-size: ${theme.fontSize.sm};
+            white-space: nowrap;
+            visibility: hidden;
+            background: #66676b;
+            border-radius: ${theme.spacing["1"]};
+            color: white;
+
+            padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
+          `,
+          "test"
+        )}
+      >
+        {value} {label}
+      </div>
+    </HStack>
   );
 }
 
