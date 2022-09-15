@@ -157,6 +157,18 @@ export function makeSimpleCacheDefinition<Value>({
   });
 }
 
+export function makeNoOpCache(): ExpiringCache {
+  return {
+    get(key: string): Promise<string | null> {
+      return null;
+    },
+
+    put(key: string, value: string): Promise<void> {
+      return;
+    },
+  };
+}
+
 export function makeInMemoryCache(): ExpiringCache {
   const storage = new Map<string, string>();
 
