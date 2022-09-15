@@ -65,6 +65,10 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
         @media (max-width: ${theme.maxWidth["6xl"]}) {
           justify-content: center;
         }
+
+        @media (max-width: ${theme.maxWidth.lg}) {
+          flex-direction: column;
+        }
       `}
     >
       {currentGovernance && (
