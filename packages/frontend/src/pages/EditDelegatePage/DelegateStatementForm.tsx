@@ -26,7 +26,7 @@ import {
 } from "./__generated__/DelegateStatementFormMutation.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { DelegateStatementFormFragment$key } from "./__generated__/DelegateStatementFormFragment.graphql";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { isEqual } from "lodash";
 import {
   BlockNavigationError,
@@ -34,6 +34,7 @@ import {
   useNavigate,
 } from "../../components/HammockRouter/HammockRouter";
 import { Signer } from "ethers";
+import * as Sentry from "@sentry/react";
 
 type DelegateStatementFormProps = {
   queryFragment: DelegateStatementFormFragment$key;
@@ -193,61 +194,72 @@ export function DelegateStatementForm({
     );
 
   const navigate = useNavigate();
+  const [lastExceptionId, setLastExceptionId] = useState<string>();
 
   const { data: signer } = useSigner();
-  const submitMutation = useReactQueryMutation(["submit"], async () => {
-    if (!signer) {
-      return;
-    }
-
-    const formState = form.state;
-    const signingBody = {
-      for: "nouns-agora",
-      delegateStatement: formState.delegateStatement,
-      topIssues: formState.topIssues,
-      mostValuableProposals: formState.mostValuableProposals,
-      leastValuableProposals: formState.leastValuableProposals,
-      twitter: formState.twitter,
-      discord: formState.discord,
-      openToSponsoringProposals: formState.openToSponsoringProposals ?? null,
-    };
-    const serializedBody = JSON.stringify(signingBody, undefined, "\t");
-
-    const variables: VariablesOf<DelegateStatementFormMutation> = {
-      input: {
-        statement: await makeSignedValue(signer, serializedBody),
-        email: formState.email
-          ? await makeSignedValue(signer, formState.email)
-          : null,
-      },
-    };
-
-    await new Promise<void>((resolve, reject) =>
-      createNewDelegateStatement({
-        variables,
-        updater(store) {
-          store.invalidateStore();
+  const submitMutation = useReactQueryMutation<unknown, unknown, FormValues>({
+    mutationKey: ["submit"],
+    onError: (error, variables) => {
+      const exceptionId = Sentry.captureException(error, {
+        extra: {
+          variables: JSON.stringify(variables),
         },
-        onCompleted() {
-          resolve();
-        },
-        onError(error) {
-          reject(error);
-        },
-      })
-    );
-
-    withIgnoringBlock(() => {
-      if (!data.address) {
+      });
+      setLastExceptionId(exceptionId);
+    },
+    async mutationFn(formState) {
+      if (!signer) {
         return;
       }
 
-      navigate({
-        path: `/delegate/${
-          data.address.resolvedName.name ?? data.address.resolvedName.address
-        }`,
+      const signingBody = {
+        for: "nouns-agora",
+        delegateStatement: formState.delegateStatement,
+        topIssues: formState.topIssues,
+        mostValuableProposals: formState.mostValuableProposals,
+        leastValuableProposals: formState.leastValuableProposals,
+        twitter: formState.twitter,
+        discord: formState.discord,
+        openToSponsoringProposals: formState.openToSponsoringProposals ?? null,
+      };
+      const serializedBody = JSON.stringify(signingBody, undefined, "\t");
+
+      const variables: VariablesOf<DelegateStatementFormMutation> = {
+        input: {
+          statement: await makeSignedValue(signer, serializedBody),
+          email: formState.email
+            ? await makeSignedValue(signer, formState.email)
+            : null,
+        },
+      };
+
+      await new Promise<void>((resolve, reject) =>
+        createNewDelegateStatement({
+          variables,
+          updater(store) {
+            store.invalidateStore();
+          },
+          onCompleted() {
+            resolve();
+          },
+          onError(error) {
+            reject(error);
+          },
+        })
+      );
+
+      withIgnoringBlock(() => {
+        if (!data.address) {
+          return;
+        }
+
+        navigate({
+          path: `/delegate/${
+            data.address.resolvedName.name ?? data.address.resolvedName.address
+          }`,
+        });
       });
-    });
+    },
   });
 
   const canSubmit =
@@ -294,10 +306,20 @@ export function DelegateStatementForm({
         <button
           className={buttonStyles}
           disabled={!canSubmit}
-          onClick={() => submitMutation.mutate()}
+          onClick={() => submitMutation.mutate(form.state)}
         >
           Submit delegate profile
         </button>
+        {lastExceptionId && (
+          <span
+            className={css`
+              ${tipTextStyle};
+              color: ${theme.colors.red["700"]};
+            `}
+          >
+            An error occurred, id: {lastExceptionId}
+          </span>
+        )}
       </HStack>
     </VStack>
   );

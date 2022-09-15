@@ -1,4 +1,5 @@
 import { css } from "@emotion/css";
+import * as Sentry from "@sentry/react";
 import * as theme from "../theme";
 import logo from "../logo.svg";
 import { NounGridChildren } from "./NounGrid";
@@ -10,7 +11,7 @@ import { useAccount } from "wagmi";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
 
 export function PageHeader() {
@@ -82,6 +83,12 @@ export function PageHeader() {
 
 function PageHeaderContents() {
   const { address: accountAddress } = useAccount();
+
+  useEffect(() => {
+    Sentry.setUser({
+      id: accountAddress,
+    });
+  }, [accountAddress]);
 
   const { address } = useLazyLoadQuery<PageHeaderQuery>(
     graphql`
