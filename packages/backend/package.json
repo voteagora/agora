@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^3.16.0",
+    "@envelop/apollo-tracing": "^3.6.0",
     "@graphql-yoga/common": "^2.12.11",
     "@typechain/ethers-v5": "^10.1.0",
     "@types/jest": "^29.0.1",
