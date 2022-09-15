@@ -275,8 +275,16 @@ export function DelegateStatementForm({
       <HStack
         justifyContent="space-between"
         alignItems="center"
+        gap="4"
         className={css`
           padding: ${theme.spacing["8"]} ${theme.spacing["6"]};
+          flex-wrap: wrap;
+
+          @media (max-width: ${theme.maxWidth.lg}) {
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-end;
+          }
         `}
       >
         <span className={tipTextStyle}>
