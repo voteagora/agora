@@ -1,3 +1,7 @@
+import { marked } from "marked";
+import TokensList = marked.TokensList;
+import Token = marked.Token;
+
 const hashRegex = /^\s*#{1,6}\s+([^\n]+)/;
 const equalTitleRegex = /^\s*([^\n]+)\n(={3,25}|-{3,25})/;
 
@@ -34,7 +38,35 @@ export function getTitleFromProposalDescription(description: string) {
   return removeItalics(removeBold(extractTitle(description))) ?? "Untitled";
 }
 
-export function extractFirstParagraph(tokens: any[]): null | string {
-  const firstParagraph = tokens.find((token) => token.type === "paragraph");
-  return firstParagraph?.text;
+export function extractTextTokens(token: Token): string[] {
+  switch (token.type) {
+    case "paragraph":
+    case "link":
+    case "strong":
+    case "em":
+      return token.tokens.flatMap(extractTextTokens);
+
+    case "text":
+      return [token.raw];
+
+    default:
+      return [];
+  }
+}
+
+export function extractFirstParagraph(tokens: TokensList): null | string {
+  for (const token of tokens) {
+    if (token.type !== "paragraph") {
+      continue;
+    }
+
+    const paragraphTokens = extractTextTokens(token);
+    if (!paragraphTokens.length) {
+      continue;
+    }
+
+    return paragraphTokens.join("").replace(/\s+/g, " ");
+  }
+
+  return null;
 }
