@@ -50,13 +50,14 @@ export function ImpactfulProposals({ fragment }: Props) {
       <HStack
         gap="4"
         className={css`
-          flex-wrap: wrap;
+          @media (max-width: ${theme.maxWidth.xl}) {
+            flex-direction: column;
+          }
         `}
       >
         {!!impactfulProposals.mostValuableProposals.length && (
           <VStack
             className={css`
-              min-width: 24rem;
               flex: 1;
             `}
           >
@@ -88,7 +89,6 @@ export function ImpactfulProposals({ fragment }: Props) {
         {!!impactfulProposals.leastValuableProposals.length && (
           <VStack
             className={css`
-              min-width: 24rem;
               flex: 1;
             `}
           >
