@@ -50,5 +50,12 @@ export function NounImage({ fragmentRef, className }: Props) {
     return `data:image/svg+xml;base64,${btoa(imageRaw)}`;
   }, [seed]);
 
-  return <img className={className} src={nounSvg} alt={`noun #${number}`} />;
+  return (
+    <img
+      className={className}
+      src={nounSvg}
+      alt={`noun #${number}`}
+      title={`noun #${number}`}
+    />
+  );
 }
