@@ -20,15 +20,21 @@ export function PageHeader() {
         width: 100%;
         max-width: ${theme.maxWidth["6xl"]};
         margin: ${theme.spacing["8"]} auto;
+        gap: ${theme.spacing["2"]};
         justify-content: space-between;
         padding-left: ${theme.spacing["4"]};
         padding-right: ${theme.spacing["4"]};
+
+        @media (max-width: ${theme.maxWidth.sm}) {
+          flex-direction: column;
+          text-align: center;
+        }
       `}
     >
       <Link
         className={css`
           display: flex;
-          flex-direction: column;
+          flex-direction: row;
           justify-content: center;
         `}
         to="/"
@@ -54,9 +60,17 @@ export function PageHeader() {
         gap="3"
         className={css`
           height: ${theme.spacing["6"]};
+
+          @media (max-width: ${theme.maxWidth.sm}) {
+            height: auto;
+            flex-direction: column;
+            align-items: stretch;
+          }
         `}
       >
-        <ConnectKitButton mode="light" />
+        <HStack justifyContent="center">
+          <ConnectKitButton mode="light" />
+        </HStack>
 
         <Suspense fallback={null}>
           <PageHeaderContents />
