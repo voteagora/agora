@@ -87,6 +87,12 @@ function PageHeaderContents() {
     graphql`
       query PageHeaderQuery($address: String!, $skip: Boolean!) {
         address(addressOrEnsName: $address) @skip(if: $skip) {
+          wrappedDelegate {
+            statement {
+              __typename
+            }
+          }
+
           ...PageHeaderFragment
         }
       }
@@ -117,7 +123,7 @@ function PageHeaderContents() {
             }
           `}
         >
-          <div>Create</div>
+          <div>{!!address.wrappedDelegate.statement ? "Edit" : "Create"}</div>
         </Link>
       )}
 
