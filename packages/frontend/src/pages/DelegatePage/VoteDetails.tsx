@@ -6,8 +6,9 @@ import * as theme from "../../theme";
 import { VoteDetailsFragment$key } from "./__generated__/VoteDetailsFragment.graphql";
 import { VStack } from "../../components/VStack";
 import { shadow } from "./VoterPanel";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { formatDistanceToNow } from "date-fns";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;
@@ -34,27 +35,51 @@ export function VoteDetails({ voteFragment }: Props) {
   );
   const proposalHref = `https://nouns.wtf/vote/${vote.proposal.number}`;
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scroll = useScroll({ container: scrollContainerRef });
+
+  const footOpacity = useTransform(scroll.scrollY, (value) => {
+    return 1 - value / 32;
+  });
+
   return (
     <VStack
       gap="3"
       className={css`
+        position: relative;
         border-radius: ${theme.borderRadius.lg};
         border-width: ${theme.spacing.px};
         border-color: ${theme.colors.gray.eb};
         background: ${theme.colors.white};
         box-shadow: ${shadow};
-        padding-bottom: ${theme.spacing["5"]};
         flex: 1;
         max-height: 15rem;
         overflow: hidden;
       `}
     >
-      <VStack
-        gap="2"
+      <motion.div
+        style={{ opacity: footOpacity }}
         className={css`
+          position: absolute;
+          height: ${theme.spacing["4"]};
+          background: linear-gradient(rgba(255, 255, 255, 0), #fff);
+          bottom: 0;
+          left: 0;
+          right: 0;
+        `}
+      />
+
+      <div
+        ref={scrollContainerRef}
+        className={css`
+          display: flex;
+          flex-direction: column;
+          gap: ${theme.spacing["2"]};
           padding-top: ${theme.spacing["5"]};
           padding-left: ${theme.spacing["5"]};
           padding-right: ${theme.spacing["5"]};
+          padding-bottom: ${theme.spacing["5"]};
           overflow-y: scroll;
         `}
       >
@@ -108,7 +133,7 @@ export function VoteDetails({ voteFragment }: Props) {
         >
           {vote.reason}
         </span>
-      </VStack>
+      </div>
     </VStack>
   );
 }
