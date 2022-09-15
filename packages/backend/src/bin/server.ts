@@ -9,10 +9,10 @@ import { ValidatedMessage } from "../utils/signing";
 import {
   makeEmptyTracingContext,
   makeFakeSpan,
-  makeInMemoryCache,
+  makeNoOpCache,
 } from "../utils/cache";
-import { makeCachePlugin } from "../cache";
 import { createInMemoryCache } from "@envelop/response-cache";
+import { useApolloTracing } from "@envelop/apollo-tracing";
 
 async function main() {
   const delegateStatements = new Map(presetDelegateStatements);
@@ -23,7 +23,7 @@ async function main() {
     statementStorage: makeStatementStorageFromMap(delegateStatements),
     nounsExecutor: makeNounsExecutor(),
     cache: {
-      cache: makeInMemoryCache(),
+      cache: makeNoOpCache(),
       waitUntil: () => {},
       span: makeFakeSpan(),
     },
@@ -40,7 +40,7 @@ async function main() {
     context,
     port: 4001,
     maskedErrors: false,
-    plugins: [useTiming()],
+    plugins: [useTiming(), useApolloTracing()],
   });
   await server.start();
 }
