@@ -1,3 +1,4 @@
+WARNING: Missing strong random number source
 type Query {
   delegationEvent(
     id: ID!
@@ -2478,6 +2479,7 @@ enum WrappedDelegatesWhere {
 }
 
 enum WrappedDelegatesOrder {
+  mostRelevant
   mostNounsRepresented
   mostRecentlyActive
   mostVotesCast
