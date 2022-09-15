@@ -22,6 +22,10 @@ export function OtherInfoFormSection({ form }: Props) {
           gap: ${theme.spacing["4"]};
 
           margin-top: ${theme.spacing["4"]};
+
+          @media (max-width: ${theme.maxWidth.lg}) {
+            grid-template-columns: 1fr;
+          }
         `}
       >
         <InputGroup
