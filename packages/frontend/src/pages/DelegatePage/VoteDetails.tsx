@@ -44,7 +44,6 @@ export function VoteDetails({ voteFragment }: Props) {
         background: ${theme.colors.white};
         box-shadow: ${shadow};
         padding-bottom: ${theme.spacing["5"]};
-        min-width: 24rem;
         flex: 1;
         max-height: 15rem;
         overflow: hidden;
