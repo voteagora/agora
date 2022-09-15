@@ -1,5 +1,5 @@
 import { stitchSchemas } from "@graphql-tools/stitch";
-import { mapSchema, MapperKind } from "@graphql-tools/utils";
+import { MapperKind, mapSchema, parseSelectionSet } from "@graphql-tools/utils";
 import {
   extractFirstParagraph,
   getTitleFromProposalDescription,
@@ -38,7 +38,6 @@ import { formSchema } from "./formSchema";
 import { AgoraContextType, TracingContext, WrappedDelegate } from "./model";
 import schema from "./schemas/extensions.graphql";
 import { fieldsMatching } from "./utils/graphql";
-import { parseSelectionSet } from "@graphql-tools/utils";
 import { descendingValueComparator, flipComparator } from "./utils/sorting";
 import { marked } from "marked";
 import { resolveEnsOrNnsName } from "./utils/resolveName";
@@ -373,6 +372,27 @@ export function makeGatewaySchema() {
                   );
                 })
               );
+
+            case WrappedDelegatesOrder.MostRelevant:
+              const { hasStatements, withoutStatements } =
+                filteredDelegates.reduce(
+                  (acc, value) => {
+                    if (value.delegateStatementExists) {
+                      return {
+                        ...acc,
+                        hasStatements: [...acc.hasStatements, value],
+                      };
+                    } else {
+                      return {
+                        ...acc,
+                        withoutStatements: [...acc.withoutStatements, value],
+                      };
+                    }
+                  },
+                  { hasStatements: [], withoutStatements: [] }
+                );
+
+              return [...hasStatements, ...withoutStatements];
 
             case WrappedDelegatesOrder.LeastVotesCast:
             case WrappedDelegatesOrder.MostVotesCast:
