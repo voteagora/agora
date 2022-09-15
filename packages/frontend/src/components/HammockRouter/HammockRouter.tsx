@@ -241,7 +241,7 @@ export function HammockRouterContents() {
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
-  }, [currentRoute]);
+  }, [currentRoute.location.pathname]);
 
   const Element = routes[currentRoute.match.index].element;
   return <Element />;
