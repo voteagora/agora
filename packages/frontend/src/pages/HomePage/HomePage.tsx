@@ -72,6 +72,7 @@ function Hero() {
       className={css`
         max-width: ${theme.maxWidth["xl"]};
         text-align: center;
+        padding: 0 ${theme.spacing["4"]};
 
         margin: ${theme.spacing["16"]} 0;
       `}
