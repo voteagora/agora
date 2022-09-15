@@ -68,6 +68,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
 
         @media (max-width: ${theme.maxWidth.lg}) {
           flex-direction: column;
+          align-items: stretch;
         }
       `}
     >

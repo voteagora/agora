@@ -199,6 +199,11 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                 grid-template-columns: repeat(auto-fit, 23rem);
                 justify-content: space-around;
               }
+
+              @media (max-width: ${theme.maxWidth.md}) {
+                grid-template-columns: 1fr;
+                gap: ${theme.spacing["4"]};
+              }
             `}
           >
             {voters.edges.map(({ node: voter }) => (
