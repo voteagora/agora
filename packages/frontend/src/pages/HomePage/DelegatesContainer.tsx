@@ -22,6 +22,7 @@ type Props = {
 };
 
 const orderNames: { [K in WrappedDelegatesOrder]?: string } = {
+  mostRelevant: "Most relevant",
   mostNounsRepresented: "Most nouns represented",
   mostRecentlyActive: "Most recently active",
   mostVotesCast: "Most votes cast",
