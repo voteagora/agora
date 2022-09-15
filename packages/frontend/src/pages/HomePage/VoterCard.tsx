@@ -10,30 +10,12 @@ import { icons } from "../../icons/icons";
 import { VoterPanelActions } from "../DelegatePage/VoterPanel";
 import { VoterCardDelegateProfileImage$key } from "./__generated__/VoterCardDelegateProfileImage.graphql";
 import { Link } from "../../components/HammockRouter/Link";
-import useMeasure from "react-use-measure";
-import { useLayoutEffect, useState } from "react";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
 };
 
-function useIsLaidOut() {
-  const [isLaidOut, setIsLaidOut] = useState(false);
-  useLayoutEffect(() => {
-    setIsLaidOut(true);
-  }, []);
-
-  return isLaidOut;
-}
-
 export function VoterCard({ fragmentRef }: VoterCardProps) {
-  const [statementMeasureRef, bounds] = useMeasure();
-  const isLaidOut = useIsLaidOut();
-
-  const fontSize = 16;
-  const lineHeight = 1.5;
-  const maxLines = Math.floor(bounds.height / (fontSize * lineHeight));
-
   const delegate = useFragment(
     graphql`
       fragment VoterCardFragment on WrappedDelegate {
@@ -75,13 +57,11 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
       className={css`
         display: flex;
         flex-direction: column;
-        visibility: ${isLaidOut ? "visible" : "hidden"};
       `}
     >
       <VStack
         gap="4"
         className={css`
-          max-height: 28rem;
           height: 100%;
           padding: ${theme.spacing["6"]};
           border-radius: ${theme.spacing["3"]};
@@ -123,16 +103,14 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
 
         {!!delegate.statement?.summary && (
           <div
-            ref={statementMeasureRef}
             className={css`
               display: -webkit-box;
 
               color: #66676b;
-              flex: 1;
               overflow: hidden;
               text-overflow: ellipsis;
-              line-clamp: ${maxLines};
-              -webkit-line-clamp: ${maxLines};
+              line-clamp: 5;
+              -webkit-line-clamp: 5;
               -webkit-box-orient: vertical;
               font-size: ${theme.fontSize.base};
               line-height: ${theme.lineHeight.normal};
