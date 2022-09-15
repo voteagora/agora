@@ -101,7 +101,16 @@ export function TopIssuesFormSection({ form }: Props) {
 
   return (
     <div className={formSectionContainerStyles}>
-      <HStack gap="4" justifyContent="space-between" alignItems="baseline">
+      <HStack
+        gap="4"
+        justifyContent="space-between"
+        alignItems="baseline"
+        className={css`
+          @media (max-width: ${theme.maxWidth.lg}) {
+            flex-direction: column;
+          }
+        `}
+      >
         <h3 className={formSectionHeadingStyle}>Views on top issues</h3>
         <Dropdown addIssue={addIssue} />
       </HStack>
@@ -126,6 +135,7 @@ export function TopIssuesFormSection({ form }: Props) {
                   align-items: center;
                   width: ${theme.spacing["12"]};
                   height: ${theme.spacing["12"]};
+                  min-width: ${theme.spacing["12"]};
                   background-color: ${theme.colors.white};
                   border-radius: ${theme.borderRadius.md};
                   border-width: ${theme.spacing.px};
