@@ -17,6 +17,7 @@ const filterByValidValues: HomePageQuery["variables"]["filterBy"][] = [
 ];
 
 const orderByValidValues: HomePageQuery["variables"]["orderBy"][] = [
+  "mostRelevant",
   "mostNounsRepresented",
   "leastVotesCast",
   "mostRecentlyActive",
