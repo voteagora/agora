@@ -51,10 +51,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
       @argumentDefinitions(
         first: { type: "Int", defaultValue: 30 }
         after: { type: "String" }
-        orderBy: {
-          type: "WrappedDelegatesOrder"
-          defaultValue: mostNounsRepresented
-        }
+        orderBy: { type: "WrappedDelegatesOrder", defaultValue: mostRelevant }
         filterBy: { type: "WrappedDelegatesWhere" }
       )
       @refetchable(queryName: "DelegatesContainerPaginationQuery") {
@@ -166,9 +163,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                   navigate({
                     search: {
                       orderBy:
-                        orderBy === "mostNounsRepresented"
-                          ? null
-                          : orderBy ?? null,
+                        orderBy === "mostRelevant" ? null : orderBy ?? null,
                     },
                   });
                 });
