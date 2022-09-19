@@ -30,6 +30,7 @@ export type StoredStatement = {
   address: string;
   signature: string;
   signedPayload: string;
+  signatureType?: "EOA" | "CONTRACT";
   updatedAt: number;
 };
 

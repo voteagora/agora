@@ -683,17 +683,20 @@ export function makeGatewaySchema() {
         info
       ) {
         const updatedAt = Date.now();
-        const validated = validateSigned(args.data.statement);
+        const validated = await validateSigned(provider, args.data.statement);
 
         await statementStorage.addStatement({
           address: validated.address,
           signedPayload: validated.value,
           signature: validated.signature,
+          signatureType: validated.signatureType,
           updatedAt,
         });
 
         if (args.data.email) {
-          await emailStorage.addEmail(validateSigned(args.data.email));
+          await emailStorage.addEmail(
+            await validateSigned(provider, args.data.email)
+          );
         }
 
         return {

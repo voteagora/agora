@@ -1,7 +1,9 @@
 node_modules
 
 packages/backend/src/generated
+packages/frontend/src/generated
 packages/backend/src/contracts/generated
+packages/frontend/src/contracts/generated
 packages/backend/dist
 
 packages/frontend/build
