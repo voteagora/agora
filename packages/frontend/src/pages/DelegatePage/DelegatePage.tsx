@@ -7,11 +7,10 @@ import { VoterPanel } from "./VoterPanel";
 import { PastVotes } from "./PastVotes";
 import { Markdown } from "../../components/Markdown";
 import { HStack, VStack } from "../../components/VStack";
-import { issueDefinitions } from "../EditDelegatePage/TopIssuesFormSection";
-import { icons } from "../../icons/icons";
 import { ImpactfulProposals } from "./ImpactfulProposals";
 import { useParams } from "../../components/HammockRouter/HammockRouter";
 import { Navigate } from "../../components/HammockRouter/Navigate";
+import { TopIssues } from "./TopIssues";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
@@ -28,12 +27,10 @@ export function DelegatePage() {
             }
 
             statement {
-              ...ImpactfulProposalsFragment
               statement
-              topIssues {
-                type
-                value
-              }
+
+              ...ImpactfulProposalsFragment
+              ...TopIssuesFragment
             }
           }
 
@@ -118,101 +115,26 @@ export function DelegatePage() {
             flex: 1;
           `}
         >
-          {wrappedDelegate.statement?.statement && (
-            <VStack gap="4">
-              <h2
-                className={css`
-                  font-size: ${theme.fontSize["2xl"]};
-                  font-weight: bold;
-                `}
-              >
-                Delegate statement
-              </h2>
+          {!!wrappedDelegate.statement && (
+            <>
+              {wrappedDelegate.statement.statement && (
+                <VStack gap="4">
+                  <h2
+                    className={css`
+                      font-size: ${theme.fontSize["2xl"]};
+                      font-weight: bold;
+                    `}
+                  >
+                    Delegate statement
+                  </h2>
 
-              <Markdown markdown={wrappedDelegate.statement.statement} />
-            </VStack>
-          )}
+                  <Markdown markdown={wrappedDelegate.statement.statement} />
+                </VStack>
+              )}
 
-          {!!wrappedDelegate.statement?.topIssues.length && (
-            <VStack gap="4">
-              <h2
-                className={css`
-                  font-size: ${theme.fontSize["2xl"]};
-                  font-weight: bold;
-                `}
-              >
-                Top Issues
-              </h2>
-
-              <VStack gap="4">
-                {wrappedDelegate.statement.topIssues.flatMap((topIssue) => {
-                  const issueDef = issueDefinitions.find(
-                    (issue) => issue.key === topIssue.type
-                  );
-
-                  if (!issueDef) {
-                    return [];
-                  }
-
-                  return (
-                    <div
-                      className={css`
-                        border-radius: ${theme.spacing["3"]};
-                        border: 1px solid #ebebeb;
-                        box-shadow: ${theme.boxShadow.newDefault};
-                        background: ${theme.colors.white};
-                        padding: ${theme.spacing["3"]};
-                        background-color: ${theme.colors.white};
-                      `}
-                    >
-                      <HStack gap="4" alignItems="flex-start">
-                        <VStack
-                          justifyContent="center"
-                          className={css`
-                            flex-shrink: 0;
-                          `}
-                        >
-                          <VStack
-                            className={css`
-                              padding: ${theme.spacing["3"]};
-                              border-radius: ${theme.spacing["2"]};
-                              box-shadow: ${theme.boxShadow.newDefault};
-                              border: 1px solid #ebebeb;
-                            `}
-                          >
-                            <img
-                              src={icons[issueDef.icon]}
-                              alt={issueDef.title}
-                              className={css`
-                                width: ${theme.spacing["6"]};
-                                height: ${theme.spacing["6"]};
-                              `}
-                            />
-                          </VStack>
-                        </VStack>
-
-                        <VStack>
-                          <div
-                            className={css`
-                              font-size: ${theme.fontSize.xs};
-                              font-weight: ${theme.fontWeight.medium};
-                              color: #66676b;
-                            `}
-                          >
-                            {issueDef.title}
-                          </div>
-                          <div>{topIssue.value}</div>
-                        </VStack>
-                      </HStack>
-                    </div>
-                  );
-                })}
-              </VStack>
-            </VStack>
-          )}
-
-          {wrappedDelegate.statement && (
-            <ImpactfulProposals fragment={wrappedDelegate.statement} />
+              <TopIssues fragment={wrappedDelegate.statement} />
+              <ImpactfulProposals fragment={wrappedDelegate.statement} />
+            </>
           )}
 
           {wrappedDelegate.delegate && (
