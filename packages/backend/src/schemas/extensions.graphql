@@ -89,6 +89,9 @@ input CreateNewDelegateStatementData {
 }
 
 input ValueWithSignature {
+  # Address of the signer, this is used for logging and so we can implement
+  # gnosis wallet multi-sig signature verification.
+  signerAddress: String!
   value: String!
   signature: String!
 }
