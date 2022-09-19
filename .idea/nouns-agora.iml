@@ -7,6 +7,14 @@
       <excludeFolder url="file://$MODULE_DIR$/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/packages/backend/dist" />
       <excludeFolder url="file://$MODULE_DIR$/packages/frontend/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/backend/src/contracts/generated" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/backend/src/generated" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/frontend/src/components/__generated__" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/frontend/src/pages/DelegatePage/__generated__" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/frontend/src/pages/EditDelegatePage/__generated__" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/frontend/src/pages/HomePage/__generated__" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/frontend/src/pages/ProposalPage/__generated__" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/frontend/src/pages/ProposalsPage/__generated__" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

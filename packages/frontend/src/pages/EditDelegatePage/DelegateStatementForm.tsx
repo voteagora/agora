@@ -16,7 +16,7 @@ import {
 import { OtherInfoFormSection } from "./OtherInfoFormSection";
 import { buttonStyles } from "./EditDelegatePage";
 import { UseForm, useForm } from "./useForm";
-import { useSigner } from "wagmi";
+import { useAccount, useProvider, useSigner } from "wagmi";
 import { useFragment, useMutation, VariablesOf } from "react-relay";
 import { useMutation as useReactQueryMutation } from "@tanstack/react-query";
 import graphql from "babel-plugin-relay/macro";
@@ -33,8 +33,9 @@ import {
   browserHistory,
   useNavigate,
 } from "../../components/HammockRouter/HammockRouter";
-import { Signer } from "ethers";
+import { ethers, Signer } from "ethers";
 import * as Sentry from "@sentry/react";
+import { GnosisSafe, GnosisSafe__factory } from "../../contracts/generated";
 
 type DelegateStatementFormProps = {
   queryFragment: DelegateStatementFormFragment$key;
@@ -71,6 +72,9 @@ export function DelegateStatementForm({
   queryFragment,
   className,
 }: DelegateStatementFormProps) {
+  const { address } = useAccount();
+  const provider = useProvider();
+
   const data = useFragment(
     graphql`
       fragment DelegateStatementFormFragment on Query
@@ -194,22 +198,35 @@ export function DelegateStatementForm({
     );
 
   const navigate = useNavigate();
-  const [lastExceptionId, setLastExceptionId] = useState<string>();
+  const [lastErrorMessage, setLastErrorMessage] = useState<string>();
 
   const { data: signer } = useSigner();
-  const submitMutation = useReactQueryMutation<unknown, unknown, FormValues>({
+  const submitMutation = useReactQueryMutation<
+    unknown,
+    unknown,
+    { values: FormValues; address?: string }
+  >({
     mutationKey: ["submit"],
     onError: (error, variables) => {
+      if (error instanceof UserVisibleError) {
+        setLastErrorMessage(error.message);
+        return;
+      }
+
       const exceptionId = Sentry.captureException(error, {
         extra: {
           variables: JSON.stringify(variables),
         },
       });
-      setLastExceptionId(exceptionId);
+      setLastErrorMessage(`An error occurred, id: ${exceptionId}`);
     },
-    async mutationFn(formState) {
+    async mutationFn({ values: formState, address }) {
       if (!signer) {
-        return;
+        throw new Error("signer not available");
+      }
+
+      if (!address) {
+        throw new Error("address not available");
       }
 
       const signingBody = {
@@ -226,9 +243,14 @@ export function DelegateStatementForm({
 
       const variables: VariablesOf<DelegateStatementFormMutation> = {
         input: {
-          statement: await makeSignedValue(signer, serializedBody),
+          statement: await makeSignedValue(
+            signer,
+            provider,
+            address,
+            serializedBody
+          ),
           email: formState.email
-            ? await makeSignedValue(signer, formState.email)
+            ? await makeSignedValue(signer, provider, address, formState.email)
             : null,
         },
       };
@@ -306,18 +328,23 @@ export function DelegateStatementForm({
         <button
           className={buttonStyles}
           disabled={!canSubmit}
-          onClick={() => submitMutation.mutate(form.state)}
+          onClick={() =>
+            submitMutation.mutate({
+              values: form.state,
+              address,
+            })
+          }
         >
           Submit delegate profile
         </button>
-        {lastExceptionId && (
+        {lastErrorMessage && (
           <span
             className={css`
               ${tipTextStyle};
               color: ${theme.colors.red["700"]};
             `}
           >
-            An error occurred, id: {lastExceptionId}
+            {lastErrorMessage}
           </span>
         )}
       </HStack>
@@ -335,12 +362,60 @@ function withIgnoringBlock(fn: () => void) {
   }
 }
 
+function hashEnvelopeValue(value: string) {
+  return JSON.stringify({
+    for: "nouns-agora",
+    hashedValue: ethers.utils.hashMessage(value),
+  });
+}
+
+async function checkSafeSignature(safe: GnosisSafe, value: string) {
+  const hashed = ethers.utils.hashMessage(value);
+  const messageHash = await safe.getMessageHash(hashed);
+  const isSigned = await safe.signedMessages(messageHash);
+  return !isSigned.isZero();
+}
+
 async function makeSignedValue(
   signer: Signer,
+  provider: ethers.providers.Provider,
+  signerAddress: string,
   value: string
 ): Promise<ValueWithSignature> {
-  return {
-    value,
-    signature: await signer.signMessage(value),
-  };
+  const signaturePayload = hashEnvelopeValue(value);
+
+  const addressCode = await provider.getCode(signerAddress);
+  if (addressCode === "0x") {
+    // eoa account
+    return {
+      signerAddress,
+      value,
+      signature: await signer.signMessage(signaturePayload),
+    };
+  }
+
+  // some kind of multi-sig wallet, likely a gnosis safe.
+  const gnosisSafe = GnosisSafe__factory.connect(signerAddress, provider);
+  const isSigned = await checkSafeSignature(gnosisSafe, signaturePayload);
+  if (isSigned) {
+    // already signed, post to backend
+    return {
+      signerAddress,
+      value,
+      signature: "0x",
+    };
+  }
+
+  await signer.signMessage(signaturePayload);
+  throw new UserVisibleError(
+    "click submit again once all signatures have been provided, leaving this page will cause form values to be lost"
+  );
+}
+
+class UserVisibleError extends Error {
+  public readonly message: string;
+  constructor(message: string) {
+    super();
+    this.message = message;
+  }
 }
