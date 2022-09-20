@@ -512,6 +512,14 @@ export function makeGatewaySchema() {
     },
 
     Address: {
+      isContract: {
+        async resolve({ address }) {
+          const code = await provider.getCode(address);
+          const parsedCode = ethers.utils.arrayify(code);
+          return !!parsedCode.length;
+        },
+      },
+
       resolvedName: {
         resolve({ address }) {
           return { address };
