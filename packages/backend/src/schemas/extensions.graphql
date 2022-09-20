@@ -39,6 +39,7 @@ type Address {
   resolvedName: ResolvedName!
   account: Account
   wrappedDelegate: WrappedDelegate!
+  isContract: Boolean!
 }
 
 type OverallMetrics {
