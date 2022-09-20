@@ -80,6 +80,7 @@ export function DelegateStatementForm({
       fragment DelegateStatementFormFragment on Query
       @argumentDefinitions(address: { type: "String!" }) {
         address(addressOrEnsName: $address) {
+          isContract
           resolvedName {
             address
             name
@@ -292,65 +293,110 @@ export function DelegateStatementForm({
       className={cx(
         css`
           width: 100%;
-          background-color: ${theme.colors.white};
-          border-radius: ${theme.spacing["3"]};
-          border-width: ${theme.spacing.px};
-          border-color: ${theme.colors.gray["300"]};
-          box-shadow: ${theme.boxShadow.newDefault};
         `,
         className
       )}
     >
-      <DelegateStatementFormSection form={form} />
-      <TopIssuesFormSection form={form} />
-      <PastProposalsFormSection form={form} queryFragment={data} />
-      <OtherInfoFormSection form={form} />
-
-      <HStack
-        justifyContent="space-between"
-        alignItems="center"
-        gap="4"
-        className={css`
-          padding: ${theme.spacing["8"]} ${theme.spacing["6"]};
-          flex-wrap: wrap;
-
-          @media (max-width: ${theme.maxWidth.lg}) {
-            flex-direction: column;
-            align-items: stretch;
-            justify-content: flex-end;
-          }
-        `}
+      <VStack
+        className={cx(
+          css`
+            ${containerStyle};
+          `
+        )}
       >
-        <span className={tipTextStyle}>
-          Tip: you can always come back and edit your profile at any time.
-        </span>
+        <DelegateStatementFormSection form={form} />
+        <TopIssuesFormSection form={form} />
+        <PastProposalsFormSection form={form} queryFragment={data} />
+        <OtherInfoFormSection form={form} />
 
-        <button
-          className={buttonStyles}
-          disabled={!canSubmit}
-          onClick={() =>
-            submitMutation.mutate({
-              values: form.state,
-              address,
-            })
-          }
+        <HStack
+          justifyContent="space-between"
+          alignItems="center"
+          gap="4"
+          className={css`
+            padding: ${theme.spacing["8"]} ${theme.spacing["6"]};
+            flex-wrap: wrap;
+
+            @media (max-width: ${theme.maxWidth.lg}) {
+              flex-direction: column;
+              align-items: stretch;
+              justify-content: flex-end;
+            }
+          `}
         >
-          Submit delegate profile
-        </button>
-        {lastErrorMessage && (
+          <span className={tipTextStyle}>
+            Tip: you can always come back and edit your profile at any time.
+          </span>
+
+          <button
+            className={buttonStyles}
+            disabled={!canSubmit}
+            onClick={() =>
+              submitMutation.mutate({
+                values: form.state,
+                address,
+              })
+            }
+          >
+            Submit delegate profile
+          </button>
+          {lastErrorMessage && (
+            <span
+              className={css`
+                ${tipTextStyle};
+                color: ${theme.colors.red["700"]};
+              `}
+            >
+              {lastErrorMessage}
+            </span>
+          )}
+        </HStack>
+      </VStack>
+
+      {data.address?.isContract && (
+        <VStack
+          className={css`
+            margin: ${theme.spacing["6"]} 0;
+            padding: ${theme.spacing["8"]} ${theme.spacing["6"]};
+
+            ${containerStyle};
+          `}
+        >
           <span
             className={css`
-              ${tipTextStyle};
-              color: ${theme.colors.red["700"]};
+              font-size: ${theme.fontSize.sm};
             `}
           >
-            {lastErrorMessage}
+            Instructions to sign with a Gnosis Safe wallet
           </span>
-        )}
-      </HStack>
+          <VStack
+            className={css`
+              color: #66676b;
+              font-size: ${theme.fontSize.xs};
+            `}
+          >
+            <span>1. Submit a delegate statement</span>
+            <span>
+              2. Wait for all required signers to approve the Safe transaction
+            </span>
+            <span>
+              3. Resubmit the delegate statement. It will confirm without
+              requiring approvals since it has already been signed.
+            </span>
+          </VStack>
+        </VStack>
+      )}
     </VStack>
   );
 }
+
+const containerStyle = css`
+  background-color: ${theme.colors.white};
+  border-radius: ${theme.spacing["3"]};
+  border-width: ${theme.spacing.px};
+  border-color: ${theme.colors.gray["300"]};
+  box-shadow: ${theme.boxShadow.newDefault};
+`;
 
 let currentlyIgnoringBlock = false;
 function withIgnoringBlock(fn: () => void) {
