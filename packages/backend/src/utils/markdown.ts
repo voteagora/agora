@@ -34,8 +34,14 @@ const removeItalics = (text: string | null): string | null =>
   text ? text.replace(/__/g, "") : text;
 
 // Taken from https://github.com/nounsDAO/nouns-monorepo/blob/0a96001abe99751afa20c41a00adb8e5e32e6fda/packages/nouns-webapp/src/wrappers/nounsDao.ts#L142-L169
-export function getTitleFromProposalDescription(description: string) {
-  return removeItalics(removeBold(extractTitle(description))) ?? "Untitled";
+export function getTitleFromProposalDescription(description: string = "") {
+  const normalizedDescription = description
+    .replace(/\\n/g, "\n")
+    .replace(/(^['"]|['"]$)/g, "");
+
+  return (
+    removeItalics(removeBold(extractTitle(normalizedDescription))) ?? "Untitled"
+  );
 }
 
 export function extractTextTokens(token: Token): string[] {
