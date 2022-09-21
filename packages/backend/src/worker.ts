@@ -19,7 +19,7 @@ import {
 } from "./model";
 import { makeNounsExecutor } from "./schemas/nouns-subgraph";
 import { ValidatedMessage } from "./utils/signing";
-import Toucan from "toucan-js";
+import Toucan, { Options } from "toucan-js";
 import {
   GraphQLError,
   Kind,
@@ -255,84 +255,129 @@ function useSentry(sentry: Toucan): Plugin<AgoraContextType> {
   };
 }
 
+function wrapModuleSentry<Env>(
+  makeOptions: (params: { env: Env; ctx: ExecutionContext }) => Options,
+  generateHandlers: (sentry: Toucan) => ExportedHandler<Env>
+): ExportedHandler<Env> {
+  async function runReportingException<T>(
+    sentry: Toucan,
+    fn: () => Promise<T>
+  ): Promise<T> {
+    try {
+      return await fn();
+    } catch (e) {
+      sentry.captureException(e);
+      throw e;
+    }
+  }
+
+  return {
+    async fetch(...args): Promise<Response> {
+      const [request, env, ctx] = args;
+
+      const sentry = new Toucan({
+        ...makeOptions({ env, ctx }),
+        request,
+      });
+
+      const handlers = generateHandlers(sentry);
+
+      return await runReportingException(sentry, async () =>
+        handlers.fetch?.(...args)
+      );
+    },
+    async scheduled(...args) {
+      const [_event, env, ctx] = args;
+      const sentry = new Toucan({
+        ...makeOptions({ env, ctx }),
+      });
+
+      const handlers = generateHandlers(sentry);
+
+      return await runReportingException(sentry, async () =>
+        handlers.scheduled?.(...args)
+      );
+    },
+  };
+}
+
 // Initializing the schema takes about 250ms. We should avoid doing it once
 // per request. We need to move this calculation into some kind of compile time
 // step.
 let gatewaySchema = null;
 
-const inMemoryResponseCache = createInMemoryCache();
+async function fetch(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+  sentry: Toucan
+) {
+  const isProduction = env.ENVIRONMENT === "prod";
+  const url = new URL(request.url);
+  if (url.pathname === "/graphql") {
+    if (!gatewaySchema) {
+      gatewaySchema = makeGatewaySchema();
+    }
+
+    const context: AgoraContextType = {
+      statementStorage: makeStatementStorage(env.STATEMENTS),
+      emailStorage: makeEmailStorage(env.EMAILS),
+      nounsExecutor: makeNounsExecutor(),
+      tracingContext: {
+        spanMap: new Map(),
+        rootSpan: request.tracer,
+      },
+      cache: {
+        cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
+        waitUntil(promise) {
+          return ctx.waitUntil(promise);
+        },
+        span: request.tracer,
+      },
+    };
+
+    const server = createServer({
+      schema: gatewaySchema,
+      context,
+      maskedErrors: isProduction,
+      graphiql: !isProduction,
+      plugins: [useSentry(sentry)],
+    });
+
+    return server.handleRequest(request, { env, ctx });
+  } else {
+    return await getAssetFromKV(
+      {
+        request,
+        waitUntil(promise) {
+          return ctx.waitUntil(promise);
+        },
+      },
+      {
+        ASSET_NAMESPACE: env.__STATIC_CONTENT,
+        ASSET_MANIFEST: assetManifest,
+        mapRequestToAsset: serveSinglePageApp,
+      }
+    );
+  }
+}
 
 export default wrapModule(
   {},
-  {
-    async fetch(request, env: Env, ctx: ExecutionContext): Promise<Response> {
-      const sentry = new Toucan({
-        dsn: env.SENTRY_DSN,
-        environment: env.ENVIRONMENT,
-        release: env.GITHUB_SHA,
-        context: ctx,
-        request,
-        rewriteFrames: {
-          root: "/",
-        },
-      });
-
-      try {
-        const isProduction = env.ENVIRONMENT === "prod";
-        const url = new URL(request.url);
-        if (url.pathname === "/graphql") {
-          if (!gatewaySchema) {
-            gatewaySchema = makeGatewaySchema();
-          }
-
-          const context: AgoraContextType = {
-            statementStorage: makeStatementStorage(env.STATEMENTS),
-            emailStorage: makeEmailStorage(env.EMAILS),
-            nounsExecutor: makeNounsExecutor(),
-            tracingContext: {
-              spanMap: new Map(),
-              rootSpan: request.tracer,
-            },
-            cache: {
-              cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
-              waitUntil(promise) {
-                return ctx.waitUntil(promise);
-              },
-              span: request.tracer,
-            },
-          };
-
-          const server = createServer({
-            schema: gatewaySchema,
-            context,
-            maskedErrors: isProduction,
-            graphiql: !isProduction,
-            plugins: [
-              // makeCachePlugin(inMemoryResponseCache, isProduction),
-              useSentry(sentry),
-            ],
-          });
-
-          return server.handleRequest(request, { env, ctx });
-        } else {
-          return await getAssetFromKV(
-            {
-              request,
-              waitUntil(promise) {
-                return ctx.waitUntil(promise);
-              },
-            },
-            {
-              ASSET_NAMESPACE: env.__STATIC_CONTENT,
-              ASSET_MANIFEST: assetManifest,
-              mapRequestToAsset: serveSinglePageApp,
-            }
-          );
-        }
-      } catch (e) {
-        sentry.captureException(e);
-        throw e;
-      }
-    },
-  }
+  wrapModuleSentry<Env>(
+    ({ env, ctx }) => ({
+      dsn: env.SENTRY_DSN,
+      environment: env.ENVIRONMENT,
+      release: env.GITHUB_SHA,
+      context: ctx,
+      rewriteFrames: {
+        root: "/",
+      },
+    }),
+    (sentry) => ({
+      async fetch(request, env: Env, ctx: ExecutionContext): Promise<Response> {
+        return await fetch(request, env, ctx, sentry);
+      },
+    })
+  )
 );
