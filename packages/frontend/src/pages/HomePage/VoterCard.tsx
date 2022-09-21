@@ -12,6 +12,7 @@ import { VoterCardDelegateProfileImage$key } from "./__generated__/VoterCardDele
 import { Link } from "../../components/HammockRouter/Link";
 import { UserIcon, PencilIcon } from "@heroicons/react/20/solid";
 import { ReactNode } from "react";
+import { useEnsAvatar } from "wagmi";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
@@ -212,6 +213,11 @@ export function DelegateProfileImage({
   const delegate = useFragment(
     graphql`
       fragment VoterCardDelegateProfileImage on WrappedDelegate {
+        address {
+          resolvedName {
+            address
+          }
+        }
         delegate {
           nounsRepresented {
             id
@@ -224,6 +230,10 @@ export function DelegateProfileImage({
     fragment
   );
 
+  const avatar = useEnsAvatar({
+    addressOrName: delegate.address.resolvedName.address,
+  });
+
   return !delegate.delegate ? (
     <HStack
       alignItems="center"
@@ -234,7 +244,15 @@ export function DelegateProfileImage({
         margin: ${theme.spacing["4"]} 0;
       `}
     >
-      <img src={icons.anonNoun} alt={"anon noun"} />
+      <img
+        className={css`
+          width: 44px;
+          height: 44px;
+          border-radius: 100%;
+        `}
+        src={avatar.data || icons.anonNoun}
+        alt={"anon noun"}
+      />
       <div
         className={css`
           font-size: ${theme.fontSize.sm};
