@@ -8,7 +8,7 @@ import {
 export async function resolveEnsOrNnsName(
   name: string,
   provider: ethers.providers.Provider
-) {
+): Promise<string> {
   if (name.endsWith(".⌐◨-◨")) {
     return resolveName(
       name,
@@ -31,7 +31,7 @@ export async function resolveEnsOrNnsName(
 async function resolveName(
   nameOrAddress: string,
   registry: ENSRegistryWithFallback
-) {
+): Promise<string> {
   if (ethers.utils.isHexString(nameOrAddress)) {
     return ethers.utils.getAddress(nameOrAddress);
   }

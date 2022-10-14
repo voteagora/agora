@@ -174,6 +174,22 @@ export function makeGatewaySchema() {
     },
   });
 
+  const resolveAddressFromName = makeDefinitionWithFixedTtl<
+    { address: string },
+    { name: string }
+  >({
+    baseKey: "ReverseResolvedName",
+    ttl: 60 * 60,
+    generateKeyFromParams({ name }): string {
+      return name;
+    },
+    async computeIfAbsent({ name }) {
+      return {
+        address: (await resolveEnsOrNnsName(name, provider)).toLowerCase(),
+      };
+    },
+  });
+
   const blockTimestampCacheDefinition = makeDefinitionWithFixedTtl<
     { timestamp: string },
     { blockNumber: string }
@@ -224,12 +240,14 @@ export function makeGatewaySchema() {
       },
 
       address: {
-        async resolve(_, { addressOrEnsName }) {
-          return {
-            address: (
-              await resolveEnsOrNnsName(addressOrEnsName, provider)
-            ).toLowerCase(),
-          };
+        async resolve(_, { addressOrEnsName }, { cache }) {
+          if (ethers.utils.isAddress(addressOrEnsName)) {
+            return { address: addressOrEnsName.toLowerCase() };
+          }
+
+          return await fetchWithCache(cache, resolveAddressFromName, {
+            name: addressOrEnsName,
+          });
         },
       },
 
