@@ -1,11 +1,11 @@
 use anyhow::Result;
 use graphql_client::{GraphQLQuery, Response};
+use render_opengraph::{
+    draw_opengraph_image_inner, open_graph_render_query, DrawDependencies, OpenGraphRenderQuery,
+};
 use reqwest::Client;
 use std::fs::File;
 use std::io::Write;
-use text_test::{
-    draw_opengraph_image_inner, open_graph_render_query, DrawDependencies, OpenGraphRenderQuery,
-};
 use tokio;
 
 #[tokio::main]
