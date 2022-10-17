@@ -22,11 +22,6 @@ import {
 } from "graphql";
 import { BigNumber, ethers } from "ethers";
 import {
-  NNSENSReverseResolver__factory,
-  NounsDAOLogicV1__factory,
-  NounsToken__factory,
-} from "./contracts/generated";
-import {
   Delegate_OrderBy,
   OrderDirection,
   QueryDelegatesArgs,
@@ -40,13 +35,7 @@ import schema from "./schemas/extensions.graphql";
 import { fieldsMatching } from "./utils/graphql";
 import { descendingValueComparator, flipComparator } from "./utils/sorting";
 import { marked } from "marked";
-import { resolveEnsOrNnsName } from "./utils/resolveName";
 import { validateSigned } from "./utils/signing";
-import {
-  fetchWithCache,
-  makeDefinitionWithFixedTtl,
-  makeSimpleCacheDefinition,
-} from "./utils/cache";
 import { Span } from "@cloudflare/workers-honeycomb-logger";
 
 function makeSimpleFieldNode(name: string): FieldNode {
@@ -129,81 +118,6 @@ export function makeGatewaySchema() {
   const nounsSchema = makeNounsSchema();
 
   const provider = new ethers.providers.CloudflareProvider();
-  const nounsDaoLogicV1 = NounsDAOLogicV1__factory.connect(
-    "0x6f3E6272A167e8AcCb32072d08E0957F9c79223d",
-    provider
-  );
-
-  const nounsToken = NounsToken__factory.connect(
-    "0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03",
-    provider
-  );
-
-  const resolver = NNSENSReverseResolver__factory.connect(
-    "0x5982cE3554B18a5CF02169049e81ec43BFB73961",
-    provider
-  );
-
-  const resolvedNameCacheDef = makeDefinitionWithFixedTtl<
-    { resolvedName: string | null },
-    { address: string }
-  >({
-    baseKey: "ResolvedName",
-    ttl: 60 * 60,
-    generateKeyFromParams({ address }): string {
-      return address;
-    },
-    async computeIfAbsent({ address }) {
-      const resolved = await resolver.resolve(address);
-      if (!resolved) {
-        return { resolvedName: null };
-      }
-
-      const forwardResolvedAddress = await resolveEnsOrNnsName(
-        resolved,
-        provider
-      );
-
-      if (address.toLowerCase() !== forwardResolvedAddress.toLowerCase()) {
-        return { resolvedName: null };
-      }
-
-      return {
-        resolvedName: resolved,
-      };
-    },
-  });
-
-  const resolveAddressFromName = makeDefinitionWithFixedTtl<
-    { address: string },
-    { name: string }
-  >({
-    baseKey: "ReverseResolvedName",
-    ttl: 60 * 60,
-    generateKeyFromParams({ name }): string {
-      return name;
-    },
-    async computeIfAbsent({ name }) {
-      return {
-        address: (await resolveEnsOrNnsName(name, provider)).toLowerCase(),
-      };
-    },
-  });
-
-  const blockTimestampCacheDefinition = makeDefinitionWithFixedTtl<
-    { timestamp: string },
-    { blockNumber: string }
-  >({
-    baseKey: "BlockNumber",
-    generateKeyFromParams({ blockNumber }): string {
-      return blockNumber;
-    },
-    async computeIfAbsent({ blockNumber }) {
-      const block = await provider.getBlock(Number(blockNumber));
-      return { timestamp: block.timestamp.toString() };
-    },
-    ttl: Infinity,
-  });
 
   async function fetchRemoteDelegates(
     context: any,
@@ -239,15 +153,34 @@ export function makeGatewaySchema() {
         },
       },
 
+      currentGovernance: {
+        async resolve(_parent, _args, context, info) {
+          return delegateToSchema({
+            schema: nounsSchema,
+            operation: OperationTypeNode.QUERY,
+            fieldName: "governance",
+            args: { id: "GOVERNANCE" },
+            context,
+            info,
+          });
+        },
+      },
+
       address: {
-        async resolve(_, { addressOrEnsName }, { cache }) {
+        async resolve(_, { addressOrEnsName }, { snapshot }) {
           if (ethers.utils.isAddress(addressOrEnsName)) {
             return { address: addressOrEnsName.toLowerCase() };
           }
 
-          return await fetchWithCache(cache, resolveAddressFromName, {
-            name: addressOrEnsName,
-          });
+          const foundMapping = Array.from(
+            snapshot.NounsToken.addressToEnsName.entries()
+          ).find(([, ensName]) => ensName === addressOrEnsName);
+          if (!foundMapping) {
+            throw new Error("failed to resolve");
+          }
+
+          const [address] = foundMapping;
+          return { address };
         },
       },
 
@@ -466,66 +399,12 @@ export function makeGatewaySchema() {
     },
 
     OverallMetrics: {
-      async totalSupply(_, _args, { cache }) {
-        const cacheDefinition = makeSimpleCacheDefinition({
-          baseKey: "OverallMetrics.totalSupply",
-          ttl: 60 * 60,
-          async computeIfAbsent() {
-            return (await nounsToken.totalSupply()).toString();
-          },
-        });
-
-        return await fetchWithCache(cache, cacheDefinition, undefined);
+      quorumVotesBPS(_, _args, { snapshot }) {
+        return snapshot.NounsDAOLogicV1.quorumBps.toString();
       },
 
-      async proposalCount(_, _args, { cache }) {
-        const cacheDefinition = makeSimpleCacheDefinition({
-          baseKey: "OverallMetrics.proposalCount",
-          ttl: 60 * 60,
-          async computeIfAbsent() {
-            return (await nounsDaoLogicV1.proposalCount()).toString();
-          },
-        });
-
-        return await fetchWithCache(cache, cacheDefinition, undefined);
-      },
-
-      async quorumVotes(_, _args, { cache }) {
-        const cacheDefinition = makeSimpleCacheDefinition({
-          baseKey: "OverallMetrics.quorumVotes",
-          ttl: 60 * 60,
-          async computeIfAbsent() {
-            return (await nounsDaoLogicV1.quorumVotes()).toString();
-          },
-        });
-
-        return await fetchWithCache(cache, cacheDefinition, undefined);
-      },
-
-      async quorumVotesBPS(_, _args, { cache }) {
-        const cacheDefinition = makeSimpleCacheDefinition({
-          baseKey: "OverallMetrics.quorumVotesBPS",
-          ttl: 60 * 60,
-          async computeIfAbsent() {
-            return (await nounsDaoLogicV1.quorumVotesBPS()).toString();
-          },
-        });
-
-        return await fetchWithCache(cache, cacheDefinition, undefined);
-      },
-
-      async proposalThreshold(_, _args, { cache }) {
-        const cacheDefinition = makeSimpleCacheDefinition({
-          baseKey: "OverallMetrics.proposalThreshold",
-          ttl: 60 * 60,
-          async computeIfAbsent() {
-            return (await nounsDaoLogicV1.proposalThreshold())
-              .add(1)
-              .toString();
-          },
-        });
-
-        return await fetchWithCache(cache, cacheDefinition, undefined);
+      proposalThresholdBPS(_, _args, { snapshot }) {
+        return snapshot.NounsDAOLogicV1.proposalBps.toString();
       },
     },
 
@@ -564,9 +443,8 @@ export function makeGatewaySchema() {
     },
 
     ResolvedName: {
-      async name({ address }, _args, { cache }) {
-        return (await fetchWithCache(cache, resolvedNameCacheDef, { address }))
-          .resolvedName;
+      name({ address }, _args, { snapshot }) {
+        return snapshot.NounsToken.addressToEnsName.get(address.toLowerCase());
       },
     },
 
@@ -819,13 +697,11 @@ export function makeGatewaySchema() {
           async resolve(
             { blockNumber }: { blockNumber: string },
             args,
-            { cache }
+            { snapshot }
           ) {
-            return (
-              await fetchWithCache(cache, blockTimestampCacheDefinition, {
-                blockNumber,
-              })
-            ).timestamp;
+            return snapshot.NounsDAOLogicV1.voteBlockTimestamp.get(
+              Number(blockNumber)
+            );
           },
         },
       },

@@ -114,15 +114,17 @@ export function VoteDetails({ voteFragment }: Props) {
           >
             <a href={proposalHref}>{vote.proposal.title}</a>
           </h2>
-          <div
-            className={css`
-              font-size: ${theme.fontSize.xs};
-              font-weight: ${theme.fontWeight.medium};
-              color: #66676b;
-            `}
-          >
-            {formatDistanceToNow(new Date(Number(vote.createdAt) * 1000))} ago
-          </div>
+          {vote.createdAt && (
+            <div
+              className={css`
+                font-size: ${theme.fontSize.xs};
+                font-weight: ${theme.fontWeight.medium};
+                color: #66676b;
+              `}
+            >
+              {formatDistanceToNow(new Date(Number(vote.createdAt) * 1000))} ago
+            </div>
+          )}
         </VStack>
 
         <span

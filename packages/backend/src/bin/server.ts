@@ -11,15 +11,20 @@ import {
   makeFakeSpan,
   makeNoOpCache,
 } from "../utils/cache";
-import { createInMemoryCache } from "@envelop/response-cache";
 import { useApolloTracing } from "@envelop/apollo-tracing";
+import { promises as fs } from "fs";
+import { parseStorage } from "../snapshot";
 
 async function main() {
   const delegateStatements = new Map(presetDelegateStatements);
   const schema = makeGatewaySchema();
-  const cache = createInMemoryCache();
+
+  const snapshot = parseStorage(
+    JSON.parse(await fs.readFile("snapshot.json", { encoding: "utf-8" }))
+  );
 
   const context: AgoraContextType = {
+    snapshot,
     statementStorage: makeStatementStorageFromMap(delegateStatements),
     nounsExecutor: makeNounsExecutor(),
     cache: {

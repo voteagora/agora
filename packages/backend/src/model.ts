@@ -3,6 +3,7 @@ import { z } from "zod";
 import { formSchema } from "./formSchema";
 import { ValidatedMessage } from "./utils/signing";
 import { CacheDependencies, Span } from "./utils/cache";
+import { Snapshot } from "./snapshot";
 
 export type OverallMetrics = {};
 
@@ -65,6 +66,7 @@ export type TracingContext = {
 };
 
 export type AgoraContextType = {
+  snapshot: Snapshot;
   tracingContext: TracingContext;
   statementStorage: StatementStorage;
   cache: CacheDependencies;
