@@ -11,7 +11,7 @@ use fontdue::layout::{
 };
 use fontdue::Font;
 use png::BitDepth;
-use raqote::SolidSource;
+use raqote::{Color, SolidSource};
 use raqote::{DrawOptions, DrawTarget, PathBuilder, Source};
 use std::f32::consts::PI;
 use std::io;
@@ -100,7 +100,7 @@ pub fn draw_opengraph_image_inner(
     let mut address_text_layout = largest_text_layout_fitting(
         max_text_width * scale,
         &display_text(&address.resolved_name),
-        (16f32 * scale) as u32,
+        (14f32 * scale) as u32,
         (10f32 * scale) as u32,
         &dependencies.fonts[..],
     );
@@ -117,7 +117,7 @@ pub fn draw_opengraph_image_inner(
     });
     title_text_layout.append(
         &dependencies.fonts[..],
-        &TextStyle::new("Nouns DAO delegate on Agora", 12.0 * scale, 0),
+        &TextStyle::new("Nouns DAO delegate on Agora", 7.0f32 * scale, 0),
     );
 
     let mut dt = DrawTarget::new((width * scale) as i32, (height * scale) as i32);
@@ -138,7 +138,7 @@ pub fn draw_opengraph_image_inner(
     );
 
     let offset_x = gap * scale;
-    let spacing = 2.0 * base_grid;
+    let spacing = 0.5 * base_grid;
     let y = (height * scale / 2f32)
         - ((address_text_layout.height() + 2.0 * spacing * scale + title_text_layout.height())
             / 2f32);
@@ -151,6 +151,7 @@ pub fn draw_opengraph_image_inner(
         max_text_width * scale,
         &mut title_text_layout,
         &dependencies.fonts[..],
+        Color::new(0, 102, 103, 107),
     );
 
     dt.set_transform(&transform.then_translate(Vector2D::new(
@@ -163,6 +164,7 @@ pub fn draw_opengraph_image_inner(
         max_text_width * scale,
         &mut address_text_layout,
         &dependencies.fonts[..],
+        Color::new(0, 0, 0, 0),
     );
 
     dt.set_transform(&Transform2D::identity());
