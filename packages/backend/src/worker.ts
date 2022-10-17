@@ -48,16 +48,18 @@ function getDrawDependencies(
   drawDependenciesPromise = (async () => {
     initSync(wasm);
 
-    const [imagesRaw, regularFontBytes, boldFontBytes] = await Promise.all([
+    const [imagesRaw, interMedium, interBlack, dejavuBold] = await Promise.all([
       kv.get(manifest["worker-assets/image-data.json"], "text"),
-      kv.get(manifest["worker-assets/DejaVuSans.ttf"], "arrayBuffer"),
+      kv.get(manifest["worker-assets/Inter-Medium.otf"], "arrayBuffer"),
+      kv.get(manifest["worker-assets/Inter-Black.otf"], "arrayBuffer"),
       kv.get(manifest["worker-assets/DejaVuSans-Bold.ttf"], "arrayBuffer"),
     ]);
 
     return DrawDependencies.create(
       imagesRaw,
-      new Uint8Array(regularFontBytes),
-      new Uint8Array(boldFontBytes)
+      new Uint8Array(interMedium),
+      new Uint8Array(interBlack),
+      new Uint8Array(dejavuBold)
     );
   })();
 

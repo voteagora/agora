@@ -9,7 +9,7 @@ pub fn draw_text_layout(
     dt: &mut DrawTarget,
     max_text_width: f32,
     layout: &mut Layout,
-    fonts: &[Font],
+    fonts: &[&Font],
     color: Color,
 ) {
     // dt.fill_rect(
@@ -60,7 +60,7 @@ pub fn largest_text_layout_fitting(
     text: &str,
     max_font_size: u32,
     min_font_size: u32,
-    fonts: &[Font],
+    fonts: &[&Font],
 ) -> Layout {
     let mut layout = Layout::new(CoordinateSystem::PositiveYDown);
 
@@ -75,7 +75,18 @@ pub fn largest_text_layout_fitting(
     });
 
     for font_size in (min_font_size..=(max_font_size)).rev() {
-        layout.append(fonts, &TextStyle::new(text, font_size as f32, 1));
+        for char in text.chars() {
+            for (font_idx, font) in fonts.iter().enumerate() {
+                let glyph_index = font.lookup_glyph_index(char);
+                if glyph_index != 0 {
+                    layout.append(
+                        fonts,
+                        &TextStyle::new(&char.to_string(), font_size as f32, font_idx),
+                    );
+                    break;
+                }
+            }
+        }
 
         if layout.lines().map(|lines| lines.len()).unwrap_or(0) == 1 {
             break;

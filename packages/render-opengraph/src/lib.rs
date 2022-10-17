@@ -23,26 +23,37 @@ use crate::text::{draw_text_layout, largest_text_layout_fitting};
 #[wasm_bindgen]
 pub struct DrawDependencies {
     images: ImageDataContainer,
-    fonts: [Font; 2],
+
+    inter_medium: Font,
+    inter_black: Font,
+    dejavu_sans_bold: Font,
 }
 
 impl DrawDependencies {
     pub fn create_inner(
         images_string: &str,
-        regular_font_bytes: &[u8],
-        bold_font_bytes: &[u8],
+        inter_medium_bytes: &[u8],
+        inter_black_bytes: &[u8],
+        dejavu_sans_bold_bytes: &[u8],
     ) -> Result<DrawDependencies> {
         let images = serde_json::from_str::<ImageDataContainer>(&images_string)?;
 
-        let dejavu_sans_bold = Font::from_bytes(bold_font_bytes, fontdue::FontSettings::default())
+        let inter_medium = Font::from_bytes(inter_medium_bytes, fontdue::FontSettings::default())
             .map_err(Error::msg)?;
 
-        let dejavu_sans = Font::from_bytes(regular_font_bytes, fontdue::FontSettings::default())
+        let inter_black = Font::from_bytes(inter_black_bytes, fontdue::FontSettings::default())
             .map_err(Error::msg)?;
 
-        let fonts = [dejavu_sans, dejavu_sans_bold];
+        let dejavu_sans_bold =
+            Font::from_bytes(dejavu_sans_bold_bytes, fontdue::FontSettings::default())
+                .map_err(Error::msg)?;
 
-        Ok(DrawDependencies { images, fonts })
+        Ok(DrawDependencies {
+            images,
+            inter_black,
+            inter_medium,
+            dejavu_sans_bold,
+        })
     }
 }
 
@@ -50,13 +61,17 @@ impl DrawDependencies {
 impl DrawDependencies {
     pub fn create(
         images_string: &str,
-        regular_font_bytes: &[u8],
-        bold_font_bytes: &[u8],
+        inter_medium_bytes: &[u8],
+        inter_black_bytes: &[u8],
+        dejavu_sans_bold_bytes: &[u8],
     ) -> Result<DrawDependencies, String> {
-        Ok(
-            DrawDependencies::create_inner(images_string, regular_font_bytes, bold_font_bytes)
-                .map_err(|e| e.to_string())?,
+        Ok(DrawDependencies::create_inner(
+            images_string,
+            inter_medium_bytes,
+            inter_black_bytes,
+            dejavu_sans_bold_bytes,
         )
+        .map_err(|e| e.to_string())?)
     }
 
     pub fn draw_image(&self, data_string: &str) -> Result<Option<Vec<u8>>, String> {
@@ -97,12 +112,14 @@ pub fn draw_opengraph_image_inner(
         Some(address) => address,
     };
 
+    let address_text_fonts = [&dependencies.inter_black, &dependencies.dejavu_sans_bold];
+
     let mut address_text_layout = largest_text_layout_fitting(
         max_text_width * scale,
         &display_text(&address.resolved_name),
         (14f32 * scale) as u32,
         (10f32 * scale) as u32,
-        &dependencies.fonts[..],
+        &address_text_fonts[..],
     );
 
     let mut title_text_layout = Layout::new(CoordinateSystem::PositiveYDown);
@@ -116,7 +133,7 @@ pub fn draw_opengraph_image_inner(
         ..LayoutSettings::default()
     });
     title_text_layout.append(
-        &dependencies.fonts[..],
+        &[&dependencies.inter_medium],
         &TextStyle::new("Nouns DAO delegate on Agora", 7.0f32 * scale, 0),
     );
 
@@ -138,7 +155,7 @@ pub fn draw_opengraph_image_inner(
     );
 
     let offset_x = gap * scale;
-    let spacing = 0.5 * base_grid;
+    let spacing = 0.25 * base_grid;
     let y = (height * scale / 2f32)
         - ((address_text_layout.height() + 2.0 * spacing * scale + title_text_layout.height())
             / 2f32);
@@ -150,7 +167,7 @@ pub fn draw_opengraph_image_inner(
         &mut dt,
         max_text_width * scale,
         &mut title_text_layout,
-        &dependencies.fonts[..],
+        &[&dependencies.inter_medium],
         Color::new(0, 102, 103, 107),
     );
 
@@ -163,7 +180,7 @@ pub fn draw_opengraph_image_inner(
         &mut dt,
         max_text_width * scale,
         &mut address_text_layout,
-        &dependencies.fonts[..],
+        &address_text_fonts,
         Color::new(0, 0, 0, 0),
     );
 
