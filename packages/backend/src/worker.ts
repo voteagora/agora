@@ -29,8 +29,10 @@ import {
 } from "graphql";
 import { Scope } from "toucan-js/dist/scope";
 import { Span, wrapModule } from "@cloudflare/workers-honeycomb-logger";
-import { createInMemoryCache } from "@envelop/response-cache";
-import { makeCachePlugin } from "./cache";
+import { filterForEventHandlers, makeReducers, parseStorage } from "./snapshot";
+import { ethers } from "ethers";
+import { NNSENSReverseResolver__factory } from "./contracts/generated";
+import { getAllLogs } from "./events";
 
 const assetManifest = JSON.parse(manifestJSON);
 
@@ -60,6 +62,7 @@ export interface Env {
   STATEMENTS: KVNamespace;
   APPLICATION_CACHE: KVNamespace;
   EMAILS: KVNamespace;
+  INDEXER: KVNamespace;
   __STATIC_CONTENT: KVNamespace;
 }
 
@@ -306,6 +309,12 @@ function wrapModuleSentry<Env>(
 // step.
 let gatewaySchema = null;
 
+let latestSnapshot = null;
+
+async function loadSnapshot(env: Env) {
+  return await env.INDEXER.get("snapshot.json", "json");
+}
+
 async function fetch(
   request: Request,
   env: Env,
@@ -319,7 +328,13 @@ async function fetch(
       gatewaySchema = makeGatewaySchema();
     }
 
+    if (!latestSnapshot) {
+      const snapshot = await loadSnapshot(env);
+      latestSnapshot = parseStorage(snapshot);
+    }
+
     const context: AgoraContextType = {
+      snapshot: latestSnapshot,
       statementStorage: makeStatementStorage(env.STATEMENTS),
       emailStorage: makeEmailStorage(env.EMAILS),
       nounsExecutor: makeNounsExecutor(),
@@ -362,22 +377,92 @@ async function fetch(
   }
 }
 
-export default wrapModule(
-  {},
-  wrapModuleSentry<Env>(
-    ({ env, ctx }) => ({
-      dsn: env.SENTRY_DSN,
-      environment: env.ENVIRONMENT,
-      release: env.GITHUB_SHA,
-      context: ctx,
-      rewriteFrames: {
-        root: "/",
-      },
-    }),
-    (sentry) => ({
-      async fetch(request, env: Env, ctx: ExecutionContext): Promise<Response> {
-        return await fetch(request, env, ctx, sentry);
-      },
-    })
-  )
+async function scheduled(env: Env, sentry: Toucan) {
+  const provider = new ethers.providers.AlchemyProvider();
+
+  const resolver = NNSENSReverseResolver__factory.connect(
+    "0x5982cE3554B18a5CF02169049e81ec43BFB73961",
+    provider
+  );
+
+  const reducers = makeReducers(provider, resolver);
+  const latestBlockNumber = await provider.getBlockNumber();
+
+  const snapshot = await loadSnapshot(env);
+
+  for (const reducer of reducers) {
+    const filter = filterForEventHandlers(reducer);
+    const snapshotValue = snapshot[reducer.name];
+    let state = (() => {
+      if (snapshotValue) {
+        return reducer.decodeState(snapshotValue.state);
+      }
+
+      return reducer.initialState();
+    })();
+
+    const { logs, latestBlockFetched } = await getAllLogs(
+      provider,
+      filter,
+      latestBlockNumber,
+      snapshotValue?.block ?? reducer.startingBlock
+    );
+
+    let idx = 0;
+    for (const log of logs) {
+      await withSentryScope(sentry, async (scope) => {
+        const event = reducer.iface.parseLog(log);
+        const eventHandler = reducer.eventHandlers.find(
+          (e) => e.signature === event.signature
+        );
+
+        try {
+          state = await eventHandler.reduce(state, event, log);
+        } catch (e) {
+          scope.setExtras({
+            event,
+            log,
+            logs: logs.length,
+            idx,
+          });
+          sentry.captureException(e);
+        }
+        idx++;
+      });
+    }
+
+    snapshot[reducer.name] = {
+      state: reducer.encodeState(state),
+      block: latestBlockFetched,
+    };
+  }
+
+  await env.INDEXER.put("snapshot.json", JSON.stringify(snapshot));
+  latestSnapshot = parseStorage(snapshot);
+}
+
+const sentryWrappedModule = wrapModuleSentry<Env>(
+  ({ env, ctx }) => ({
+    dsn: env.SENTRY_DSN,
+    environment: env.ENVIRONMENT,
+    release: env.GITHUB_SHA,
+    context: ctx,
+    rewriteFrames: {
+      root: "/",
+    },
+  }),
+  (sentry) => ({
+    async fetch(request, env: Env, ctx: ExecutionContext): Promise<Response> {
+      return await fetch(request, env, ctx, sentry);
+    },
+
+    async scheduled(controller, env) {
+      return await scheduled(env, sentry);
+    },
+  })
 );
+
+export default {
+  ...wrapModule({}, sentryWrappedModule),
+  scheduled: sentryWrappedModule.scheduled,
+};

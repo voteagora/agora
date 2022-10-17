@@ -1,0 +1,205 @@
+diff --git a/node_modules/@ethersproject/abi/lib.esm/coders/abstract-coder.d.ts b/node_modules/@ethersproject/abi/lib.esm/coders/abstract-coder.d.ts
+index f499d13..89a0b17 100644
+--- a/node_modules/@ethersproject/abi/lib.esm/coders/abstract-coder.d.ts
++++ b/node_modules/@ethersproject/abi/lib.esm/coders/abstract-coder.d.ts
+@@ -1,8 +1,7 @@
+ import { BytesLike } from "@ethersproject/bytes";
+ import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
+-export interface Result extends ReadonlyArray<any> {
+-    readonly [key: string]: any;
+-}
++export type Result<Args extends Record<string, any> = Record<string, any>> =
++    ReadonlyArray<any> & Readonly<Args>;
+ export declare function checkResultErrors(result: Result): Array<{
+     path: Array<string | number>;
+     error: Error;
+diff --git a/node_modules/@ethersproject/abi/lib.esm/fragments.d.ts b/node_modules/@ethersproject/abi/lib.esm/fragments.d.ts
+index 2b9b253..b273dae 100644
+--- a/node_modules/@ethersproject/abi/lib.esm/fragments.d.ts
++++ b/node_modules/@ethersproject/abi/lib.esm/fragments.d.ts
+@@ -48,7 +48,9 @@ export declare abstract class Fragment {
+     static fromString(value: string): Fragment;
+     static isFragment(value: any): value is Fragment;
+ }
+-export declare class EventFragment extends Fragment {
++export declare class EventFragment<
++    Args extends Record<string, any> = Record<string, any>
++> extends Fragment {
+     readonly anonymous: boolean;
+     format(format?: string): string;
+     static from(value: EventFragment | JsonFragment | string): EventFragment;
+diff --git a/node_modules/@ethersproject/abi/lib.esm/interface.d.ts b/node_modules/@ethersproject/abi/lib.esm/interface.d.ts
+index c50269e..a4fa7df 100644
+--- a/node_modules/@ethersproject/abi/lib.esm/interface.d.ts
++++ b/node_modules/@ethersproject/abi/lib.esm/interface.d.ts
+@@ -5,12 +5,16 @@ import { AbiCoder } from "./abi-coder";
+ import { checkResultErrors, Result } from "./coders/abstract-coder";
+ import { ConstructorFragment, ErrorFragment, EventFragment, Fragment, FunctionFragment, JsonFragment, ParamType } from "./fragments";
+ export { checkResultErrors, Result };
+-export declare class LogDescription extends Description<LogDescription> {
+-    readonly eventFragment: EventFragment;
++
++export declare class LogDescription<
++    Signature extends string = string,
++    Args extends Record<string, any> = Record<string, any>
++> extends Description<LogDescription<Signature, Args>> {
++    readonly eventFragment: EventFragment<Args>;
+     readonly name: string;
+-    readonly signature: string;
++    readonly signature: Signature;
+     readonly topic: string;
+-    readonly args: Result;
++    readonly args: Result<Args>
+ }
+ export declare class TransactionDescription extends Description<TransactionDescription> {
+     readonly functionFragment: FunctionFragment;
+@@ -74,7 +78,11 @@ export declare class Interface {
+         data: string;
+         topics: Array<string>;
+     };
+-    decodeEventLog(eventFragment: EventFragment | string, data: BytesLike, topics?: ReadonlyArray<string>): Result;
++    decodeEventLog<Args extends Record<string, any> = Record<string, any>>(
++        eventFragment: EventFragment<Args> | string,
++        data: BytesLike,
++        topics?: ReadonlyArray<string>
++    ): Result<Args>;
+     parseTransaction(tx: {
+         data: string;
+         value?: BigNumberish;
+diff --git a/node_modules/@ethersproject/abi/lib/coders/abstract-coder.d.ts b/node_modules/@ethersproject/abi/lib/coders/abstract-coder.d.ts
+index f499d13..89a0b17 100644
+--- a/node_modules/@ethersproject/abi/lib/coders/abstract-coder.d.ts
++++ b/node_modules/@ethersproject/abi/lib/coders/abstract-coder.d.ts
+@@ -1,8 +1,7 @@
+ import { BytesLike } from "@ethersproject/bytes";
+ import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
+-export interface Result extends ReadonlyArray<any> {
+-    readonly [key: string]: any;
+-}
++export type Result<Args extends Record<string, any> = Record<string, any>> =
++    ReadonlyArray<any> & Readonly<Args>;
+ export declare function checkResultErrors(result: Result): Array<{
+     path: Array<string | number>;
+     error: Error;
+diff --git a/node_modules/@ethersproject/abi/lib/fragments.d.ts b/node_modules/@ethersproject/abi/lib/fragments.d.ts
+index 2b9b253..98a0186 100644
+--- a/node_modules/@ethersproject/abi/lib/fragments.d.ts
++++ b/node_modules/@ethersproject/abi/lib/fragments.d.ts
+@@ -48,7 +48,10 @@ export declare abstract class Fragment {
+     static fromString(value: string): Fragment;
+     static isFragment(value: any): value is Fragment;
+ }
+-export declare class EventFragment extends Fragment {
++
++export declare class EventFragment<
++    Args extends Record<string, any> = Record<string, any>
++> extends Fragment {
+     readonly anonymous: boolean;
+     format(format?: string): string;
+     static from(value: EventFragment | JsonFragment | string): EventFragment;
+diff --git a/node_modules/@ethersproject/abi/lib/interface.d.ts b/node_modules/@ethersproject/abi/lib/interface.d.ts
+index c50269e..a4fa7df 100644
+--- a/node_modules/@ethersproject/abi/lib/interface.d.ts
++++ b/node_modules/@ethersproject/abi/lib/interface.d.ts
+@@ -5,12 +5,16 @@ import { AbiCoder } from "./abi-coder";
+ import { checkResultErrors, Result } from "./coders/abstract-coder";
+ import { ConstructorFragment, ErrorFragment, EventFragment, Fragment, FunctionFragment, JsonFragment, ParamType } from "./fragments";
+ export { checkResultErrors, Result };
+-export declare class LogDescription extends Description<LogDescription> {
+-    readonly eventFragment: EventFragment;
++
++export declare class LogDescription<
++    Signature extends string = string,
++    Args extends Record<string, any> = Record<string, any>
++> extends Description<LogDescription<Signature, Args>> {
++    readonly eventFragment: EventFragment<Args>;
+     readonly name: string;
+-    readonly signature: string;
++    readonly signature: Signature;
+     readonly topic: string;
+-    readonly args: Result;
++    readonly args: Result<Args>
+ }
+ export declare class TransactionDescription extends Description<TransactionDescription> {
+     readonly functionFragment: FunctionFragment;
+@@ -74,7 +78,11 @@ export declare class Interface {
+         data: string;
+         topics: Array<string>;
+     };
+-    decodeEventLog(eventFragment: EventFragment | string, data: BytesLike, topics?: ReadonlyArray<string>): Result;
++    decodeEventLog<Args extends Record<string, any> = Record<string, any>>(
++        eventFragment: EventFragment<Args> | string,
++        data: BytesLike,
++        topics?: ReadonlyArray<string>
++    ): Result<Args>;
+     parseTransaction(tx: {
+         data: string;
+         value?: BigNumberish;
+diff --git a/node_modules/@ethersproject/abi/src.ts/coders/abstract-coder.ts b/node_modules/@ethersproject/abi/src.ts/coders/abstract-coder.ts
+index df6213c..f4773d6 100644
+--- a/node_modules/@ethersproject/abi/src.ts/coders/abstract-coder.ts
++++ b/node_modules/@ethersproject/abi/src.ts/coders/abstract-coder.ts
+@@ -8,9 +8,8 @@ import { Logger } from "@ethersproject/logger";
+ import { version } from "../_version";
+ const logger = new Logger(version);
+ 
+-export interface Result extends ReadonlyArray<any> {
+-    readonly [key: string]: any;
+-}
++export type Result<Args extends Record<string, any> = Record<string, any>> =
++    ReadonlyArray<any> & Readonly<Args>;
+ 
+ export function checkResultErrors(result: Result): Array<{ path: Array<string | number>, error: Error }> {
+     // Find the first error (if any)
+diff --git a/node_modules/@ethersproject/abi/src.ts/fragments.ts b/node_modules/@ethersproject/abi/src.ts/fragments.ts
+index 802a2a9..0a0a6bd 100644
+--- a/node_modules/@ethersproject/abi/src.ts/fragments.ts
++++ b/node_modules/@ethersproject/abi/src.ts/fragments.ts
+@@ -484,7 +484,9 @@ interface _EventFragment extends _Fragment {
+     readonly anonymous: boolean;
+ }
+ 
+-export class EventFragment extends Fragment {
++export class EventFragment<
++    Args extends Record<string, any> = Record<string, any>
++> extends Fragment {
+     readonly anonymous: boolean;
+ 
+     format(format?: string): string {
+diff --git a/node_modules/@ethersproject/abi/src.ts/interface.ts b/node_modules/@ethersproject/abi/src.ts/interface.ts
+index 503dc05..5c66d49 100644
+--- a/node_modules/@ethersproject/abi/src.ts/interface.ts
++++ b/node_modules/@ethersproject/abi/src.ts/interface.ts
+@@ -17,12 +17,15 @@ const logger = new Logger(version);
+ 
+ export { checkResultErrors, Result };
+ 
+-export class LogDescription extends Description<LogDescription> {
+-    readonly eventFragment: EventFragment;
++export class LogDescription<
++    Signature extends string = string,
++    Args extends Record<string, any> = Record<string, any>
++> extends Description<LogDescription<Signature, Args>> {
++    readonly eventFragment: EventFragment<Args>;
+     readonly name: string;
+-    readonly signature: string;
++    readonly signature: Signature;
+     readonly topic: string;
+-    readonly args: Result
++    readonly args: Result<Args>
+ }
+ 
+ export class TransactionDescription extends Description<TransactionDescription> {
+@@ -549,7 +552,11 @@ export class Interface {
+     }
+ 
+     // Decode a filter for the event and the search criteria
+-    decodeEventLog(eventFragment: EventFragment | string, data: BytesLike, topics?: ReadonlyArray<string>): Result {
++    decodeEventLog<Args extends Record<string, any> = Record<string, any>>(
++        eventFragment: EventFragment<Args> | string,
++        data: BytesLike,
++        topics?: ReadonlyArray<string>
++    ): Result<Args> {
+         if (typeof(eventFragment) === "string") {
+             eventFragment = this.getEvent(eventFragment);
+         }

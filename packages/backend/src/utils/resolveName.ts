@@ -3,7 +3,27 @@ import {
   ENSAddressResolver__factory,
   ENSRegistryWithFallback,
   ENSRegistryWithFallback__factory,
+  NNSENSReverseResolver,
 } from "../contracts/generated";
+
+export async function resolveNameFromAddress(
+  address: string,
+  resolver: NNSENSReverseResolver,
+  provider: ethers.providers.Provider
+): Promise<string | null> {
+  const resolved = await resolver.resolve(address);
+  if (!resolved) {
+    return null;
+  }
+
+  const forwardResolvedAddress = await resolveEnsOrNnsName(resolved, provider);
+
+  if (address.toLowerCase() !== forwardResolvedAddress.toLowerCase()) {
+    return null;
+  }
+
+  return resolved;
+}
 
 export async function resolveEnsOrNnsName(
   name: string,

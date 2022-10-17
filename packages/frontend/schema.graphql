@@ -445,6 +445,7 @@ type Query {
   metrics: OverallMetrics!
   address(addressOrEnsName: String!): Address
   wrappedDelegates(where: WrappedDelegatesWhere, orderBy: WrappedDelegatesOrder! = mostNounsRepresented, first: Int!, after: String): WrappedDelegatesConnection!
+  currentGovernance: Governance!
 }
 
 type Subscription {
@@ -2274,7 +2275,7 @@ type Vote {
 
   """Block number of vote"""
   blockNumber: BigInt!
-  createdAt: BigInt!
+  createdAt: BigInt
 }
 
 input Vote_filter {
@@ -2424,11 +2425,8 @@ type Address {
 }
 
 type OverallMetrics {
-  totalSupply: BigInt!
-  proposalCount: BigInt!
-  quorumVotes: BigInt!
+  proposalThresholdBPS: BigInt!
   quorumVotesBPS: BigInt!
-  proposalThreshold: BigInt!
 }
 
 type ResolvedName {

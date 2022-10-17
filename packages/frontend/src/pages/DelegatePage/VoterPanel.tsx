@@ -22,6 +22,7 @@ import { DelegateDialog } from "../../components/DelegateDialog";
 import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
 import toast from "react-hot-toast";
 import { DelegateProfileImage } from "../HomePage/VoterCard";
+import { BigNumber } from "ethers";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -72,7 +73,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
 
   const delegate = address.wrappedDelegate.delegate;
 
-  const { recentProposals, metrics } = useFragment(
+  const { recentProposals, metrics, currentGovernance } = useFragment(
     graphql`
       fragment VoterPanelQueryFragment on Query {
         recentProposals: proposals(
@@ -83,15 +84,22 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           id
         }
 
+        currentGovernance {
+          proposals
+          delegatedVotes
+        }
+
         metrics {
-          totalSupply
-          proposalCount
-          quorumVotes
+          quorumVotesBPS
         }
       }
     `,
     queryFragment
   );
+
+  const quorumVotes = BigNumber.from(metrics.quorumVotesBPS)
+    .mul(currentGovernance.delegatedVotes)
+    .div(100 * 100);
 
   return (
     <VStack
@@ -138,7 +146,8 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
               !delegate
                 ? "N/A"
                 : `${delegate.votes.length} (${(
-                    (delegate.votes.length / Number(metrics.proposalCount)) *
+                    (delegate.votes.length /
+                      Number(currentGovernance.proposals)) *
                     100
                   ).toFixed(0)}%)`
             }
@@ -151,11 +160,10 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
                 ? "N/A"
                 : `${(
                     (Number(delegate.delegatedVotes) /
-                      Number(metrics.totalSupply)) *
+                      Number(currentGovernance.delegatedVotes)) *
                     100
                   ).toFixed(0)}% all / ${(
-                    (Number(delegate.delegatedVotes) /
-                      Number(metrics.quorumVotes)) *
+                    (Number(delegate.delegatedVotes) / Number(quorumVotes)) *
                     100
                   ).toFixed(0)}% quorum`
             }
