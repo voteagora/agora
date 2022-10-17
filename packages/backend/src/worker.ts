@@ -208,10 +208,26 @@ function useSentry(sentry: Toucan): Plugin<AgoraContextType> {
         opName,
         operationType,
       };
-      extendContext({ [sentryTracingSymbol]: sentryContext } as any);
+
+      const rootSpan =
+        args.contextValue.tracingContext.rootSpan.startChildSpan("graphql");
+      rootSpan.addData({
+        graphql: {
+          operationName: opName,
+          operation: operationType,
+          variables: args.variableValues,
+        },
+      });
+
+      extendContext({
+        [sentryTracingSymbol]: sentryContext,
+        tracingContext: { ...args.contextValue.tracingContext, rootSpan },
+      } as any);
 
       return {
         onExecuteDone(payload) {
+          rootSpan.finish();
+
           return handleStreamOrSingleExecutionResult(
             payload,
             ({ result, setResult }) => {
