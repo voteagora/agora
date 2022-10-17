@@ -1,0 +1,23 @@
+query OpenGraphRenderQuery($address: String!) {
+  address(addressOrEnsName: $address) {
+    resolvedName {
+      address
+      name
+    }
+
+    wrappedDelegate {
+      delegate {
+        nounsRepresented(first: 30) {
+          id
+          seed {
+            background
+            body
+            accessory
+            head
+            glasses
+          }
+        }
+      }
+    }
+  }
+}

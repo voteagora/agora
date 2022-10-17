@@ -8,20 +8,21 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Choose an environment to deploy to: <dev|staging|prod>'
+        description: "Choose an environment to deploy to: <dev|staging|prod>"
         required: true
-        default: 'dev'
+        default: "dev"
 
 jobs:
-  deploy:
+  build-frontend:
     runs-on: ubuntu-latest
-    name: Deploy
+    name: Build Frontend
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
       - uses: actions/setup-node@v3
         with:
           node-version: 16.17.0
-          cache: 'yarn'
+          cache: "yarn"
 
       - run: yarn install
 
@@ -37,16 +38,46 @@ jobs:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: nouns-agora-frontend
         with:
-          sourcemaps: './packages/frontend/build/'
+          sourcemaps: "./packages/frontend/build/"
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: compiled-frontend
+          path: packages/frontend/build
+
+  build-backend:
+    runs-on: ubuntu-latest
+    name: Build Backend
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.17.0
+          cache: "yarn"
+
+      - run: yarn install
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: package/render-opengraph
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: wasm-pack
+
+      - name: Build render-opengraph
+        working-directory: ./packages/render-opengraph
+        run: wasm-pack build --target web
 
       - run: yarn workspace nouns-agora-backend run generate
 
-      - name: Publish
-        uses: cloudflare/wrangler-action@2.0.0
-        with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-          workingDirectory: ./packages/backend
-          command: publish --env ${{ github.event.inputs.environment || 'staging' }} --var GITHUB_SHA:${{ github.sha }}
+      - run: yarn workspace nouns-agora-backend run build-worker
 
       - uses: getsentry/action-release@v1
         env:
@@ -54,4 +85,52 @@ jobs:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: nouns-agora-backend
         with:
-          sourcemaps: './packages/backend/dist/'
+          sourcemaps: "./packages/backend/dist/"
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: compiled-backend
+          path: packages/backend/dist
+
+  publish:
+    runs-on: ubuntu-latest
+    name: Publish
+
+    needs:
+      - build-frontend
+      - build-backend
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.17.0
+          cache: "yarn"
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: compiled-frontend
+          path: packages/frontend/build
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: compiled-backend
+          path: packages/backend/dist
+
+      - run: yarn install
+
+      - run: sed -i 's/yarn build-worker//' packages/backend/wrangler.toml
+
+      - name: Copy Resources
+        run: |
+          mkdir -p packages/frontend/build/worker-assets
+          cp packages/render-opengraph/resources/* packages/frontend/build/worker-assets
+          cp node_modules/@nouns/assets/dist/image-data.json packages/frontend/build/worker-assets/image-data.json
+
+      - name: Publish
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          workingDirectory: ./packages/backend
+          command: publish --env ${{ github.event.inputs.environment || 'staging' }} --var GITHUB_SHA:${{ github.sha }}
