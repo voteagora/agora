@@ -31,13 +31,12 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
           }
 
           metrics {
-            totalSupply
-            quorumVotes
             quorumVotesBPS
-            proposalThreshold
+            proposalThresholdBPS
           }
 
-          currentGovernance: governance(id: "GOVERNANCE") {
+          currentGovernance {
+            delegatedVotesRaw
             currentTokenHolders
             currentDelegates
           }
@@ -46,9 +45,15 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
       fragmentRef
     );
 
-  const quorumCount = BigNumber.from(metrics.quorumVotes);
   const quorumBps = BigNumber.from(metrics.quorumVotesBPS);
-  const proposalThreshold = BigNumber.from(metrics.proposalThreshold);
+
+  const quorumCount = BigNumber.from(currentGovernance.delegatedVotesRaw)
+    .mul(quorumBps)
+    .div(100 * 100);
+
+  const proposalThreshold = BigNumber.from(metrics.proposalThresholdBPS).div(
+    10
+  );
 
   return (
     <HStack
