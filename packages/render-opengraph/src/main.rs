@@ -24,7 +24,8 @@ async fn main() -> Result<()> {
 
     let draw_dependencies = DrawDependencies::create_inner(
         include_str!("../../../node_modules/@nouns/assets/dist/image-data.json",),
-        include_bytes!("../resources/DejaVuSans.ttf") as &[u8],
+        include_bytes!("../resources/Inter-Medium.otf") as &[u8],
+        include_bytes!("../resources/Inter-Black.otf") as &[u8],
         include_bytes!("../resources/DejaVuSans-Bold.ttf") as &[u8],
     )?;
 
