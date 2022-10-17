@@ -2,14 +2,15 @@ use fontdue::layout::{
     CoordinateSystem, HorizontalAlign, Layout, LayoutSettings, TextStyle, WrapStyle,
 };
 use fontdue::Font;
-use raqote::Image;
-use raqote::{AntialiasMode, BlendMode, DrawOptions, DrawTarget};
+use raqote::{AntialiasMode, BlendMode, DrawOptions, DrawTarget, SolidSource};
+use raqote::{Color, Image};
 
 pub fn draw_text_layout(
     dt: &mut DrawTarget,
     max_text_width: f32,
     layout: &mut Layout,
     fonts: &[Font],
+    color: Color,
 ) {
     // dt.fill_rect(
     //     0f32,
@@ -31,7 +32,10 @@ pub fn draw_text_layout(
 
         let data = bitmap
             .into_iter()
-            .map(|value| u32::from_le_bytes([0, 0, 0, value]))
+            .map(|value| {
+                SolidSource::from_unpremultiplied_argb(value, color.r(), color.g(), color.b())
+                    .to_u32()
+            })
             .collect::<Vec<u32>>();
 
         dt.draw_image_at(
