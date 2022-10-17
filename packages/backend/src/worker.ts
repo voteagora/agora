@@ -5,10 +5,7 @@ import {
   Plugin,
 } from "@graphql-yoga/common";
 import { makeGatewaySchema } from "./schema";
-import {
-  getAssetFromKV,
-  serveSinglePageApp,
-} from "@cloudflare/kv-asset-handler";
+import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
 import { z } from "zod";
 import {
@@ -21,19 +18,51 @@ import { makeNounsExecutor } from "./schemas/nouns-subgraph";
 import { ValidatedMessage } from "./utils/signing";
 import Toucan, { Options } from "toucan-js";
 import {
+  execute,
   GraphQLError,
   Kind,
   OperationDefinitionNode,
+  parse,
   print,
   responsePathAsArray,
 } from "graphql";
 import { Scope } from "toucan-js/dist/scope";
 import { Span, wrapModule } from "@cloudflare/workers-honeycomb-logger";
+import { DrawDependencies, initSync } from "../../render-opengraph/pkg";
+import opengraphQuery from "../../render-opengraph/src/OpenGraphRenderQuery.graphql";
+import wasm from "../../render-opengraph/pkg/render_opengraph_bg.wasm";
 import { filterForEventHandlers, makeReducers, parseStorage } from "./snapshot";
 import { ethers } from "ethers";
 import { NNSENSReverseResolver__factory } from "./contracts/generated";
 import { getAllLogs } from "./events";
 
+let drawDependenciesPromise = null;
+function getDrawDependencies(
+  kv: KVNamespace,
+  manifest: Record<string, string>
+): Promise<DrawDependencies> {
+  if (drawDependenciesPromise) {
+    return drawDependenciesPromise;
+  }
+
+  drawDependenciesPromise = (async () => {
+    initSync(wasm);
+
+    const [imagesRaw, regularFontBytes, boldFontBytes] = await Promise.all([
+      kv.get(manifest["worker-assets/image-data.json"], "text"),
+      kv.get(manifest["worker-assets/DejaVuSans.ttf"], "arrayBuffer"),
+      kv.get(manifest["worker-assets/DejaVuSans-Bold.ttf"], "arrayBuffer"),
+    ]);
+
+    return DrawDependencies.create(
+      imagesRaw,
+      new Uint8Array(regularFontBytes),
+      new Uint8Array(boldFontBytes)
+    );
+  })();
+
+  return drawDependenciesPromise;
+}
 const assetManifest = JSON.parse(manifestJSON);
 
 /**
@@ -274,6 +303,50 @@ function useSentry(sentry: Toucan): Plugin<AgoraContextType> {
   };
 }
 
+async function getGraphQLCallingContext(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext
+) {
+  if (!gatewaySchema) {
+    gatewaySchema = makeGatewaySchema();
+  }
+
+  if (!latestSnapshot) {
+    const snapshot = await loadSnapshot(env);
+    latestSnapshot = parseStorage(snapshot);
+  }
+
+  const context: AgoraContextType = {
+    snapshot: latestSnapshot,
+    statementStorage: makeStatementStorage(env.STATEMENTS),
+    emailStorage: makeEmailStorage(env.EMAILS),
+    nounsExecutor: makeNounsExecutor(),
+    tracingContext: {
+      spanMap: new Map(),
+      rootSpan: request.tracer,
+    },
+    cache: {
+      cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
+      waitUntil(promise) {
+        return ctx.waitUntil(promise);
+      },
+      span: request.tracer,
+    },
+  };
+
+  return {
+    schema: gatewaySchema,
+    context,
+  };
+}
+
+export function isStaticFile(request: Request) {
+  const url = new URL(request.url);
+  const path = url.pathname.replace(/^\/+/, "");
+  return assetManifest[path];
+}
+
 function wrapModuleSentry<Env>(
   makeOptions: (params: { env: Env; ctx: ExecutionContext }) => Options,
   generateHandlers: (sentry: Toucan) => ExportedHandler<Env>
@@ -340,35 +413,14 @@ async function fetch(
   const isProduction = env.ENVIRONMENT === "prod";
   const url = new URL(request.url);
   if (url.pathname === "/graphql") {
-    if (!gatewaySchema) {
-      gatewaySchema = makeGatewaySchema();
-    }
-
-    if (!latestSnapshot) {
-      const snapshot = await loadSnapshot(env);
-      latestSnapshot = parseStorage(snapshot);
-    }
-
-    const context: AgoraContextType = {
-      snapshot: latestSnapshot,
-      statementStorage: makeStatementStorage(env.STATEMENTS),
-      emailStorage: makeEmailStorage(env.EMAILS),
-      nounsExecutor: makeNounsExecutor(),
-      tracingContext: {
-        spanMap: new Map(),
-        rootSpan: request.tracer,
-      },
-      cache: {
-        cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
-        waitUntil(promise) {
-          return ctx.waitUntil(promise);
-        },
-        span: request.tracer,
-      },
-    };
+    const { schema, context } = await getGraphQLCallingContext(
+      request,
+      env,
+      ctx
+    );
 
     const server = createServer({
-      schema: gatewaySchema,
+      schema,
       context,
       maskedErrors: isProduction,
       graphiql: !isProduction,
@@ -376,7 +428,9 @@ async function fetch(
     });
 
     return server.handleRequest(request, { env, ctx });
-  } else {
+  }
+
+  if (isStaticFile(request)) {
     return await getAssetFromKV(
       {
         request,
@@ -387,10 +441,72 @@ async function fetch(
       {
         ASSET_NAMESPACE: env.__STATIC_CONTENT,
         ASSET_MANIFEST: assetManifest,
-        mapRequestToAsset: serveSinglePageApp,
       }
     );
   }
+
+  const openGraphImageUrlMatch = url.pathname.match(
+    /^\/images\/opengraph\/(.+)\/image\.png$/
+  );
+  if (openGraphImageUrlMatch) {
+    const address = decodeURIComponent(openGraphImageUrlMatch[1]);
+    const key = `opengraph-2-${address}`;
+    const fromCache = await env.APPLICATION_CACHE.get(key, "stream");
+    if (fromCache) {
+      return new Response(fromCache);
+    }
+
+    const { schema, context } = await getGraphQLCallingContext(
+      request,
+      env,
+      ctx
+    );
+
+    const document = parse(opengraphQuery);
+
+    const result = await execute({
+      schema,
+      document,
+      variableValues: {
+        address,
+      },
+      contextValue: context,
+    });
+
+    const draw = await getDrawDependencies(env.__STATIC_CONTENT, assetManifest);
+    const response = draw.draw_image(JSON.stringify(result.data));
+    if (!response) {
+      return new Response("not found", { status: 404 });
+    }
+
+    ctx.waitUntil(
+      env.APPLICATION_CACHE.put(key, response, {
+        expirationTtl: 60 * 60 * 24 * 7,
+      })
+    );
+    return new Response(response);
+  }
+
+  const content = await env.__STATIC_CONTENT.get(assetManifest["index.html"]);
+
+  const imageReplacementValue = (() => {
+    const pathMatch = url.pathname.match(/^\/delegate\/(.+)$/);
+    if (pathMatch) {
+      const delegateName = pathMatch[1];
+      return `/images/opengraph/${delegateName}/image.png`;
+    }
+
+    return "/og.jpeg";
+  })();
+
+  return new Response(
+    content.replaceAll("$$OG_IMAGE_SENTINEL$$", imageReplacementValue),
+    {
+      headers: {
+        "content-type": "text/html; charset=UTF-8",
+      },
+    }
+  );
 }
 
 async function scheduled(env: Env, sentry: Toucan) {
