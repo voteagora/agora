@@ -1,5 +1,4 @@
 import { ethers } from "ethers";
-import { NNSENSReverseResolver__factory } from "../contracts/generated";
 import { getAllLogs } from "../events";
 import { promises as fs } from "fs";
 import { filterForEventHandlers, makeReducers } from "../snapshot";
@@ -7,12 +6,7 @@ import { filterForEventHandlers, makeReducers } from "../snapshot";
 async function main() {
   const provider = new ethers.providers.AlchemyProvider();
 
-  const resolver = NNSENSReverseResolver__factory.connect(
-    "0x5982cE3554B18a5CF02169049e81ec43BFB73961",
-    provider
-  );
-
-  const reducers = makeReducers(provider, resolver);
+  const reducers = makeReducers();
 
   const latestBlockNumber = await provider.getBlockNumber();
 
