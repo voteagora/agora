@@ -1,4 +1,4 @@
-schema: ./src/schemas/*.graphql
+schema: ./src/schema.graphql
 generates:
   src/generated/types.ts:
     plugins:
@@ -7,7 +7,6 @@ generates:
     config:
       contextType: ../model#AgoraContextType
       mappers:
-        OverallMetrics: ../model#OverallMetrics
         Address: ../model#Address
         ResolvedName: ../model#ResolvedName
         WrappedDelegate: ../model#WrappedDelegate

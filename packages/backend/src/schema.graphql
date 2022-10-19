@@ -2,7 +2,13 @@ scalar BigInt
 
 type Query {
   address(addressOrEnsName: String!): Address
-  wrappedDelegates(where: WrappedDelegatesWhere, orderBy: WrappedDelegatesOrder! = mostRelevant, first: Int!, after: String): WrappedDelegatesConnection!
+  wrappedDelegates(
+    where: WrappedDelegatesWhere
+    orderBy: WrappedDelegatesOrder! = mostRelevant
+    first: Int!
+    after: String
+  ): WrappedDelegatesConnection!
+
   metrics: OverallMetrics!
 }
 
@@ -20,6 +26,7 @@ type ResolvedName {
 type WrappedDelegate {
   id: ID!
   statement: DelegateStatement
+
   delegate: Delegate
 }
 
@@ -80,14 +87,18 @@ type Proposal {
 type OverallMetrics {
   delegatedSupply: BigInt!
   totalSupply: BigInt!
+
   quorumNumerator: BigInt!
   quorumDenominator: BigInt!
+
   proposalThreshold: BigInt!
   averageVoterTurnout: Float!
 }
 
 type Mutation {
-  createNewDelegateStatement(data: CreateNewDelegateStatementData): WrappedDelegate!
+  createNewDelegateStatement(
+    data: CreateNewDelegateStatementData
+  ): WrappedDelegate!
 }
 
 input CreateNewDelegateStatementData {
@@ -96,7 +107,10 @@ input CreateNewDelegateStatementData {
 }
 
 input ValueWithSignature {
+  # Address of the signer, this is used for logging and so we can implement
+  # gnosis wallet multi-sig signature verification.
   signerAddress: String!
   value: String!
   signature: String!
 }
+
