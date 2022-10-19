@@ -1,19 +1,15 @@
 import { ethers } from "ethers";
-import { getAllLogs } from "../events";
-import { promises as fs } from "fs";
-import { filterForEventHandlers, makeReducers } from "../snapshot";
+import * as fs from "fs";
+import * as readline from "readline";
+import { makeReducers } from "../snapshot";
 
 async function main() {
-  const provider = new ethers.providers.AlchemyProvider();
-
   const reducers = makeReducers();
-
-  const latestBlockNumber = await provider.getBlockNumber();
 
   const snapshot = await (async () => {
     try {
       return JSON.parse(
-        (await fs.readFile("./snapshot.json")).toString("utf-8")
+        await fs.promises.readFile("./snapshot.json", { encoding: "utf-8" })
       );
     } catch (e) {
       return {};
@@ -21,31 +17,39 @@ async function main() {
   })();
 
   for (const reducer of reducers) {
-    const filter = filterForEventHandlers(reducer);
     const snapshotValue = snapshot[reducer.name];
-    let state = (() => {
+    const { state: initialState, startingBlock } = (() => {
       if (snapshotValue) {
-        return reducer.decodeState(snapshotValue.state);
+        return {
+          state: reducer.decodeState(snapshotValue.state),
+          startingBlock: (snapshotValue.latestBlockFetched ?? 0) + 1,
+        };
       }
 
-      return reducer.initialState();
+      return {
+        state: reducer.initialState(),
+        startingBlock: reducer.startingBlock,
+      };
     })();
 
-    const { logs, latestBlockFetched } = await getAllLogs(
-      provider,
-      filter,
-      latestBlockNumber,
-      snapshotValue?.block ?? reducer.startingBlock
-    );
+    let state = initialState;
 
-    await fs.writeFile(
-      `${reducer.name}.logs.json`,
-      JSON.stringify({ logs, latestBlockFetched })
-    );
+    const reader = readline.createInterface({
+      input: fs.createReadStream(`${reducer.name}.logs.json`),
+    });
 
-    let idx = 0;
-    for (const log of logs) {
-      console.log({ idx, len: logs.length });
+    let idx = -1;
+    let latestBlockFetched = -Infinity;
+    for await (const rawLog of reader) {
+      idx++;
+
+      const log: ethers.providers.Log = JSON.parse(rawLog);
+      if (log.blockNumber < startingBlock) {
+        continue;
+      }
+
+      console.log({ idx });
+      latestBlockFetched = log.blockNumber;
 
       const event = reducer.iface.parseLog(log);
       const eventHandler = reducer.eventHandlers.find(
@@ -57,7 +61,6 @@ async function main() {
       } catch (e) {
         console.error(e);
       }
-      idx++;
     }
 
     snapshot[reducer.name] = {
@@ -66,7 +69,7 @@ async function main() {
     };
   }
 
-  await fs.writeFile("./snapshot.json", JSON.stringify(snapshot));
+  await fs.promises.writeFile("./snapshot.json", JSON.stringify(snapshot));
 }
 
 main();
