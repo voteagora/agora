@@ -1,6 +1,8 @@
 import { ethers } from "ethers";
-import { ENSToken__factory } from "./contracts/generated";
+import { ENSGovernor__factory, ENSToken__factory } from "./contracts/generated";
+import { ENSGovernorInterface } from "./contracts/generated/ENSGovernor";
 import { ENSTokenInterface } from "./contracts/generated/ENSToken";
+import { BigNumber } from "ethers";
 
 interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
@@ -87,6 +89,61 @@ const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> = {
         ])
       ),
     };
+  },
+};
+
+type Proposal = {
+  id: string;
+  proposer: string;
+  startBlock: BigNumber;
+  endBlock: BigNumber;
+  description: string;
+
+  targets: string[];
+  values: BigNumber[];
+  signatures: string[];
+  calldatas: string[];
+
+  status:
+    | { type: "CREATED" }
+    | { type: "CANCELLED" }
+    | { type: "EXECUTED" }
+    | { type: "QUEUED"; activatedAt: BigNumber };
+
+  votes: Vote[];
+};
+
+type Vote = {
+  voter: string;
+  support: number;
+  weight: BigNumber;
+  reason: string;
+};
+
+type GovernorState = {
+  proposals: Map<string, Proposal>;
+  quorumNumerator: BigNumber;
+};
+
+const governorStorage: StorageDefinition<GovernorState, any> = {
+  name: "ENSGovernor",
+
+  initialState() {
+    return {
+      proposals: new Map(),
+      quorumNumerator: BigNumber.from(0),
+    };
+  },
+
+  encodeState(state) {
+    return {
+      proposals: Array.from(state.proposals.entries()),
+      quorumNumerator: state.quorumNumerator.toString(),
+    };
+  },
+
+  decodeState() {
+    throw new Error();
   },
 };
 
@@ -190,7 +247,99 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
     ],
   };
 
-  return [tokensReducer];
+  const governorReducer: ReducerDefinition<
+    ENSGovernorInterface,
+    GovernorState,
+    any
+  > = {
+    ...governorStorage,
+    address: "0x323A76393544d5ecca80cd6ef2A560C6a395b7E3",
+    startingBlock: 13533772,
+    iface: ENSGovernor__factory.createInterface(),
+
+    eventHandlers: [
+      {
+        signature:
+          "ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)",
+
+        reduce(acc, event) {
+          acc.proposals.set(event.args.proposalId.toString(), {
+            id: event.args.proposalId.toString(),
+            proposer: event.args.proposer,
+            startBlock: event.args.startBlock,
+            endBlock: event.args.endBlock,
+            description: event.args.description,
+
+            targets: event.args.targets,
+            values: event.args[3],
+            signatures: event.args.signatures,
+            calldatas: event.args.calldatas,
+
+            status: { type: "CREATED" },
+
+            votes: [],
+          });
+
+          return acc;
+        },
+      },
+      {
+        signature: "QuorumNumeratorUpdated(uint256,uint256)",
+        reduce(acc, event) {
+          acc.quorumNumerator = event.args.newQuorumNumerator;
+          return acc;
+        },
+      },
+      {
+        signature: "VoteCast(address,uint256,uint8,uint256,string)",
+        reduce(acc, event) {
+          const proposal = acc.proposals.get(event.args.proposalId.toString());
+
+          proposal.votes.push({
+            voter: event.args.voter,
+            support: event.args.support,
+            weight: event.args.weight,
+            reason: event.args.reason,
+          });
+
+          return acc;
+        },
+      },
+      {
+        signature: "ProposalCanceled(uint256)",
+        reduce(acc, event) {
+          acc.proposals.get(event.args.proposalId.toString()).status = {
+            type: "CANCELLED",
+          };
+
+          return acc;
+        },
+      },
+      {
+        signature: "ProposalExecuted(uint256)",
+        reduce(acc, event) {
+          acc.proposals.get(event.args.proposalId.toString()).status = {
+            type: "EXECUTED",
+          };
+
+          return acc;
+        },
+      },
+      {
+        signature: "ProposalQueued(uint256,uint256)",
+        reduce(acc, event) {
+          acc.proposals.get(event.args.proposalId.toString()).status = {
+            type: "QUEUED",
+            activatedAt: event.args.eta,
+          };
+
+          return acc;
+        },
+      },
+    ],
+  };
+
+  return [tokensReducer, governorReducer];
 }
 
 export function filterForEventHandlers(
