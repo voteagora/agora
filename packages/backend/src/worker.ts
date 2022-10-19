@@ -514,12 +514,7 @@ async function fetch(
 async function scheduled(env: Env, sentry: Toucan) {
   const provider = new ethers.providers.AlchemyProvider();
 
-  const resolver = NNSENSReverseResolver__factory.connect(
-    "0x5982cE3554B18a5CF02169049e81ec43BFB73961",
-    provider
-  );
-
-  const reducers = makeReducers(provider, resolver);
+  const reducers = makeReducers();
   const latestBlockNumber = await provider.getBlockNumber();
 
   const snapshot = await loadSnapshot(env);

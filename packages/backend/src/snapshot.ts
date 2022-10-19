@@ -1,12 +1,6 @@
 import { ethers } from "ethers";
-import {
-  NNSENSReverseResolver,
-  NounsDAOLogicV1__factory,
-  NounsToken__factory,
-} from "./contracts/generated";
-import { NounsDAOLogicV1Interface } from "./contracts/generated/NounsDAOLogicV1";
-import { NounsTokenInterface } from "./contracts/generated/NounsToken";
-import { resolveNameFromAddress } from "./utils/resolveName";
+import { ENSToken__factory } from "./contracts/generated";
+import { ENSTokenInterface } from "./contracts/generated/ENSToken";
 
 interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
@@ -49,69 +43,57 @@ type EventFragmentArg<T> = T extends ethers.utils.EventFragment<infer Args>
   ? Args
   : never;
 
-export type DaoLogicState = {
-  proposalBps: ethers.BigNumber;
-  quorumBps: ethers.BigNumber;
-  voteBlockTimestamp: Map<number, number>;
+export type ENSTokenState = {
+  accounts: Map<string, ENSAccount>;
 };
 
-export type NounsTokenState = {
-  addressToEnsName: Map<string, string | null>;
+export type ENSAccount = {
+  balance: ethers.BigNumber;
+  delegatingTo: string | null;
+  representing: string[];
 };
 
-type NounsTokenStateRaw = {
-  addressesToEnsName: [string, string | null][];
+type ENSTokenStateRaw = {
+  accounts: [
+    string,
+    { balance: string; delegatingTo: string | null; representing: string[] }
+  ][];
 };
 
-const tokensStorage: StorageDefinition<NounsTokenState, NounsTokenStateRaw> = {
-  name: "NounsToken",
-  initialState: () => ({ addressToEnsName: new Map() }),
+const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> = {
+  name: "ENSToken",
+  initialState: () => ({ accounts: new Map<string, ENSAccount>() }),
   encodeState(acc) {
     return {
-      addressesToEnsName: Array.from(acc.addressToEnsName.entries()),
+      accounts: Array.from(acc.accounts.entries()).map(([key, value]) => [
+        key,
+        {
+          ...value,
+          balance: value.balance.toString(),
+        },
+      ]),
     };
   },
   decodeState(state) {
     return {
-      addressToEnsName: new Map(state.addressesToEnsName),
+      accounts: new Map(
+        state.accounts.map(([key, value]) => [
+          key,
+          {
+            balance: ethers.BigNumber.from(value.balance),
+            delegatingTo: null,
+            representing: value.representing,
+          },
+        ])
+      ),
     };
   },
 };
 
-const daoLogicStorage: StorageDefinition<DaoLogicState, DaoLogicRawState> = {
-  name: "NounsDAOLogicV1",
-  initialState: () => ({
-    proposalBps: ethers.BigNumber.from(0),
-    quorumBps: ethers.BigNumber.from(0),
-    voteBlockTimestamp: new Map<number, number>(),
-  }),
-  decodeState(rawState) {
-    return {
-      proposalBps: ethers.BigNumber.from(rawState.proposalBps),
-      quorumBps: ethers.BigNumber.from(rawState.quorumBps),
-      voteBlockTimestamp: new Map(rawState.voteBlockTimestamp),
-    };
-  },
-  encodeState(state) {
-    return {
-      proposalBps: state.proposalBps.toString(),
-      quorumBps: state.quorumBps.toString(),
-      voteBlockTimestamp: Array.from(state.voteBlockTimestamp.entries()),
-    };
-  },
-};
-
-type DaoLogicRawState = {
-  proposalBps: string;
-  quorumBps: string;
-  voteBlockTimestamp: [number, number][];
-};
-
-const storages = [daoLogicStorage, tokensStorage];
+const storages = [tokensStorage];
 
 export type Snapshot = {
-  NounsToken: NounsTokenState;
-  NounsDAOLogicV1: DaoLogicState;
+  ENSToken: ENSTokenState;
 };
 
 export function parseStorage(rawValue: Record<string, any>): Snapshot {
@@ -122,120 +104,93 @@ export function parseStorage(rawValue: Record<string, any>): Snapshot {
   ) as any;
 }
 
-export function makeReducers(
-  provider: ethers.providers.Provider,
-  resolver: NNSENSReverseResolver
-): ReducerDefinition<any, any, any>[] {
-  async function reduceAddress(
-    address: string,
-    acc: NounsTokenState
-  ): Promise<NounsTokenState> {
-    const normalizedAddress = address.toLowerCase();
-    if (acc.addressToEnsName.has(normalizedAddress)) {
-      return acc;
+export function makeReducers(): ReducerDefinition<any, any, any>[] {
+  function getOrCreateAccount(acc: ENSTokenState, address: string) {
+    const existing = acc.accounts.get(address);
+    if (existing) {
+      return existing;
     }
 
-    const resolvedName = await resolveNameFromAddress(
-      normalizedAddress,
-      resolver,
-      provider
-    );
-
-    return {
-      ...acc,
-      addressToEnsName: new Map([
-        ...acc.addressToEnsName.entries(),
-        [normalizedAddress, resolvedName],
-      ]),
+    const newAccount = {
+      balance: ethers.BigNumber.from(0),
+      delegatingTo: null,
+      representing: [],
     };
-  }
 
-  async function reduceAddresses(
-    addresses: string[],
-    acc: NounsTokenState
-  ): Promise<NounsTokenState> {
-    return await addresses.reduce(async (acc, address) => {
-      return await reduceAddress(address, await acc);
-    }, Promise.resolve(acc));
-  }
+    acc.accounts.set(address, newAccount);
 
-  const daoLogicReducer: ReducerDefinition<
-    NounsDAOLogicV1Interface,
-    DaoLogicState,
-    DaoLogicRawState
-  > = {
-    ...daoLogicStorage,
-    iface: NounsDAOLogicV1__factory.createInterface(),
-    address: "0x6f3E6272A167e8AcCb32072d08E0957F9c79223d",
-    startingBlock: 12985453,
-    eventHandlers: [
-      {
-        signature: "ProposalThresholdBPSSet(uint256,uint256)",
-        reduce(acc, event) {
-          return {
-            ...acc,
-            proposalBps: event.args.newProposalThresholdBPS,
-          };
-        },
-      },
-      {
-        signature: "QuorumVotesBPSSet(uint256,uint256)",
-        reduce(acc, event) {
-          return {
-            ...acc,
-            quorumBps: event.args.newQuorumVotesBPS,
-          };
-        },
-      },
-      {
-        signature: "VoteCast(address,uint256,uint8,uint256,string)",
-        async reduce(acc, event, log) {
-          const block = await provider.getBlock(log.blockHash);
-          return {
-            ...acc,
-            voteBlockTimestamp: new Map([
-              ...Array.from(acc.voteBlockTimestamp.entries()),
-              [block.number, block.timestamp],
-            ]),
-          };
-        },
-      },
-    ],
-  };
+    return newAccount;
+  }
 
   const tokensReducer: ReducerDefinition<
-    NounsTokenInterface,
-    NounsTokenState,
-    NounsTokenStateRaw
+    ENSTokenInterface,
+    ENSTokenState,
+    ENSTokenStateRaw
   > = {
     ...tokensStorage,
-    iface: NounsToken__factory.createInterface(),
-    address: "0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03",
-    startingBlock: 12985438,
+    iface: ENSToken__factory.createInterface(),
+    address: "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72",
+    startingBlock: 13533418,
     eventHandlers: [
       {
         signature: "Transfer(address,address,uint256)",
-        async reduce(acc, event) {
-          return await reduceAddresses([event.args.from, event.args.to], acc);
+        reduce(acc, event, log) {
+          if (event.args.from === event.args.to) {
+            return acc;
+          }
+
+          const fromAccount = getOrCreateAccount(acc, event.args.from);
+          const toAccount = getOrCreateAccount(acc, event.args.to);
+
+          const amount = event.args.value;
+
+          fromAccount.balance = fromAccount.balance.sub(amount);
+          toAccount.balance = toAccount.balance.add(amount);
+
+          return acc;
         },
       },
       {
         signature: "DelegateChanged(address,address,address)",
-        async reduce(acc, event) {
-          return await reduceAddresses(
-            [
-              event.args.fromDelegate,
-              event.args.toDelegate,
-              event.args.delegator,
-            ],
-            acc
+        reduce(acc, event) {
+          if (event.args.fromDelegate === event.args.toDelegate) {
+            return acc;
+          }
+
+          const delegatorAccount = getOrCreateAccount(
+            acc,
+            event.args.delegator
           );
+
+          if (
+            (delegatorAccount.delegatingTo ?? ethers.constants.AddressZero) !==
+            event.args.fromDelegate
+          ) {
+            throw new Error("mismatched from address");
+          }
+
+          delegatorAccount.delegatingTo = event.args.toDelegate;
+
+          const fromAccount = getOrCreateAccount(acc, event.args.fromDelegate);
+
+          const toAccounts = getOrCreateAccount(acc, event.args.toDelegate);
+
+          fromAccount.representing = fromAccount.representing.filter(
+            (it) => it !== event.args.delegator
+          );
+
+          toAccounts.representing = [
+            ...toAccounts.representing,
+            event.args.delegator,
+          ];
+
+          return acc;
         },
       },
     ],
   };
 
-  return [tokensReducer, daoLogicReducer];
+  return [tokensReducer];
 }
 
 export function filterForEventHandlers(
