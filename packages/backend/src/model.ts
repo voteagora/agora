@@ -69,5 +69,4 @@ export type AgoraContextType = {
   statementStorage: StatementStorage;
   cache: CacheDependencies;
   emailStorage: EmailStorage;
-  nounsExecutor: Executor;
 };

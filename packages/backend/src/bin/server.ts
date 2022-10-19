@@ -4,7 +4,6 @@ import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
 import { AgoraContextType, StatementStorage, StoredStatement } from "../model";
 import { presetDelegateStatements } from "../presetStatements";
-import { makeNounsExecutor } from "../schemas/nouns-subgraph";
 import { ValidatedMessage } from "../utils/signing";
 import {
   makeEmptyTracingContext,
@@ -26,7 +25,6 @@ async function main() {
   const context: AgoraContextType = {
     snapshot,
     statementStorage: makeStatementStorageFromMap(delegateStatements),
-    nounsExecutor: makeNounsExecutor(),
     cache: {
       cache: makeNoOpCache(),
       waitUntil: () => {},
