@@ -1,11 +1,9 @@
-import { stitchSchemas } from "@graphql-tools/stitch";
-import { MapperKind, mapSchema, parseSelectionSet } from "@graphql-tools/utils";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { MapperKind, mapSchema } from "@graphql-tools/utils";
 import {
   extractFirstParagraph,
   getTitleFromProposalDescription,
 } from "./utils/markdown";
-import { makeNounsSchema } from "./schemas/nouns-subgraph";
-import { delegateToSchema } from "@graphql-tools/delegate";
 import { mergeResolvers } from "@graphql-tools/merge";
 import {
   defaultFieldResolver,
@@ -16,24 +14,19 @@ import {
   GraphQLResolveInfo,
   GraphQLSchema,
   Kind,
-  OperationTypeNode,
   responsePathAsArray,
   SelectionNode,
 } from "graphql";
 import { BigNumber, ethers } from "ethers";
 import {
-  Delegate_OrderBy,
-  OrderDirection,
-  QueryDelegatesArgs,
   Resolvers,
   WrappedDelegatesOrder,
   WrappedDelegatesWhere,
 } from "./generated/types";
 import { formSchema } from "./formSchema";
 import { AgoraContextType, TracingContext, WrappedDelegate } from "./model";
-import schema from "./schemas/extensions.graphql";
+import schema from "./schemas/schema.graphql";
 import { fieldsMatching } from "./utils/graphql";
-import { descendingValueComparator, flipComparator } from "./utils/sorting";
 import { marked } from "marked";
 import { validateSigned } from "./utils/signing";
 import { Span } from "@cloudflare/workers-honeycomb-logger";
@@ -115,54 +108,24 @@ function makeDelegateResolveInfo(
 }
 
 export function makeGatewaySchema() {
-  const nounsSchema = makeNounsSchema();
-
   const provider = new ethers.providers.CloudflareProvider();
-
-  async function fetchRemoteDelegates(
-    context: any,
-    args: QueryDelegatesArgs,
-    info: GraphQLResolveInfo,
-    injectedSelections: ReadonlyArray<SelectionNode> = []
-  ) {
-    const result = await delegateToSchema({
-      schema: nounsSchema,
-      operation: OperationTypeNode.QUERY,
-      fieldName: "delegates",
-      args,
-      context,
-      info: makeDelegateResolveInfo(info, injectedSelections),
-    });
-
-    if (result instanceof Error) {
-      throw result;
-    }
-
-    return result;
-  }
-
-  function parseSelection(input: string) {
-    return parseSelectionSet(input, { noLocation: true }).selections;
-  }
 
   const typedResolvers: Resolvers = {
     Query: {
       metrics: {
-        resolve() {
-          return {};
-        },
-      },
+        resolve(_parent, _args, { snapshot }) {
+          return {
+            totalSupply: snapshot.ENSToken.totalSupply.toString(),
+            delegatedSupply: snapshot.ENSToken.delegatedSupply.toString(),
+            quorumNumerator: snapshot.ENSGovernor.quorumNumerator.toString(),
+            quorumDenominator: BigNumber.from(10000).toString(),
+            proposalThreshold: BigNumber.from(
+              "100000000000000000000000"
+            ).toString(),
 
-      currentGovernance: {
-        async resolve(_parent, _args, context, info) {
-          return delegateToSchema({
-            schema: nounsSchema,
-            operation: OperationTypeNode.QUERY,
-            fieldName: "governance",
-            args: { id: "GOVERNANCE" },
-            context,
-            info,
-          });
+            // todo: average voter turnout
+            averageVoterTurnout: 0,
+          };
         },
       },
 
@@ -170,17 +133,10 @@ export function makeGatewaySchema() {
         async resolve(_, { addressOrEnsName }, { snapshot }) {
           if (ethers.utils.isAddress(addressOrEnsName)) {
             return { address: addressOrEnsName.toLowerCase() };
+          } else {
+            // todo: handle ens names
+            throw new Error("not an address");
           }
-
-          const foundMapping = Array.from(
-            snapshot.NounsToken.addressToEnsName.entries()
-          ).find(([, ensName]) => ensName === addressOrEnsName);
-          if (!foundMapping) {
-            throw new Error("failed to resolve");
-          }
-
-          const [address] = foundMapping;
-          return { address };
         },
       },
 
@@ -190,63 +146,16 @@ export function makeGatewaySchema() {
         context,
         info
       ) {
-        const { statementStorage } = context;
-        const selectionsForOrdering = (() => {
-          switch (orderBy) {
-            case WrappedDelegatesOrder.MostRecentlyActive:
-              return parseSelection(
-                `
-                  {
-                    __internalSortVotes: votes(first: 1, orderBy: blockNumber, orderDirection:desc) {
-                      id
-                      blockNumber
-                    }
-                  }
-                `
-              );
+        const { statementStorage, snapshot } = context;
 
-            case WrappedDelegatesOrder.LeastVotesCast:
-            case WrappedDelegatesOrder.MostVotesCast:
-              return parseSelection(
-                `
-                  {
-                    __internalSortTotalVotes: votes(first: 1000) {
-                      id
-                    }
-                  }
-                `
-              );
+        const delegateStatements = await statementStorage.listStatements();
 
-            case WrappedDelegatesOrder.MostNounsRepresented:
-            default:
-              return [];
-          }
-        })();
-
-        const selectionsForWhere = (() => {
-          switch (where) {
-            case WrappedDelegatesWhere.SeekingDelegation:
-              return parseSelection(`{ delegatedVotes }`);
-
-            case WrappedDelegatesWhere.WithStatement:
-            default:
-              return [];
-          }
-        })();
-
-        const queryDelegatesArgs: QueryDelegatesArgs = {
-          orderBy: Delegate_OrderBy.DelegatedVotes,
-          orderDirection: OrderDirection.Desc,
-          first: 1000,
-        };
-
-        const [remoteDelegates, delegateStatements] = await Promise.all([
-          await fetchRemoteDelegates(context, queryDelegatesArgs, info, [
-            ...selectionsForOrdering,
-            ...selectionsForWhere,
-          ]),
-          statementStorage.listStatements(),
-        ]);
+        const remoteDelegates = Array.from(
+          snapshot.ENSToken.accounts.entries()
+        ).map(([address, value]) => ({
+          address,
+          ...value,
+        }));
 
         type NormalizedDelegate = {
           id: string;
@@ -254,16 +163,17 @@ export function makeGatewaySchema() {
           delegatedDelegate: any | null;
         };
 
-        const remoteDelegateSet = new Set(remoteDelegates.map(({ id }) => id));
+        const remoteDelegateSet = new Set(
+          remoteDelegates.map(({ address }) => address.toLowerCase())
+        );
 
         const delegates: NormalizedDelegate[] = [
           ...remoteDelegates.map((delegatedDelegate) => {
-            const hasDelegateStatement = delegateStatements.includes(
-              delegatedDelegate.id
-            );
+            const id = delegatedDelegate.address.toLowerCase();
+            const hasDelegateStatement = delegateStatements.includes(id);
 
             return {
-              id: delegatedDelegate.id,
+              id,
               delegateStatementExists: hasDelegateStatement,
               delegatedDelegate,
             };
@@ -310,20 +220,6 @@ export function makeGatewaySchema() {
 
         const sortedDelegates = (() => {
           switch (orderBy) {
-            case WrappedDelegatesOrder.MostRecentlyActive:
-              return filteredDelegates.slice().sort(
-                descendingValueComparator((delegate) => {
-                  if (!delegate.delegatedDelegate) {
-                    return -Infinity;
-                  }
-
-                  return (
-                    delegate.delegatedDelegate?.__internalSortVotes?.[0]
-                      ?.blockNumber ?? -Infinity
-                  );
-                })
-              );
-
             case WrappedDelegatesOrder.MostRelevant:
               const { hasStatements, withoutStatements } =
                 filteredDelegates.reduce(
@@ -345,28 +241,11 @@ export function makeGatewaySchema() {
 
               return [...hasStatements, ...withoutStatements];
 
-            case WrappedDelegatesOrder.LeastVotesCast:
-            case WrappedDelegatesOrder.MostVotesCast:
-              return filteredDelegates.slice().sort(
-                (orderBy === WrappedDelegatesOrder.LeastVotesCast
-                  ? flipComparator
-                  : (it) => it)(
-                  descendingValueComparator((delegate: any) => {
-                    if (!delegate.delegatedDelegate) {
-                      return -Infinity;
-                    }
-
-                    return (
-                      delegate.delegatedDelegate?.__internalSortTotalVotes
-                        ?.length ?? -Infinity
-                    );
-                  })
-                )
-              );
-
-            case WrappedDelegatesOrder.MostNounsRepresented:
-            default:
+            case WrappedDelegatesOrder.MostVotingPower:
               return filteredDelegates;
+
+            default:
+              throw new Error("unknown");
           }
         })();
 
@@ -398,16 +277,6 @@ export function makeGatewaySchema() {
       },
     },
 
-    OverallMetrics: {
-      quorumVotesBPS(_, _args, { snapshot }) {
-        return snapshot.NounsDAOLogicV1.quorumBps.toString();
-      },
-
-      proposalThresholdBPS(_, _args, { snapshot }) {
-        return snapshot.NounsDAOLogicV1.proposalBps.toString();
-      },
-    },
-
     Address: {
       isContract: {
         async resolve({ address }) {
@@ -423,17 +292,6 @@ export function makeGatewaySchema() {
         },
       },
 
-      account({ address }, args, context, info) {
-        return delegateToSchema({
-          schema: nounsSchema,
-          operation: OperationTypeNode.QUERY,
-          fieldName: "account",
-          args: { id: address },
-          context,
-          info,
-        });
-      },
-
       wrappedDelegate({ address }) {
         return {
           address,
@@ -443,8 +301,8 @@ export function makeGatewaySchema() {
     },
 
     ResolvedName: {
-      name({ address }, _args, { snapshot }) {
-        return snapshot.NounsToken.addressToEnsName.get(address.toLowerCase());
+      name({ address }, _args) {
+        return null;
       },
     },
 
@@ -453,19 +311,15 @@ export function makeGatewaySchema() {
         return address;
       },
 
-      delegate({ address, underlyingDelegate }, args, context, info) {
-        if (underlyingDelegate) {
-          return underlyingDelegate;
+      delegate({ address }, args, { snapshot }, info) {
+        const account = snapshot.ENSToken.accounts.get(address.toLowerCase());
+        if (!account) {
+          return null;
         }
 
-        return delegateToSchema({
-          schema: nounsSchema,
-          operation: OperationTypeNode.QUERY,
-          fieldName: "delegate",
-          args: { id: address },
-          context,
-          info,
-        });
+        return {
+          votingPower: account.represented.toString(),
+        };
       },
 
       async statement(
@@ -487,10 +341,6 @@ export function makeGatewaySchema() {
           address,
           values,
         };
-      },
-
-      address({ address }) {
-        return { address };
       },
     },
 
@@ -515,22 +365,8 @@ export function makeGatewaySchema() {
         context,
         info
       ) {
-        return Promise.all(
-          leastValuableProposals.map((proposal) =>
-            delegateToSchema({
-              schema: nounsSchema,
-              operation: OperationTypeNode.QUERY,
-              fieldName: "proposal",
-              args: { id: proposal.number },
-              context,
-              returnType: (
-                (info.returnType as GraphQLNonNull<any>)
-                  .ofType as GraphQLList<any>
-              ).ofType,
-              info,
-            })
-          )
-        );
+        // todo: implement
+        return [];
       },
 
       async mostValuableProposals(
@@ -539,22 +375,8 @@ export function makeGatewaySchema() {
         context,
         info
       ) {
-        return Promise.all(
-          mostValuableProposals.map((proposal) =>
-            delegateToSchema({
-              schema: nounsSchema,
-              operation: OperationTypeNode.QUERY,
-              fieldName: "proposal",
-              args: { id: proposal.number },
-              context,
-              returnType: (
-                (info.returnType as GraphQLNonNull<any>)
-                  .ofType as GraphQLList<any>
-              ).ofType,
-              info,
-            })
-          )
-        );
+        // todo: implement
+        return [];
       },
 
       discord({ values: { discord } }) {
@@ -614,61 +436,11 @@ export function makeGatewaySchema() {
   const resolvers = mergeResolvers<unknown, AgoraContextType>([
     typedResolvers,
     {
-      Noun: {
-        number: {
-          selectionSet: `{ id }`,
-          resolve({ id }) {
-            return id;
-          },
-        },
-      },
-
       Proposal: {
         title: {
           selectionSet: `{ description }`,
           resolve({ description }) {
             return getTitleFromProposalDescription(description);
-          },
-        },
-
-        number: {
-          selectionSet: `{ id }`,
-          resolve({ id }) {
-            return id;
-          },
-        },
-
-        totalValue: {
-          selectionSet: `{ values }`,
-          resolve({ values }: { values: string[] }) {
-            return (
-              values?.reduce<BigNumber>(
-                (acc, value) => BigNumber.from(value).add(acc),
-                BigNumber.from(0)
-              ) ?? BigNumber.from(0)
-            ).toString();
-          },
-        },
-
-        createdBlockGovernance: {
-          selectionSet: `{ createdBlock }`,
-          resolve(
-            { createdBlock }: { createdBlock: string },
-            args,
-            context,
-            info
-          ) {
-            return delegateToSchema({
-              schema: nounsSchema,
-              operation: OperationTypeNode.QUERY,
-              fieldName: "governance",
-              args: {
-                id: "GOVERNANCE",
-                block: { number: Number(createdBlock) },
-              },
-              context,
-              info,
-            });
           },
         },
 
@@ -690,73 +462,12 @@ export function makeGatewaySchema() {
           },
         },
       },
-
-      Vote: {
-        createdAt: {
-          selectionSet: `{ blockNumber }`,
-          async resolve(
-            { blockNumber }: { blockNumber: string },
-            args,
-            { snapshot }
-          ) {
-            return snapshot.NounsDAOLogicV1.voteBlockTimestamp.get(
-              Number(blockNumber)
-            );
-          },
-        },
-      },
-
-      Delegate: {
-        resolvedName: {
-          selectionSet: `{ id }`,
-          resolve({ id }) {
-            return { address: id };
-          },
-        },
-
-        voteSummary: {
-          selectionSet: `{ votes(first: 1000) { supportDetailed } }`,
-          resolve({ votes }) {
-            return {
-              ...votes.reduce(
-                (acc, { supportDetailed }) => {
-                  switch (supportDetailed) {
-                    case 0:
-                      return { ...acc, againstVotes: acc.againstVotes + 1 };
-                    case 1:
-                      return { ...acc, forVotes: acc.forVotes + 1 };
-                    case 2:
-                      return { ...acc, abstainVotes: acc.abstainVotes + 1 };
-                  }
-                },
-                {
-                  forVotes: 0,
-                  againstVotes: 0,
-                  abstainVotes: 0,
-                }
-              ),
-              totalVotes: votes.length,
-            };
-          },
-        },
-      },
-
-      Account: {
-        address: {
-          selectionSet: `{ id }`,
-          resolve({ id }) {
-            return { address: id.toLowerCase() };
-          },
-        },
-      },
     },
   ]);
 
   return attachTracingContextInjection(
     mapSchema(
-      stitchSchemas({
-        subschemas: [nounsSchema],
-
+      makeExecutableSchema({
         typeDefs: schema,
 
         resolvers,

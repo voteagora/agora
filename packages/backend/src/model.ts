@@ -5,8 +5,6 @@ import { ValidatedMessage } from "./utils/signing";
 import { CacheDependencies, Span } from "./utils/cache";
 import { Snapshot } from "./snapshot";
 
-export type OverallMetrics = {};
-
 export type Address = {
   address: string;
 };

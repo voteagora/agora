@@ -47,33 +47,56 @@ type EventFragmentArg<T> = T extends ethers.utils.EventFragment<infer Args>
 
 export type ENSTokenState = {
   accounts: Map<string, ENSAccount>;
+
+  totalSupply: BigNumber;
+  delegatedSupply: BigNumber;
 };
 
 export type ENSAccount = {
-  balance: ethers.BigNumber;
+  balance: BigNumber;
   delegatingTo: string | null;
+
+  represented: BigNumber;
   representing: string[];
 };
 
 type ENSTokenStateRaw = {
   accounts: [
     string,
-    { balance: string; delegatingTo: string | null; representing: string[] }
+    {
+      balance: string;
+      delegatingTo: string | null;
+      representing: string[];
+      represented: string;
+    }
   ][];
+
+  totalSupply: string;
+  delegatedSupply: string;
 };
 
 const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> = {
   name: "ENSToken",
-  initialState: () => ({ accounts: new Map<string, ENSAccount>() }),
+  initialState: () => ({
+    accounts: new Map<string, ENSAccount>(),
+    totalSupply: BigNumber.from(0),
+    delegatedSupply: BigNumber.from(0),
+  }),
   encodeState(acc) {
     return {
-      accounts: Array.from(acc.accounts.entries()).map(([key, value]) => [
-        key,
-        {
-          ...value,
-          balance: value.balance.toString(),
-        },
-      ]),
+      accounts: Array.from(acc.accounts.entries())
+        .sort(([, a], [, b]) => (a.represented.lt(b.represented) ? -1 : 1))
+        .map(([key, value]) => [
+          key,
+          {
+            ...value,
+            balance: value.balance.toString(),
+            represented: value.represented.toString(),
+          },
+        ]),
+
+      delegatedSupply: acc.delegatedSupply.toString(),
+      totalSupply: acc.totalSupply.toString(),
     };
   },
   decodeState(state) {
@@ -85,9 +108,12 @@ const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> = {
             balance: ethers.BigNumber.from(value.balance),
             delegatingTo: null,
             representing: value.representing,
+            represented: BigNumber.from(value.represented),
           },
         ])
       ),
+      totalSupply: BigNumber.from(state.totalSupply),
+      delegatedSupply: BigNumber.from(state.delegatedSupply),
     };
   },
 };
@@ -147,9 +173,10 @@ const governorStorage: StorageDefinition<GovernorState, any> = {
   },
 };
 
-const storages = [tokensStorage];
+const storages = [tokensStorage, governorStorage];
 
 export type Snapshot = {
+  ENSGovernor: GovernorState;
   ENSToken: ENSTokenState;
 };
 
@@ -168,10 +195,11 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
       return existing;
     }
 
-    const newAccount = {
+    const newAccount: ENSAccount = {
       balance: ethers.BigNumber.from(0),
       delegatingTo: null,
       representing: [],
+      represented: BigNumber.from(0),
     };
 
     acc.accounts.set(address, newAccount);
@@ -196,6 +224,14 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
             return acc;
           }
 
+          if (event.args.from === ethers.constants.AddressZero) {
+            acc.totalSupply = acc.totalSupply.add(event.args.value);
+          }
+
+          if (event.args.to === ethers.constants.AddressZero) {
+            acc.totalSupply = acc.totalSupply.sub(event.args.value);
+          }
+
           const fromAccount = getOrCreateAccount(acc, event.args.from);
           const toAccount = getOrCreateAccount(acc, event.args.to);
 
@@ -203,6 +239,24 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
 
           fromAccount.balance = fromAccount.balance.sub(amount);
           toAccount.balance = toAccount.balance.add(amount);
+
+          return acc;
+        },
+      },
+      {
+        signature: "DelegateVotesChanged(address,uint256,uint256)",
+        reduce(acc, event) {
+          const account = getOrCreateAccount(acc, event.args.delegate);
+
+          if (!event.args.previousBalance.eq(account.represented)) {
+            throw new Error("unexpected previous balance");
+          }
+
+          account.represented = event.args.newBalance;
+
+          acc.delegatedSupply = acc.delegatedSupply.add(
+            event.args.newBalance.sub(event.args.previousBalance)
+          );
 
           return acc;
         },
