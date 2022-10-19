@@ -31,12 +31,25 @@ async function main() {
       return reducer.initialState();
     })();
 
-    const { logs, latestBlockFetched } = await getAllLogs(
-      provider,
-      filter,
-      latestBlockNumber,
-      snapshotValue?.block ?? reducer.startingBlock
-    );
+    const { logs, latestBlockFetched } = await (async () => {
+      if (reducer.name === "ENSToken") {
+        return {
+          latestBlockFetched: latestBlockNumber,
+          logs: JSON.parse(
+            await fs.readFile("./logs.json", {
+              encoding: "utf-8",
+            })
+          ),
+        };
+      }
+
+      return await getAllLogs(
+        provider,
+        filter,
+        latestBlockNumber,
+        snapshotValue?.block ?? reducer.startingBlock
+      );
+    })();
 
     let idx = 0;
     for (const log of logs) {
