@@ -22,7 +22,7 @@ async function main() {
       if (snapshotValue) {
         return {
           state: reducer.decodeState(snapshotValue.state),
-          startingBlock: (snapshotValue.latestBlockFetched ?? 0) + 1,
+          startingBlock: (snapshotValue.block ?? 0) + 1,
         };
       }
 

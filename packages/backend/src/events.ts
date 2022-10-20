@@ -1,13 +1,12 @@
 import { ethers } from "ethers";
 
-export async function getAllLogs(
+export async function* getAllLogs(
   provider: ethers.providers.Provider,
   filter: ethers.EventFilter,
   latestBlockNumber: number,
   startBlock: number
 ) {
   let fromBlock = startBlock;
-  let allLogs = [];
 
   while (fromBlock < latestBlockNumber) {
     console.log({ fromBlock, latestBlockNumber });
@@ -17,12 +16,11 @@ export async function getAllLogs(
       fromBlock,
       latestBlockNumber
     );
-    allLogs.push(...logs);
+
+    yield logs;
 
     fromBlock = toBlock + 1;
   }
-
-  return { logs: allLogs, latestBlockFetched: fromBlock };
 }
 
 const maxBlocksPerPage = 2_000_000;

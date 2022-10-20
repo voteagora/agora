@@ -85,7 +85,7 @@ const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> = {
   encodeState(acc) {
     return {
       accounts: Array.from(acc.accounts.entries())
-        .sort(([, a], [, b]) => (a.represented.lt(b.represented) ? -1 : 1))
+        .sort(([, a], [, b]) => (a.represented.gt(b.represented) ? -1 : 1))
         .map(([key, value]) => [
           key,
           {
@@ -169,7 +169,8 @@ const governorStorage: StorageDefinition<GovernorState, any> = {
   },
 
   decodeState() {
-    throw new Error();
+    return {} as any;
+    // throw new Error();
   },
 };
 
