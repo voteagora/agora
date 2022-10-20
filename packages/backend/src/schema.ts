@@ -7,15 +7,8 @@ import {
 import { mergeResolvers } from "@graphql-tools/merge";
 import {
   defaultFieldResolver,
-  FieldNode,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLObjectType,
-  GraphQLResolveInfo,
   GraphQLSchema,
-  Kind,
   responsePathAsArray,
-  SelectionNode,
 } from "graphql";
 import { BigNumber, ethers } from "ethers";
 import {
@@ -24,88 +17,11 @@ import {
   WrappedDelegatesWhere,
 } from "./generated/types";
 import { formSchema } from "./formSchema";
-import { AgoraContextType, TracingContext, WrappedDelegate } from "./model";
-import schema from "./schemas/schema.graphql";
-import { fieldsMatching } from "./utils/graphql";
+import { AgoraContextType, TracingContext } from "./model";
+import schema from "./schema.graphql";
 import { marked } from "marked";
 import { validateSigned } from "./utils/signing";
 import { Span } from "@cloudflare/workers-honeycomb-logger";
-
-function makeSimpleFieldNode(name: string): FieldNode {
-  return {
-    kind: Kind.FIELD,
-    name: {
-      kind: Kind.NAME,
-      value: name,
-    },
-  };
-}
-
-function makeDelegateResolveInfo(
-  info: GraphQLResolveInfo,
-  injectedSelections: ReadonlyArray<SelectionNode>
-): GraphQLResolveInfo {
-  const additionalSelections: SelectionNode[] = [
-    makeSimpleFieldNode("id"),
-    ...injectedSelections,
-  ];
-
-  const parentType = (
-    (
-      (info.returnType as GraphQLNonNull<GraphQLObjectType>).ofType.getFields()[
-        "edges"
-      ].type as GraphQLNonNull<GraphQLList<GraphQLNonNull<GraphQLObjectType>>>
-    ).ofType.ofType.ofType.getFields()["node"]
-      .type as GraphQLNonNull<GraphQLObjectType>
-  ).ofType;
-
-  const existingFieldNodes: FieldNode[] = info.fieldNodes
-    .flatMap((field): FieldNode[] => {
-      if (field.kind !== "Field" || field.name.value !== "wrappedDelegates") {
-        return [];
-      }
-
-      return [field];
-    })
-    .flatMap((field) =>
-      fieldsMatching(field.selectionSet, "edges", info.fragments)
-    )
-    .flatMap((field) =>
-      fieldsMatching(field.selectionSet, "node", info.fragments)
-    )
-    .flatMap((field) =>
-      fieldsMatching(field.selectionSet, "delegate", info.fragments)
-    );
-
-  return {
-    ...info,
-    fieldName: "delegate",
-    fieldNodes: [
-      {
-        kind: Kind.FIELD,
-        name: {
-          kind: Kind.NAME,
-          value: "delegate",
-        },
-        selectionSet: {
-          kind: Kind.SELECTION_SET,
-          selections: [
-            ...existingFieldNodes.flatMap(
-              (field) => field.selectionSet.selections
-            ),
-            ...additionalSelections,
-          ],
-        },
-      },
-    ],
-    returnType: parentType.getFields()["delegate"].type,
-    path: {
-      prev: undefined,
-      typename: "WrappedDelegate",
-      key: "delegate",
-    },
-  };
-}
 
 export function makeGatewaySchema() {
   const provider = new ethers.providers.CloudflareProvider();
@@ -225,16 +141,12 @@ export function makeGatewaySchema() {
                 filteredDelegates.reduce(
                   (acc, value) => {
                     if (value.delegateStatementExists) {
-                      return {
-                        ...acc,
-                        hasStatements: [...acc.hasStatements, value],
-                      };
+                      acc.hasStatements.push(value);
                     } else {
-                      return {
-                        ...acc,
-                        withoutStatements: [...acc.withoutStatements, value],
-                      };
+                      acc.withoutStatements.push(value);
                     }
+
+                    return acc;
                   },
                   { hasStatements: [], withoutStatements: [] }
                 );
@@ -242,7 +154,7 @@ export function makeGatewaySchema() {
               return [...hasStatements, ...withoutStatements];
 
             case WrappedDelegatesOrder.MostVotingPower:
-              return filteredDelegates;
+              return filteredDelegates.reverse();
 
             default:
               throw new Error("unknown");
@@ -306,20 +218,25 @@ export function makeGatewaySchema() {
       },
     },
 
+    Delegate: {
+      // @ts-ignore
+      votingPower({ represented }) {
+        return represented.toString();
+      },
+    },
+
     WrappedDelegate: {
       id({ address }) {
         return address;
       },
 
-      delegate({ address }, args, { snapshot }, info) {
-        const account = snapshot.ENSToken.accounts.get(address.toLowerCase());
-        if (!account) {
-          return null;
+      delegate({ underlyingDelegate, address }, args, { snapshot }, info) {
+        if (underlyingDelegate) {
+          return underlyingDelegate;
         }
 
-        return {
-          votingPower: account.represented.toString(),
-        };
+        const account = snapshot.ENSToken.accounts.get(address);
+        return account;
       },
 
       async statement(
