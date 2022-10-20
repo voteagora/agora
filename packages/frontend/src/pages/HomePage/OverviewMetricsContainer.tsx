@@ -92,9 +92,10 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
         />
       )}
 
+      {/* todo: source this from the actual quorum floor value */}
       <MetricContainer
         icon="ballot"
-        title="Quorum"
+        title="Quorum floor"
         body={`${quorumCount.toNumber()} nouns (${quorumBps
           .div(100)
           .toNumber()
