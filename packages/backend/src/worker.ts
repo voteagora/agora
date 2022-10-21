@@ -87,6 +87,7 @@ export interface Env {
   // Example binding to R2. Learn more at https://developers.cloudflare.com/workers/runtime-apis/r2/
   // MY_BUCKET: R2Bucket;
   ENVIRONMENT: "prod" | "dev" | "staging";
+  DEPLOYMENT: string;
   SENTRY_DSN: string;
   GITHUB_SHA: string;
 
@@ -349,7 +350,7 @@ export function isStaticFile(request: Request) {
   return assetManifest[path];
 }
 
-function wrapModuleSentry<Env>(
+function wrapModuleSentry(
   makeOptions: (params: { env: Env; ctx: ExecutionContext }) => Options,
   generateHandlers: (sentry: Toucan) => ExportedHandler<Env>
 ): ExportedHandler<Env> {
@@ -374,16 +375,14 @@ function wrapModuleSentry<Env>(
         request,
       });
 
+      sentry.setTags({
+        deployment: env.DEPLOYMENT,
+      });
+
       const handlers = generateHandlers(sentry);
 
       return await runReportingException(sentry, async () => {
         sentry.setTag("entrypoint", "fetch");
-        sentry.setExtras({
-          request: {
-            url: request.url,
-            method: request.method,
-          },
-        });
         return handlers.fetch?.(...args);
       });
     },
@@ -393,12 +392,19 @@ function wrapModuleSentry<Env>(
         ...makeOptions({ env, ctx }),
       });
 
+      sentry.setTags({
+        deployment: env.DEPLOYMENT,
+      });
+
       const handlers = generateHandlers(sentry);
 
       return await runReportingException(sentry, async () => {
         sentry.setTag("entrypoint", "scheduled");
         sentry.setExtras({
-          event,
+          event: {
+            scheduledTime: event.scheduledTime,
+            cron: event.cron,
+          },
         });
         return handlers.scheduled?.(...args);
       });
@@ -586,7 +592,7 @@ async function scheduled(env: Env, sentry: Toucan) {
   latestSnapshot = parseStorage(snapshot);
 }
 
-const sentryWrappedModule = wrapModuleSentry<Env>(
+const sentryWrappedModule = wrapModuleSentry(
   ({ env, ctx }) => ({
     dsn: env.SENTRY_DSN,
     environment: env.ENVIRONMENT,
