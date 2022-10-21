@@ -370,6 +370,10 @@ function wrapModuleSentry(
     async fetch(...args): Promise<Response> {
       const [request, env, ctx] = args;
 
+      request.tracer.addData({
+        deployment: env.DEPLOYMENT,
+      });
+
       const sentry = new Toucan({
         ...makeOptions({ env, ctx }),
         request,
