@@ -52,31 +52,37 @@ export function DelegateDialog({
           position: fixed;
           ${inset0};
 
-          box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.16),
-            0px 2px 2px rgba(0, 0, 0, 0.08);
-
           display: flex;
-          align-items: center;
+          flex-direction: column;
+          align-content: stretch;
           justify-content: center;
         `}
       >
-        <Dialog.Panel
-          as={motion.div}
-          initial={{
-            scale: 0.9,
-            translateY: theme.spacing["8"],
-          }}
-          animate={{ translateY: 0, scale: 1 }}
+        <VStack
+          alignItems="center"
           className={css`
-            width: 100%;
-            max-width: ${theme.maxWidth.md};
-            background: ${theme.colors.white};
-            border-radius: ${theme.spacing["3"]};
-            padding: ${theme.spacing["6"]};
+            padding: ${theme.spacing["8"]};
+            overflow-y: scroll;
           `}
         >
-          <DelegateDialogContents fragment={fragment} />
-        </Dialog.Panel>
+          <Dialog.Panel
+            as={motion.div}
+            initial={{
+              scale: 0.9,
+              translateY: theme.spacing["8"],
+            }}
+            animate={{ translateY: 0, scale: 1 }}
+            className={css`
+              width: 100%;
+              max-width: ${theme.maxWidth.md};
+              background: ${theme.colors.white};
+              border-radius: ${theme.spacing["3"]};
+              padding: ${theme.spacing["6"]};
+            `}
+          >
+            <DelegateDialogContents fragment={fragment} />
+          </Dialog.Panel>
+        </VStack>
       </Dialog>
     </>
   );
@@ -172,7 +178,7 @@ function DelegateDialogContents({
               padding-bottom: ${theme.spacing["4"]};
             `}
           >
-            You don’t have any nouns to delegate
+            You don't have any nouns to delegate
           </div>
         )}
 
@@ -274,10 +280,10 @@ function NounsDisplay({ nouns }: NounsDisplayProps) {
       `}
     >
       <NounGridChildren
-        count={Infinity}
+        count={6 * 8 + 1}
         nouns={nouns}
         imageSize={imageSize}
-        overflowFontSize="base"
+        overflowFontSize="xs"
       />
     </HStack>
   );
