@@ -376,21 +376,32 @@ function wrapModuleSentry<Env>(
 
       const handlers = generateHandlers(sentry);
 
-      return await runReportingException(sentry, async () =>
-        handlers.fetch?.(...args)
-      );
+      return await runReportingException(sentry, async () => {
+        sentry.setTag("entrypoint", "fetch");
+        sentry.setExtras({
+          request: {
+            url: request.url,
+            method: request.method,
+          },
+        });
+        return handlers.fetch?.(...args);
+      });
     },
     async scheduled(...args) {
-      const [_event, env, ctx] = args;
+      const [event, env, ctx] = args;
       const sentry = new Toucan({
         ...makeOptions({ env, ctx }),
       });
 
       const handlers = generateHandlers(sentry);
 
-      return await runReportingException(sentry, async () =>
-        handlers.scheduled?.(...args)
-      );
+      return await runReportingException(sentry, async () => {
+        sentry.setTag("entrypoint", "scheduled");
+        sentry.setExtras({
+          event,
+        });
+        return handlers.scheduled?.(...args);
+      });
     },
   };
 }
