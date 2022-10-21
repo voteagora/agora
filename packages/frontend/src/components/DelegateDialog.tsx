@@ -99,6 +99,7 @@ function DelegateDialogContents({
       query DelegateDialogQuery($address: String!, $skip: Boolean!) {
         address(addressOrEnsName: $address) @skip(if: $skip) {
           account {
+            tokenBalance
             nouns {
               id
               ...NounImageFragment
@@ -124,6 +125,7 @@ function DelegateDialogContents({
         }
 
         delegate {
+          delegatedVotesRaw
           nounsRepresented {
             id
             ...NounImageFragment
@@ -169,7 +171,10 @@ function DelegateDialogContents({
           <VStack gap="3" alignItems="center">
             <div>Delegating your nouns</div>
 
-            <NounsDisplay nouns={address.account.nouns} />
+            <NounsDisplay
+              nouns={address.account.nouns}
+              totalNouns={Number(address.account.tokenBalance)}
+            />
           </VStack>
         ) : (
           <div
@@ -226,6 +231,9 @@ function DelegateDialogContents({
         </VStack>
 
         <NounsDisplay
+          totalNouns={Number(
+            wrappedDelegate.delegate?.delegatedVotesRaw ?? "0"
+          )}
           nouns={wrappedDelegate.delegate?.nounsRepresented ?? []}
         />
 
@@ -259,10 +267,11 @@ function DelegateDialogContents({
 }
 
 type NounsDisplayProps = {
+  totalNouns: number;
   nouns: NounGridFragment$data["nounsRepresented"];
 };
 
-function NounsDisplay({ nouns }: NounsDisplayProps) {
+function NounsDisplay({ nouns, totalNouns }: NounsDisplayProps) {
   const columns = 6;
   const imageSize = "8";
   const gapSize = "2";
@@ -280,6 +289,7 @@ function NounsDisplay({ nouns }: NounsDisplayProps) {
       `}
     >
       <NounGridChildren
+        totalNouns={totalNouns}
         count={6 * 8 + 1}
         nouns={nouns}
         imageSize={imageSize}
