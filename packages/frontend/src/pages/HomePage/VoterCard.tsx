@@ -42,6 +42,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
 
         delegate {
           id
+          delegatedVotesRaw
           nounsRepresented {
             __typename
           }
@@ -112,7 +113,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
             <TitleDetail
               icon={<UserIcon />}
               label="nouns represented"
-              value={delegate.delegate?.nounsRepresented?.length ?? 0}
+              value={delegate.delegate?.delegatedVotesRaw ?? "0"}
             />
 
             <TitleDetail

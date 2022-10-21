@@ -11,6 +11,7 @@ import { HStack } from "./VStack";
 
 type Props = {
   nouns: NounGridFragment$data["nounsRepresented"];
+  totalNouns?: number;
   rows?: number;
 } & LayoutProps;
 
@@ -21,8 +22,9 @@ type LayoutProps = {
   overflowFontSize: keyof typeof theme.fontSize;
 };
 
-export function NounGrid({
+function NounGrid({
   nouns,
+  totalNouns,
   rows,
   columns,
   imageSize,
@@ -42,6 +44,7 @@ export function NounGrid({
       `}
     >
       <NounGridChildren
+        totalNouns={totalNouns}
         count={possibleSlots}
         nouns={nouns}
         imageSize={imageSize}
@@ -59,6 +62,7 @@ type NounsRepresentedGridProps = {
 type NounGridChildrenProps = {
   count: number;
   nouns: NounGridFragment$data["nounsRepresented"];
+  totalNouns?: number;
   imageSize?: keyof typeof theme.spacing;
   overflowFontSize: keyof typeof theme.fontSize;
   className?: string;
@@ -66,6 +70,7 @@ type NounGridChildrenProps = {
 
 export function NounGridChildren({
   imageSize,
+  totalNouns,
   nouns,
   count,
   overflowFontSize,
@@ -73,7 +78,9 @@ export function NounGridChildren({
 }: NounGridChildrenProps) {
   const imageSizeResolved = imageSize ? theme.spacing[imageSize] : undefined;
 
-  const overflowAmount = nouns.length - count;
+  const length = totalNouns ?? nouns.length;
+
+  const overflowAmount = length - count;
 
   function nounImageForNoun(
     noun: NounGridFragment$data["nounsRepresented"][0]
@@ -131,17 +138,22 @@ export function NounsRepresentedGrid({
   fragmentKey,
   ...layoutProps
 }: NounsRepresentedGridProps) {
-  const { nounsRepresented } = useFragment<NounGridFragment$key>(
-    graphql`
-      fragment NounGridFragment on Delegate {
-        nounsRepresented {
-          id
-          ...NounImageFragment
+  const { nounsRepresented, delegatedVotesRaw } =
+    useFragment<NounGridFragment$key>(
+      graphql`
+        fragment NounGridFragment on Delegate {
+          delegatedVotesRaw
+
+          nounsRepresented {
+            id
+            ...NounImageFragment
+          }
         }
-      }
-    `,
-    fragmentKey
-  );
+      `,
+      fragmentKey
+    );
+
+  const totalNouns = Number(delegatedVotesRaw);
 
   if (nounsRepresented.length < layoutProps.columns) {
     return (
@@ -162,6 +174,7 @@ export function NounsRepresentedGrid({
             flex-basis: ${theme.spacing["24"]};
           `}
           count={layoutProps.columns}
+          totalNouns={totalNouns}
           nouns={nounsRepresented}
           overflowFontSize={"base"}
         />
@@ -169,5 +182,11 @@ export function NounsRepresentedGrid({
     );
   }
 
-  return <NounGrid nouns={nounsRepresented} {...layoutProps} />;
+  return (
+    <NounGrid
+      nouns={nounsRepresented}
+      totalNouns={totalNouns}
+      {...layoutProps}
+    />
+  );
 }
