@@ -235,6 +235,7 @@ function DelegateFromList({
       fragment VoterPanelDelegateFromListFragment on Delegate {
         tokenHoldersRepresented {
           id
+          tokenBalance
 
           address {
             resolvedName {
@@ -314,6 +315,7 @@ function DelegateFromList({
               `}
             >
               <NounGridChildren
+                totalNouns={Number(holder.tokenBalance)}
                 count={5}
                 nouns={holder.nouns}
                 overflowFontSize="xs"

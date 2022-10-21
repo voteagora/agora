@@ -148,6 +148,8 @@ function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
     graphql`
       fragment PageHeaderFragment on Address {
         account {
+          tokenBalance
+
           nouns {
             id
             ...NounImageFragment
@@ -182,6 +184,7 @@ function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
       >
         <NounGridChildren
           count={4}
+          totalNouns={Number(account.tokenBalance)}
           nouns={account.nouns}
           imageSize={"5"}
           overflowFontSize={"sm"}
