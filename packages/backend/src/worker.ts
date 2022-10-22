@@ -89,6 +89,7 @@ export interface Env {
   ENVIRONMENT: "prod" | "dev" | "staging";
   DEPLOYMENT: string;
   SENTRY_DSN: string;
+  ALCHEMY_API_KEY: string;
   GITHUB_SHA: string;
 
   STATEMENTS: KVNamespace;
@@ -533,7 +534,10 @@ async function fetch(
 }
 
 async function scheduled(env: Env, sentry: Toucan) {
-  const provider = new ethers.providers.AlchemyProvider();
+  const provider = new ethers.providers.AlchemyProvider(
+    "mainnet",
+    env.ALCHEMY_API_KEY
+  );
 
   const resolver = NNSENSReverseResolver__factory.connect(
     "0x5982cE3554B18a5CF02169049e81ec43BFB73961",
