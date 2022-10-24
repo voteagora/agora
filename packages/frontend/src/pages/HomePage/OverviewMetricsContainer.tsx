@@ -51,9 +51,10 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
     .mul(quorumBps)
     .div(100 * 100);
 
-  const proposalThreshold = BigNumber.from(metrics.proposalThresholdBPS).div(
-    10
-  );
+  const proposalThreshold = BigNumber.from(currentGovernance.delegatedVotesRaw)
+    .mul(metrics.proposalThresholdBPS)
+    .div(100 * 100)
+    .add(1);
 
   return (
     <HStack
