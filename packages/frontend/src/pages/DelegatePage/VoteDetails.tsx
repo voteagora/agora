@@ -9,6 +9,7 @@ import { shadow } from "./VoterPanel";
 import { useMemo, useRef } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { pluralizeVote } from "../../words";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;
@@ -94,7 +95,7 @@ export function VoteDetails({ voteFragment }: Props) {
             <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
             <a href={proposalHref}>Prop {vote.proposal.number}</a>
             <ValuePart value={vote.proposal.totalValue} />
-            with {vote.votes} votes
+            with {pluralizeVote(vote.votes)}
           </div>
           <div
             className={css`
