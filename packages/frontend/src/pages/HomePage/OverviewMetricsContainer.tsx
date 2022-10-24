@@ -7,6 +7,7 @@ import graphql from "babel-plugin-relay/macro";
 import { OverviewMetricsContainer$key } from "./__generated__/OverviewMetricsContainer.graphql";
 import { BigNumber } from "ethers";
 import { HStack, VStack } from "../../components/VStack";
+import { pluralizeNoun } from "../../words";
 
 type Props = {
   fragmentRef: OverviewMetricsContainer$key;
@@ -97,7 +98,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
       <MetricContainer
         icon="ballot"
         title="Quorum floor"
-        body={`${quorumCount.toNumber()} nouns (${quorumBps
+        body={`${pluralizeNoun(quorumCount)} (${quorumBps
           .div(100)
           .toNumber()
           .toFixed(0)}% of supply)`}
@@ -106,11 +107,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
       <MetricContainer
         icon="measure"
         title="Proposal threshold"
-        body={`${
-          proposalThreshold.eq(1)
-            ? `1 noun`
-            : `${proposalThreshold.toString()} nouns`
-        }`}
+        body={`${pluralizeNoun(proposalThreshold)}`}
       />
 
       <MetricContainer
