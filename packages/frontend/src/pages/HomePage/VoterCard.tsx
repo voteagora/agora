@@ -13,8 +13,6 @@ import { Link } from "../../components/HammockRouter/Link";
 import { UserIcon, PencilIcon } from "@heroicons/react/20/solid";
 import { ReactNode } from "react";
 import { useEnsAvatar } from "wagmi";
-import { BigNumber } from "ethers";
-import { pluralizeNoun, pluralizeVote } from "../../words";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
@@ -114,17 +112,13 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           >
             <TitleDetail
               icon={<UserIcon />}
-              detail={`${pluralizeNoun(
-                BigNumber.from(delegate?.delegate?.delegatedVotesRaw ?? "0")
-              )} represented`}
+              label="nouns represented"
               value={delegate.delegate?.delegatedVotesRaw ?? "0"}
             />
 
             <TitleDetail
               icon={<PencilIcon />}
-              detail={`${pluralizeVote(
-                BigNumber.from(delegate.delegate?.voteSummary?.totalVotes ?? 0)
-              )} cast`}
+              label="votes cast"
               value={delegate.delegate?.voteSummary?.totalVotes ?? 0}
             />
           </HStack>
@@ -157,11 +151,11 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
 
 type TitleDetailProps = {
   icon: ReactNode;
-  detail: string;
+  label: string;
   value: number;
 };
 
-function TitleDetail({ detail, value, icon }: TitleDetailProps) {
+function TitleDetail({ label, value, icon }: TitleDetailProps) {
   return (
     <HStack
       gap="1"
@@ -204,7 +198,7 @@ function TitleDetail({ detail, value, icon }: TitleDetailProps) {
           "test"
         )}
       >
-        {detail}
+        {value} {label}
       </div>
     </HStack>
   );
