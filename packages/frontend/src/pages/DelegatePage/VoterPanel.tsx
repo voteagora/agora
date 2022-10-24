@@ -23,7 +23,6 @@ import { useStartTransition } from "../../components/HammockRouter/HammockRouter
 import toast from "react-hot-toast";
 import { DelegateProfileImage } from "../HomePage/VoterCard";
 import { BigNumber } from "ethers";
-import { pluralizeAddresses, pluralizeVote } from "../../words";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -137,9 +136,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           <PanelRow
             title={"Nouns represented"}
             detail={
-              !delegate
-                ? "N/A"
-                : pluralizeVote(BigNumber.from(delegate.delegatedVotes))
+              !delegate ? "N/A" : `${Number(delegate.delegatedVotes)} noun`
             }
           />
 
@@ -279,7 +276,7 @@ function DelegateFromList({
                 user-select: none;
               `}
             >
-              <div>{pluralizeAddresses(tokenHolders.length)}</div>
+              <div>{tokenHolders.length} addresses</div>
               <ChevronDownIcon
                 aria-hidden="true"
                 className={css`
