@@ -7,6 +7,10 @@ import {
 import { NounsDAOLogicV1Interface } from "./contracts/generated/NounsDAOLogicV1";
 import { NounsTokenInterface } from "./contracts/generated/NounsToken";
 import { resolveNameFromAddress } from "./utils/resolveName";
+import { ToucanInterface, withSentryScope } from "./sentry";
+import { getAllLogs } from "./events";
+import { fetchAuctions, fetchAuctionsResponse } from "./propHouse";
+import { z } from "zod";
 
 interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
@@ -112,14 +116,23 @@ const storages = [daoLogicStorage, tokensStorage];
 export type Snapshot = {
   NounsToken: NounsTokenState;
   NounsDAOLogicV1: DaoLogicState;
+  PropHouse: {
+    auctions: z.infer<typeof fetchAuctionsResponse>;
+  };
 };
 
 export function parseStorage(rawValue: Record<string, any>): Snapshot {
-  return Object.fromEntries(
-    storages.map((storage) => {
-      return [storage.name, storage.decodeState(rawValue[storage.name].state)];
-    })
-  ) as any;
+  return {
+    ...rawValue,
+    ...(Object.fromEntries(
+      storages.map((storage) => {
+        return [
+          storage.name,
+          storage.decodeState(rawValue[storage.name].state),
+        ];
+      })
+    ) as any),
+  };
 }
 
 export function makeReducers(
@@ -253,4 +266,100 @@ export function filterForEventHandlers(
       }),
     ],
   };
+}
+
+async function updateSnapshotForIndexers<Snapshot extends any>(
+  sentry: ToucanInterface,
+  provider: ethers.providers.Provider,
+  resolver: NNSENSReverseResolver,
+  snapshot: Snapshot
+): Promise<Snapshot> {
+  const reducers = makeReducers(provider, resolver);
+  const latestBlockNumber = await provider.getBlockNumber();
+
+  for (const reducer of reducers) {
+    const filter = filterForEventHandlers(reducer);
+    const snapshotValue = snapshot[reducer.name];
+    let state = (() => {
+      if (snapshotValue) {
+        return reducer.decodeState(snapshotValue.state);
+      }
+
+      return reducer.initialState();
+    })();
+
+    const { logs, latestBlockFetched } = await getAllLogs(
+      provider,
+      filter,
+      latestBlockNumber,
+      snapshotValue?.block ?? reducer.startingBlock
+    );
+
+    let idx = 0;
+    for (const log of logs) {
+      console.log({ idx, logs: logs.length });
+      await withSentryScope(sentry, async (scope) => {
+        const event = reducer.iface.parseLog(log);
+        const eventHandler = reducer.eventHandlers.find(
+          (e) => e.signature === event.signature
+        );
+
+        try {
+          state = await eventHandler.reduce(state, event, log);
+        } catch (e) {
+          scope.setExtras({
+            event,
+            log,
+            logs: logs.length,
+            idx,
+          });
+          sentry.captureException(e);
+        }
+        idx++;
+      });
+    }
+
+    snapshot[reducer.name] = {
+      state: reducer.encodeState(state),
+      block: latestBlockFetched,
+    };
+  }
+
+  return snapshot;
+}
+
+async function updateSnapshotForPropHouse() {
+  return {
+    PropHouse: {
+      auctions: await fetchAuctions({ communityId: 1 }),
+    },
+  };
+}
+
+export async function updateSnapshot<Snapshot extends any>(
+  sentry: ToucanInterface,
+  provider: ethers.providers.Provider,
+  resolver: NNSENSReverseResolver,
+  snapshot: Snapshot
+): Promise<Snapshot> {
+  const items = await Promise.allSettled([
+    updateSnapshotForIndexers(sentry, provider, resolver, snapshot),
+    updateSnapshotForPropHouse(),
+  ]);
+
+  return items.reduce((acc, item) => {
+    switch (item.status) {
+      case "fulfilled":
+        return {
+          ...acc,
+          ...(item.value as any),
+        };
+
+      case "rejected":
+        sentry.captureException(item.reason);
+        return {
+          ...acc,
+        };
+    }
+  }, {}) as Snapshot;
 }
