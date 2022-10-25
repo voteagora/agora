@@ -13,6 +13,7 @@ import {
 } from "./VoteDetailsContainer";
 import { pluralizeVote } from "../../words";
 import { BigNumber } from "ethers";
+import { formatDistanceToNow } from "date-fns";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;
@@ -100,6 +101,8 @@ export function VoteDetails({ voteFragment }: Props) {
               {supportType.toLowerCase()}
             </span>{" "}
             - with {pluralizeVote(BigNumber.from(vote.votes))}
+            {vote.createdAt &&
+              `${formatDistanceToNow(Number(vote.createdAt))} ago`}
           </span>
         </VStack>
 
