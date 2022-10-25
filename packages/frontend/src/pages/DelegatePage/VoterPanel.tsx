@@ -23,7 +23,7 @@ import { useStartTransition } from "../../components/HammockRouter/HammockRouter
 import toast from "react-hot-toast";
 import { DelegateProfileImage } from "../HomePage/VoterCard";
 import { BigNumber } from "ethers";
-import { pluralizeAddresses, pluralizeVote } from "../../words";
+import { pluralizeAddresses, pluralizeNoun } from "../../words";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -139,7 +139,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
             detail={
               !delegate
                 ? "N/A"
-                : pluralizeVote(BigNumber.from(delegate.delegatedVotes))
+                : pluralizeNoun(BigNumber.from(delegate.delegatedVotes))
             }
           />
 
