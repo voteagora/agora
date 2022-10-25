@@ -80,6 +80,8 @@ export function VoteDetails({ voteFragment }: Props) {
           >
             <a href={proposalHref}>Prop {vote.proposal.number}</a>
             <ValuePart value={vote.proposal.totalValue} />
+            {vote.createdAt &&
+              ` - ${formatDistanceToNow(Number(vote.createdAt))} ago`}
           </div>
 
           <VoteTitle>
@@ -101,8 +103,6 @@ export function VoteDetails({ voteFragment }: Props) {
               {supportType.toLowerCase()}
             </span>{" "}
             - with {pluralizeVote(BigNumber.from(vote.votes))}
-            {vote.createdAt &&
-              `${formatDistanceToNow(Number(vote.createdAt))} ago`}
           </span>
         </VStack>
 
