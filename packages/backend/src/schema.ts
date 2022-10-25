@@ -37,7 +37,12 @@ import { descendingValueComparator, flipComparator } from "./utils/sorting";
 import { marked } from "marked";
 import { validateSigned } from "./utils/signing";
 import { Span } from "@cloudflare/workers-honeycomb-logger";
-import { fetchAuctions, fetchVotes, groupVotesByAuction } from "./propHouse";
+import { fetchVotes, groupVotesByAuction } from "./propHouse";
+import {
+  resolveEnsOrNnsName,
+  resolveNameFromAddress,
+} from "./utils/resolveName";
+import { NNSENSReverseResolver__factory } from "./contracts/generated";
 
 function makeSimpleFieldNode(name: string): FieldNode {
   return {
@@ -120,6 +125,11 @@ export function makeGatewaySchema() {
 
   const provider = new ethers.providers.CloudflareProvider();
 
+  const resolver = NNSENSReverseResolver__factory.connect(
+    "0x5982cE3554B18a5CF02169049e81ec43BFB73961",
+    provider
+  );
+
   async function fetchRemoteDelegates(
     context: any,
     args: QueryDelegatesArgs,
@@ -170,18 +180,23 @@ export function makeGatewaySchema() {
       address: {
         async resolve(_, { addressOrEnsName }, { snapshot }) {
           if (ethers.utils.isAddress(addressOrEnsName)) {
-            return { address: addressOrEnsName.toLowerCase() };
+            const address = addressOrEnsName.toLowerCase();
+            return { address };
           }
 
           const foundMapping = Array.from(
             snapshot.NounsToken.addressToEnsName.entries()
           ).find(([, ensName]) => ensName === addressOrEnsName);
-          if (!foundMapping) {
-            throw new Error("failed to resolve");
+          if (foundMapping) {
+            const [address] = foundMapping;
+            return { address };
+          } else {
+            const address = await resolveEnsOrNnsName(
+              addressOrEnsName,
+              provider
+            );
+            return { address };
           }
-
-          const [address] = foundMapping;
-          return { address };
         },
       },
 
@@ -444,8 +459,15 @@ export function makeGatewaySchema() {
     },
 
     ResolvedName: {
-      name({ address }, _args, { snapshot }) {
-        return snapshot.NounsToken.addressToEnsName.get(address.toLowerCase());
+      async name({ address }, _args, { snapshot }) {
+        const fromSnapshot = snapshot.NounsToken.addressToEnsName.get(
+          address.toLowerCase()
+        );
+        if (typeof fromSnapshot !== "undefined") {
+          return fromSnapshot;
+        }
+
+        return await resolveNameFromAddress(address, resolver, provider);
       },
     },
 
