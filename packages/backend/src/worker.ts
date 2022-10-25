@@ -26,15 +26,14 @@ import {
   print,
   responsePathAsArray,
 } from "graphql";
-import { Scope } from "toucan-js/dist/scope";
 import { Span, wrapModule } from "@cloudflare/workers-honeycomb-logger";
 import { DrawDependencies, initSync } from "../../render-opengraph/pkg";
 import opengraphQuery from "../../render-opengraph/src/OpenGraphRenderQuery.graphql";
 import wasm from "../../render-opengraph/pkg/render_opengraph_bg.wasm";
-import { filterForEventHandlers, makeReducers, parseStorage } from "./snapshot";
+import { parseStorage, updateSnapshot } from "./snapshot";
 import { ethers } from "ethers";
 import { NNSENSReverseResolver__factory } from "./contracts/generated";
-import { getAllLogs } from "./events";
+import { withSentryScope } from "./sentry";
 
 let drawDependenciesPromise = null;
 function getDrawDependencies(
@@ -175,16 +174,6 @@ function addEventId(err: GraphQLError, eventId: string): GraphQLError {
       sentryEventId: eventId,
     }
   );
-}
-
-function withSentryScope<T>(toucan: Toucan, fn: (scope: Scope) => T): T {
-  let returnValue: T;
-
-  toucan.withScope((scope) => {
-    returnValue = fn(scope);
-  });
-
-  return returnValue;
 }
 
 const sentryTracingSymbol = Symbol("sentryTracing");
@@ -544,60 +533,17 @@ async function scheduled(env: Env, sentry: Toucan) {
     provider
   );
 
-  const reducers = makeReducers(provider, resolver);
-  const latestBlockNumber = await provider.getBlockNumber();
+  const oldSnapshot = await loadSnapshot(env);
 
-  const snapshot = await loadSnapshot(env);
+  const nextSnapshot = await updateSnapshot(
+    sentry,
+    provider,
+    resolver,
+    oldSnapshot
+  );
 
-  for (const reducer of reducers) {
-    const filter = filterForEventHandlers(reducer);
-    const snapshotValue = snapshot[reducer.name];
-    let state = (() => {
-      if (snapshotValue) {
-        return reducer.decodeState(snapshotValue.state);
-      }
-
-      return reducer.initialState();
-    })();
-
-    const { logs, latestBlockFetched } = await getAllLogs(
-      provider,
-      filter,
-      latestBlockNumber,
-      snapshotValue?.block ?? reducer.startingBlock
-    );
-
-    let idx = 0;
-    for (const log of logs) {
-      await withSentryScope(sentry, async (scope) => {
-        const event = reducer.iface.parseLog(log);
-        const eventHandler = reducer.eventHandlers.find(
-          (e) => e.signature === event.signature
-        );
-
-        try {
-          state = await eventHandler.reduce(state, event, log);
-        } catch (e) {
-          scope.setExtras({
-            event,
-            log,
-            logs: logs.length,
-            idx,
-          });
-          sentry.captureException(e);
-        }
-        idx++;
-      });
-    }
-
-    snapshot[reducer.name] = {
-      state: reducer.encodeState(state),
-      block: latestBlockFetched,
-    };
-  }
-
-  await env.INDEXER.put("snapshot.json", JSON.stringify(snapshot));
-  latestSnapshot = parseStorage(snapshot);
+  await env.INDEXER.put("snapshot.json", JSON.stringify(nextSnapshot));
+  latestSnapshot = parseStorage(nextSnapshot);
 }
 
 const sentryWrappedModule = wrapModuleSentry(
