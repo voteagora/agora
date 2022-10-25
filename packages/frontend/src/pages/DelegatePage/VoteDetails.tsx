@@ -102,7 +102,7 @@ export function VoteDetails({ voteFragment }: Props) {
             >
               {supportType.toLowerCase()}
             </span>{" "}
-            - with {pluralizeVote(BigNumber.from(vote.votes))}
+            with {pluralizeVote(BigNumber.from(vote.votes))}
           </span>
         </VStack>
 
