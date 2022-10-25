@@ -1370,6 +1370,7 @@ type Delegate {
   proposals(skip: Int = 0, first: Int = 100, orderBy: Proposal_orderBy, orderDirection: OrderDirection, where: Proposal_filter): [Proposal!]!
   resolvedName: ResolvedName!
   voteSummary: DelegateVotesSummary!
+  propHouseVotes: [PropHouseRoundVotes!]!
 }
 
 input Delegate_filter {
@@ -2408,6 +2409,31 @@ enum Vote_orderBy {
   nouns
   proposal
   blockNumber
+}
+
+type PropHouseRoundVotes {
+  id: ID!
+  createdAt: BigInt!
+  round: PropHouseRound!
+  votes: [PropHouseRoundVote!]!
+}
+
+type PropHouseRound {
+  id: ID!
+  title: String!
+  fundingAmount: String!
+  currencyType: String!
+}
+
+type PropHouseRoundVote {
+  proposal: PropHouseProposal!
+  weight: Int!
+}
+
+type PropHouseProposal {
+  id: ID!
+  number: Int!
+  title: String!
 }
 
 type DelegateVotesSummary {

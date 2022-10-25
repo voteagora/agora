@@ -37,6 +37,7 @@ import { descendingValueComparator, flipComparator } from "./utils/sorting";
 import { marked } from "marked";
 import { validateSigned } from "./utils/signing";
 import { Span } from "@cloudflare/workers-honeycomb-logger";
+import { fetchAuctions, fetchVotes, groupVotesByAuction } from "./propHouse";
 
 function makeSimpleFieldNode(name: string): FieldNode {
   return {
@@ -711,6 +712,40 @@ export function makeGatewaySchema() {
           selectionSet: `{ id }`,
           resolve({ id }) {
             return { address: id };
+          },
+        },
+
+        propHouseVotes: {
+          selectionSet: `{ id }`,
+          async resolve(
+            { id },
+            args,
+            {
+              snapshot: {
+                PropHouse: { auctions },
+              },
+            }
+          ) {
+            const address = ethers.utils.getAddress(id);
+
+            const votes = await fetchVotes({ voter: address });
+            const groupedVotes = groupVotesByAuction(votes, auctions);
+
+            return groupedVotes.map((vote) => {
+              return {
+                id: `PropHouseRoundVotes|${address}|${vote.auction.id}`,
+                createdAt: vote.createdAt,
+                round: vote.auction,
+                votes: vote.votes.map((vote) => ({
+                  proposal: {
+                    id: `PropHouseProposal|${vote.proposal.id}`,
+                    number: vote.proposal.id,
+                    ...vote.proposal,
+                  },
+                  weight: vote.weight,
+                })),
+              };
+            });
           },
         },
 
