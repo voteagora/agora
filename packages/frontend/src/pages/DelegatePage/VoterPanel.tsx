@@ -81,6 +81,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           orderBy: createdBlock
           orderDirection: desc
           first: 10
+          where: { status_not_in: [CANCELLED, VETOED, PENDING] }
         ) {
           id
         }
