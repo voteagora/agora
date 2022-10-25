@@ -142,11 +142,11 @@ export function PastVotes({ fragment }: Props) {
           <Selector
             items={[
               {
-                title: "Most recent",
+                title: "Newest",
                 value: "MOST_RECENT" as const,
               },
               {
-                title: "Least recent",
+                title: "Oldest",
                 value: "LEAST_RECENT" as const,
               },
               {
