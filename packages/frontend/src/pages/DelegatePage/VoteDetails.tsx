@@ -79,7 +79,6 @@ export function VoteDetails({ voteFragment }: Props) {
           >
             <a href={proposalHref}>Prop {vote.proposal.number}</a>
             <ValuePart value={vote.proposal.totalValue} />
-            with {pluralizeVote(BigNumber.from(vote.votes))}
           </div>
 
           <VoteTitle>
@@ -100,7 +99,7 @@ export function VoteDetails({ voteFragment }: Props) {
             >
               {supportType.toLowerCase()}
             </span>{" "}
-            - with {pluralizeVote(BigNumber.from(vote.votes.length))}
+            - with {pluralizeVote(BigNumber.from(vote.votes))}
           </span>
         </VStack>
 
