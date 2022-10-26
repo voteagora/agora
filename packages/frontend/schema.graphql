@@ -1555,9 +1555,6 @@ enum DelegationEvent_orderBy {
 }
 
 type Governance {
-  """Unique entity used to keep track of common aggregated data"""
-  id: ID!
-
   """Number of proposals created"""
   proposals: BigInt!
 

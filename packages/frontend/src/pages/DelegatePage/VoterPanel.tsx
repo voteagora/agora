@@ -423,6 +423,9 @@ function DelegateButton({
         fragment={wrappedDelegate}
         isOpen={isDialogOpen}
         closeDialog={() => setDialogOpen(false)}
+        completeDelegation={() => {
+          setDialogOpen(false);
+        }}
       />
 
       <button

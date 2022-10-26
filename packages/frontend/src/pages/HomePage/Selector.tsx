@@ -31,7 +31,11 @@ export function Selector<T>({ items, value, onChange }: SelectorProps<T>) {
     >
       {({ open }) => (
         <>
-          <Listbox.Button className={css``}>
+          <Listbox.Button
+            className={css`
+              justify-content: center;
+            `}
+          >
             <HStack
               alignItems="center"
               gap="2"
