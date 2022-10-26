@@ -26,7 +26,7 @@ export function PageHeader() {
         padding-left: ${theme.spacing["4"]};
         padding-right: ${theme.spacing["4"]};
 
-        @media (max-width: ${theme.maxWidth.sm}) {
+        @media (max-width: ${theme.maxWidth.md}) {
           flex-direction: column;
           text-align: center;
         }
@@ -62,7 +62,7 @@ export function PageHeader() {
         className={css`
           height: ${theme.spacing["6"]};
 
-          @media (max-width: ${theme.maxWidth.sm}) {
+          @media (max-width: ${theme.maxWidth.md}) {
             height: auto;
             flex-direction: column;
             align-items: stretch;
@@ -111,7 +111,7 @@ function PageHeaderContents() {
   );
 
   return (
-    <>
+    <HStack gap="2" justifyContent="center">
       {address && (
         <Link
           to="/create"
@@ -135,7 +135,7 @@ function PageHeaderContents() {
       )}
 
       {address && <OwnedNounsPanel fragment={address} />}
-    </>
+    </HStack>
   );
 }
 

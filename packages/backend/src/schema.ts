@@ -824,6 +824,10 @@ export function makeGatewaySchema() {
             return fieldConfig;
           }
 
+          if (typeName === "Governance" && fieldName === "id") {
+            return null;
+          }
+
           return {
             ...fieldConfig,
             resolve: (...args) => {
