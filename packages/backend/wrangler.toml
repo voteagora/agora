@@ -32,7 +32,8 @@ kv_namespaces = [
     { binding = "STATEMENTS", id = "dd8a0cf1ad9c4e6b911a4e3da3cd334f" },
     { binding = "EMAILS", id = "29d54efee06a44f9adb0dbb9e93e840f" },
     { binding = "APPLICATION_CACHE", id = "0bca6afc17d341e383860ba7ff730868" },
-    { binding = "INDEXER", id = "872aec279fb24309bf14761cc0ae58c1" }
+    { binding = "INDEXER", id = "872aec279fb24309bf14761cc0ae58c1" },
+    { binding = "LAST_BLOCKED_FETCHED", id = "3614f4c794f64aa488a12523d7980c1d" }
 ]
 
 [build]
