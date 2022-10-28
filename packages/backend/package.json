@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "name": "nouns-agora-backend",
   "scripts": {
+    "build-post-discord-updates": "esbuild --bundle --sourcemap src/bin/postDiscordUpdates.ts --platform=node --outfile=dist/postDiscordUpdates.js",
+    "post-discord-updates": "node dist/postDiscordUpdates.js",
     "build-generate-schema": "esbuild --bundle --sourcemap src/bin/generateSchema.ts --outfile=dist/generateSchema.js --loader:.graphql=text",
     "generate-schema": "node dist/generateSchema.js > ../frontend/schema.graphql",
     "generate-snapshot": "ts-node src/bin/generateSnapshot.ts",
@@ -32,6 +34,7 @@
     "@graphql-tools/merge": "^8.3.4",
     "@graphql-tools/stitch": "^8.7.7",
     "@graphql-yoga/node": "^2.13.12",
+    "discord-api-types": "^0.37.15",
     "get-graphql-schema": "^2.1.2",
     "graphql": "^16.6.0",
     "marked": "^4.1.0",
