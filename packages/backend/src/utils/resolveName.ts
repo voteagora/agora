@@ -18,7 +18,7 @@ export async function resolveNameFromAddress(
 
   const forwardResolvedAddress = await resolveEnsOrNnsName(resolved, provider);
 
-  if (address.toLowerCase() !== forwardResolvedAddress.toLowerCase()) {
+  if (address.toLowerCase() !== forwardResolvedAddress?.toLowerCase()) {
     return null;
   }
 
@@ -28,7 +28,7 @@ export async function resolveNameFromAddress(
 export async function resolveEnsOrNnsName(
   name: string,
   provider: ethers.providers.Provider
-): Promise<string> {
+): Promise<string | null> {
   if (name.endsWith(".⌐◨-◨")) {
     return resolveName(
       name,
@@ -51,13 +51,17 @@ export async function resolveEnsOrNnsName(
 async function resolveName(
   nameOrAddress: string,
   registry: ENSRegistryWithFallback
-): Promise<string> {
+): Promise<string | null> {
   if (ethers.utils.isHexString(nameOrAddress)) {
     return ethers.utils.getAddress(nameOrAddress);
   }
 
   const name = nameOrAddress;
   const resolverAddress = await getResolver(name, registry);
+  if (!resolverAddress) {
+    return null;
+  }
+
   const resolver = ENSAddressResolver__factory.connect(
     resolverAddress,
     registry.provider
@@ -70,7 +74,7 @@ async function resolveName(
 async function getResolver(
   name: string,
   registry: ENSRegistryWithFallback
-): Promise<string> {
+): Promise<string | null> {
   const nameParts = name.split(".");
   for (let i = 0; i < nameParts.length; i++) {
     const subname = nameParts.slice(i).join(".");
