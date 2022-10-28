@@ -65,6 +65,20 @@ async function* blocksToMessages(
                   } to ${newDelegate ?? event.args.toDelegate}`,
                   timestamp: blockTimestamp.toISOString(),
                   url: `https://etherscan.io/tx/${transaction.transactionHash}`,
+                  fields: [
+                    {
+                      name: "Owner",
+                      value: `https://nounsagora.com/delegate/${event.args.delegator}`,
+                    },
+                    {
+                      name: "New Delegate",
+                      value: `https://nounsagora.com/delegate/${event.args.toDelegate}`,
+                    },
+                    {
+                      name: "Old Delegate",
+                      value: `https://nounsagora.com/delegate/${event.args.fromDelegate}`,
+                    },
+                  ],
 
                   provider: {
                     name: "etherscan",
@@ -114,8 +128,22 @@ async function* blocksToMessages(
                   )} Prop #${
                     event.args.proposalId
                   } with ${event.args.votes.toString()} votes`,
-                  description: event.args.reason,
                   timestamp: blockTimestamp.toISOString(),
+                  fields: [
+                    { name: "Reason", value: event.args.reason },
+                    {
+                      name: "Proposal",
+                      value: `https://nouns.wtf/vote/${event.args.proposalId}`,
+                    },
+                    {
+                      name: "Delegate Profile",
+                      value: `https://nounsagora.com/delegate/${event.args.voter}`,
+                    },
+                    {
+                      name: "Transaction",
+                      value: `https://etherscan.io/tx/${transaction.transactionHash}`,
+                    },
+                  ],
                   url: `https://nounsagora.com/delegate/${event.args.voter}`,
                 },
               ],
@@ -209,3 +237,5 @@ type GroupedBlock<
     logs: (Lhs | Rhs)[];
   }[];
 };
+
+// todo: standardize formatters
