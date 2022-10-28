@@ -79,10 +79,6 @@ async function* blocksToMessages(
                       value: `https://nounsagora.com/delegate/${event.args.fromDelegate}`,
                     },
                   ],
-
-                  provider: {
-                    name: "etherscan",
-                  },
                 },
               ],
             };
@@ -120,10 +116,14 @@ async function* blocksToMessages(
               provider
             );
 
+            const voterRef = voter ?? event.args.voter;
+
+            // todo: add proposal title
+
             const message: RESTPostAPIWebhookWithTokenJSONBody = {
               embeds: [
                 {
-                  title: `${voter ?? event.args.voter} voted ${toSupportType(
+                  title: `${voterRef} voted ${toSupportType(
                     event.args.support
                   )} Prop #${
                     event.args.proposalId
@@ -133,18 +133,17 @@ async function* blocksToMessages(
                     { name: "Reason", value: event.args.reason },
                     {
                       name: "Proposal",
-                      value: `https://nouns.wtf/vote/${event.args.proposalId}`,
+                      value: `[Prop #${event.args.proposalId}](https://nouns.wtf/vote/${event.args.proposalId})`,
                     },
                     {
                       name: "Delegate Profile",
-                      value: `https://nounsagora.com/delegate/${event.args.voter}`,
+                      value: `[${voterRef}](https://nounsagora.com/delegate/${voterRef})`,
                     },
                     {
                       name: "Transaction",
-                      value: `https://etherscan.io/tx/${transaction.transactionHash}`,
+                      value: `[${transaction.transactionHash}](https://etherscan.io/tx/${transaction.transactionHash})`,
                     },
                   ],
-                  url: `https://nounsagora.com/delegate/${event.args.voter}`,
                 },
               ],
             };
