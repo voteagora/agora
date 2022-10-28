@@ -33,7 +33,7 @@ async function main() {
     ],
     format: "esm",
     metafile: true,
-    entryPoints: ["src/worker.ts"],
+    entryPoints: ["src/worker/index.ts"],
   });
 
   await fs.writeFile("dist/meta.json", JSON.stringify(result.metafile));
