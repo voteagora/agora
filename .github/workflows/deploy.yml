@@ -31,6 +31,7 @@ jobs:
           REACT_APP_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           REACT_APP_GITHUB_SHA: ${{ github.sha }}
           REACT_APP_DEPLOY_ENV: ${{ github.event.inputs.environment || 'staging' }}
+          REACT_APP_ALCHEMY_ID: ${{ secrets.ALCHEMY_KEY }}
 
       - uses: getsentry/action-release@v1
         env:
