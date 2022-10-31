@@ -30,7 +30,11 @@ export function VoteDetails({ voteFragment }: Props) {
         reason
         supportDetailed
         votes
-        createdAt
+        transaction {
+          block {
+            timestamp
+          }
+        }
 
         proposal {
           number
@@ -38,8 +42,10 @@ export function VoteDetails({ voteFragment }: Props) {
 
           totalValue
           proposer {
-            resolvedName {
-              ...NounResolvedLinkFragment
+            address {
+              resolvedName {
+                ...NounResolvedLinkFragment
+              }
             }
           }
         }
