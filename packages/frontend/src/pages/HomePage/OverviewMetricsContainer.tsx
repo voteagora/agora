@@ -9,54 +9,7 @@ import { BigNumber } from "ethers";
 import { HStack, VStack } from "../../components/VStack";
 import { pluralizeNoun } from "../../words";
 
-type Props = {
-  fragmentRef: OverviewMetricsContainer$key;
-};
-
-export function OverviewMetricsContainer({ fragmentRef }: Props) {
-  const { metrics, recentlyCompletedProposals, currentGovernance } =
-    useFragment(
-      graphql`
-        fragment OverviewMetricsContainer on Query {
-          recentlyCompletedProposals: proposals(
-            first: 10
-            orderBy: createdBlock
-            orderDirection: desc
-            where: { status_in: [QUEUED, EXECUTED, PENDING, ACTIVE] }
-          ) {
-            totalVotes
-
-            createdBlockGovernance {
-              delegatedVotes
-            }
-          }
-
-          metrics {
-            quorumVotesBPS
-            proposalThresholdBPS
-          }
-
-          currentGovernance {
-            delegatedVotesRaw
-            currentTokenHolders
-            currentDelegates
-          }
-        }
-      `,
-      fragmentRef
-    );
-
-  const quorumBps = BigNumber.from(metrics.quorumVotesBPS);
-
-  const quorumCount = BigNumber.from(currentGovernance.delegatedVotesRaw)
-    .mul(quorumBps)
-    .div(100 * 100);
-
-  const proposalThreshold = BigNumber.from(currentGovernance.delegatedVotesRaw)
-    .mul(metrics.proposalThresholdBPS)
-    .div(100 * 100)
-    .add(1);
-
+export function OverviewMetricsContainer() {
   return (
     <HStack
       justifyContent="space-between"
@@ -79,61 +32,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
         }
       `}
     >
-      {currentGovernance && (
-        <MetricContainer
-          icon="community"
-          title="Voters / Noun Holders"
-          body={`${currentGovernance.currentDelegates} / ${
-            currentGovernance.currentTokenHolders
-          } (${(
-            (1 -
-              Number(currentGovernance.currentDelegates) /
-                Number(currentGovernance.currentTokenHolders)) *
-            100
-          ).toPrecision(2)}% delegation)`}
-        />
-      )}
-
-      {/* todo: source this from the actual quorum floor value */}
-      <MetricContainer
-        icon="ballot"
-        title="Quorum floor"
-        body={`${pluralizeNoun(quorumCount)} (${quorumBps
-          .div(100)
-          .toNumber()
-          .toFixed(0)}% of supply)`}
-      />
-
-      <MetricContainer
-        icon="measure"
-        title="Proposal threshold"
-        body={`${pluralizeNoun(proposalThreshold)}`}
-      />
-
-      <MetricContainer
-        icon="pedestrian"
-        title="Avg voter turnout"
-        body={(() => {
-          if (!recentlyCompletedProposals.length) {
-            return "N/A";
-          }
-
-          const total = recentlyCompletedProposals.reduce<number>(
-            (acc, value) => {
-              return (
-                acc +
-                value.totalVotes / value.createdBlockGovernance.delegatedVotes
-              );
-            },
-            0
-          );
-
-          return (
-            ((total / recentlyCompletedProposals.length) * 100).toPrecision(2) +
-            "%"
-          );
-        })()}
-      />
+      <MetricContainer icon="ballot" title="Quorum floor" body={`10%`} />
     </HStack>
   );
 }

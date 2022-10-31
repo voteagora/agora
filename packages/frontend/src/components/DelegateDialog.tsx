@@ -111,7 +111,9 @@ function DelegateDialogContents({
           }
 
           account {
-            amountOwned
+            amountOwned {
+              __typename
+            }
           }
         }
       }
@@ -133,7 +135,9 @@ function DelegateDialogContents({
         }
 
         delegate {
-          totalVotingPower
+          tokensRepresented {
+            __typename
+          }
 
           tokenHoldersRepresented {
             address {

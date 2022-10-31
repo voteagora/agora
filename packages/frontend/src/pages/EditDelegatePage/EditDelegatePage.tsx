@@ -102,8 +102,6 @@ function LazyVoterPanel({ address }: LazyVoterPanelProps) {
         address(addressOrEnsName: $address) {
           ...VoterPanelDelegateFragment
         }
-
-        ...VoterPanelQueryFragment
       }
     `,
     {

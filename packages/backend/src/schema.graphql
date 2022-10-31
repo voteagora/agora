@@ -11,7 +11,7 @@ type Query {
     after: String
   ): WrappedDelegatesConnection!
 
-  metrics: OverallMetrics!
+  proposals: [Proposal!]!
 }
 
 type Vote {
@@ -58,11 +58,13 @@ type WrappedDelegate {
   delegate: Delegate
 }
 
-type VotesSummary {
+type DelegateMetrics {
   totalVotes: Int!
   forVotes: Int!
   againstVotes: Int!
   abstainVotes: Int!
+  ofLastTenProps: Int!
+  proposalsCreated: Int!
 }
 
 type TokenAmount {
@@ -82,12 +84,12 @@ type Delegate {
   id: ID!
   address: Address!
 
-  represented: VotingPower!
+  tokensRepresented: VotingPower!
   tokenHoldersRepresented: [Account!]!
 
   proposed: [Proposal!]!
   votes: [Vote!]!
-  voteSummary: VotesSummary!
+  delegateMetrics: DelegateMetrics!
 }
 
 # Ownership and delegation information about an address.
@@ -95,7 +97,7 @@ type Account {
   id: ID!
   address: Address!
 
-  owned: VotingPower!
+  amountOwned: VotingPower!
 
   # Delegate where voting power has been delegated. Can be delegated to a
   # delegate with the same address as the account.
@@ -157,17 +159,6 @@ type Proposal {
   totalValue: BigInt!
 
   proposer: Delegate!
-}
-
-type OverallMetrics {
-  delegatedSupply: BigInt!
-  totalSupply: BigInt!
-
-  quorumNumerator: BigInt!
-  quorumDenominator: BigInt!
-
-  proposalThreshold: BigInt!
-  averageVoterTurnout: Float!
 }
 
 type Mutation {
