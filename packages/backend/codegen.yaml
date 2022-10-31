@@ -7,9 +7,9 @@ generates:
     config:
       contextType: ../model#AgoraContextType
       mappers:
-        OverallMetrics: ../model#OverallMetrics
-        Address: ../model#Address
-        ResolvedName: ../model#ResolvedName
-        WrappedDelegate: ../model#WrappedDelegate
-        DelegateStatement: ../model#DelegateStatement
+        OverallMetrics: ../model#OverallMetrics as OverallMetricsModel
+        Address: ../model#Address as AddressModel
+        ResolvedName: ../model#ResolvedName as ResolvedNameModel
+        WrappedDelegate: ../model#WrappedDelegate as WrappedDelegateModel
+        DelegateStatement: ../model#DelegateStatement as DelegateStatementModel
 

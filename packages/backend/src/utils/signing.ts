@@ -1,7 +1,6 @@
 import { ValueWithSignature } from "../generated/types";
 import { ethers } from "ethers";
-import { GnosisSafe__factory } from "../contracts/generated";
-import { GnosisSafe } from "nouns-agora/src/contracts/generated";
+import { GnosisSafe__factory, GnosisSafe } from "../contracts/generated";
 
 export type ValidatedMessage = {
   address: string;
