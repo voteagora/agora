@@ -1,4 +1,5 @@
 scalar BigInt
+scalar Timestamp
 
 type Query {
   address(addressOrEnsName: String!): Address
@@ -11,6 +12,29 @@ type Query {
   ): WrappedDelegatesConnection!
 
   metrics: OverallMetrics!
+}
+
+type Vote {
+  reason: String!
+  supportDetailed: Int!
+  votes: BigInt!
+
+  proposal: Proposal!
+  voter: Delegate!
+  transaction: Transaction!
+}
+
+type Transaction {
+  id: ID!
+  hash: String!
+  block: Block!
+}
+
+type Block {
+  id: ID!
+  number: BigInt!
+
+  timestamp: Timestamp!
 }
 
 type Address {
@@ -35,12 +59,15 @@ type WrappedDelegate {
 
 type Delegate {
   id: ID!
+  address: Address!
+
   totalVotingPower: BigInt!
   tokenHoldersRepresented: [Account!]!
 }
 
 # Ownership and delegation information about an address.
 type Account {
+  id: ID!
   address: Address!
 
   amountOwned: BigInt!
@@ -100,6 +127,11 @@ type Proposal {
   number: Int!
   title: String!
   totalVotes: BigInt!
+  votes: [Vote!]!
+
+  totalValue: BigInt!
+
+  proposer: Delegate!
 }
 
 type OverallMetrics {
