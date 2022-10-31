@@ -7,8 +7,8 @@ generates:
     config:
       contextType: ../model#AgoraContextType
       mappers:
-        Address: ../model#Address
-        ResolvedName: ../model#ResolvedName
-        WrappedDelegate: ../model#WrappedDelegate
-        DelegateStatement: ../model#DelegateStatement
+        Address: ../model#Address as AddressModel
+        ResolvedName: ../model#ResolvedName as ResolvedNameModel
+        WrappedDelegate: ../model#WrappedDelegate as WrappedDelegateModel
+        DelegateStatement: ../model#DelegateStatement as DelegateStatementModel
 
