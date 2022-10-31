@@ -5,7 +5,6 @@ import * as theme from "../../theme";
 import { parseCreatedAt, VoteDetails } from "./VoteDetails";
 import { PastVotesFragment$key } from "./__generated__/PastVotesFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
-import { PropHouseVoteDetails } from "./PropHouseVoteDetails";
 import { Selector } from "../HomePage/Selector";
 import { useMemo, useState } from "react";
 import { BigNumber, utils } from "ethers";
@@ -31,17 +30,6 @@ export function PastVotes({ fragment }: Props) {
           }
 
           ...VoteDetailsFragment
-        }
-
-        propHouseVotes {
-          id
-          createdAt
-          round {
-            fundingAmount
-            currencyType
-          }
-
-          ...PropHouseVoteDetailsFragment
         }
       }
     `,
@@ -169,10 +157,6 @@ export function PastVotes({ fragment }: Props) {
                 value: "ALL" as const,
               },
               {
-                title: "Prop House",
-                value: "PROP_HOUSE" as const,
-              },
-              {
                 title: "Onchain",
                 value: "ONCHAIN" as const,
               },
@@ -190,11 +174,6 @@ export function PastVotes({ fragment }: Props) {
           switch (vote.type) {
             case "ON_CHAIN":
               return <VoteDetails key={key} voteFragment={vote.vote} />;
-
-            case "PROP_HOUSE":
-              return (
-                <PropHouseVoteDetails key={key} voteFragment={vote.vote} />
-              );
 
             default:
               throw new Error(`unknown vote type ${(vote as any).type}`);
