@@ -49,7 +49,6 @@ export function HomePage() {
       ) {
         ...DelegatesContainerFragment
           @arguments(orderBy: $orderBy, filterBy: $filterBy)
-        ...OverviewMetricsContainer
       }
     `,
     {
@@ -60,7 +59,7 @@ export function HomePage() {
   return (
     <>
       <Hero />
-      <OverviewMetricsContainer fragmentRef={result} />
+      <OverviewMetricsContainer />
       <PageDivider />
       <DelegatesContainer fragmentKey={result} variables={variables} />
     </>

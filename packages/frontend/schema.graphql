@@ -5,7 +5,7 @@ scalar Timestamp
 type Query {
   address(addressOrEnsName: String!): Address
   wrappedDelegates(where: WrappedDelegatesWhere, orderBy: WrappedDelegatesOrder! = mostRelevant, first: Int!, after: String): WrappedDelegatesConnection!
-  metrics: OverallMetrics!
+  proposals: [Proposal!]!
 }
 
 type Vote {
@@ -49,11 +49,13 @@ type WrappedDelegate {
   delegate: Delegate
 }
 
-type VotesSummary {
+type DelegateMetrics {
   totalVotes: Int!
   forVotes: Int!
   againstVotes: Int!
   abstainVotes: Int!
+  ofLastTenProps: Int!
+  proposalsCreated: Int!
 }
 
 type TokenAmount {
@@ -71,17 +73,17 @@ type VotingPower {
 type Delegate {
   id: ID!
   address: Address!
-  represented: VotingPower!
+  tokensRepresented: VotingPower!
   tokenHoldersRepresented: [Account!]!
   proposed: [Proposal!]!
   votes: [Vote!]!
-  voteSummary: VotesSummary!
+  delegateMetrics: DelegateMetrics!
 }
 
 type Account {
   id: ID!
   address: Address!
-  owned: VotingPower!
+  amountOwned: VotingPower!
   delegatingTo: Delegate!
 }
 
@@ -138,15 +140,6 @@ type Proposal {
   votes: [Vote!]!
   totalValue: BigInt!
   proposer: Delegate!
-}
-
-type OverallMetrics {
-  delegatedSupply: BigInt!
-  totalSupply: BigInt!
-  quorumNumerator: BigInt!
-  quorumDenominator: BigInt!
-  proposalThreshold: BigInt!
-  averageVoterTurnout: Float!
 }
 
 type Mutation {

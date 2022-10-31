@@ -147,7 +147,9 @@ function OwnedValuePanel({ fragment }: OwnedValuePanelProps) {
     graphql`
       fragment PageHeaderFragment on Address {
         account {
-          amountOwned
+          amountOwned {
+            __typename
+          }
         }
       }
     `,

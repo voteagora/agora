@@ -18,8 +18,6 @@ export function DelegatePage() {
   const query = useLazyLoadQuery<DelegatePageQuery>(
     graphql`
       query DelegatePageQuery($addressOrEnsName: String!) {
-        ...VoterPanelQueryFragment
-
         address(addressOrEnsName: $addressOrEnsName) {
           wrappedDelegate {
             delegate {

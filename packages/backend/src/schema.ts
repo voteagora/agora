@@ -28,23 +28,6 @@ export function makeGatewaySchema() {
 
   const typedResolvers: Resolvers = {
     Query: {
-      metrics: {
-        resolve(_parent, _args, { snapshot }) {
-          return {
-            totalSupply: snapshot.ENSToken.totalSupply.toString(),
-            delegatedSupply: snapshot.ENSToken.delegatedSupply.toString(),
-            quorumNumerator: snapshot.ENSGovernor.quorumNumerator.toString(),
-            quorumDenominator: BigNumber.from(10000).toString(),
-            proposalThreshold: BigNumber.from(
-              "100000000000000000000000"
-            ).toString(),
-
-            // todo: average voter turnout
-            averageVoterTurnout: 0,
-          };
-        },
-      },
-
       address: {
         async resolve(_, { addressOrEnsName }, { snapshot }) {
           if (ethers.utils.isAddress(addressOrEnsName)) {

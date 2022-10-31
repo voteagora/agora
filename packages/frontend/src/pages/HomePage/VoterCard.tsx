@@ -43,9 +43,11 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
 
         delegate {
           id
-          totalVotingPower
+          tokensRepresented {
+            __typename
+          }
 
-          voteSummary {
+          delegateMetrics {
             totalVotes
           }
         }

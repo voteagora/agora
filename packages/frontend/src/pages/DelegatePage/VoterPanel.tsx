@@ -44,25 +44,18 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           delegate {
             id
 
-            totalVotingPower
+            tokensRepresented {
+              __typename
+              bpsOfQuorum
+              bpsOfTotal
+            }
             ...VoterPanelDelegateFromListFragment
 
-            voteSummary {
+            delegateMetrics {
               forVotes
               againstVotes
               abstainVotes
-            }
-
-            votes {
-              id
-
-              proposal {
-                id
-              }
-            }
-
-            proposals {
-              id
+              ofLastTenProps
             }
           }
         }
@@ -72,31 +65,6 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
   );
 
   const delegate = address.wrappedDelegate.delegate;
-
-  const { recentProposals, metrics, currentGovernance } = useFragment(
-    graphql`
-      fragment VoterPanelQueryFragment on Query {
-        recentProposals: proposals(
-          orderBy: createdBlock
-          orderDirection: desc
-          first: 10
-          where: { status_not_in: [CANCELLED, VETOED, PENDING] }
-        ) {
-          id
-        }
-
-        currentGovernance {
-          proposals
-          delegatedVotes
-        }
-
-        metrics {
-          quorumVotesBPS
-        }
-      }
-    `,
-    queryFragment
-  );
 
   const quorumVotes = BigNumber.from(metrics.quorumVotesBPS)
     .mul(currentGovernance.delegatedVotes)
@@ -238,7 +206,9 @@ function DelegateFromList({
       fragment VoterPanelDelegateFromListFragment on Delegate {
         tokenHoldersRepresented {
           id
-          amountOwned
+          amountOwned {
+            __typename
+          }
 
           address {
             resolvedName {

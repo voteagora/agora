@@ -71,11 +71,7 @@ function ProposalList({
   const { allProposals } = useFragment(
     graphql`
       fragment PastProposalsFormSectionProposalListFragment on Query {
-        allProposals: proposals(
-          first: 1000
-          orderDirection: desc
-          orderBy: createdBlock
-        ) {
+        allProposals: proposals {
           id
           number
           title
