@@ -2,7 +2,6 @@ import { Env } from "./env";
 import { makeGatewaySchema } from "../schema";
 import { AgoraContextType } from "../model";
 import { makeEmailStorage, makeStatementStorage } from "./storage";
-import { makeNounsExecutor } from "../schemas/nouns-subgraph";
 import { parseStorage } from "../snapshot";
 import { getOrInitializeLatestSnapshot, loadSnapshot } from "./snapshot";
 import { ExpiringCache } from "../utils/cache";
@@ -30,7 +29,6 @@ export async function getGraphQLCallingContext(
     snapshot: latestSnapshot,
     statementStorage: makeStatementStorage(env.STATEMENTS),
     emailStorage: makeEmailStorage(env.EMAILS),
-    nounsExecutor: makeNounsExecutor(),
     tracingContext: {
       spanMap: new Map(),
       rootSpan: request.tracer,

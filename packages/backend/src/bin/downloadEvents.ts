@@ -4,14 +4,20 @@ import { getAllLogs } from "../events";
 import { promises as fs } from "fs";
 
 async function main() {
-  const provider = new ethers.providers.AlchemyProvider();
+  const provider = new ethers.providers.AlchemyProvider(
+    "mainnet",
+    process.env.ALCHEMY_API_KEY
+  );
 
   const reducers = makeReducers();
 
   const latestBlockNumber = await provider.getBlockNumber();
 
   for (const reducer of reducers) {
-    const filter = filterForEventHandlers(reducer);
+    const filter = filterForEventHandlers(
+      reducer,
+      reducer.eventHandlers.map((event) => event.signature)
+    );
 
     const handle = await fs.open(`${reducer.name}.logs.json`, "a+");
 

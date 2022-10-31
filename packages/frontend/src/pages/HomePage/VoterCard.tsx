@@ -283,14 +283,5 @@ export function DelegateProfileImage({
     >
       No longer has votes
     </VStack>
-  ) : (
-    <NounsRepresentedGrid
-      rows={3}
-      columns={dense ? 6 : 5}
-      gap={dense ? "2" : "4"}
-      imageSize={dense ? "10" : "12"}
-      overflowFontSize="base"
-      fragmentKey={delegate.delegate}
-    />
-  );
+  ) : null;
 }
