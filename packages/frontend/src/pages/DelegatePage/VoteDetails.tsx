@@ -1,18 +1,27 @@
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { BigNumber, utils } from "ethers";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoteDetailsFragment$key } from "./__generated__/VoteDetailsFragment.graphql";
 import { VStack } from "../../components/VStack";
-import { shadow } from "./VoterPanel";
-import { useMemo, useRef } from "react";
+import {
+  colorForSupportType,
+  toSupportType,
+  ValuePart,
+  VoteDetailsContainer,
+  VoteTitle,
+} from "./VoteDetailsContainer";
+import { pluralizeVote } from "../../words";
+import { BigNumber } from "ethers";
 import { formatDistanceToNow } from "date-fns";
-import { motion, useScroll, useTransform } from "framer-motion";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;
 };
+
+export function parseCreatedAt(raw: string) {
+  return new Date(Number(raw) * 1000);
+}
 
 export function VoteDetails({ voteFragment }: Props) {
   const vote = useFragment(
@@ -28,6 +37,11 @@ export function VoteDetails({ voteFragment }: Props) {
           title
 
           totalValue
+          proposer {
+            resolvedName {
+              ...NounResolvedLinkFragment
+            }
+          }
         }
       }
     `,
@@ -35,55 +49,28 @@ export function VoteDetails({ voteFragment }: Props) {
   );
   const proposalHref = `https://nouns.wtf/vote/${vote.proposal.number}`;
 
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const scroll = useScroll({ container: scrollContainerRef });
-
-  const footOpacity = useTransform(scroll.scrollY, (value) => {
-    return 1 - value / 32;
-  });
+  const supportType = toSupportType(vote.supportDetailed);
 
   return (
-    <VStack
-      gap="3"
-      className={css`
-        position: relative;
-        border-radius: ${theme.borderRadius.lg};
-        border-width: ${theme.spacing.px};
-        border-color: ${theme.colors.gray.eb};
-        background: ${theme.colors.white};
-        box-shadow: ${shadow};
-        flex: 1;
-        max-height: 15rem;
-        overflow: hidden;
-      `}
-    >
-      <motion.div
-        style={{ opacity: footOpacity }}
-        className={css`
-          position: absolute;
-          height: ${theme.spacing["4"]};
-          background: linear-gradient(rgba(255, 255, 255, 0), #fff);
-          bottom: 0;
-          left: 0;
-          right: 0;
-        `}
-      />
-
+    <VoteDetailsContainer>
       <div
-        ref={scrollContainerRef}
         className={css`
-          display: flex;
-          flex-direction: column;
-          gap: ${theme.spacing["2"]};
-          padding-top: ${theme.spacing["5"]};
-          padding-left: ${theme.spacing["5"]};
-          padding-right: ${theme.spacing["5"]};
-          padding-bottom: ${theme.spacing["5"]};
-          overflow-y: scroll;
+          display: grid;
+          overflow-y: hidden;
+          grid-template-columns: 1fr 1px 1fr;
+
+          @media (max-width: ${theme.maxWidth["2xl"]}) {
+            grid-template-rows: 1fr;
+            grid-template-columns: none;
+            overflow-y: scroll;
+          }
         `}
       >
-        <VStack>
+        <VStack
+          className={css`
+            padding: ${theme.spacing["4"]} ${theme.spacing["6"]};
+          `}
+        >
           <div
             className={css`
               font-size: ${theme.fontSize.xs};
@@ -91,107 +78,73 @@ export function VoteDetails({ voteFragment }: Props) {
               color: #66676b;
             `}
           >
-            <SupportText supportType={vote.supportDetailed} /> &mdash;{" "}
             <a href={proposalHref}>Prop {vote.proposal.number}</a>
             <ValuePart value={vote.proposal.totalValue} />
-            with {vote.votes} votes
+            {vote.createdAt &&
+              ` - ${formatDistanceToNow(parseCreatedAt(vote.createdAt))} ago`}
           </div>
-          <div
+
+          <VoteTitle>
+            <a href={proposalHref}>{vote.proposal.title}</a>
+          </VoteTitle>
+
+          <span
             className={css`
+              color: ${colorForSupportType(supportType)};
               font-size: ${theme.fontSize.xs};
               font-weight: ${theme.fontWeight.medium};
-              color: #66676b;
-            `}
-          ></div>
-
-          <h2
-            className={css`
-              font-size: ${theme.fontSize.base};
-              padding: ${theme.spacing[1]} 0;
-              overflow: hidden;
-              text-overflow: ellipsis;
             `}
           >
-            <a href={proposalHref}>{vote.proposal.title}</a>
-          </h2>
-          {vote.createdAt && (
-            <div
+            <span
               className={css`
-                font-size: ${theme.fontSize.xs};
-                font-weight: ${theme.fontWeight.medium};
-                color: #66676b;
+                text-transform: capitalize;
               `}
             >
-              {formatDistanceToNow(new Date(Number(vote.createdAt) * 1000))} ago
-            </div>
-          )}
+              {supportType.toLowerCase()}
+            </span>{" "}
+            with {pluralizeVote(BigNumber.from(vote.votes))}
+          </span>
         </VStack>
 
-        <span
-          className={css`
-            color: #66676b;
-            line-height: ${theme.lineHeight.snug};
-          `}
-        >
-          {vote.reason}
-        </span>
+        {vote.reason && (
+          <>
+            <div
+              className={css`
+                width: ${theme.spacing.px};
+                background: #ebebeb;
+
+                @media (max-width: ${theme.maxWidth["2xl"]}) {
+                  display: none;
+                }
+              `}
+            />
+
+            <VStack
+              className={css`
+                overflow-y: scroll;
+                overflow-x: scroll;
+                padding: ${theme.spacing["4"]} ${theme.spacing["6"]};
+
+                @media (max-width: ${theme.maxWidth["2xl"]}) {
+                  padding-top: 0;
+                  height: fit-content;
+                }
+              `}
+            >
+              <div
+                className={css`
+                  font-size: ${theme.fontSize.xs};
+                  font-weight: ${theme.fontWeight.medium};
+                  color: #66676b;
+                  width: fit-content;
+                `}
+              >
+                {vote.reason}
+              </div>
+            </VStack>
+          </>
+        )}
       </div>
-    </VStack>
+    </VoteDetailsContainer>
   );
-}
-
-type ValuePartProps = {
-  value: string;
-};
-
-export function ValuePart({ value }: ValuePartProps) {
-  const amount = useMemo(() => BigNumber.from(value), [value]);
-
-  return (
-    <>{!amount.isZero() ? <> for {utils.formatEther(amount)} ETH</> : null} </>
-  );
-}
-
-type SupportTextProps = {
-  supportType: number;
-};
-
-function SupportText({ supportType }: SupportTextProps) {
-  switch (supportType) {
-    case 0:
-      return (
-        <span
-          className={css`
-            color: ${theme.colors.red["700"]};
-          `}
-        >
-          AGAINST
-        </span>
-      );
-
-    case 1:
-      return (
-        <span
-          className={css`
-            color: ${theme.colors.green["700"]};
-          `}
-        >
-          FOR
-        </span>
-      );
-
-    case 2:
-      return (
-        <span
-          className={css`
-            color: ${theme.colors.gray["700"]};
-          `}
-        >
-          ABSTAIN
-        </span>
-      );
-
-    default:
-      throw new Error(`unknown type ${supportType}`);
-  }
 }

@@ -102,6 +102,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
           className={css`
             @media (max-width: ${theme.maxWidth.lg}) {
               flex-direction: column;
+              align-items: stretch;
             }
           `}
         >
@@ -119,7 +120,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
             className={css`
               @media (max-width: ${theme.maxWidth.lg}) {
                 flex-direction: column;
-                justify-content: center;
+                align-items: stretch;
               }
             `}
           >

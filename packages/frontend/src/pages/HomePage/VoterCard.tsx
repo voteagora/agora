@@ -13,6 +13,8 @@ import { Link } from "../../components/HammockRouter/Link";
 import { UserIcon, PencilIcon } from "@heroicons/react/20/solid";
 import { ReactNode } from "react";
 import { useEnsAvatar } from "wagmi";
+import { BigNumber } from "ethers";
+import { pluralizeNoun, pluralizeVote } from "../../words";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
@@ -42,6 +44,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
 
         delegate {
           id
+          delegatedVotesRaw
           nounsRepresented {
             __typename
           }
@@ -53,6 +56,14 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
       }
     `,
     fragmentRef
+  );
+
+  const nounsRepresented = BigNumber.from(
+    delegate?.delegate?.delegatedVotesRaw ?? "0"
+  );
+
+  const votesCast = BigNumber.from(
+    delegate.delegate?.voteSummary?.totalVotes ?? 0
   );
 
   return (
@@ -111,14 +122,14 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           >
             <TitleDetail
               icon={<UserIcon />}
-              label="nouns represented"
-              value={delegate.delegate?.nounsRepresented?.length ?? 0}
+              detail={`${pluralizeNoun(nounsRepresented)} represented`}
+              value={nounsRepresented.toString()}
             />
 
             <TitleDetail
               icon={<PencilIcon />}
-              label="votes cast"
-              value={delegate.delegate?.voteSummary?.totalVotes ?? 0}
+              detail={`${pluralizeVote(votesCast)} cast`}
+              value={votesCast.toString()}
             />
           </HStack>
         </HStack>
@@ -150,11 +161,11 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
 
 type TitleDetailProps = {
   icon: ReactNode;
-  label: string;
-  value: number;
+  detail: string;
+  value: string;
 };
 
-function TitleDetail({ label, value, icon }: TitleDetailProps) {
+function TitleDetail({ detail, value, icon }: TitleDetailProps) {
   return (
     <HStack
       gap="1"
@@ -197,7 +208,7 @@ function TitleDetail({ label, value, icon }: TitleDetailProps) {
           "test"
         )}
       >
-        {value} {label}
+        {detail}
       </div>
     </HStack>
   );

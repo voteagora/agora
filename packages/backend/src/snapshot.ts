@@ -1,21 +1,42 @@
 import { ethers } from "ethers";
+import {
+  NNSENSReverseResolver,
+  NounsDAOLogicV1__factory,
+  NounsToken__factory,
+} from "./contracts/generated";
+import { NounsDAOLogicV1Interface } from "./contracts/generated/NounsDAOLogicV1";
+import { NounsTokenInterface } from "./contracts/generated/NounsToken";
+import { resolveNameFromAddress } from "./utils/resolveName";
 import { ENSGovernor__factory, ENSToken__factory } from "./contracts/generated";
 import { ENSGovernorInterface } from "./contracts/generated/ENSGovernor";
 import { ENSTokenInterface } from "./contracts/generated/ENSToken";
 import { BigNumber } from "ethers";
+import { ToucanInterface, withSentryScope } from "./sentry";
+import { getAllLogs } from "./events";
+import { fetchAuctions, fetchAuctionsResponse } from "./propHouse";
+import { z } from "zod";
+import { nounsDao, nounsToken } from "./contracts";
 
-interface TypedInterface extends ethers.utils.Interface {
+export interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
 }
 
+export function makeContractInstance<InterfaceType extends TypedInterface>(
+  t: ContractInstance<InterfaceType>
+): ContractInstance<InterfaceType> {
+  return t;
+}
+
+type ContractInstance<InterfaceType extends TypedInterface> = {
+  iface: InterfaceType;
+  address: string;
+  startingBlock: number;
+};
 type ReducerDefinition<
   InterfaceType extends TypedInterface,
   Accumulator,
   RawState
-> = {
-  iface: InterfaceType;
-  address: string;
-  startingBlock: number;
+> = ContractInstance<InterfaceType> & {
   eventHandlers: EventHandler<InterfaceType, Accumulator>[];
 } & StorageDefinition<Accumulator, RawState>;
 
@@ -26,7 +47,6 @@ type StorageDefinition<State, RawState> = {
   encodeState: (state: State) => RawState;
 };
 
-// @ts-ignore
 type EventHandler<InterfaceType extends TypedInterface, Accumulator> = {
   [K in keyof InterfaceType["events"] & string]: {
     signature: K;
@@ -39,7 +59,7 @@ type EventHandler<InterfaceType extends TypedInterface, Accumulator> = {
       log: ethers.providers.Log
     ) => Promise<Accumulator> | Accumulator;
   };
-}[keyof InterfaceType["events"]];
+}[keyof InterfaceType["events"] & string];
 
 type EventFragmentArg<T> = T extends ethers.utils.EventFragment<infer Args>
   ? Args
@@ -182,11 +202,17 @@ export type Snapshot = {
 };
 
 export function parseStorage(rawValue: Record<string, any>): Snapshot {
-  return Object.fromEntries(
-    storages.map((storage) => {
-      return [storage.name, storage.decodeState(rawValue[storage.name].state)];
-    })
-  ) as any;
+  return {
+    ...rawValue,
+    ...(Object.fromEntries(
+      storages.map((storage) => {
+        return [
+          storage.name,
+          storage.decodeState(rawValue[storage.name].state),
+        ];
+      })
+    ) as any),
+  };
 }
 
 export function makeReducers(): ReducerDefinition<any, any, any>[] {
@@ -397,19 +423,175 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
   return [tokensReducer, governorReducer];
 }
 
-export function filterForEventHandlers(
-  reducer: ReducerDefinition<any, any, any>
+type Signatures<InterfaceType extends TypedInterface> = {
+  [K in keyof InterfaceType["events"] & string]: K;
+}[keyof InterfaceType["events"] & string][];
+
+type TypedEventFilter<
+    InterfaceType extends TypedInterface,
+    SignaturesType extends Signatures<InterfaceType>
+    > = {
+  instance: ContractInstance<InterfaceType>;
+  signatures: SignaturesType;
+  filter: ethers.EventFilter;
+};
+
+export function typedEventFilter<
+    InterfaceType extends TypedInterface,
+    SignaturesType extends Signatures<InterfaceType>
+    >(
+    instance: ContractInstance<InterfaceType>,
+    signatures: SignaturesType
+): TypedEventFilter<InterfaceType, SignaturesType> {
+  return {
+    instance,
+    signatures,
+    filter: filterForEventHandlers(instance, signatures),
+  };
+}
+
+export type EventTypeForSignatures<
+    InterfaceType extends TypedInterface,
+    SignaturesType extends Signatures<InterfaceType>
+    > = {
+  [K in SignaturesType[number]]: ethers.utils.LogDescription<
+      K,
+      EventFragmentArg<InterfaceType["events"][K]>
+      >;
+}[SignaturesType[number]];
+
+export type TypedLogEvent<
+    InterfaceType extends TypedInterface,
+    SignaturesType extends Signatures<InterfaceType>
+    > = {
+  log: ethers.providers.Log;
+  event: EventTypeForSignatures<InterfaceType, SignaturesType>;
+};
+
+export async function getTypedLogs<
+    InterfaceType extends TypedInterface,
+    SignaturesType extends Signatures<InterfaceType>
+    >(
+    provider: ethers.providers.Provider,
+    eventFilter: TypedEventFilter<InterfaceType, SignaturesType>,
+    latestBlockNumber: number,
+    startBlock: number
+): Promise<TypedLogEvent<InterfaceType, SignaturesType>[]> {
+  const { logs } = await getAllLogs(
+      provider,
+      eventFilter.filter,
+      latestBlockNumber,
+      startBlock
+  );
+
+  return logs.map((log) => ({
+    log,
+    event: eventFilter.instance.iface.parseLog(log) as any,
+  }));
+}
+
+export function filterForEventHandlers<InterfaceType extends TypedInterface>(
+    instance: ContractInstance<InterfaceType>,
+    signatures: Signatures<InterfaceType>
 ): ethers.EventFilter {
   return {
-    address: reducer.address,
+    address: instance.address,
     topics: [
-      reducer.eventHandlers.flatMap((handler) => {
-        const fragment = ethers.utils.EventFragment.fromString(
-          handler.signature
-        );
-
+      signatures.flatMap((signature) => {
+        const fragment = ethers.utils.EventFragment.fromString(signature);
         return ethers.utils.Interface.getEventTopic(fragment);
       }),
     ],
   };
+}
+
+async function updateSnapshotForIndexers<Snapshot extends any>(
+    sentry: ToucanInterface,
+    provider: ethers.providers.Provider,
+    resolver: NNSENSReverseResolver,
+    snapshot: Snapshot
+): Promise<Snapshot> {
+  const reducers = makeReducers(provider, resolver);
+  // todo: this doesn't handle forks correctly
+  const latestBlockNumber = await provider.getBlockNumber();
+
+  for (const reducer of reducers) {
+    const filter = filterForEventHandlers(
+        reducer,
+        reducer.eventHandlers.map((handler) => handler.signature)
+    );
+    const snapshotValue = snapshot[reducer.name];
+    let state = (() => {
+      if (snapshotValue) {
+        return reducer.decodeState(snapshotValue.state);
+      }
+
+      return reducer.initialState();
+    })();
+
+    const { logs, latestBlockFetched } = await getAllLogs(
+        provider,
+        filter,
+        latestBlockNumber,
+        snapshotValue?.block ?? reducer.startingBlock
+    );
+
+    let idx = 0;
+    for (const log of logs) {
+      console.log({ idx, logs: logs.length });
+      await withSentryScope(sentry, async (scope) => {
+        const event = reducer.iface.parseLog(log);
+        const eventHandler = reducer.eventHandlers.find(
+            (e) => e.signature === event.signature
+        );
+
+        try {
+          state = await eventHandler.reduce(state, event, log);
+        } catch (e) {
+          scope.setExtras({
+            event,
+            log,
+            logs: logs.length,
+            idx,
+          });
+          sentry.captureException(e);
+        }
+        idx++;
+      });
+    }
+
+    snapshot[reducer.name] = {
+      state: reducer.encodeState(state),
+      block: latestBlockFetched,
+    };
+  }
+
+  return snapshot;
+}
+
+export async function updateSnapshot<Snapshot extends any>(
+    sentry: ToucanInterface,
+    provider: ethers.providers.Provider,
+    resolver: NNSENSReverseResolver,
+    snapshot: Snapshot
+): Promise<Snapshot> {
+  const items = await Promise.allSettled([
+    updateSnapshotForIndexers(sentry, provider, resolver, snapshot),
+  ]);
+
+  return items.reduce((acc, item) => {
+    switch (item.status) {
+      case "fulfilled":
+        return {
+          ...acc,
+          ...(item.value as any),
+        };
+
+      case "rejected":
+        sentry.captureException(item.reason);
+        return {
+          ...acc,
+        };
+    }
+  }, {}) as Snapshot;
 }

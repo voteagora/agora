@@ -48,10 +48,22 @@ export function makeGatewaySchema() {
       address: {
         async resolve(_, { addressOrEnsName }, { snapshot }) {
           if (ethers.utils.isAddress(addressOrEnsName)) {
-            return { address: addressOrEnsName.toLowerCase() };
+            const address = addressOrEnsName.toLowerCase();
+            return { address };
+          }
+
+          const foundMapping = Array.from(
+            snapshot.NounsToken.addressToEnsName.entries()
+          ).find(([, ensName]) => ensName === addressOrEnsName);
+          if (foundMapping) {
+            const [address] = foundMapping;
+            return { address };
           } else {
-            // todo: handle ens names
-            throw new Error("not an address");
+            const address = await resolveEnsOrNnsName(
+              addressOrEnsName,
+              provider
+            );
+            return { address };
           }
         },
       },
@@ -213,15 +225,15 @@ export function makeGatewaySchema() {
     },
 
     ResolvedName: {
-      name({ address }, _args) {
-        return null;
-      },
-    },
+      async name({ address }, _args, { snapshot }) {
+        const fromSnapshot = snapshot.NounsToken.addressToEnsName.get(
+          address.toLowerCase()
+        );
+        if (typeof fromSnapshot !== "undefined") {
+          return fromSnapshot;
+        }
 
-    Delegate: {
-      // @ts-ignore
-      votingPower({ represented }) {
-        return represented.toString();
+        return await resolveNameFromAddress(address, resolver, provider);
       },
     },
 
@@ -393,6 +405,10 @@ export function makeGatewaySchema() {
         [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
           if (fieldName !== "id") {
             return fieldConfig;
+          }
+
+          if (typeName === "Governance" && fieldName === "id") {
+            return null;
           }
 
           return {

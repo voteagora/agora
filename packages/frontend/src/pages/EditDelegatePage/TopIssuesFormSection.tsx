@@ -187,6 +187,9 @@ type DropdownProps = {
 };
 
 export const dropdownContainerStyles = css`
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   position: relative;
 `;
 
