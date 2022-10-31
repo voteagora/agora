@@ -3,6 +3,11 @@
     "types": ["@cloudflare/workers-types", "@types/jest"],
     "target": "ES2022",
     "module": "commonjs",
-    "moduleResolution": "node"
-  }
+    "moduleResolution": "node",
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "./src"
+  ]
 }
