@@ -1,9 +1,9 @@
-import { Executor } from "@graphql-tools/utils";
+import { ethers } from "ethers";
 import { z } from "zod";
 import { formSchema } from "./formSchema";
 import { ValidatedMessage } from "./utils/signing";
 import { CacheDependencies, Span } from "./utils/cache";
-import { Snapshot } from "./snapshot";
+import { ENSAccount, Snapshot } from "./snapshot";
 
 export type Address = {
   address: string;
@@ -70,3 +70,11 @@ export type AgoraContextType = {
   cache: CacheDependencies;
   emailStorage: EmailStorage;
 };
+
+export type Account = ENSAccount & {
+  address: string;
+};
+
+export { Proposal } from "./snapshot";
+
+export type VotingPower = ethers.BigNumber;

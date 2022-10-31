@@ -38,14 +38,21 @@ export async function resolveEnsOrNnsName(
       )
     );
   } else {
-    return resolveName(
-      name,
-      ENSRegistryWithFallback__factory.connect(
-        "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
-        provider
-      )
-    );
+    await resolveEnsName(name, provider);
   }
+}
+
+export async function resolveEnsName(
+  name: string,
+  provider: ethers.providers.Provider
+) {
+  return resolveName(
+    name,
+    ENSRegistryWithFallback__factory.connect(
+      "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
+      provider
+    )
+  );
 }
 
 async function resolveName(

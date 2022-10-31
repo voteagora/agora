@@ -7,26 +7,69 @@ import {
 import { mergeResolvers } from "@graphql-tools/merge";
 import {
   defaultFieldResolver,
+  GraphQLScalarType,
   GraphQLSchema,
   responsePathAsArray,
 } from "graphql";
 import { BigNumber, ethers } from "ethers";
 import {
+  QueryWrappedDelegatesArgs,
   Resolvers,
   WrappedDelegatesOrder,
   WrappedDelegatesWhere,
 } from "./generated/types";
 import { formSchema } from "./formSchema";
-import { AgoraContextType, TracingContext } from "./model";
+import { Account, AgoraContextType, TracingContext } from "./model";
 import schema from "./schema.graphql";
 import { marked } from "marked";
 import { validateSigned } from "./utils/signing";
 import { Span } from "@cloudflare/workers-honeycomb-logger";
+import { resolveEnsName } from "./utils/resolveName";
+import { Snapshot } from "./snapshot";
+
+// todo: fix everything in here
+// todo: __typename
+// todo: overviewmetricscontainer
 
 export function makeGatewaySchema() {
   const provider = new ethers.providers.CloudflareProvider();
 
+  const amountSpec = {
+    currency: "ENS",
+    decimals: 18,
+  };
+
+  function getAccount(address: string, snapshot: Snapshot): Account {
+    const account = snapshot.ENSToken.accounts.get(address);
+    if (!account) {
+      return null;
+    }
+
+    return {
+      ...account,
+      address,
+    };
+  }
+
   const typedResolvers: Resolvers = {
+    BigInt: new GraphQLScalarType({
+      name: "BigInt",
+      serialize(value: ethers.BigNumber) {
+        return value.toString();
+      },
+      parseValue(value) {
+        return ethers.BigNumber.from(value);
+      },
+    }),
+    Timestamp: new GraphQLScalarType({
+      name: "Timestamp",
+      serialize(value: Date) {
+        return +value;
+      },
+      parseValue(value: number) {
+        new Date(value);
+      },
+    }),
     Query: {
       address: {
         async resolve(_, { addressOrEnsName }, { snapshot }) {
@@ -35,27 +78,17 @@ export function makeGatewaySchema() {
             return { address };
           }
 
-          const foundMapping = Array.from(
-            snapshot.NounsToken.addressToEnsName.entries()
-          ).find(([, ensName]) => ensName === addressOrEnsName);
-          if (foundMapping) {
-            const [address] = foundMapping;
-            return { address };
-          } else {
-            const address = await resolveEnsOrNnsName(
-              addressOrEnsName,
-              provider
-            );
-            return { address };
-          }
+          const address = await resolveEnsName(addressOrEnsName, provider);
+          return {
+            address: address.toLowerCase(),
+          };
         },
       },
 
       async wrappedDelegates(
         _,
-        { where, orderBy, first, after },
-        context,
-        info
+        { where, orderBy, first, after }: QueryWrappedDelegatesArgs,
+        context
       ) {
         const { statementStorage, snapshot } = context;
 
@@ -182,6 +215,10 @@ export function makeGatewaySchema() {
           },
         };
       },
+
+      proposals(_parent, _args, { snapshot }) {
+        return Array.from(snapshot.ENSGovernor.proposals.values());
+      },
     },
 
     Address: {
@@ -205,18 +242,96 @@ export function makeGatewaySchema() {
           delegateStatementExists: null,
         };
       },
+
+      account({ address }, _args, { snapshot }) {
+        return getAccount(address, snapshot);
+      },
     },
 
     ResolvedName: {
       async name({ address }, _args, { snapshot }) {
-        const fromSnapshot = snapshot.NounsToken.addressToEnsName.get(
-          address.toLowerCase()
-        );
-        if (typeof fromSnapshot !== "undefined") {
-          return fromSnapshot;
-        }
+        // todo: implement
+        return null;
+      },
+    },
 
-        return await resolveNameFromAddress(address, resolver, provider);
+    Account: {
+      id({ address }) {
+        return `Account|${address}`;
+      },
+      address({ address }) {
+        return {
+          address,
+        };
+      },
+
+      amountOwned({ balance }) {
+        return balance;
+      },
+
+      delegatingTo({ delegatingTo }, _args, { snapshot }) {
+        return getAccount(delegatingTo, snapshot);
+      },
+    },
+
+    Delegate: {
+      id({ address }) {
+        return `Delegate:${address}`;
+      },
+
+      address({ address }) {
+        return {
+          address,
+        };
+      },
+
+      tokenHoldersRepresented({ representing }, _args, { snapshot }) {
+        return representing.map((address) => getAccount(address, snapshot));
+      },
+
+      delegateMetrics() {
+        // todo: implement
+        return {
+          totalVotes: 0,
+          forVotes: 0,
+          againstVotes: 0,
+          abstainVotes: 0,
+          ofLastTenProps: 0,
+          proposalsCreated: 0,
+        };
+      },
+
+      proposed() {
+        // todo: implement
+        return [];
+      },
+
+      votes() {
+        // todo: implement
+        return [];
+      },
+
+      tokensRepresented({ represented }) {
+        return represented;
+      },
+    },
+
+    VotingPower: {
+      amount(value) {
+        return {
+          amount: value,
+          ...amountSpec,
+        };
+      },
+
+      bpsOfTotal(value) {
+        // todo: implement
+        return 0;
+      },
+
+      bpsOfQuorum(value) {
+        // todo: implement
+        return 0;
       },
     },
 

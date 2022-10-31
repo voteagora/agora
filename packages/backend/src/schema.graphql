@@ -69,7 +69,7 @@ type DelegateMetrics {
 
 type TokenAmount {
   amount: BigInt!
-  currency: BigInt!
+  currency: String!
   decimals: Int!
 }
 
