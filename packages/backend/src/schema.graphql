@@ -2,6 +2,7 @@ scalar BigInt
 
 type Query {
   address(addressOrEnsName: String!): Address
+
   wrappedDelegates(
     where: WrappedDelegatesWhere
     orderBy: WrappedDelegatesOrder! = mostRelevant
@@ -14,6 +15,7 @@ type Query {
 
 type Address {
   resolvedName: ResolvedName!
+  account: Account
   wrappedDelegate: WrappedDelegate!
   isContract: Boolean!
 }
@@ -25,13 +27,27 @@ type ResolvedName {
 
 type WrappedDelegate {
   id: ID!
+  address: Address!
   statement: DelegateStatement
 
   delegate: Delegate
 }
 
 type Delegate {
-  votingPower: BigInt!
+  id: ID!
+  totalVotingPower: BigInt!
+  tokenHoldersRepresented: [Account!]!
+}
+
+# Ownership and delegation information about an address.
+type Account {
+  address: Address!
+
+  amountOwned: BigInt!
+
+  # Delegate where voting power has been delegated. Can be delegated to a
+  # delegate with the same address as the account.
+  delegatingTo: Delegate!
 }
 
 type DelegateStatement {
@@ -80,6 +96,8 @@ type PageInfo {
 }
 
 type Proposal {
+  id: ID!
+  number: Int!
   title: String!
   totalVotes: BigInt!
 }

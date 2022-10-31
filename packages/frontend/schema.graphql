@@ -8,6 +8,7 @@ type Query {
 
 type Address {
   resolvedName: ResolvedName!
+  account: Account
   wrappedDelegate: WrappedDelegate!
   isContract: Boolean!
 }
@@ -19,12 +20,21 @@ type ResolvedName {
 
 type WrappedDelegate {
   id: ID!
+  address: Address!
   statement: DelegateStatement
   delegate: Delegate
 }
 
 type Delegate {
-  votingPower: BigInt!
+  id: ID!
+  totalVotingPower: BigInt!
+  tokenHoldersRepresented: [Account!]!
+}
+
+type Account {
+  address: Address!
+  amountOwned: BigInt!
+  delegatingTo: Delegate!
 }
 
 type DelegateStatement {
@@ -73,6 +83,8 @@ type PageInfo {
 }
 
 type Proposal {
+  id: ID!
+  number: Int!
   title: String!
   totalVotes: BigInt!
 }
