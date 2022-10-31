@@ -3,8 +3,6 @@
   "version": "0.1.0",
   "name": "nouns-agora-backend",
   "scripts": {
-    "build-post-discord-updates": "esbuild --bundle --sourcemap src/bin/postDiscordUpdates.ts --platform=node --outfile=dist/postDiscordUpdates.js",
-    "post-discord-updates": "node dist/postDiscordUpdates.js",
     "build-generate-schema": "esbuild --bundle --sourcemap src/bin/generateSchema.ts --outfile=dist/generateSchema.js --loader:.graphql=text",
     "generate-schema": "node dist/generateSchema.js > ../frontend/schema.graphql",
     "download-events": "ts-node src/bin/downloadEvents.ts",
