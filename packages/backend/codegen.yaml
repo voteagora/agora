@@ -4,11 +4,22 @@ generates:
     plugins:
       - "@graphql-codegen/typescript"
       - "@graphql-codegen/typescript-resolvers"
+      - add:
+          content: "import { ethers } from 'ethers'"
     config:
+      avoidOptionals: true
       contextType: ../model#AgoraContextType
+      strictScalars: true
+      scalars:
+        BigInt: ethers.BigNumber
+        Timestamp: Date
       mappers:
         Address: ../model#Address as AddressModel
         ResolvedName: ../model#ResolvedName as ResolvedNameModel
         WrappedDelegate: ../model#WrappedDelegate as WrappedDelegateModel
         DelegateStatement: ../model#DelegateStatement as DelegateStatementModel
+        Proposal: ../model#Proposal as ProposalModel
+        Account: ../model#Account as AccountModel
+        VotingPower: ../model#VotingPower as VotingPowerModel
+        Delegate: ../model#Account as DelegateModel
 

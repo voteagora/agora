@@ -1,21 +1,11 @@
 import { ethers } from "ethers";
-import {
-  NNSENSReverseResolver,
-  NounsDAOLogicV1__factory,
-  NounsToken__factory,
-} from "./contracts/generated";
-import { NounsDAOLogicV1Interface } from "./contracts/generated/NounsDAOLogicV1";
-import { NounsTokenInterface } from "./contracts/generated/NounsToken";
-import { resolveNameFromAddress } from "./utils/resolveName";
+import { NNSENSReverseResolver } from "./contracts/generated";
 import { ENSGovernor__factory, ENSToken__factory } from "./contracts/generated";
 import { ENSGovernorInterface } from "./contracts/generated/ENSGovernor";
 import { ENSTokenInterface } from "./contracts/generated/ENSToken";
 import { BigNumber } from "ethers";
 import { ToucanInterface, withSentryScope } from "./sentry";
 import { getAllLogs } from "./events";
-import { fetchAuctions, fetchAuctionsResponse } from "./propHouse";
-import { z } from "zod";
-import { nounsDao, nounsToken } from "./contracts";
 
 export interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
@@ -138,7 +128,7 @@ const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> = {
   },
 };
 
-type Proposal = {
+export type Proposal = {
   id: string;
   proposer: string;
   startBlock: BigNumber;
@@ -428,20 +418,20 @@ type Signatures<InterfaceType extends TypedInterface> = {
 }[keyof InterfaceType["events"] & string][];
 
 type TypedEventFilter<
-    InterfaceType extends TypedInterface,
-    SignaturesType extends Signatures<InterfaceType>
-    > = {
+  InterfaceType extends TypedInterface,
+  SignaturesType extends Signatures<InterfaceType>
+> = {
   instance: ContractInstance<InterfaceType>;
   signatures: SignaturesType;
   filter: ethers.EventFilter;
 };
 
 export function typedEventFilter<
-    InterfaceType extends TypedInterface,
-    SignaturesType extends Signatures<InterfaceType>
-    >(
-    instance: ContractInstance<InterfaceType>,
-    signatures: SignaturesType
+  InterfaceType extends TypedInterface,
+  SignaturesType extends Signatures<InterfaceType>
+>(
+  instance: ContractInstance<InterfaceType>,
+  signatures: SignaturesType
 ): TypedEventFilter<InterfaceType, SignaturesType> {
   return {
     instance,
@@ -451,37 +441,37 @@ export function typedEventFilter<
 }
 
 export type EventTypeForSignatures<
-    InterfaceType extends TypedInterface,
-    SignaturesType extends Signatures<InterfaceType>
-    > = {
+  InterfaceType extends TypedInterface,
+  SignaturesType extends Signatures<InterfaceType>
+> = {
   [K in SignaturesType[number]]: ethers.utils.LogDescription<
-      K,
-      EventFragmentArg<InterfaceType["events"][K]>
-      >;
+    K,
+    EventFragmentArg<InterfaceType["events"][K]>
+  >;
 }[SignaturesType[number]];
 
 export type TypedLogEvent<
-    InterfaceType extends TypedInterface,
-    SignaturesType extends Signatures<InterfaceType>
-    > = {
+  InterfaceType extends TypedInterface,
+  SignaturesType extends Signatures<InterfaceType>
+> = {
   log: ethers.providers.Log;
   event: EventTypeForSignatures<InterfaceType, SignaturesType>;
 };
 
 export async function getTypedLogs<
-    InterfaceType extends TypedInterface,
-    SignaturesType extends Signatures<InterfaceType>
-    >(
-    provider: ethers.providers.Provider,
-    eventFilter: TypedEventFilter<InterfaceType, SignaturesType>,
-    latestBlockNumber: number,
-    startBlock: number
+  InterfaceType extends TypedInterface,
+  SignaturesType extends Signatures<InterfaceType>
+>(
+  provider: ethers.providers.Provider,
+  eventFilter: TypedEventFilter<InterfaceType, SignaturesType>,
+  latestBlockNumber: number,
+  startBlock: number
 ): Promise<TypedLogEvent<InterfaceType, SignaturesType>[]> {
   const { logs } = await getAllLogs(
-      provider,
-      eventFilter.filter,
-      latestBlockNumber,
-      startBlock
+    provider,
+    eventFilter.filter,
+    latestBlockNumber,
+    startBlock
   );
 
   return logs.map((log) => ({
@@ -491,8 +481,8 @@ export async function getTypedLogs<
 }
 
 export function filterForEventHandlers<InterfaceType extends TypedInterface>(
-    instance: ContractInstance<InterfaceType>,
-    signatures: Signatures<InterfaceType>
+  instance: ContractInstance<InterfaceType>,
+  signatures: Signatures<InterfaceType>
 ): ethers.EventFilter {
   return {
     address: instance.address,
@@ -506,10 +496,10 @@ export function filterForEventHandlers<InterfaceType extends TypedInterface>(
 }
 
 async function updateSnapshotForIndexers<Snapshot extends any>(
-    sentry: ToucanInterface,
-    provider: ethers.providers.Provider,
-    resolver: NNSENSReverseResolver,
-    snapshot: Snapshot
+  sentry: ToucanInterface,
+  provider: ethers.providers.Provider,
+  resolver: NNSENSReverseResolver,
+  snapshot: Snapshot
 ): Promise<Snapshot> {
   const reducers = makeReducers(provider, resolver);
   // todo: this doesn't handle forks correctly
@@ -517,8 +507,8 @@ async function updateSnapshotForIndexers<Snapshot extends any>(
 
   for (const reducer of reducers) {
     const filter = filterForEventHandlers(
-        reducer,
-        reducer.eventHandlers.map((handler) => handler.signature)
+      reducer,
+      reducer.eventHandlers.map((handler) => handler.signature)
     );
     const snapshotValue = snapshot[reducer.name];
     let state = (() => {
@@ -530,10 +520,10 @@ async function updateSnapshotForIndexers<Snapshot extends any>(
     })();
 
     const { logs, latestBlockFetched } = await getAllLogs(
-        provider,
-        filter,
-        latestBlockNumber,
-        snapshotValue?.block ?? reducer.startingBlock
+      provider,
+      filter,
+      latestBlockNumber,
+      snapshotValue?.block ?? reducer.startingBlock
     );
 
     let idx = 0;
@@ -542,7 +532,7 @@ async function updateSnapshotForIndexers<Snapshot extends any>(
       await withSentryScope(sentry, async (scope) => {
         const event = reducer.iface.parseLog(log);
         const eventHandler = reducer.eventHandlers.find(
-            (e) => e.signature === event.signature
+          (e) => e.signature === event.signature
         );
 
         try {
@@ -570,10 +560,10 @@ async function updateSnapshotForIndexers<Snapshot extends any>(
 }
 
 export async function updateSnapshot<Snapshot extends any>(
-    sentry: ToucanInterface,
-    provider: ethers.providers.Provider,
-    resolver: NNSENSReverseResolver,
-    snapshot: Snapshot
+  sentry: ToucanInterface,
+  provider: ethers.providers.Provider,
+  resolver: NNSENSReverseResolver,
+  snapshot: Snapshot
 ): Promise<Snapshot> {
   const items = await Promise.allSettled([
     updateSnapshotForIndexers(sentry, provider, resolver, snapshot),
