@@ -1,5 +1,4 @@
 import { ethers } from "ethers";
-import { NNSENSReverseResolver } from "./contracts/generated";
 import { ENSGovernor__factory, ENSToken__factory } from "./contracts/generated";
 import { ENSGovernorInterface } from "./contracts/generated/ENSGovernor";
 import { ENSTokenInterface } from "./contracts/generated/ENSToken";
@@ -467,14 +466,18 @@ export async function getTypedLogs<
   latestBlockNumber: number,
   startBlock: number
 ): Promise<TypedLogEvent<InterfaceType, SignaturesType>[]> {
-  const { logs } = await getAllLogs(
+  let allLogs = [];
+
+  for await (const logs of getAllLogs(
     provider,
     eventFilter.filter,
     latestBlockNumber,
     startBlock
-  );
+  )) {
+    allLogs.push(...logs);
+  }
 
-  return logs.map((log) => ({
+  return allLogs.map((log) => ({
     log,
     event: eventFilter.instance.iface.parseLog(log) as any,
   }));
@@ -498,10 +501,9 @@ export function filterForEventHandlers<InterfaceType extends TypedInterface>(
 async function updateSnapshotForIndexers<Snapshot extends any>(
   sentry: ToucanInterface,
   provider: ethers.providers.Provider,
-  resolver: NNSENSReverseResolver,
   snapshot: Snapshot
 ): Promise<Snapshot> {
-  const reducers = makeReducers(provider, resolver);
+  const reducers = makeReducers();
   // todo: this doesn't handle forks correctly
   const latestBlockNumber = await provider.getBlockNumber();
 
@@ -519,40 +521,39 @@ async function updateSnapshotForIndexers<Snapshot extends any>(
       return reducer.initialState();
     })();
 
-    const { logs, latestBlockFetched } = await getAllLogs(
+    let idx = 0;
+    for await (const logs of getAllLogs(
       provider,
       filter,
       latestBlockNumber,
       snapshotValue?.block ?? reducer.startingBlock
-    );
+    )) {
+      for (const log of logs) {
+        await withSentryScope(sentry, async (scope) => {
+          const event = reducer.iface.parseLog(log);
+          const eventHandler = reducer.eventHandlers.find(
+            (e) => e.signature === event.signature
+          );
 
-    let idx = 0;
-    for (const log of logs) {
-      console.log({ idx, logs: logs.length });
-      await withSentryScope(sentry, async (scope) => {
-        const event = reducer.iface.parseLog(log);
-        const eventHandler = reducer.eventHandlers.find(
-          (e) => e.signature === event.signature
-        );
-
-        try {
-          state = await eventHandler.reduce(state, event, log);
-        } catch (e) {
-          scope.setExtras({
-            event,
-            log,
-            logs: logs.length,
-            idx,
-          });
-          sentry.captureException(e);
-        }
-        idx++;
-      });
+          try {
+            state = await eventHandler.reduce(state, event, log);
+          } catch (e) {
+            scope.setExtras({
+              event,
+              log,
+              logs: logs.length,
+              idx,
+            });
+            sentry.captureException(e);
+          }
+          idx++;
+        });
+      }
     }
 
     snapshot[reducer.name] = {
       state: reducer.encodeState(state),
-      block: latestBlockFetched,
+      block: latestBlockNumber,
     };
   }
 
@@ -562,11 +563,10 @@ async function updateSnapshotForIndexers<Snapshot extends any>(
 export async function updateSnapshot<Snapshot extends any>(
   sentry: ToucanInterface,
   provider: ethers.providers.Provider,
-  resolver: NNSENSReverseResolver,
   snapshot: Snapshot
 ): Promise<Snapshot> {
   const items = await Promise.allSettled([
-    updateSnapshotForIndexers(sentry, provider, resolver, snapshot),
+    updateSnapshotForIndexers(sentry, provider, snapshot),
   ]);
 
   return items.reduce((acc, item) => {

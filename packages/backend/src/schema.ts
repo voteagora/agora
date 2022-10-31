@@ -253,6 +253,10 @@ export function makeGatewaySchema() {
         // todo: implement
         return null;
       },
+
+      address({ address }) {
+        return address;
+      },
     },
 
     Account: {
@@ -338,6 +342,12 @@ export function makeGatewaySchema() {
     WrappedDelegate: {
       id({ address }) {
         return address;
+      },
+
+      address({ address }) {
+        return {
+          address,
+        };
       },
 
       delegate({ underlyingDelegate, address }, args, { snapshot }, info) {

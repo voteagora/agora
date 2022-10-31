@@ -3,44 +3,7 @@ import {
   ENSAddressResolver__factory,
   ENSRegistryWithFallback,
   ENSRegistryWithFallback__factory,
-  NNSENSReverseResolver,
 } from "../contracts/generated";
-
-export async function resolveNameFromAddress(
-  address: string,
-  resolver: NNSENSReverseResolver,
-  provider: ethers.providers.Provider
-): Promise<string | null> {
-  const resolved = await resolver.resolve(address);
-  if (!resolved) {
-    return null;
-  }
-
-  const forwardResolvedAddress = await resolveEnsOrNnsName(resolved, provider);
-
-  if (address.toLowerCase() !== forwardResolvedAddress?.toLowerCase()) {
-    return null;
-  }
-
-  return resolved;
-}
-
-export async function resolveEnsOrNnsName(
-  name: string,
-  provider: ethers.providers.Provider
-): Promise<string | null> {
-  if (name.endsWith(".⌐◨-◨")) {
-    return resolveName(
-      name,
-      ENSRegistryWithFallback__factory.connect(
-        "0x3e1970dC478991b49c4327973eA8A4862eF5A4DE",
-        provider
-      )
-    );
-  } else {
-    await resolveEnsName(name, provider);
-  }
-}
 
 export async function resolveEnsName(
   name: string,
