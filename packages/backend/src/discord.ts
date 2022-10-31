@@ -128,9 +128,9 @@ async function* blocksToMessages(
                   )} Prop #${
                     event.args.proposalId
                   } with ${event.args.votes.toString()} votes`,
+                  description: event.args.reason,
                   timestamp: blockTimestamp.toISOString(),
                   fields: [
-                    { name: "Reason", value: event.args.reason },
                     {
                       name: "Proposal",
                       value: `[Prop #${event.args.proposalId}](https://nouns.wtf/vote/${event.args.proposalId})`,
