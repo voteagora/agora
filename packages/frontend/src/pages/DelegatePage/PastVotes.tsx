@@ -22,9 +22,13 @@ export function PastVotes({ fragment }: Props) {
   const { votes, propHouseVotes } = useFragment(
     graphql`
       fragment PastVotesFragment on Delegate {
-        votes(orderBy: blockNumber, orderDirection: desc) {
+        votes {
           id
-          createdAt
+          transaction {
+            block {
+              timestamp
+            }
+          }
           proposal {
             totalValue
           }

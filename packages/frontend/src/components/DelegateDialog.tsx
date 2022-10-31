@@ -5,7 +5,6 @@ import { useFragment } from "react-relay";
 import { inset0 } from "../theme";
 import * as theme from "../theme";
 import { HStack, VStack } from "./VStack";
-import { NounGridChildren } from "./NounGrid";
 import { shadow } from "../pages/DelegatePage/VoterPanel";
 import { useAccount, useContractWrite, usePrepareContractWrite } from "wagmi";
 import { ArrowDownIcon } from "@heroicons/react/20/solid";
@@ -14,7 +13,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
 import { DelegateDialogQuery } from "./__generated__/DelegateDialogQuery.graphql";
 import { DelegateDialogFragment$key } from "./__generated__/DelegateDialogFragment.graphql";
-import { NounGridFragment$data } from "./__generated__/NounGridFragment.graphql";
 import { icons } from "../icons/icons";
 import { NounResolvedLink } from "./NounResolvedLink";
 import { NounsToken__factory } from "../contracts/generated";
@@ -113,11 +111,7 @@ function DelegateDialogContents({
           }
 
           account {
-            tokenBalance
-            nouns {
-              id
-              ...NounImageFragment
-            }
+            amountOwned
           }
         }
       }
@@ -139,11 +133,7 @@ function DelegateDialogContents({
         }
 
         delegate {
-          delegatedVotesRaw
-          nounsRepresented {
-            id
-            ...NounImageFragment
-          }
+          totalVotingPower
 
           tokenHoldersRepresented {
             address {
@@ -228,10 +218,7 @@ function DelegateDialogContents({
               <VStack gap="3" alignItems="center">
                 <div>Delegating your nouns</div>
 
-                <NounsDisplay
-                  nouns={address.account.nouns}
-                  totalNouns={Number(address.account.tokenBalance)}
-                />
+                {/* todo: show balance */}
               </VStack>
             );
           }
@@ -280,12 +267,7 @@ function DelegateDialogContents({
           </VStack>
         </VStack>
 
-        <NounsDisplay
-          totalNouns={Number(
-            wrappedDelegate.delegate?.delegatedVotesRaw ?? "0"
-          )}
-          nouns={wrappedDelegate.delegate?.nounsRepresented ?? []}
-        />
+        {/* todo: show balance here */}
 
         <NounResolvedLink resolvedName={wrappedDelegate.address.resolvedName} />
       </VStack>
@@ -358,36 +340,3 @@ const DelegateButton = ({ children, onClick }: DelegateButtonProps) => {
     </div>
   );
 };
-
-type NounsDisplayProps = {
-  totalNouns: number;
-  nouns: NounGridFragment$data["nounsRepresented"];
-};
-
-function NounsDisplay({ nouns, totalNouns }: NounsDisplayProps) {
-  const columns = 6;
-  const imageSize = "8";
-  const gapSize = "2";
-
-  return (
-    <HStack
-      justifyContent="center"
-      gap={gapSize}
-      className={css`
-        max-width: calc(
-          ${theme.spacing[imageSize]} * ${columns} + ${theme.spacing[gapSize]} *
-            ${columns - 1}
-        );
-        flex-wrap: wrap;
-      `}
-    >
-      <NounGridChildren
-        totalNouns={totalNouns}
-        count={6 * 8 + 1}
-        nouns={nouns}
-        imageSize={imageSize}
-        overflowFontSize="xs"
-      />
-    </HStack>
-  );
-}
