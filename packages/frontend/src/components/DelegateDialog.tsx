@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay";
@@ -5,9 +6,8 @@ import { inset0 } from "../theme";
 import * as theme from "../theme";
 import { HStack, VStack } from "./VStack";
 import { NounGridChildren } from "./NounGrid";
-import { NounResolvedName } from "./NounResolvedName";
 import { shadow } from "../pages/DelegatePage/VoterPanel";
-import { useAccount } from "wagmi";
+import { useAccount, useContractWrite, usePrepareContractWrite } from "wagmi";
 import { ArrowDownIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
 import { AnimatePresence, motion } from "framer-motion";
@@ -16,15 +16,20 @@ import { DelegateDialogQuery } from "./__generated__/DelegateDialogQuery.graphql
 import { DelegateDialogFragment$key } from "./__generated__/DelegateDialogFragment.graphql";
 import { NounGridFragment$data } from "./__generated__/NounGridFragment.graphql";
 import { icons } from "../icons/icons";
+import { NounResolvedLink } from "./NounResolvedLink";
+import { NounsToken__factory } from "../contracts/generated";
+import { ReactNode } from "react";
 
 export function DelegateDialog({
   fragment,
   isOpen,
   closeDialog,
+  completeDelegation,
 }: {
   fragment: DelegateDialogFragment$key;
   isOpen: boolean;
   closeDialog: () => void;
+  completeDelegation: () => void;
 }) {
   return (
     <>
@@ -52,31 +57,40 @@ export function DelegateDialog({
           position: fixed;
           ${inset0};
 
-          box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.16),
-            0px 2px 2px rgba(0, 0, 0, 0.08);
-
           display: flex;
-          align-items: center;
+          flex-direction: column;
+          align-content: stretch;
           justify-content: center;
         `}
       >
-        <Dialog.Panel
-          as={motion.div}
-          initial={{
-            scale: 0.9,
-            translateY: theme.spacing["8"],
-          }}
-          animate={{ translateY: 0, scale: 1 }}
+        <VStack
+          alignItems="center"
           className={css`
-            width: 100%;
-            max-width: ${theme.maxWidth.md};
-            background: ${theme.colors.white};
-            border-radius: ${theme.spacing["3"]};
-            padding: ${theme.spacing["6"]};
+            padding: ${theme.spacing["8"]};
+            overflow-y: scroll;
           `}
         >
-          <DelegateDialogContents fragment={fragment} />
-        </Dialog.Panel>
+          <Dialog.Panel
+            as={motion.div}
+            initial={{
+              scale: 0.9,
+              translateY: theme.spacing["8"],
+            }}
+            animate={{ translateY: 0, scale: 1 }}
+            className={css`
+              width: 100%;
+              max-width: ${theme.maxWidth.md};
+              background: ${theme.colors.white};
+              border-radius: ${theme.spacing["3"]};
+              padding: ${theme.spacing["6"]};
+            `}
+          >
+            <DelegateDialogContents
+              fragment={fragment}
+              completeDelegation={completeDelegation}
+            />
+          </Dialog.Panel>
+        </VStack>
       </Dialog>
     </>
   );
@@ -84,15 +98,22 @@ export function DelegateDialog({
 
 function DelegateDialogContents({
   fragment,
+  completeDelegation,
 }: {
   fragment: DelegateDialogFragment$key;
+  completeDelegation: () => void;
 }) {
   const { address: accountAddress } = useAccount();
   const { address } = useLazyLoadQuery<DelegateDialogQuery>(
     graphql`
       query DelegateDialogQuery($address: String!, $skip: Boolean!) {
         address(addressOrEnsName: $address) @skip(if: $skip) {
+          resolvedName {
+            address
+          }
+
           account {
+            tokenBalance
             nouns {
               id
               ...NounImageFragment
@@ -113,20 +134,47 @@ function DelegateDialogContents({
         address {
           resolvedName {
             address
-            ...NounResolvedNameFragment
+            ...NounResolvedLinkFragment
           }
         }
 
         delegate {
+          delegatedVotesRaw
           nounsRepresented {
             id
             ...NounImageFragment
+          }
+
+          tokenHoldersRepresented {
+            address {
+              resolvedName {
+                address
+              }
+            }
           }
         }
       }
     `,
     fragment
   );
+
+  // todo: share contract address configuration
+  const { config } = usePrepareContractWrite({
+    addressOrName: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03",
+    contractInterface: NounsToken__factory.createInterface(),
+    functionName: "delegate",
+    args: [wrappedDelegate.address.resolvedName.address],
+    onError(e) {
+      Sentry.captureException(e);
+    },
+  });
+
+  const { write } = useContractWrite({
+    ...config,
+    onSuccess() {
+      completeDelegation();
+    },
+  });
 
   return (
     <VStack gap="8" alignItems="stretch">
@@ -144,37 +192,50 @@ function DelegateDialogContents({
           font-size: ${theme.fontSize.xs};
         `}
       >
-        {!address ? (
-          <VStack gap="3" alignItems="center">
-            <div>Delegating your nouns</div>
+        {(() => {
+          if (!address) {
+            return (
+              <VStack gap="3" alignItems="center">
+                <div>Delegating your nouns</div>
 
-            <HStack>
-              <img
-                alt="anon noun"
+                <HStack>
+                  <img
+                    alt="anon noun"
+                    className={css`
+                      width: ${theme.spacing["8"]};
+                      height: ${theme.spacing["8"]};
+                    `}
+                    src={icons.anonNoun}
+                  />
+                </HStack>
+              </VStack>
+            );
+          }
+
+          if (!address?.account?.nouns.length) {
+            return (
+              <div
                 className={css`
-                  width: ${theme.spacing["8"]};
-                  height: ${theme.spacing["8"]};
+                  padding: ${theme.spacing["12"]};
+                  padding-bottom: ${theme.spacing["4"]};
                 `}
-                src={icons.anonNoun}
-              />
-            </HStack>
-          </VStack>
-        ) : address?.account?.nouns.length ? (
-          <VStack gap="3" alignItems="center">
-            <div>Delegating your nouns</div>
+              >
+                You don't have any nouns to delegate
+              </div>
+            );
+          } else {
+            return (
+              <VStack gap="3" alignItems="center">
+                <div>Delegating your nouns</div>
 
-            <NounsDisplay nouns={address.account.nouns} />
-          </VStack>
-        ) : (
-          <div
-            className={css`
-              padding: ${theme.spacing["12"]};
-              padding-bottom: ${theme.spacing["4"]};
-            `}
-          >
-            You don’t have any nouns to delegate
-          </div>
-        )}
+                <NounsDisplay
+                  nouns={address.account.nouns}
+                  totalNouns={Number(address.account.tokenBalance)}
+                />
+              </VStack>
+            );
+          }
+        })()}
 
         <VStack
           className={css`
@@ -220,43 +281,90 @@ function DelegateDialogContents({
         </VStack>
 
         <NounsDisplay
+          totalNouns={Number(
+            wrappedDelegate.delegate?.delegatedVotesRaw ?? "0"
+          )}
           nouns={wrappedDelegate.delegate?.nounsRepresented ?? []}
         />
 
-        <NounResolvedName resolvedName={wrappedDelegate.address.resolvedName} />
+        <NounResolvedLink resolvedName={wrappedDelegate.address.resolvedName} />
       </VStack>
 
-      {(!address || !!address?.account?.nouns.length) && (
-        <a
-          href={`https://nouns.wtf/delegate?to=${wrappedDelegate.address.resolvedName.address}`}
-          className={css`
-            text-align: center;
-            border-radius: ${theme.spacing["2"]};
-            border: 1px solid ${theme.colors.gray.eb};
-            font-weight: ${theme.fontWeight.semibold};
-            padding: ${theme.spacing["4"]} 0;
+      {(() => {
+        if (!address) {
+          return <DelegateButton>Connect Wallet</DelegateButton>;
+        }
 
-            :hover {
-              background: ${theme.colors.gray.eb};
-            }
-          `}
-        >
-          {address ? (
-            <>Delegate {address?.account?.nouns?.length} votes</>
-          ) : (
-            <>Delegate your nouns</>
-          )}
-        </a>
-      )}
+        if (!address?.account?.nouns.length) {
+          return null;
+        }
+
+        const addressesRepresented =
+          wrappedDelegate?.delegate?.tokenHoldersRepresented.map(
+            (holder) => holder.address.resolvedName.address
+          ) ?? [];
+        const alreadyDelegated = addressesRepresented.includes(
+          address.resolvedName.address
+        );
+
+        if (alreadyDelegated) {
+          return <DelegateButton>You're already delegated!</DelegateButton>;
+        }
+
+        return (
+          <DelegateButton onClick={() => write?.()}>
+            {address ? (
+              <>Delegate {address?.account?.nouns?.length} votes</>
+            ) : (
+              <>Delegate your nouns</>
+            )}
+          </DelegateButton>
+        );
+      })()}
     </VStack>
   );
 }
 
+type DelegateButtonProps = {
+  onClick?: () => void;
+  children: ReactNode;
+};
+
+const DelegateButton = ({ children, onClick }: DelegateButtonProps) => {
+  return (
+    <div
+      onClick={onClick}
+      className={css`
+        text-align: center;
+        border-radius: ${theme.spacing["2"]};
+        border: 1px solid ${theme.colors.gray.eb};
+        font-weight: ${theme.fontWeight.semibold};
+        padding: ${theme.spacing["4"]} 0;
+        cursor: pointer;
+
+        ${!onClick &&
+        css`
+          background: ${theme.colors.gray.eb};
+          color: ${theme.colors.gray["700"]};
+          cursor: not-allowed;
+        `}
+
+        :hover {
+          background: ${theme.colors.gray.eb};
+        }
+      `}
+    >
+      {children}
+    </div>
+  );
+};
+
 type NounsDisplayProps = {
+  totalNouns: number;
   nouns: NounGridFragment$data["nounsRepresented"];
 };
 
-function NounsDisplay({ nouns }: NounsDisplayProps) {
+function NounsDisplay({ nouns, totalNouns }: NounsDisplayProps) {
   const columns = 6;
   const imageSize = "8";
   const gapSize = "2";
@@ -274,10 +382,11 @@ function NounsDisplay({ nouns }: NounsDisplayProps) {
       `}
     >
       <NounGridChildren
-        count={Infinity}
+        totalNouns={totalNouns}
+        count={6 * 8 + 1}
         nouns={nouns}
         imageSize={imageSize}
-        overflowFontSize="base"
+        overflowFontSize="xs"
       />
     </HStack>
   );

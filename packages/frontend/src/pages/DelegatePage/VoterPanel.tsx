@@ -23,6 +23,7 @@ import { useStartTransition } from "../../components/HammockRouter/HammockRouter
 import toast from "react-hot-toast";
 import { DelegateProfileImage } from "../HomePage/VoterCard";
 import { BigNumber } from "ethers";
+import { pluralizeAddresses, pluralizeNoun } from "../../words";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -80,6 +81,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           orderBy: createdBlock
           orderDirection: desc
           first: 10
+          where: { status_not_in: [CANCELLED, VETOED, PENDING] }
         ) {
           id
         }
@@ -136,7 +138,9 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           <PanelRow
             title={"Nouns represented"}
             detail={
-              !delegate ? "N/A" : `${Number(delegate.delegatedVotes)} noun`
+              !delegate
+                ? "N/A"
+                : pluralizeNoun(BigNumber.from(delegate.delegatedVotes))
             }
           />
 
@@ -235,6 +239,7 @@ function DelegateFromList({
       fragment VoterPanelDelegateFromListFragment on Delegate {
         tokenHoldersRepresented {
           id
+          tokenBalance
 
           address {
             resolvedName {
@@ -275,7 +280,7 @@ function DelegateFromList({
                 user-select: none;
               `}
             >
-              <div>{tokenHolders.length} addresses</div>
+              <div>{pluralizeAddresses(tokenHolders.length)}</div>
               <ChevronDownIcon
                 aria-hidden="true"
                 className={css`
@@ -314,6 +319,7 @@ function DelegateFromList({
               `}
             >
               <NounGridChildren
+                totalNouns={Number(holder.tokenBalance)}
                 count={5}
                 nouns={holder.nouns}
                 overflowFontSize="xs"
@@ -417,6 +423,9 @@ function DelegateButton({
         fragment={wrappedDelegate}
         isOpen={isDialogOpen}
         closeDialog={() => setDialogOpen(false)}
+        completeDelegation={() => {
+          setDialogOpen(false);
+        }}
       />
 
       <button
@@ -528,13 +537,19 @@ function NameSection({ resolvedName }: NameSectionProps) {
 export const shadow =
   "0px 4px 12px rgba(0, 0, 0, 0.02), 0px 2px 2px rgba(0, 0, 0, 0.03);";
 
-function descendingValueComparator<T>(
+export type Comparator<T> = (a: T, b: T) => number;
+
+export function descendingValueComparator<T>(
   getValueFor: (item: T) => number
-): (a: T, b: T) => number {
+): Comparator<T> {
   return (a, b) => {
     const aValue = getValueFor(a);
     const bValue = getValueFor(b);
 
     return bValue - aValue;
   };
+}
+
+export function flipComparator<T>(toFlip: Comparator<T>): Comparator<T> {
+  return (a, b) => toFlip(b, a);
 }
