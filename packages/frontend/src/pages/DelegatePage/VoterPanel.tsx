@@ -3,7 +3,6 @@ import graphql from "babel-plugin-relay/macro";
 import { intersection } from "../../utils/set";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { NounGridChildren } from "../../components/NounGrid";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { VoterPanelDelegateFragment$key } from "./__generated__/VoterPanelDelegateFragment.graphql";
 import { VoterPanelQueryFragment$key } from "./__generated__/VoterPanelQueryFragment.graphql";
@@ -45,7 +44,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
           delegate {
             id
 
-            delegatedVotes
+            totalVotingPower
             ...VoterPanelDelegateFromListFragment
 
             voteSummary {
@@ -54,7 +53,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
               abstainVotes
             }
 
-            votes(orderBy: blockNumber, orderDirection: desc) {
+            votes {
               id
 
               proposal {
@@ -239,17 +238,12 @@ function DelegateFromList({
       fragment VoterPanelDelegateFromListFragment on Delegate {
         tokenHoldersRepresented {
           id
-          tokenBalance
+          amountOwned
 
           address {
             resolvedName {
               ...NounResolvedLinkFragment
             }
-          }
-
-          nouns {
-            id
-            ...NounImageFragment
           }
         }
       }
@@ -318,13 +312,7 @@ function DelegateFromList({
                 flex-shrink: 0;
               `}
             >
-              <NounGridChildren
-                totalNouns={Number(holder.tokenBalance)}
-                count={5}
-                nouns={holder.nouns}
-                overflowFontSize="xs"
-                imageSize="6"
-              />
+              {/* todo: show balance */}
             </HStack>
           </HStack>
         ))}

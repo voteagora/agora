@@ -2,7 +2,6 @@ import { css } from "@emotion/css";
 import * as Sentry from "@sentry/react";
 import * as theme from "../theme";
 import logo from "../logo.svg";
-import { NounGridChildren } from "./NounGrid";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { PageHeaderFragment$key } from "./__generated__/PageHeaderFragment.graphql";
@@ -134,33 +133,28 @@ function PageHeaderContents() {
         </Link>
       )}
 
-      {address && <OwnedNounsPanel fragment={address} />}
+      {address && <OwnedValuePanel fragment={address} />}
     </HStack>
   );
 }
 
-type OwnedNounsPanelProps = {
+type OwnedValuePanelProps = {
   fragment: PageHeaderFragment$key;
 };
 
-function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
+function OwnedValuePanel({ fragment }: OwnedValuePanelProps) {
   const { account } = useFragment(
     graphql`
       fragment PageHeaderFragment on Address {
         account {
-          tokenBalance
-
-          nouns {
-            id
-            ...NounImageFragment
-          }
+          amountOwned
         }
       }
     `,
     fragment
   );
 
-  if (!account || !account.nouns.length) {
+  if (!account) {
     return null;
   }
 
@@ -182,13 +176,7 @@ function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
           padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
         `}
       >
-        <NounGridChildren
-          count={4}
-          totalNouns={Number(account.tokenBalance)}
-          nouns={account.nouns}
-          imageSize={"5"}
-          overflowFontSize={"sm"}
-        />
+        {/* todo: change to display balance */}
       </HStack>
     </HStack>
   );

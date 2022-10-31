@@ -4,7 +4,6 @@ import { css, cx } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql";
 import { NounResolvedName } from "../../components/NounResolvedName";
-import { NounsRepresentedGrid } from "../../components/NounGrid";
 import { HStack, VStack } from "../../components/VStack";
 import { icons } from "../../icons/icons";
 import { VoterPanelActions } from "../DelegatePage/VoterPanel";
@@ -44,10 +43,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
 
         delegate {
           id
-          delegatedVotesRaw
-          nounsRepresented {
-            __typename
-          }
+          totalVotingPower
 
           voteSummary {
             totalVotes
@@ -228,13 +224,6 @@ export function DelegateProfileImage({
           resolvedName {
             address
           }
-        }
-        delegate {
-          nounsRepresented {
-            id
-          }
-
-          ...NounGridFragment
         }
       }
     `,

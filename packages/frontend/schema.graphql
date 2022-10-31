@@ -9,6 +9,7 @@ type Query {
 }
 
 type Vote {
+  id: ID!
   reason: String!
   supportDetailed: Int!
   votes: BigInt!
@@ -48,17 +49,39 @@ type WrappedDelegate {
   delegate: Delegate
 }
 
+type VotesSummary {
+  totalVotes: Int!
+  forVotes: Int!
+  againstVotes: Int!
+  abstainVotes: Int!
+}
+
+type TokenAmount {
+  amount: BigInt!
+  currency: BigInt!
+  decimals: Int!
+}
+
+type VotingPower {
+  amount: TokenAmount!
+  bpsOfQuorum: Int!
+  bpsOfTotal: Int!
+}
+
 type Delegate {
   id: ID!
   address: Address!
-  totalVotingPower: BigInt!
+  represented: VotingPower!
   tokenHoldersRepresented: [Account!]!
+  proposed: [Proposal!]!
+  votes: [Vote!]!
+  voteSummary: VotesSummary!
 }
 
 type Account {
   id: ID!
   address: Address!
-  amountOwned: BigInt!
+  owned: VotingPower!
   delegatingTo: Delegate!
 }
 
