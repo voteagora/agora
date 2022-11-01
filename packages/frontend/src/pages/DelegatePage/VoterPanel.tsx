@@ -1,17 +1,15 @@
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { intersection } from "../../utils/set";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { VoterPanelDelegateFragment$key } from "./__generated__/VoterPanelDelegateFragment.graphql";
-import { VoterPanelQueryFragment$key } from "./__generated__/VoterPanelQueryFragment.graphql";
 import { icons } from "../../icons/icons";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 import { HStack, VStack } from "../../components/VStack";
 import { VoterPanelDelegateButtonFragment$key } from "./__generated__/VoterPanelDelegateButtonFragment.graphql";
 import { VoterPanelActionsFragment$key } from "./__generated__/VoterPanelActionsFragment.graphql";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { VoterPanelDelegateFromListFragment$key } from "./__generated__/VoterPanelDelegateFromListFragment.graphql";
 import { VoterPanelNameSectionFragment$key } from "./__generated__/VoterPanelNameSectionFragment.graphql";
@@ -21,15 +19,14 @@ import { DelegateDialog } from "../../components/DelegateDialog";
 import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
 import toast from "react-hot-toast";
 import { DelegateProfileImage } from "../HomePage/VoterCard";
-import { BigNumber } from "ethers";
-import { pluralizeAddresses, pluralizeNoun } from "../../words";
+import { pluralizeAddresses } from "../../words";
+import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
-  queryFragment: VoterPanelQueryFragment$key;
 };
 
-export function VoterPanel({ delegateFragment, queryFragment }: Props) {
+export function VoterPanel({ delegateFragment }: Props) {
   const address = useFragment(
     graphql`
       fragment VoterPanelDelegateFragment on Address {
@@ -43,6 +40,12 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
 
           delegate {
             id
+
+            delegateMetrics {
+              totalVotes
+              ofTotalProps
+              proposalsCreated
+            }
 
             tokensRepresented {
               __typename
@@ -65,10 +68,6 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
   );
 
   const delegate = address.wrappedDelegate.delegate;
-
-  const quorumVotes = BigNumber.from(metrics.quorumVotesBPS)
-    .mul(currentGovernance.delegatedVotes)
-    .div(100 * 100);
 
   return (
     <VStack
@@ -103,83 +102,39 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
 
         <div className={panelRowContainerStyles}>
           <PanelRow
-            title={"Nouns represented"}
-            detail={
-              !delegate
-                ? "N/A"
-                : pluralizeNoun(BigNumber.from(delegate.delegatedVotes))
-            }
-          />
-
-          <PanelRow
             title="Proposals voted"
             detail={
               !delegate
                 ? "N/A"
-                : `${delegate.votes.length} (${(
-                    (delegate.votes.length /
-                      Number(currentGovernance.proposals)) *
-                    100
-                  ).toFixed(0)}%)`
+                : `${delegate.delegateMetrics.totalVotes} (${delegate.delegateMetrics.ofTotalProps}%)`
             }
           />
 
           <PanelRow
-            title="Voting power"
+            title={"Voting Power"}
             detail={
               !delegate
                 ? "N/A"
-                : `${(
-                    (Number(delegate.delegatedVotes) /
-                      Number(currentGovernance.delegatedVotes)) *
-                    100
-                  ).toFixed(0)}% all / ${(
-                    (Number(delegate.delegatedVotes) / Number(quorumVotes)) *
-                    100
-                  ).toFixed(0)}% quorum`
+                : `${bpsToString(
+                    delegate.tokensRepresented.bpsOfTotal
+                  )} all / ${bpsToString(
+                    delegate.tokensRepresented.bpsOfQuorum
+                  )} quorum`
             }
           />
 
           <PanelRow
-            title="For / Against / Abstain"
-            detail={(() => {
-              if (!delegate) {
-                return "N/A";
-              }
-
-              return `${delegate.voteSummary.forVotes} / ${delegate.voteSummary.againstVotes} / ${delegate.voteSummary.abstainVotes}`;
-            })()}
-          />
-
-          {(() => {
-            if (!delegate) {
-              return <PanelRow title="Recent activity" detail={`N/A`} />;
+            title="Recent activity"
+            detail={
+              delegate
+                ? `${delegate.delegateMetrics.ofLastTenProps} of 10 last props`
+                : "N/A"
             }
-
-            const lastTenProposals = new Set(
-              recentProposals.slice(0, 10).map((proposal) => proposal.id)
-            );
-
-            const votedProposals = new Set(
-              delegate.votes.map((vote) => vote.proposal.id)
-            );
-
-            const recentParticipation = intersection(
-              lastTenProposals,
-              votedProposals
-            );
-
-            return (
-              <PanelRow
-                title="Recent activity"
-                detail={`${recentParticipation.size} of ${lastTenProposals.size} last props`}
-              />
-            );
-          })()}
+          />
 
           <PanelRow
             title="Proposals created"
-            detail={`${delegate?.proposals?.length ?? "N/A"}`}
+            detail={`${delegate?.delegateMetrics?.proposalsCreated ?? "N/A"}`}
           />
 
           {delegate && <DelegateFromList fragment={delegate} />}
@@ -207,7 +162,9 @@ function DelegateFromList({
         tokenHoldersRepresented {
           id
           amountOwned {
-            __typename
+            amount {
+              ...TokenAmountDisplayFragment
+            }
           }
 
           address {
@@ -220,13 +177,6 @@ function DelegateFromList({
     `,
     fragment
   );
-
-  const tokenHolders = useMemo(() => {
-    return tokenHoldersRepresented
-      .filter((holder) => !!holder.nouns.length)
-      .slice()
-      .sort(descendingValueComparator((item) => item.nouns.length));
-  }, [tokenHoldersRepresented]);
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -244,7 +194,7 @@ function DelegateFromList({
                 user-select: none;
               `}
             >
-              <div>{pluralizeAddresses(tokenHolders.length)}</div>
+              <div>{pluralizeAddresses(tokenHoldersRepresented.length)}</div>
               <ChevronDownIcon
                 aria-hidden="true"
                 className={css`
@@ -264,7 +214,7 @@ function DelegateFromList({
       />
 
       {isExpanded &&
-        tokenHolders.map((holder) => (
+        tokenHoldersRepresented.map((holder) => (
           <HStack justifyContent="space-between">
             <div
               className={css`
@@ -282,7 +232,7 @@ function DelegateFromList({
                 flex-shrink: 0;
               `}
             >
-              {/* todo: show balance */}
+              <TokenAmountDisplay fragment={holder.amountOwned.amount} />
             </HStack>
           </HStack>
         ))}
@@ -508,6 +458,6 @@ export function descendingValueComparator<T>(
   };
 }
 
-export function flipComparator<T>(toFlip: Comparator<T>): Comparator<T> {
-  return (a, b) => toFlip(b, a);
+function bpsToString(bps: number) {
+  return `${bps / 100}`;
 }

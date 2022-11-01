@@ -55,6 +55,7 @@ type DelegateMetrics {
   againstVotes: Int!
   abstainVotes: Int!
   ofLastTenProps: Int!
+  ofTotalProps: Int!
   proposalsCreated: Int!
 }
 

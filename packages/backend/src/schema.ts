@@ -307,6 +307,7 @@ export function makeGatewaySchema() {
           againstVotes: 0,
           abstainVotes: 0,
           ofLastTenProps: 0,
+          ofTotalProps: 0,
           proposalsCreated: 0,
         };
       },
