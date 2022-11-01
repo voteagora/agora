@@ -23,11 +23,42 @@ type Props = {
 
 const orderNames: { [K in WrappedDelegatesOrder]?: string } = {
   mostRelevant: "Most relevant",
-  mostNounsRepresented: "Most nouns represented",
-  mostRecentlyActive: "Most recently active",
-  mostVotesCast: "Most votes cast",
-  leastVotesCast: "Least votes cast",
+  mostActive: "Most active",
+  mostVotingPower: "Most voting power",
 };
+
+const filterNames = [
+  {
+    title: "View all",
+    value: null,
+  },
+  {
+    title: "View with statement",
+    value: "withStatement" as const,
+  },
+  {
+    title: "View seeking delegation",
+    value: "seekingDelegation" as const,
+  },
+];
+
+export function parseOrderName(
+  orderName: string
+): WrappedDelegatesOrder | null {
+  if (orderName in orderNames) {
+    return orderName as any;
+  }
+
+  return null;
+}
+
+export function parseFilterName(
+  filterName: string
+): WrappedDelegatesWhere | null {
+  return (
+    filterNames.find((filter) => filter.value === filterName)?.value ?? null
+  );
+}
 
 export function DelegatesContainer({ fragmentKey, variables }: Props) {
   const [isPending, startTransition] = useTransition();
@@ -126,20 +157,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
           >
             <Selector
               items={
-                [
-                  {
-                    title: "View all",
-                    value: null,
-                  },
-                  {
-                    title: "View with statement",
-                    value: "withStatement" as const,
-                  },
-                  {
-                    title: "View seeking delegation",
-                    value: "seekingDelegation" as const,
-                  },
-                ] as SelectorItem<WrappedDelegatesWhere | null>[]
+                filterNames as SelectorItem<WrappedDelegatesWhere | null>[]
               }
               value={isPending ? localFilterBy : variables.filterBy}
               onChange={(filterBy) => {
