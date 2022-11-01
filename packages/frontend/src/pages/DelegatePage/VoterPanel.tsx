@@ -80,14 +80,16 @@ export function VoterPanel({ delegateFragment }: Props) {
       `}
     >
       <VStack
-        alignItems="center"
+        alignItems="stretch"
         className={css`
-          padding: ${theme.spacing["4"]};
+          padding: ${theme.spacing["6"]};
           border-bottom: ${theme.spacing.px} solid ${theme.colors.gray["300"]};
         `}
       >
-        <DelegateProfileImage fragment={address.wrappedDelegate} dense />
+        <DelegateProfileImage fragment={address.wrappedDelegate} />
       </VStack>
+
+      {/*  todo: for against abstain */}
 
       <div
         className={css`
@@ -98,9 +100,7 @@ export function VoterPanel({ delegateFragment }: Props) {
           `};
         `}
       >
-        <NameSection resolvedName={address.resolvedName} />
-
-        <div className={panelRowContainerStyles}>
+        <VStack gap="4">
           <PanelRow
             title="Proposals voted"
             detail={
@@ -139,13 +139,8 @@ export function VoterPanel({ delegateFragment }: Props) {
 
           {delegate && <DelegateFromList fragment={delegate} />}
 
-          <VoterPanelActions
-            className={css`
-              margin-top: ${theme.spacing["6"]};
-            `}
-            fragment={address.wrappedDelegate}
-          />
-        </div>
+          <VoterPanelActions fragment={address.wrappedDelegate} />
+        </VStack>
       </div>
     </VStack>
   );
@@ -156,9 +151,13 @@ function DelegateFromList({
 }: {
   fragment: VoterPanelDelegateFromListFragment$key;
 }) {
-  const { tokenHoldersRepresented } = useFragment(
+  const { delegateMetrics, tokenHoldersRepresented } = useFragment(
     graphql`
       fragment VoterPanelDelegateFromListFragment on Delegate {
+        delegateMetrics {
+          tokenHoldersRepresentedCount
+        }
+
         tokenHoldersRepresented {
           id
           amountOwned {
@@ -194,7 +193,11 @@ function DelegateFromList({
                 user-select: none;
               `}
             >
-              <div>{pluralizeAddresses(tokenHoldersRepresented.length)}</div>
+              <div>
+                {pluralizeAddresses(
+                  delegateMetrics.tokenHoldersRepresentedCount
+                )}
+              </div>
               <ChevronDownIcon
                 aria-hidden="true"
                 className={css`
@@ -298,6 +301,7 @@ export function VoterPanelActions({
           )}
         </HStack>
       )}
+
       <DelegateButton
         fragment={wrappedDelegate}
         full={!statement || (!statement.twitter && !statement.discord)}
@@ -356,13 +360,6 @@ function DelegateButton({
   );
 }
 
-const panelRowContainerStyles = css`
-  display: flex;
-  flex-direction: column;
-  margin-top: ${theme.spacing["6"]};
-  gap: ${theme.spacing["2"]};
-`;
-
 type PanelRowProps = {
   title: string;
   detail: ReactNode;
@@ -382,7 +379,7 @@ const PanelRow = ({ title, detail }: PanelRowProps) => {
       <span
         className={css`
           font-size: ${theme.fontSize.sm};
-          color: #66676b;
+          color: #4f4f4f;
           text-align: right;
         `}
       >
