@@ -17,6 +17,7 @@ type Query {
 type Vote {
   id: ID!
   reason: String!
+  # todo: this should be an enum
   supportDetailed: Int!
   votes: BigInt!
 
@@ -151,7 +152,7 @@ type PageInfo {
 
 type Proposal {
   id: ID!
-  number: Int!
+  number: BigInt!
   title: String!
   totalVotes: BigInt!
   votes: [Vote!]!

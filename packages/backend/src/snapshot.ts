@@ -128,7 +128,7 @@ const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> = {
 };
 
 export type Proposal = {
-  id: string;
+  id: BigNumber;
   proposer: string;
   startBlock: BigNumber;
   endBlock: BigNumber;
@@ -344,7 +344,7 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
 
         reduce(acc, event) {
           acc.proposals.set(event.args.proposalId.toString(), {
-            id: event.args.proposalId.toString(),
+            id: event.args.proposalId,
             proposer: event.args.proposer,
             startBlock: event.args.startBlock,
             endBlock: event.args.endBlock,
