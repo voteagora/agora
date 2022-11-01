@@ -134,7 +134,7 @@ type PageInfo {
 
 type Proposal {
   id: ID!
-  number: Int!
+  number: BigInt!
   title: String!
   totalVotes: BigInt!
   votes: [Vote!]!

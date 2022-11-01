@@ -51,6 +51,12 @@ export function makeGatewaySchema() {
     };
   }
 
+  function getVotesForProposal(proposalId: BigNumber, snapshot: Snapshot) {
+    return snapshot.ENSGovernor.votes.filter((vote) =>
+      vote.proposalId.eq(proposalId)
+    );
+  }
+
   const typedResolvers: Resolvers = {
     BigInt: new GraphQLScalarType({
       name: "BigInt",
@@ -348,6 +354,41 @@ export function makeGatewaySchema() {
 
       voter({ voter }, _args, { snapshot }) {
         return getAccount(voter, snapshot);
+      },
+    },
+
+    Proposal: {
+      id({ id }) {
+        return `Proposal|${id.toString()}`;
+      },
+
+      number({ id }) {
+        return id;
+      },
+
+      proposer({ proposer }, _args, { snapshot }) {
+        return getAccount(proposer, snapshot);
+      },
+
+      votes({ id }, _args, { snapshot }) {
+        return getVotesForProposal(id, snapshot);
+      },
+
+      totalValue({ values }) {
+        return values.reduce((acc, value) => acc.add(value), BigNumber.from(0));
+      },
+
+      title({ description }) {
+        return getTitleFromProposalDescription(description);
+      },
+
+      // todo: for and against too
+      totalVotes({ id }, _args, { snapshot }) {
+        const votes = getVotesForProposal(id, snapshot);
+        return votes.reduce(
+          (acc, vote) => acc.add(vote.weight),
+          BigNumber.from(0)
+        );
       },
     },
 
