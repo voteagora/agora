@@ -4,36 +4,21 @@ import { HomePageQuery } from "./__generated__/HomePageQuery.graphql";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
-import { DelegatesContainer } from "./DelegatesContainer";
+import {
+  DelegatesContainer,
+  parseFilterName,
+  parseOrderName,
+} from "./DelegatesContainer";
 import { VStack } from "../../components/VStack";
 import {
   useLocation,
   Location,
 } from "../../components/HammockRouter/HammockRouter";
 
-const filterByValidValues: HomePageQuery["variables"]["filterBy"][] = [
-  "seekingDelegation",
-  "withStatement",
-];
-
-const orderByValidValues: HomePageQuery["variables"]["orderBy"][] = [
-  "mostRelevant",
-  "mostNounsRepresented",
-  "leastVotesCast",
-  "mostRecentlyActive",
-  "mostVotesCast",
-];
-
 export function locationToVariables(location: Location) {
   return {
-    filterBy:
-      filterByValidValues.find(
-        (needle) => needle === location.search["filterBy"]
-      ) ?? null,
-    orderBy:
-      orderByValidValues.find(
-        (needle) => needle === location.search["orderBy"]
-      ) ?? "mostRelevant",
+    filterBy: parseFilterName(location.search["filterBy"]),
+    orderBy: parseOrderName(location.search["orderBy"]) ?? "mostRelevant",
   };
 }
 
