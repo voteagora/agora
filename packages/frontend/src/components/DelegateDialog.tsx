@@ -17,6 +17,7 @@ import { icons } from "../icons/icons";
 import { NounResolvedLink } from "./NounResolvedLink";
 import { NounsToken__factory } from "../contracts/generated";
 import { ReactNode } from "react";
+import { BigNumber, ethers } from "ethers";
 
 export function DelegateDialog({
   fragment,
@@ -112,7 +113,9 @@ function DelegateDialogContents({
 
           account {
             amountOwned {
-              __typename
+              amount {
+                amount
+              }
             }
           }
         }
@@ -170,6 +173,10 @@ function DelegateDialogContents({
     },
   });
 
+  const hasValueToDelegate = !BigNumber.from(
+    address?.account?.amountOwned?.amount?.amount ?? 0
+  ).isZero();
+
   return (
     <VStack gap="8" alignItems="stretch">
       <VStack
@@ -206,7 +213,7 @@ function DelegateDialogContents({
             );
           }
 
-          if (!address?.account?.nouns.length) {
+          if (!hasValueToDelegate) {
             return (
               <div
                 className={css`
@@ -214,7 +221,7 @@ function DelegateDialogContents({
                   padding-bottom: ${theme.spacing["4"]};
                 `}
               >
-                You don't have any nouns to delegate
+                You don't have any tokens to delegate
               </div>
             );
           } else {
@@ -281,7 +288,7 @@ function DelegateDialogContents({
           return <DelegateButton>Connect Wallet</DelegateButton>;
         }
 
-        if (!address?.account?.nouns.length) {
+        if (!hasValueToDelegate) {
           return null;
         }
 
@@ -298,13 +305,7 @@ function DelegateDialogContents({
         }
 
         return (
-          <DelegateButton onClick={() => write?.()}>
-            {address ? (
-              <>Delegate {address?.account?.nouns?.length} votes</>
-            ) : (
-              <>Delegate your nouns</>
-            )}
-          </DelegateButton>
+          <DelegateButton onClick={() => write?.()}>Delegate</DelegateButton>
         );
       })()}
     </VStack>
