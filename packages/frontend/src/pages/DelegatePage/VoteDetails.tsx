@@ -82,8 +82,10 @@ export function VoteDetails({ voteFragment }: Props) {
           >
             <a href={proposalHref}>Prop {vote.proposal.number}</a>
             <ValuePart value={vote.proposal.totalValue} />
-            {vote.createdAt &&
-              ` - ${formatDistanceToNow(parseCreatedAt(vote.createdAt))} ago`}
+            {vote.transaction.block.timestamp &&
+              ` - ${formatDistanceToNow(
+                new Date(vote.transaction.block.timestamp)
+              )} ago`}
           </div>
 
           <VoteTitle>
