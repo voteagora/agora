@@ -30,6 +30,7 @@ import { Snapshot } from "./snapshot";
 // todo: fix everything in here
 // todo: __typename
 // todo: overviewmetricscontainer
+// todo: decompose this file
 
 export function makeGatewaySchema() {
   const provider = new ethers.providers.CloudflareProvider();
@@ -344,8 +345,8 @@ export function makeGatewaySchema() {
         return support;
       },
 
-      transaction({ transactionHash }) {
-        return { transactionHash };
+      transaction({ blockHash, transactionHash }) {
+        return { blockHash, transactionHash };
       },
 
       votes({ weight }) {
@@ -382,7 +383,6 @@ export function makeGatewaySchema() {
         return getTitleFromProposalDescription(description);
       },
 
-      // todo: for and against too
       totalVotes({ id }, _args, { snapshot }) {
         const votes = getVotesForProposal(id, snapshot);
         return votes.reduce(
@@ -392,8 +392,33 @@ export function makeGatewaySchema() {
       },
     },
 
-    // todo: implement
-    Transaction: {},
+    Transaction: {
+      id({ transactionHash }) {
+        return `Transaction:${transactionHash}`;
+      },
+
+      hash({ transactionHash }) {
+        return transactionHash;
+      },
+
+      async block({ blockHash }) {
+        return await provider.getBlock(blockHash);
+      },
+    },
+
+    Block: {
+      id({ hash }) {
+        return `Block:${hash}`;
+      },
+
+      number({ number }) {
+        return BigNumber.from(number);
+      },
+
+      timestamp({ timestamp }) {
+        return new Date(timestamp);
+      },
+    },
 
     // todo: some of this stuff is in state
     VotingPower: {
@@ -546,37 +571,7 @@ export function makeGatewaySchema() {
     },
   };
 
-  const resolvers = mergeResolvers<unknown, AgoraContextType>([
-    typedResolvers,
-    {
-      Proposal: {
-        title: {
-          selectionSet: `{ description }`,
-          resolve({ description }) {
-            return getTitleFromProposalDescription(description);
-          },
-        },
-
-        totalVotes: {
-          selectionSet: `{ forVotes againstVotes abstainVotes }`,
-          resolve({
-            forVotes,
-            againstVotes,
-            abstainVotes,
-          }: {
-            forVotes: string;
-            againstVotes: string;
-            abstainVotes: string;
-          }) {
-            return BigNumber.from(forVotes)
-              .add(againstVotes)
-              .add(abstainVotes)
-              .toString();
-          },
-        },
-      },
-    },
-  ]);
+  const resolvers = typedResolvers;
 
   return attachTracingContextInjection(
     mapSchema(
