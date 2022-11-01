@@ -24,7 +24,7 @@ import schema from "./schema.graphql";
 import { marked } from "marked";
 import { validateSigned } from "./utils/signing";
 import { Span } from "@cloudflare/workers-honeycomb-logger";
-import { resolveEnsName } from "./utils/resolveName";
+import { resolveEnsName, resolveNameFromAddress } from "./utils/resolveName";
 import { Snapshot } from "./snapshot";
 
 // todo: fix everything in here
@@ -249,9 +249,8 @@ export function makeGatewaySchema() {
     },
 
     ResolvedName: {
-      async name({ address }, _args, { snapshot }) {
-        // todo: implement
-        return null;
+      async name({ address }) {
+        return await resolveNameFromAddress(address, provider);
       },
 
       address({ address }) {
