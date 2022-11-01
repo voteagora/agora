@@ -57,6 +57,7 @@ type DelegateMetrics {
   ofLastTenProps: Int!
   ofTotalProps: Int!
   proposalsCreated: Int!
+  tokenHoldersRepresentedCount: Int!
 }
 
 type TokenAmount {
@@ -113,6 +114,7 @@ enum WrappedDelegatesOrder {
   mostRelevant
   mostVotingPower
   mostActive
+  mostDelegates
 }
 
 type WrappedDelegatesConnection {

@@ -17,7 +17,7 @@ export type WrappedDelegate = {
   address: string;
 
   delegateStatementExists: boolean;
-  underlyingDelegate?: any;
+  underlyingDelegate?: Account;
 };
 
 export type DelegateStatement = {

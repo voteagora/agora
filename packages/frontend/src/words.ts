@@ -16,10 +16,16 @@ export function pluralizeVote(count: BigNumber) {
   }
 }
 
+const format = new Intl.NumberFormat("en", {
+  style: "decimal",
+  maximumSignificantDigits: 3,
+  notation: "compact",
+});
+
 export function pluralizeAddresses(count: number) {
   if (count === 1) {
     return "1 address";
   } else {
-    return `${count} addresses`;
+    return `${format.format(count).toLowerCase()} addresses`;
   }
 }

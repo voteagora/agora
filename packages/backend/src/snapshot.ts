@@ -96,9 +96,12 @@ const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> = {
       accounts: Array.from(acc.accounts.entries())
         .sort(([, a], [, b]) => (a.represented.gt(b.represented) ? -1 : 1))
         .map(([key, value]) => [
-          key,
+          key.toLowerCase(),
           {
             ...value,
+            representing: value.representing.map((address) =>
+              address.toLowerCase()
+            ),
             balance: value.balance.toString(),
             represented: value.represented.toString(),
           },
@@ -188,8 +191,12 @@ const governorStorage: StorageDefinition<GovernorState, any> = {
   },
 
   decodeState() {
-    return {} as any;
-    // throw new Error();
+    // todo: implement
+    return {
+      proposals: new Map(),
+      votes: [],
+      quorumNumerator: BigNumber.from(0),
+    };
   },
 };
 
@@ -356,8 +363,6 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
             calldatas: event.args.calldatas,
 
             status: { type: "CREATED" },
-
-            votes: [],
           });
 
           return acc;

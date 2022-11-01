@@ -4,7 +4,6 @@ import {
   extractFirstParagraph,
   getTitleFromProposalDescription,
 } from "./utils/markdown";
-import { mergeResolvers } from "@graphql-tools/merge";
 import {
   defaultFieldResolver,
   GraphQLScalarType,
@@ -26,6 +25,7 @@ import { validateSigned } from "./utils/signing";
 import { Span } from "@cloudflare/workers-honeycomb-logger";
 import { resolveEnsName, resolveNameFromAddress } from "./utils/resolveName";
 import { Snapshot } from "./snapshot";
+import { descendingValueComparator } from "./utils/sorting";
 
 // todo: fix everything in here
 // todo: __typename
@@ -111,7 +111,7 @@ export function makeGatewaySchema() {
         type NormalizedDelegate = {
           id: string;
           delegateStatementExists: boolean;
-          delegatedDelegate: any | null;
+          delegatedDelegate: Account | null;
         };
 
         const remoteDelegateSet = new Set(
@@ -171,6 +171,13 @@ export function makeGatewaySchema() {
 
         const sortedDelegates = (() => {
           switch (orderBy) {
+            case WrappedDelegatesOrder.MostDelegates:
+              return filteredDelegates.sort(
+                descendingValueComparator(
+                  (it) => it.delegatedDelegate.representing.length
+                )
+              );
+
             case WrappedDelegatesOrder.MostRelevant:
               const { hasStatements, withoutStatements } =
                 filteredDelegates.reduce(
@@ -286,7 +293,7 @@ export function makeGatewaySchema() {
 
     Delegate: {
       id({ address }) {
-        return `Delegate:${address}`;
+        return `Delegate|${address}`;
       },
 
       address({ address }) {
@@ -296,12 +303,17 @@ export function makeGatewaySchema() {
       },
 
       tokenHoldersRepresented({ representing }, _args, { snapshot }) {
-        return representing.map((address) => getAccount(address, snapshot));
+        // todo: paginate?
+        return representing
+          .map((address) => getAccount(address, snapshot))
+          .sort((a, b) => (b.balance.lt(a.balance) ? -1 : 1))
+          .slice(0, 10);
       },
 
-      delegateMetrics() {
+      delegateMetrics({ representing }) {
         // todo: implement
         return {
+          tokenHoldersRepresentedCount: representing.length,
           totalVotes: 0,
           forVotes: 0,
           againstVotes: 0,
@@ -457,8 +469,7 @@ export function makeGatewaySchema() {
           return underlyingDelegate;
         }
 
-        const account = snapshot.ENSToken.accounts.get(address);
-        return account;
+        return getAccount(address, snapshot);
       },
 
       async statement(
