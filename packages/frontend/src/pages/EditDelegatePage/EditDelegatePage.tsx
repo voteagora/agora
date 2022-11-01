@@ -113,5 +113,5 @@ function LazyVoterPanel({ address }: LazyVoterPanelProps) {
     return <Navigate to="/" />;
   }
 
-  return <VoterPanel delegateFragment={query.address} queryFragment={query} />;
+  return <VoterPanel delegateFragment={query.address} />;
 }
