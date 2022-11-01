@@ -88,7 +88,7 @@ export function DelegatePage() {
             }
           `}
         >
-          <VoterPanel delegateFragment={query.address} queryFragment={query} />
+          <VoterPanel delegateFragment={query.address} />
 
           {!wrappedDelegate.statement && (
             <div
