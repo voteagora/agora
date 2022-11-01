@@ -304,14 +304,16 @@ export function makeGatewaySchema() {
         };
       },
 
-      proposed() {
-        // todo: implement
-        return [];
+      proposed({ address }, _args, { snapshot }) {
+        return Array.from(snapshot.ENSGovernor.proposals.values()).filter(
+          (prop) => prop.proposer === address
+        );
       },
 
-      votes() {
-        // todo: implement
-        return [];
+      votes({ address }, _args, { snapshot }) {
+        return snapshot.ENSGovernor.votes.filter(
+          (vote) => vote.voter === address
+        );
       },
 
       tokensRepresented({ represented }) {
@@ -319,6 +321,40 @@ export function makeGatewaySchema() {
       },
     },
 
+    Vote: {
+      id({ transactionHash }) {
+        return `Vote|${transactionHash}`;
+      },
+
+      proposal({ proposalId }, _args, { snapshot }) {
+        return snapshot.ENSGovernor.proposals.get(proposalId.toString());
+      },
+
+      reason({ reason }) {
+        return reason;
+      },
+
+      supportDetailed({ support }) {
+        return support;
+      },
+
+      transaction({ transactionHash }) {
+        return { transactionHash };
+      },
+
+      votes({ weight }) {
+        return weight;
+      },
+
+      voter({ voter }, _args, { snapshot }) {
+        return getAccount(voter, snapshot);
+      },
+    },
+
+    // todo: implement
+    Transaction: {},
+
+    // todo: some of this stuff is in state
     VotingPower: {
       amount(value) {
         return {
@@ -349,7 +385,7 @@ export function makeGatewaySchema() {
         };
       },
 
-      delegate({ underlyingDelegate, address }, args, { snapshot }, info) {
+      delegate({ underlyingDelegate, address }, args, { snapshot }) {
         if (underlyingDelegate) {
           return underlyingDelegate;
         }

@@ -1,4 +1,5 @@
 import "isomorphic-fetch";
+import { Plugin } from "@graphql-yoga/common";
 import { createServer } from "@graphql-yoga/node";
 import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
@@ -43,7 +44,7 @@ async function main() {
     context,
     port: 4001,
     maskedErrors: false,
-    plugins: [useTiming(), useApolloTracing()],
+    plugins: [useTiming(), useApolloTracing(), useErrorInspection()],
   });
   await server.start();
 }
@@ -67,3 +68,18 @@ function makeStatementStorageFromMap(
 }
 
 main();
+
+function useErrorInspection(): Plugin<AgoraContextType> {
+  return {
+    onResolverCalled({ info, context }) {
+      return ({ result }) => {
+        if (result instanceof Error) {
+          console.log(info);
+          return result;
+        }
+
+        return result;
+      };
+    },
+  };
+}
