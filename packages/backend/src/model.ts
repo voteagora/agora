@@ -81,4 +81,7 @@ export type VotingPower = ethers.BigNumber;
 
 export type Transaction = {
   transactionHash: string;
+  blockHash: string;
 };
+
+export type Block = ethers.providers.Block;

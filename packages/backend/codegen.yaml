@@ -24,4 +24,5 @@ generates:
         Delegate: ../model#Account as DelegateModel
         Vote: ../model#Vote as VoteModel
         Transaction: ../model#Transaction as TransactionModel
+        Block: ../model#Block as BlockModel
 
