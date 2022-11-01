@@ -2,12 +2,12 @@ import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { parseCreatedAt, VoteDetails } from "./VoteDetails";
+import { VoteDetails } from "./VoteDetails";
 import { PastVotesFragment$key } from "./__generated__/PastVotesFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { Selector } from "../HomePage/Selector";
 import { useMemo, useState } from "react";
-import { BigNumber, utils } from "ethers";
+import { BigNumber } from "ethers";
 import { descendingValueComparator } from "./VoterPanel";
 
 type Props = {
@@ -19,7 +19,7 @@ type Filter = "ALL" | "PROP_HOUSE" | "ONCHAIN";
 type Sort = "MOST_RECENT" | "LEAST_RECENT" | "MOST_ETH" | "LEAST_ETH";
 
 export function PastVotes({ fragment }: Props) {
-  const { votes, propHouseVotes } = useFragment(
+  const { votes } = useFragment(
     graphql`
       fragment PastVotesFragment on Delegate {
         votes {
@@ -47,21 +47,12 @@ export function PastVotes({ fragment }: Props) {
     () => [
       ...votes.map((vote) => ({
         type: "ON_CHAIN" as const,
-        createdAt: parseCreatedAt(vote.createdAt),
+        createdAt: vote.transaction.block.timestamp,
         amountEth: BigNumber.from(vote.proposal.totalValue),
         vote,
       })),
-      ...propHouseVotes.map((vote) => ({
-        type: "PROP_HOUSE" as const,
-        createdAt: new Date(Number(vote.createdAt)),
-        amountEth:
-          vote.round.currencyType === "ETH"
-            ? utils.parseEther(vote.round.fundingAmount)
-            : BigNumber.from(0),
-        vote,
-      })),
     ],
-    [votes, propHouseVotes]
+    [votes]
   );
 
   const filteredVotes = useMemo(
@@ -73,9 +64,6 @@ export function PastVotes({ fragment }: Props) {
 
           case "ONCHAIN":
             return value.type === "ON_CHAIN";
-
-          case "PROP_HOUSE":
-            return value.type === "PROP_HOUSE";
 
           default:
             throw new Error("this is impossible");

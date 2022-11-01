@@ -19,10 +19,6 @@ type Props = {
   voteFragment: VoteDetailsFragment$key;
 };
 
-export function parseCreatedAt(raw: string) {
-  return new Date(Number(raw) * 1000);
-}
-
 export function VoteDetails({ voteFragment }: Props) {
   const vote = useFragment(
     graphql`
