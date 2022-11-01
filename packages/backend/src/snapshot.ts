@@ -144,11 +144,12 @@ export type Proposal = {
     | { type: "CANCELLED" }
     | { type: "EXECUTED" }
     | { type: "QUEUED"; activatedAt: BigNumber };
-
-  votes: Vote[];
 };
 
-type Vote = {
+export type Vote = {
+  blockHash: string;
+  transactionHash: string;
+  proposalId: BigNumber;
   voter: string;
   support: number;
   weight: BigNumber;
@@ -157,6 +158,7 @@ type Vote = {
 
 type GovernorState = {
   proposals: Map<string, Proposal>;
+  votes: Array<Vote>;
   quorumNumerator: BigNumber;
 };
 
@@ -166,6 +168,7 @@ const governorStorage: StorageDefinition<GovernorState, any> = {
   initialState() {
     return {
       proposals: new Map(),
+      votes: [],
       quorumNumerator: BigNumber.from(0),
     };
   },
@@ -173,6 +176,13 @@ const governorStorage: StorageDefinition<GovernorState, any> = {
   encodeState(state) {
     return {
       proposals: Array.from(state.proposals.entries()),
+      votes: state.votes.map((vote) => ({
+        proposalId: vote.proposalId.toString(),
+        voter: vote.voter,
+        support: vote.support,
+        weight: vote.weight.toString(),
+        reason: vote.reason,
+      })),
       quorumNumerator: state.quorumNumerator.toString(),
     };
   },
@@ -362,10 +372,11 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
       },
       {
         signature: "VoteCast(address,uint256,uint8,uint256,string)",
-        reduce(acc, event) {
-          const proposal = acc.proposals.get(event.args.proposalId.toString());
-
-          proposal.votes.push({
+        reduce(acc, event, log) {
+          acc.votes.push({
+            transactionHash: log.transactionHash,
+            blockHash: log.blockHash,
+            proposalId: event.args.proposalId,
             voter: event.args.voter,
             support: event.args.support,
             weight: event.args.weight,

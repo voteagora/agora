@@ -22,4 +22,6 @@ generates:
         Account: ../model#Account as AccountModel
         VotingPower: ../model#VotingPower as VotingPowerModel
         Delegate: ../model#Account as DelegateModel
+        Vote: ../model#Vote as VoteModel
+        Transaction: ../model#Transaction as TransactionModel
 

@@ -75,6 +75,10 @@ export type Account = ENSAccount & {
   address: string;
 };
 
-export { Proposal } from "./snapshot";
+export { Proposal, Vote } from "./snapshot";
 
 export type VotingPower = ethers.BigNumber;
+
+export type Transaction = {
+  transactionHash: string;
+};
