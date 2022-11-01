@@ -46,7 +46,11 @@
   "relay": {
     "src": "./src/",
     "schema": "./schema.graphql",
-    "language": "typescript"
+    "language": "typescript",
+    "customScalars": {
+      "BigInt": "string",
+      "Timestamp": "number"
+    }
   },
   "scripts": {
     "analyze": "source-map-explorer 'build/static/js/*.js'",
