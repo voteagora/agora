@@ -118,7 +118,7 @@ const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> = {
           key,
           {
             balance: ethers.BigNumber.from(value.balance),
-            delegatingTo: null,
+            delegatingTo: value.delegatingTo,
             representing: value.representing,
             represented: BigNumber.from(value.represented),
           },
