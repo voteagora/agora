@@ -2,12 +2,7 @@ import { css } from "@emotion/css";
 import { ReactNode } from "react";
 import * as theme from "../../theme";
 import { icons } from "../../icons/icons";
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
-import { OverviewMetricsContainer$key } from "./__generated__/OverviewMetricsContainer.graphql";
-import { BigNumber } from "ethers";
 import { HStack, VStack } from "../../components/VStack";
-import { pluralizeNoun } from "../../words";
 
 export function OverviewMetricsContainer() {
   return (

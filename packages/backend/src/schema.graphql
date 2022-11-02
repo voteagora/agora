@@ -19,7 +19,7 @@ type Vote {
   reason: String!
   # todo: this should be an enum
   supportDetailed: Int!
-  votes: BigInt!
+  votes: VotingPower!
 
   proposal: Proposal!
   voter: Delegate!

@@ -25,7 +25,12 @@ export function VoteDetails({ voteFragment }: Props) {
       fragment VoteDetailsFragment on Vote {
         reason
         supportDetailed
-        votes
+        votes {
+          amount {
+            amount
+            decimals
+          }
+        }
         transaction {
           block {
             timestamp
@@ -80,7 +85,7 @@ export function VoteDetails({ voteFragment }: Props) {
               color: #66676b;
             `}
           >
-            <a href={proposalHref}>Prop {vote.proposal.number}</a>
+            <a href={proposalHref}>Prop {shortenId(vote.proposal.number)}</a>
             <ValuePart value={vote.proposal.totalValue} />
             {vote.transaction.block.timestamp &&
               ` - ${formatDistanceToNow(
@@ -106,7 +111,11 @@ export function VoteDetails({ voteFragment }: Props) {
             >
               {supportType.toLowerCase()}
             </span>{" "}
-            with {pluralizeVote(BigNumber.from(vote.votes))}
+            with{" "}
+            {pluralizeVote(
+              BigNumber.from(vote.votes.amount.amount),
+              vote.votes.amount.decimals
+            )}
           </span>
         </VStack>
 
@@ -151,4 +160,8 @@ export function VoteDetails({ voteFragment }: Props) {
       </div>
     </VoteDetailsContainer>
   );
+}
+
+function shortenId(id: string) {
+  return `${id.slice(0, 4)}...${id.slice(-4)}`;
 }

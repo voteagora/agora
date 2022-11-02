@@ -1,26 +1,23 @@
 import { BigNumber } from "ethers";
 
-export function pluralizeNoun(count: BigNumber) {
-  if (count.eq(1)) {
-    return `1 noun`;
-  } else {
-    return `${count.toString()} nouns`;
-  }
-}
-
-export function pluralizeVote(count: BigNumber) {
-  if (count.eq(1)) {
-    return `1 vote`;
-  } else {
-    return `${count.toString()} votes`;
-  }
-}
-
 const format = new Intl.NumberFormat("en", {
   style: "decimal",
   maximumSignificantDigits: 3,
   notation: "compact",
 });
+
+export function pluralizeVote(count: BigNumber, decimals: number) {
+  const votes = count.div(BigNumber.from(10).pow(decimals));
+
+  if (count.eq(1)) {
+    return `1 vote`;
+  } else {
+    return `${format
+      .formatToParts(votes.toBigInt())
+      .map((it) => it.value)
+      .join("")} votes`;
+  }
+}
 
 export function pluralizeAddresses(count: number) {
   if (count === 1) {
