@@ -12,6 +12,18 @@ type Query {
   ): WrappedDelegatesConnection!
 
   proposals: [Proposal!]!
+
+  metrics: Metrics!
+}
+
+type Metrics {
+  delegatedSupply: TokenAmount!
+  totalSupply: TokenAmount!
+
+  quorum: VotingPower!
+
+  proposalThreshold: VotingPower!
+  averageVoterTurnOutBps: Int!
 }
 
 type Vote {
