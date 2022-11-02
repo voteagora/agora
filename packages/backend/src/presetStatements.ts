@@ -15,22 +15,27 @@ export function initialFields(): z.TypeOf<typeof formSchema> {
   };
 }
 
+export function makeStoredStatement(
+  address: string,
+  fields: Partial<z.TypeOf<typeof formSchema>>
+): StoredStatement {
+  return {
+    address: address,
+    updatedAt: Date.now(),
+    signature: "",
+    signedPayload: JSON.stringify({
+      ...initialFields(),
+      ...fields,
+    }),
+  };
+}
+
 function makeStoredStatementEntry(
   address: string,
   fields: Partial<z.TypeOf<typeof formSchema>>
 ): [string, StoredStatement] {
-  return [
-    address.toLowerCase(),
-    {
-      address: address.toLowerCase(),
-      updatedAt: Date.now(),
-      signature: "",
-      signedPayload: JSON.stringify({
-        ...initialFields(),
-        ...fields,
-      }),
-    },
-  ];
+  const normalizedAddress = address.toLowerCase();
+  return [normalizedAddress, makeStoredStatement(normalizedAddress, fields)];
 }
 
 export const presetDelegateStatements = new Map<string, StoredStatement>([
