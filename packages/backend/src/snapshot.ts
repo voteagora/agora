@@ -165,7 +165,39 @@ type GovernorState = {
   quorumNumerator: BigNumber;
 };
 
-const governorStorage: StorageDefinition<GovernorState, any> = {
+type ProposalRaw = {
+  id: string;
+  proposer: string;
+  startBlock: string;
+  endBlock: string;
+  description: string;
+
+  targets: string[];
+  values: string[];
+  signatures: string[];
+  calldatas: string[];
+
+  status: string;
+  activatedAt?: string;
+};
+
+type VoteRaw = {
+  blockHash: string;
+  transactionHash: string;
+  proposalId: string;
+  voter: string;
+  support: number;
+  weight: string;
+  reason: string;
+};
+
+type GovernorStateRaw = {
+  proposals: [string, ProposalRaw][];
+  votes: VoteRaw[];
+  quorumNumerator: string;
+};
+
+const governorStorage: StorageDefinition<GovernorState, GovernorStateRaw> = {
   name: "ENSGovernor",
 
   initialState() {
@@ -178,8 +210,23 @@ const governorStorage: StorageDefinition<GovernorState, any> = {
 
   encodeState(state) {
     return {
-      proposals: Array.from(state.proposals.entries()),
+      proposals: Array.from(state.proposals.entries()).map(
+        ([proposalId, proposal]): [string, ProposalRaw] => [
+          proposalId,
+          {
+            ...proposal,
+            id: proposal.id.toString(),
+            startBlock: proposal.startBlock.toString(),
+            endBlock: proposal.endBlock.toString(),
+            values: proposal.values.map((value) => value.toString()),
+            status: proposal.status.type,
+            activatedAt: proposal.status["activatedAt"]?.toString(),
+          },
+        ]
+      ),
       votes: state.votes.map((vote) => ({
+        blockHash: vote.blockHash,
+        transactionHash: vote.transactionHash,
         proposalId: vote.proposalId.toString(),
         voter: vote.voter,
         support: vote.support,
@@ -190,12 +237,33 @@ const governorStorage: StorageDefinition<GovernorState, any> = {
     };
   },
 
-  decodeState() {
-    // todo: implement
+  decodeState(rawState: GovernorStateRaw) {
     return {
-      proposals: new Map(),
-      votes: [],
-      quorumNumerator: BigNumber.from(0),
+      proposals: new Map(
+        rawState.proposals.map(([proposalId, proposal]): [string, Proposal] => [
+          proposalId,
+          {
+            ...proposal,
+            id: BigNumber.from(proposal.id),
+            values: proposal.values.map((it) => BigNumber.from(it)),
+            status: {
+              type: proposal.status as any,
+              activatedAt: proposal.activatedAt
+                ? BigNumber.from(proposal.activatedAt)
+                : undefined,
+            },
+            proposer: proposal.proposer,
+            startBlock: BigNumber.from(proposal.startBlock),
+            endBlock: BigNumber.from(proposal.endBlock),
+          },
+        ])
+      ),
+      votes: rawState.votes.map((vote) => ({
+        ...vote,
+        proposalId: BigNumber.from(vote.proposalId),
+        weight: BigNumber.from(vote.weight),
+      })),
+      quorumNumerator: BigNumber.from(rawState.quorumNumerator),
     };
   },
 };
@@ -220,6 +288,8 @@ export function parseStorage(rawValue: Record<string, any>): Snapshot {
     ) as any),
   };
 }
+
+// todo: snapshot encoder / decoder
 
 export function makeReducers(): ReducerDefinition<any, any, any>[] {
   function getOrCreateAccount(acc: ENSTokenState, address: string) {

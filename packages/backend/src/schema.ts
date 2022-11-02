@@ -41,7 +41,7 @@ export function makeGatewaySchema() {
   };
 
   function getAccount(address: string, snapshot: Snapshot): Account {
-    const account = snapshot.ENSToken.accounts.get(address);
+    const account = snapshot.ENSToken.accounts.get(address.toLowerCase());
     if (!account) {
       return null;
     }
@@ -332,7 +332,7 @@ export function makeGatewaySchema() {
 
       votes({ address }, _args, { snapshot }) {
         return snapshot.ENSGovernor.votes.filter(
-          (vote) => vote.voter === address
+          (vote) => vote.voter.toLowerCase() === address
         );
       },
 
@@ -429,7 +429,7 @@ export function makeGatewaySchema() {
       },
 
       timestamp({ timestamp }) {
-        return new Date(timestamp);
+        return new Date(timestamp * 1000);
       },
     },
 

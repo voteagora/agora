@@ -12,7 +12,7 @@ type Vote {
   id: ID!
   reason: String!
   supportDetailed: Int!
-  votes: BigInt!
+  votes: VotingPower!
   proposal: Proposal!
   voter: Delegate!
   transaction: Transaction!
