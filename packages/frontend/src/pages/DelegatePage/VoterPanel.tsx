@@ -111,6 +111,15 @@ export function VoterPanel({ delegateFragment }: Props) {
           />
 
           <PanelRow
+            title="For / Against / Abstain"
+            detail={
+              delegate
+                ? `${delegate.delegateMetrics.forVotes} / ${delegate.delegateMetrics.againstVotes} / ${delegate.delegateMetrics.abstainVotes}`
+                : "N/A"
+            }
+          />
+
+          <PanelRow
             title={"Voting Power"}
             detail={
               !delegate

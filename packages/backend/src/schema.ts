@@ -52,6 +52,18 @@ export function makeGatewaySchema() {
     };
   }
 
+  function proposedByAddress(address: string, snapshot: Snapshot) {
+    return Array.from(snapshot.ENSGovernor.proposals.values()).filter(
+      (prop) => prop.proposer === address
+    );
+  }
+
+  function votesByAddress(address: string, snapshot: Snapshot) {
+    return snapshot.ENSGovernor.votes.filter(
+      (vote) => vote.voter.toLowerCase() === address
+    );
+  }
+
   function getVotesForProposal(proposalId: BigNumber, snapshot: Snapshot) {
     return snapshot.ENSGovernor.votes.filter((vote) =>
       vote.proposalId.eq(proposalId)
@@ -310,30 +322,31 @@ export function makeGatewaySchema() {
           .slice(0, 10);
       },
 
-      delegateMetrics({ representing }) {
+      delegateMetrics({ address, representing }, _args, { snapshot }) {
+        const votes = votesByAddress(address, snapshot);
+
         // todo: implement
         return {
           tokenHoldersRepresentedCount: representing.length,
-          totalVotes: 0,
-          forVotes: 0,
-          againstVotes: 0,
-          abstainVotes: 0,
+          totalVotes: votes.length,
+          forVotes: votes.filter((vote) => vote.support === 1).length,
+          againstVotes: votes.filter((vote) => vote.support === 0).length,
+          abstainVotes: votes.filter((vote) => vote.support === 2).length,
+          // todo: implement
           ofLastTenProps: 0,
-          ofTotalProps: 0,
-          proposalsCreated: 0,
+          ofTotalProps: Math.floor(
+            (votes.length / snapshot.ENSGovernor.proposals.size) * 100
+          ),
+          proposalsCreated: proposedByAddress(address, snapshot).length,
         };
       },
 
       proposed({ address }, _args, { snapshot }) {
-        return Array.from(snapshot.ENSGovernor.proposals.values()).filter(
-          (prop) => prop.proposer === address
-        );
+        return proposedByAddress(address, snapshot);
       },
 
       votes({ address }, _args, { snapshot }) {
-        return snapshot.ENSGovernor.votes.filter(
-          (vote) => vote.voter.toLowerCase() === address
-        );
+        return votesByAddress(address, snapshot);
       },
 
       tokensRepresented({ represented }) {
