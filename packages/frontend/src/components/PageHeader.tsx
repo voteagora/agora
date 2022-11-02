@@ -13,6 +13,8 @@ import { HStack } from "./VStack";
 import { Suspense, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
 
+export const orgName = "ENS";
+
 export function PageHeader() {
   return (
     <HStack
@@ -50,7 +52,7 @@ export function PageHeader() {
               color: ${theme.colors.gray["800"]};
             `}
           >
-            Nouns Agora
+            {orgName} Agora
           </span>
         </HStack>
       </Link>
