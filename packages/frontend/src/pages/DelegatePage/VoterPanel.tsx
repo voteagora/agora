@@ -376,7 +376,7 @@ type PanelRowProps = {
 
 const PanelRow = ({ title, detail }: PanelRowProps) => {
   return (
-    <HStack gap="4" justifyContent="space-between">
+    <HStack gap="2" justifyContent="space-between" alignItems="baseline">
       <span
         className={css`
           white-space: nowrap;
@@ -465,5 +465,5 @@ export function descendingValueComparator<T>(
 }
 
 function bpsToString(bps: number) {
-  return `${bps / 100}`;
+  return `${bps / 100}%`;
 }
