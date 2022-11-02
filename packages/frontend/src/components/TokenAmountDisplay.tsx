@@ -6,9 +6,13 @@ import { useMemo } from "react";
 
 export type Props = {
   fragment: TokenAmountDisplayFragment$key;
+  maximumSignificantDigits?: number;
 };
 
-export function TokenAmountDisplay({ fragment }: Props) {
+export function TokenAmountDisplay({
+  fragment,
+  maximumSignificantDigits = 5,
+}: Props) {
   const { amount, decimals, currency } = useFragment(
     graphql`
       fragment TokenAmountDisplayFragment on TokenAmount {
@@ -29,7 +33,7 @@ export function TokenAmountDisplay({ fragment }: Props) {
       currencyDisplay: "code",
       compactDisplay: "short",
       notation: "compact",
-      maximumSignificantDigits: 5,
+      maximumSignificantDigits,
     });
 
     const parts = numberFormat.formatToParts(number);
