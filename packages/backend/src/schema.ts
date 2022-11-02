@@ -285,7 +285,7 @@ export function makeGatewaySchema() {
       },
       averageVoterTurnOutBps() {
         // todo: implement
-        return 0;
+        return 1500;
       },
       delegatedSupply(_parent, _args, { snapshot }) {
         const delegatedSupply = Array.from(snapshot.ENSToken.accounts.values())

@@ -464,6 +464,6 @@ export function descendingValueComparator<T>(
   };
 }
 
-function bpsToString(bps: number) {
+export function bpsToString(bps: number) {
   return `${bps / 100}%`;
 }
