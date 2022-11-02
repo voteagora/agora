@@ -3,8 +3,54 @@ import { ReactNode } from "react";
 import * as theme from "../../theme";
 import { icons } from "../../icons/icons";
 import { HStack, VStack } from "../../components/VStack";
+import { useFragment } from "react-relay";
+import graphql from "babel-plugin-relay/macro";
+import { OverviewMetricsContainerFragment$key } from "./__generated__/OverviewMetricsContainerFragment.graphql";
+import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
+import { BigNumber } from "ethers";
+import { bpsToString } from "../DelegatePage/VoterPanel";
 
-export function OverviewMetricsContainer() {
+type Props = {
+  fragmentRef: OverviewMetricsContainerFragment$key;
+};
+
+export function OverviewMetricsContainer({ fragmentRef }: Props) {
+  const { metrics } = useFragment(
+    graphql`
+      fragment OverviewMetricsContainerFragment on Query {
+        metrics {
+          delegatedSupply {
+            amount
+            ...TokenAmountDisplayFragment
+          }
+
+          totalSupply {
+            amount
+            ...TokenAmountDisplayFragment
+          }
+
+          quorum {
+            amount {
+              ...TokenAmountDisplayFragment
+            }
+
+            bpsOfTotal
+          }
+
+          proposalThreshold {
+            amount {
+              ...TokenAmountDisplayFragment
+            }
+
+            bpsOfTotal
+          }
+
+          averageVoterTurnOutBps
+        }
+      }
+    `,
+    fragmentRef
+  );
   return (
     <HStack
       justifyContent="space-between"
@@ -27,7 +73,49 @@ export function OverviewMetricsContainer() {
         }
       `}
     >
-      <MetricContainer icon="ballot" title="Quorum floor" body={`10%`} />
+      <MetricContainer
+        icon="community"
+        title="Delegated token / Total supply"
+        body={
+          <>
+            <TokenAmountDisplay fragment={metrics.delegatedSupply} /> /{" "}
+            <TokenAmountDisplay fragment={metrics.totalSupply} /> (
+            {BigNumber.from(metrics.delegatedSupply.amount)
+              .mul(100)
+              .div(metrics.totalSupply.amount)
+              .toNumber()}
+            % delegation)
+          </>
+        }
+      />
+
+      <MetricContainer
+        icon="ballot"
+        title="Quorum"
+        body={
+          <>
+            <TokenAmountDisplay fragment={metrics.quorum.amount} /> (
+            {bpsToString(metrics.quorum.bpsOfTotal)} of supply)
+          </>
+        }
+      />
+
+      <MetricContainer
+        icon="measure"
+        title="Proposal threshold"
+        body={
+          <>
+            <TokenAmountDisplay fragment={metrics.proposalThreshold.amount} /> (
+            {bpsToString(metrics.proposalThreshold.bpsOfTotal)} of supply)
+          </>
+        }
+      />
+
+      <MetricContainer
+        icon="pedestrian"
+        title="Average voter turnout"
+        body={bpsToString(metrics.averageVoterTurnOutBps)}
+      />
     </HStack>
   );
 }

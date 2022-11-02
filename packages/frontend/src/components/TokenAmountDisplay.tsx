@@ -36,8 +36,7 @@ export function TokenAmountDisplay({ fragment }: Props) {
     return parts
       .filter((part) => part.type !== "currency" && part.type !== "literal")
       .map((part) => part.value)
-      .join("")
-      .toLowerCase();
+      .join("");
   }, [amount, decimals]);
 
   return (
