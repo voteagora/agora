@@ -12,42 +12,50 @@ const fetchThreadResponse = z
   .object({
     post_stream: z
       .object({
-        posts: z.array(
-          z
-            .object({
-              id: z.number(),
-            })
-            .passthrough()
-        ),
+        stream: z.array(z.number()),
       })
       .passthrough(),
   })
   .passthrough();
 
 export async function fetchThread(args: FetchThreadArgs) {
-  const response = await fetch(
-    new URL(`t/${args.threadId}.json`, args.baseUrl).toString()
+  return parseJson(
+    await fetch(new URL(`t/${args.threadId}.json`, args.baseUrl).toString()),
+    fetchThreadResponse
   );
-
-  const body = await response.json();
-  return fetchThreadResponse.parse(body);
 }
 
 type FetchPostArgs = {
   postId: number;
 } & BaseArgs;
 
-const fetchPostResponse = z
+export const fetchPostResponse = z
   .object({
     raw: z.string(),
+    post_number: z.number(),
   })
   .passthrough();
 
 export async function fetchPost(args: FetchPostArgs) {
-  const response = await fetch(
-    new URL(`posts/${args.postId}.json`, args.baseUrl)
+  return parseJson(
+    await fetch(new URL(`posts/${args.postId}.json`, args.baseUrl)),
+    fetchPostResponse
   );
+}
 
-  const body = await response.json();
-  return fetchPostResponse.parse(body);
+async function parseJson<T extends z.ZodType<any, any, any>>(
+  response: Response,
+  schema: T
+): Promise<z.infer<T>> {
+  const text = await response.text();
+
+  const parsed = (() => {
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error(`failed to parse: ${e} ${text}`);
+    }
+  })();
+
+  return schema.parse(parsed);
 }

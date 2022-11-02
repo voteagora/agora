@@ -4,7 +4,10 @@ import { createServer } from "@graphql-yoga/node";
 import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
 import { AgoraContextType, StatementStorage, StoredStatement } from "../model";
-import { presetDelegateStatements } from "../presetStatements";
+import {
+  makeStoredStatement,
+  presetDelegateStatements,
+} from "../presetStatements";
 import { ValidatedMessage } from "../utils/signing";
 import {
   makeEmptyTracingContext,
@@ -14,10 +17,35 @@ import {
 import { useApolloTracing } from "@envelop/apollo-tracing";
 import { promises as fs } from "fs";
 import { parseStorage } from "../snapshot";
+import { ethers } from "ethers";
+import { fetchPostResponse } from "../discourse";
+import * as path from "path";
+import { z } from "zod";
+
+async function discoursePostsByNumber() {
+  const postsFolder = "./data/discourse/posts/";
+  const postFiles = await fs.readdir(postsFolder);
+
+  const mapping = new Map<number, z.infer<typeof fetchPostResponse>>();
+  for (const file of postFiles) {
+    const contents = await fs.readFile(path.join(postsFolder, file), {
+      encoding: "utf-8",
+    });
+
+    const response = fetchPostResponse.parse(JSON.parse(contents));
+
+    mapping.set(response.post_number, response);
+  }
+
+  return mapping;
+}
 
 async function main() {
-  const delegateStatements = new Map(presetDelegateStatements);
+  const discoursePostMapping = await discoursePostsByNumber();
+  const delegateStatements = new Map();
   const schema = makeGatewaySchema();
+
+  const provider = new ethers.providers.CloudflareProvider();
 
   const snapshot = parseStorage(
     JSON.parse(await fs.readFile("snapshot.json", { encoding: "utf-8" }))
@@ -25,7 +53,39 @@ async function main() {
 
   const context: AgoraContextType = {
     snapshot,
-    statementStorage: makeStatementStorageFromMap(delegateStatements),
+    statementStorage: {
+      async addStatement(statement: StoredStatement): Promise<void> {},
+      async listStatements(): Promise<string[]> {
+        return [];
+      },
+      async getStatement(address: string): Promise<StoredStatement | null> {
+        const name = await provider.lookupAddress(address);
+        if (!name) {
+          return null;
+        }
+
+        const resolver = await provider.getResolver(name);
+        if (!resolver) {
+          return null;
+        }
+
+        const delegateValue = await resolver.getText("eth.ens.delegate");
+        const withoutPrefix = stripPrefix(
+          delegateValue,
+          "https://discuss.ens.domains/t/ens-dao-delegate-applications/815/"
+        );
+        if (!withoutPrefix) {
+          return null;
+        }
+
+        const post = discoursePostMapping.get(parseInt(withoutPrefix));
+
+        return makeStoredStatement(address, {
+          delegateStatement: post.raw,
+        });
+      },
+    },
+
     cache: {
       cache: makeNoOpCache(),
       waitUntil: () => {},
@@ -82,4 +142,12 @@ function useErrorInspection(): Plugin<AgoraContextType> {
       };
     },
   };
+}
+
+function stripPrefix(str: string, prefix: string) {
+  if (str.startsWith(prefix)) {
+    return str.replace(prefix, "");
+  }
+
+  return null;
 }
