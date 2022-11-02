@@ -14,6 +14,7 @@ import {
   useLocation,
   Location,
 } from "../../components/HammockRouter/HammockRouter";
+import { orgName } from "../../components/PageHeader";
 
 export function locationToVariables(location: Location) {
   return {
@@ -68,7 +69,7 @@ function Hero() {
           font-size: ${theme.fontSize["2xl"]};
         `}
       >
-        Agora is the home of nouns voters
+        Agora is the home of {orgName} voters
       </h1>
 
       <p
@@ -77,8 +78,8 @@ function Hero() {
           font-size: ${theme.fontSize.base};
         `}
       >
-        Nouns voters are the stewards for the DAO. You can see them all below,
-        delegate your votes to them, or contact them about your ideas.
+        {orgName} voters are the stewards for the DAO. You can see them all
+        below, delegate your votes to them, or contact them about your ideas.
       </p>
     </VStack>
   );
