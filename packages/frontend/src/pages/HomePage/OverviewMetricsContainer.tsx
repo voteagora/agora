@@ -78,8 +78,11 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
         title="Delegated token / Total supply"
         body={
           <>
-            <TokenAmountDisplay fragment={metrics.delegatedSupply} /> /{" "}
-            <TokenAmountDisplay fragment={metrics.totalSupply} /> (
+            <TokenAmountDisplay
+              fragment={metrics.delegatedSupply}
+              maximumSignificantDigits={1}
+            />{" "}
+            / <TokenAmountDisplay fragment={metrics.totalSupply} /> (
             {BigNumber.from(metrics.delegatedSupply.amount)
               .mul(100)
               .div(metrics.totalSupply.amount)
