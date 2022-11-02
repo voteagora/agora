@@ -6,6 +6,15 @@ type Query {
   address(addressOrEnsName: String!): Address
   wrappedDelegates(where: WrappedDelegatesWhere, orderBy: WrappedDelegatesOrder! = mostRelevant, first: Int!, after: String): WrappedDelegatesConnection!
   proposals: [Proposal!]!
+  metrics: Metrics!
+}
+
+type Metrics {
+  delegatedSupply: TokenAmount!
+  totalSupply: TokenAmount!
+  quorum: VotingPower!
+  proposalThreshold: VotingPower!
+  averageVoterTurnOutBps: Int!
 }
 
 type Vote {

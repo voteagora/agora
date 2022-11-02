@@ -273,6 +273,39 @@ export function makeGatewaySchema() {
       proposals(_parent, _args, { snapshot }) {
         return Array.from(snapshot.ENSGovernor.proposals.values());
       },
+
+      metrics() {
+        return {};
+      },
+    },
+
+    Metrics: {
+      proposalThreshold() {
+        return ethers.BigNumber.from("100000000000000000000000");
+      },
+      averageVoterTurnOutBps() {
+        // todo: implement
+        return 0;
+      },
+      delegatedSupply(_parent, _args, { snapshot }) {
+        const delegatedSupply = Array.from(snapshot.ENSToken.accounts.values())
+          .filter((it) => !!it.delegatingTo)
+          .reduce((acc, it) => it.balance.add(acc), BigNumber.from(0));
+
+        return {
+          amount: delegatedSupply,
+          ...amountSpec,
+        };
+      },
+      totalSupply(_parent, _args, { snapshot }) {
+        return {
+          amount: getTotalSupply(snapshot),
+          ...amountSpec,
+        };
+      },
+      quorum(_parent, _args, { snapshot }) {
+        return getQuorum(snapshot);
+      },
     },
 
     Address: {

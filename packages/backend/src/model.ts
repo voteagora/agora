@@ -85,3 +85,5 @@ export type Transaction = {
 };
 
 export type Block = ethers.providers.Block;
+
+export type Metrics = {};
