@@ -40,6 +40,28 @@ export function makeGatewaySchema() {
     decimals: 18,
   };
 
+  function getTotalSupply(snapshot: Snapshot) {
+    const mintAccount = snapshot.ENSToken.accounts.get(
+      ethers.constants.AddressZero
+    );
+    return mintAccount.balance.mul(-1);
+  }
+
+  function getQuorum(snapshot: Snapshot) {
+    const totalSupply = getTotalSupply(snapshot);
+
+    return totalSupply.mul(snapshot.ENSGovernor.quorumNumerator).div(10000);
+  }
+
+  function bpsOf(top: BigNumber, bottom: BigNumber) {
+    return Math.round(
+      top
+        .mul(100 * 100)
+        .div(bottom)
+        .toNumber()
+    );
+  }
+
   function getAccount(address: string, snapshot: Snapshot): Account {
     const account = snapshot.ENSToken.accounts.get(address.toLowerCase());
     if (!account) {
@@ -455,14 +477,14 @@ export function makeGatewaySchema() {
         };
       },
 
-      bpsOfTotal(value) {
-        // todo: implement
-        return 0;
+      bpsOfTotal(value, _args, { snapshot }) {
+        const totalSupply = getTotalSupply(snapshot);
+        return bpsOf(value, totalSupply);
       },
 
-      bpsOfQuorum(value) {
-        // todo: implement
-        return 0;
+      bpsOfQuorum(value, _args, { snapshot }) {
+        const quorum = getQuorum(snapshot);
+        return bpsOf(value, quorum);
       },
     },
 
