@@ -85,7 +85,9 @@ export function VoteDetails({ voteFragment }: Props) {
               color: #66676b;
             `}
           >
-            <a href={proposalHref}>Prop {shortenId(vote.proposal.number)}</a>
+            <a href={proposalHref} title={`Prop ${vote.proposal.number}`}>
+              Prop {shortenId(vote.proposal.number)}
+            </a>
             <ValuePart value={vote.proposal.totalValue} />
             {vote.transaction.block.timestamp &&
               ` - ${formatDistanceToNow(
