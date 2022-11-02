@@ -92,6 +92,12 @@ export function makeGatewaySchema() {
     );
   }
 
+  function recentCompletedProposals(snapshot: Snapshot) {
+    return Array.from(snapshot.ENSGovernor.proposals.values())
+      .filter((it) => ["EXECUTED", "QUEUED"].includes(it.status.type))
+      .sort(bigNumberDescendingComparator((it) => it.startBlock));
+  }
+
   const typedResolvers: Resolvers = {
     BigInt: new GraphQLScalarType({
       name: "BigInt",
@@ -340,12 +346,17 @@ export function makeGatewaySchema() {
         // todo: paginate?
         return representing
           .map((address) => getAccount(address, snapshot))
-          .sort((a, b) => (b.balance.lt(a.balance) ? -1 : 1))
+          .sort(bigNumberDescendingComparator((it) => it.balance))
           .slice(0, 10);
       },
 
       delegateMetrics({ address, representing }, _args, { snapshot }) {
         const votes = votesByAddress(address, snapshot);
+        const lastTenProps = new Set(
+          recentCompletedProposals(snapshot)
+            .slice(0, 10)
+            .map((it) => it.id.toString())
+        );
 
         // todo: implement
         return {
@@ -354,8 +365,9 @@ export function makeGatewaySchema() {
           forVotes: votes.filter((vote) => vote.support === 1).length,
           againstVotes: votes.filter((vote) => vote.support === 0).length,
           abstainVotes: votes.filter((vote) => vote.support === 2).length,
-          // todo: implement
-          ofLastTenProps: 0,
+          ofLastTenProps: votes.filter((vote) =>
+            lastTenProps.has(vote.proposalId.toString())
+          ).length,
           ofTotalProps: Math.floor(
             (votes.length / snapshot.ENSGovernor.proposals.size) * 100
           ),
@@ -720,4 +732,8 @@ function attachTracingContextInjection(schema: GraphQLSchema): GraphQLSchema {
       };
     },
   });
+}
+
+function bigNumberDescendingComparator<T>(fn: (item: T) => BigNumber) {
+  return (a: T, b: T) => (fn(b).lt(fn(a)) ? -1 : 1);
 }
