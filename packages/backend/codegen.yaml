@@ -1,6 +1,12 @@
-schema: ./src/schema.graphql
 generates:
+  src/bin/downloadSnapshotHistory/graphql/:
+    documents:
+      - src/bin/downloadSnapshotHistory/**/*.ts
+    schema: src/bin/downloadSnapshotHistory/schema.graphql
+    preset: client
+
   src/generated/types.ts:
+    schema: ./src/schema.graphql
     plugins:
       - "@graphql-codegen/typescript"
       - "@graphql-codegen/typescript-resolvers"
@@ -25,4 +31,3 @@ generates:
         Vote: ../model#Vote as VoteModel
         Transaction: ../model#Transaction as TransactionModel
         Block: ../model#Block as BlockModel
-        Metrics: ../model#Metrics as MetricsModel
