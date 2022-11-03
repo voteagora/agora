@@ -8,8 +8,8 @@ import { HStack, VStack } from "../../components/VStack";
 import { VoterPanelActions } from "../DelegatePage/VoterPanel";
 import { VoterCardDelegateProfileImage$key } from "./__generated__/VoterCardDelegateProfileImage.graphql";
 import { Link } from "../../components/HammockRouter/Link";
-import { useEnsAvatar } from "wagmi";
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
+import { ENSAvatar } from "../../components/ENSAvatar";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
@@ -138,23 +138,16 @@ export function DelegateProfileImage({
     fragment
   );
 
-  const avatar = useEnsAvatar({
-    addressOrName: delegate.address.resolvedName.address,
-  });
-
   return (
     <HStack gap="4">
-      {avatar.data && (
-        <img
-          className={css`
-            width: 44px;
-            height: 44px;
-            border-radius: 100%;
-          `}
-          src={avatar.data}
-          alt={"ens avatar"}
-        />
-      )}
+      <ENSAvatar
+        className={css`
+          width: 44px;
+          height: 44px;
+          border-radius: 100%;
+        `}
+        addressOrName={delegate.address.resolvedName.address}
+      />
 
       <VStack>
         <div
