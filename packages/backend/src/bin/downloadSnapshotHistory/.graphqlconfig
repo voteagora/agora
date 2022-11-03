@@ -1,0 +1,12 @@
+{
+  "name": "Download Snapshot History Schema",
+  "schemaPath": "schema.graphql",
+  "extensions": {
+    "endpoints": {
+      "Snapshot GraphQL": {
+        "url": "https://hub.snapshot.org/graphql",
+        "introspect": true
+      }
+    }
+  }
+}
