@@ -54,29 +54,29 @@ async function* blocksToMessages(
               provider
             );
 
+            const resolvedDelegator = owner ?? event.args.delegator;
+            const resolvedOldDelegate = oldDelegate ?? event.args.fromDelegate;
+            const resolvedNewDelegate = newDelegate ?? event.args.toDelegate;
+
             const message: RESTPostAPIWebhookWithTokenJSONBody = {
               embeds: [
                 {
                   title: "Delegate Changed",
-                  description: `${
-                    owner ?? event.args.delegator
-                  } changed delegate from ${
-                    oldDelegate ?? event.args.fromDelegate
-                  } to ${newDelegate ?? event.args.toDelegate}`,
+                  description: `${resolvedDelegator} changed delegate from ${resolvedOldDelegate} to ${resolvedNewDelegate}`,
                   timestamp: blockTimestamp.toISOString(),
                   url: `https://etherscan.io/tx/${transaction.transactionHash}`,
                   fields: [
                     {
                       name: "Owner",
-                      value: `https://nounsagora.com/delegate/${event.args.delegator}`,
+                      value: `[${resolvedDelegator}](https://nounsagora.com/delegate/${event.args.delegator})`,
                     },
                     {
                       name: "New Delegate",
-                      value: `https://nounsagora.com/delegate/${event.args.toDelegate}`,
+                      value: `[${resolvedNewDelegate}](https://nounsagora.com/delegate/${event.args.toDelegate})`,
                     },
                     {
                       name: "Old Delegate",
-                      value: `https://nounsagora.com/delegate/${event.args.fromDelegate}`,
+                      value: `[${resolvedOldDelegate}](https://nounsagora.com/delegate/${event.args.fromDelegate})`,
                     },
                   ],
                 },
