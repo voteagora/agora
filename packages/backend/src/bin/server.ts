@@ -42,7 +42,7 @@ async function discoursePostsByNumber() {
 
 const snapshotVoteSchema = z.array(
   z.object({
-    choice: z.number(),
+    choice: z.array(z.number()).or(z.number()),
     created: z.number(),
     id: z.string(),
     reason: z.string(),
@@ -58,6 +58,7 @@ const snapshotProposalsSchema = z.object({
     z.object({
       id: z.string(),
       title: z.string(),
+      link: z.string(),
       choices: z.array(z.string()),
       scores: z.array(z.number()),
     })

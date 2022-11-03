@@ -9,19 +9,27 @@ import { Selector } from "../HomePage/Selector";
 import { useMemo, useState } from "react";
 import { BigNumber } from "ethers";
 import { descendingValueComparator } from "./VoterPanel";
+import { SnapshotVoteDetails } from "./SnapshotVoteDetails";
 
 type Props = {
   fragment: PastVotesFragment$key;
 };
 
-type Filter = "ALL" | "PROP_HOUSE" | "ONCHAIN";
+type Filter = "ALL" | "SNAPSHOT" | "ONCHAIN";
 
 type Sort = "MOST_RECENT" | "LEAST_RECENT" | "MOST_ETH" | "LEAST_ETH";
 
 export function PastVotes({ fragment }: Props) {
-  const { votes } = useFragment(
+  const { votes, snapshotVotes } = useFragment(
     graphql`
       fragment PastVotesFragment on Delegate {
+        snapshotVotes {
+          id
+          createdAt
+
+          ...SnapshotVoteDetailsFragment
+        }
+
         votes {
           id
           transaction {
@@ -45,6 +53,12 @@ export function PastVotes({ fragment }: Props) {
 
   const allVotes = useMemo(
     () => [
+      ...snapshotVotes.map((vote) => ({
+        type: "SNAPSHOT" as const,
+        createdAt: vote.createdAt,
+        amountEth: BigNumber.from(0),
+        vote,
+      })),
       ...votes.map((vote) => ({
         type: "ON_CHAIN" as const,
         createdAt: vote.transaction.block.timestamp,
@@ -64,6 +78,9 @@ export function PastVotes({ fragment }: Props) {
 
           case "ONCHAIN":
             return value.type === "ON_CHAIN";
+
+          case "SNAPSHOT":
+            return value.type === "SNAPSHOT";
 
           default:
             throw new Error("this is impossible");
@@ -148,6 +165,7 @@ export function PastVotes({ fragment }: Props) {
                 title: "Show All",
                 value: "ALL" as const,
               },
+              { title: "Snapshot", value: "SNAPSHOT" as const },
               {
                 title: "Onchain",
                 value: "ONCHAIN" as const,
@@ -166,6 +184,9 @@ export function PastVotes({ fragment }: Props) {
           switch (vote.type) {
             case "ON_CHAIN":
               return <VoteDetails key={key} voteFragment={vote.vote} />;
+
+            case "SNAPSHOT":
+              return <SnapshotVoteDetails key={key} voteFragment={vote.vote} />;
 
             default:
               throw new Error(`unknown vote type ${(vote as any).type}`);
