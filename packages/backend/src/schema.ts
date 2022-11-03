@@ -3,6 +3,7 @@ import { MapperKind, mapSchema } from "@graphql-tools/utils";
 import {
   extractFirstParagraph,
   getTitleFromProposalDescription,
+  trimENSStatementHeader,
 } from "./utils/markdown";
 import {
   defaultFieldResolver,
@@ -599,10 +600,6 @@ export function makeGatewaySchema() {
         _args,
         { statementStorage }
       ) {
-        if (delegateStatementExists === false) {
-          return null;
-        }
-
         const statement = await statementStorage.getStatement(address);
         if (!statement) {
           return null;
@@ -619,7 +616,7 @@ export function makeGatewaySchema() {
     DelegateStatement: {
       summary({ values: { delegateStatement } }) {
         return extractFirstParagraph(
-          marked.lexer(delegateStatement.slice(0, 1000))
+          marked.lexer(trimENSStatementHeader(delegateStatement.slice(0, 1000)))
         );
       },
 
