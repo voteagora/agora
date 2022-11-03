@@ -119,6 +119,7 @@ type SnapshotVote {
 type SnapshotProposal {
   id: ID!
   title: String!
+  link: String!
   choices: [ProposalChoice!]!
 }
 

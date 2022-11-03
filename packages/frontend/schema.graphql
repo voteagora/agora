@@ -97,11 +97,13 @@ type SnapshotVote {
   selectedChoiceIdx: Int!
   proposal: SnapshotProposal!
   createdAt: Timestamp!
+  reason: String!
 }
 
 type SnapshotProposal {
   id: ID!
   title: String!
+  link: String!
   choices: [ProposalChoice!]!
 }
 

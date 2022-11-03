@@ -417,7 +417,9 @@ export function makeGatewaySchema() {
       },
 
       snapshotVotes({ address }, _args, { snapshotVotes }) {
-        return snapshotVotes.votes.filter((vote) => vote.voter === address);
+        return snapshotVotes.votes.filter(
+          (vote) => vote.voter.toLowerCase() === address
+        );
       },
 
       tokensRepresented({ represented }) {
@@ -430,7 +432,7 @@ export function makeGatewaySchema() {
         return id;
       },
       createdAt({ created }) {
-        return new Date(created);
+        return new Date(created * 1000);
       },
       proposal({ proposal: { id } }, _args, { snapshotVotes }) {
         return snapshotVotes.proposals.find((prop) => prop.id === id);
@@ -439,7 +441,7 @@ export function makeGatewaySchema() {
         return reason;
       },
       selectedChoiceIdx({ choice }) {
-        return choice;
+        return Array.isArray(choice) ? choice[0] : choice;
       },
     },
 
@@ -449,6 +451,9 @@ export function makeGatewaySchema() {
       },
       title({ title }) {
         return title;
+      },
+      link({ link }) {
+        return link;
       },
       choices({ choices, scores }) {
         return choices.map((choice, idx) => ({
