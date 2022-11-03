@@ -104,7 +104,27 @@ type Delegate {
 
   proposed: [Proposal!]!
   votes: [Vote!]!
+  snapshotVotes: [SnapshotVote!]!
   delegateMetrics: DelegateMetrics!
+}
+
+type SnapshotVote {
+  id: ID!
+  selectedChoiceIdx: Int!
+  proposal: SnapshotProposal!
+  createdAt: Timestamp!
+  reason: String!
+}
+
+type SnapshotProposal {
+  id: ID!
+  title: String!
+  choices: [ProposalChoice!]!
+}
+
+type ProposalChoice {
+  title: String!
+  score: Float!
 }
 
 # Ownership and delegation information about an address.

@@ -88,7 +88,26 @@ type Delegate {
   tokenHoldersRepresented: [Account!]!
   proposed: [Proposal!]!
   votes: [Vote!]!
+  snapshotVotes: [SnapshotVote!]!
   delegateMetrics: DelegateMetrics!
+}
+
+type SnapshotVote {
+  id: ID!
+  selectedChoiceIdx: Int!
+  proposal: SnapshotProposal!
+  createdAt: Timestamp!
+}
+
+type SnapshotProposal {
+  id: ID!
+  title: String!
+  choices: [ProposalChoice!]!
+}
+
+type ProposalChoice {
+  title: String!
+  score: Float!
 }
 
 type Account {

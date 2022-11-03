@@ -416,8 +416,45 @@ export function makeGatewaySchema() {
         return votesByAddress(address, snapshot);
       },
 
+      snapshotVotes({ address }, _args, { snapshotVotes }) {
+        return snapshotVotes.votes.filter((vote) => vote.voter === address);
+      },
+
       tokensRepresented({ represented }) {
         return represented;
+      },
+    },
+
+    SnapshotVote: {
+      id({ id }) {
+        return id;
+      },
+      createdAt({ created }) {
+        return new Date(created);
+      },
+      proposal({ proposal: { id } }, _args, { snapshotVotes }) {
+        return snapshotVotes.proposals.find((prop) => prop.id === id);
+      },
+      reason({ reason }) {
+        return reason;
+      },
+      selectedChoiceIdx({ choice }) {
+        return choice;
+      },
+    },
+
+    SnapshotProposal: {
+      id({ id }) {
+        return id;
+      },
+      title({ title }) {
+        return title;
+      },
+      choices({ choices, scores }) {
+        return choices.map((choice, idx) => ({
+          title: choice,
+          score: scores[idx],
+        }));
       },
     },
 

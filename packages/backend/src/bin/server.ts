@@ -40,6 +40,53 @@ async function discoursePostsByNumber() {
   return mapping;
 }
 
+const snapshotVoteSchema = z.array(
+  z.object({
+    choice: z.number(),
+    created: z.number(),
+    id: z.string(),
+    reason: z.string(),
+    voter: z.string(),
+    proposal: z.object({
+      id: z.string(),
+    }),
+  })
+);
+
+const snapshotProposalsSchema = z.object({
+  proposals: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      choices: z.array(z.string()),
+      scores: z.array(z.number()),
+    })
+  ),
+});
+
+export async function getSnapshotVotes() {
+  const votes = snapshotVoteSchema.parse(
+    JSON.parse(
+      await fs.readFile("./data/snapshot/ens.eth/votes.json", {
+        encoding: "utf-8",
+      })
+    )
+  );
+
+  const proposals = snapshotProposalsSchema.parse(
+    JSON.parse(
+      await fs.readFile("./data/snapshot/ens.eth/proposals.json", {
+        encoding: "utf-8",
+      })
+    )
+  );
+
+  return {
+    votes,
+    proposals: proposals.proposals,
+  };
+}
+
 async function main() {
   const discoursePostMapping = await discoursePostsByNumber();
   const delegateStatements = new Map();
@@ -51,8 +98,11 @@ async function main() {
     JSON.parse(await fs.readFile("snapshot.json", { encoding: "utf-8" }))
   );
 
+  const snapshotVotes = await getSnapshotVotes();
+
   const context: AgoraContextType = {
     snapshot,
+    snapshotVotes,
     statementStorage: {
       async addStatement(statement: StoredStatement): Promise<void> {},
       async listStatements(): Promise<string[]> {
