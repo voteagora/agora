@@ -2,8 +2,7 @@ import { Env } from "./env";
 import { makeGatewaySchema } from "../schema";
 import { AgoraContextType } from "../model";
 import { makeEmailStorage, makeStatementStorage } from "./storage";
-import { parseStorage } from "../snapshot";
-import { getOrInitializeLatestSnapshot, loadSnapshot } from "./snapshot";
+import { getOrInitializeLatestSnapshot } from "./snapshot";
 import { ExpiringCache } from "../utils/cache";
 
 // Initializing the schema takes about 250ms. We should avoid doing it once
@@ -20,10 +19,7 @@ export async function getGraphQLCallingContext(
     gatewaySchema = makeGatewaySchema();
   }
 
-  const latestSnapshot = await getOrInitializeLatestSnapshot(async () => {
-    const snapshot = await loadSnapshot(env);
-    return parseStorage(snapshot);
-  });
+  const latestSnapshot = await getOrInitializeLatestSnapshot(env);
 
   const context: AgoraContextType = {
     snapshot: latestSnapshot,

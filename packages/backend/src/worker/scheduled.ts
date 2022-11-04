@@ -1,8 +1,8 @@
 import Toucan from "toucan-js";
 import { Env } from "./env";
 import { ethers } from "ethers";
-import { parseStorage, updateSnapshot } from "../snapshot";
-import { loadSnapshot, updateLatestSnapshot } from "./snapshot";
+import { updateSnapshot } from "../snapshot";
+import { loadSnapshot, writeSnapshot } from "./snapshot";
 
 export async function scheduled(cron: string, env: Env, sentry: Toucan) {
   const provider = new ethers.providers.AlchemyProvider(
@@ -20,8 +20,7 @@ export async function scheduled(cron: string, env: Env, sentry: Toucan) {
 
       const nextSnapshot = await updateSnapshot(sentry, provider, oldSnapshot);
 
-      await env.INDEXER.put("snapshot.json", JSON.stringify(nextSnapshot));
-      updateLatestSnapshot(parseStorage(nextSnapshot));
+      await writeSnapshot(env, nextSnapshot);
     })(),
   ]);
 }
