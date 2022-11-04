@@ -22,6 +22,10 @@ export async function getGraphQLCallingContext(
   const latestSnapshot = await getOrInitializeLatestSnapshot(env);
 
   const context: AgoraContextType = {
+    snapshotVotes: {
+      votes: [],
+      proposals: [],
+    },
     snapshot: latestSnapshot,
     statementStorage: makeStatementStorage(env.STATEMENTS),
     emailStorage: makeEmailStorage(env.EMAILS),
