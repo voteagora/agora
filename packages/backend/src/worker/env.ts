@@ -19,6 +19,8 @@ export interface Env {
   INDEXER: KVNamespace;
   __STATIC_CONTENT: KVNamespace;
 
+  SNAPSHOT: R2Bucket;
+
   DISCORD_WEBHOOK_URL: string;
   LAST_BLOCKED_FETCHED: KVNamespace;
 }
