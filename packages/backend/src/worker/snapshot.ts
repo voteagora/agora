@@ -1,28 +1,19 @@
 import { Env } from "./env";
 import { parseStorage, Snapshot } from "../snapshot";
-import { getCompressor } from "./compress";
 
 let latestSnapshot = null;
 
-const snapshotKey = "snapshot.json.br";
+const snapshotKey = "snapshot.json";
 
 export async function loadSnapshot(env: Env) {
-  const snapshotValue = env.INDEXER.get(snapshotKey, "arrayBuffer");
-
-  const compressor = await getCompressor();
-  const decompressed = compressor.decompress(snapshotValue);
-
-  return JSON.parse(decompressed);
+  const snapshotValue = env.INDEXER.get(snapshotKey, "json");
+  return snapshotValue;
 }
 
 export async function writeSnapshot(env: Env, nextSnapshot: any) {
   updateLatestSnapshot(parseStorage(nextSnapshot));
   const serializedSnapshot = JSON.stringify(nextSnapshot);
-
-  const compressor = await getCompressor();
-  const compressed = compressor.compress(serializedSnapshot);
-
-  await env.INDEXER.put(snapshotKey, compressed);
+  await env.INDEXER.put(snapshotKey, serializedSnapshot);
 }
 
 function updateLatestSnapshot(nextSnapshot: Snapshot) {
