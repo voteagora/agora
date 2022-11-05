@@ -7,6 +7,7 @@ type Props = {
 };
 
 export function ENSAvatar({ addressOrName, className }: Props) {
+  return null;
   const provider = useProvider();
 
   const image = useQuery({
