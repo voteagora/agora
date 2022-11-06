@@ -2,7 +2,8 @@
   "private": true,
   "workspaces": [
     "./packages/frontend",
-    "./packages/backend"
+    "./packages/backend",
+    "./packages/subgraph"
   ],
   "scripts": {
     "postinstall": "patch-package",
