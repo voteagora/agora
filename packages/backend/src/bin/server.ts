@@ -3,7 +3,7 @@ import { Plugin } from "@graphql-yoga/common";
 import { createServer } from "@graphql-yoga/node";
 import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
-import { AgoraContextType, StatementStorage, StoredStatement } from "../model";
+import { AgoraContextType } from "../model";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { ValidatedMessage } from "../utils/signing";
 import {
@@ -90,6 +90,7 @@ export async function getSnapshotVotes() {
 
 async function main() {
   const schema = makeGatewaySchema();
+  const baseProvider = new ethers.providers.CloudflareProvider();
 
   const snapshot = parseStorage(
     JSON.parse(await fs.readFile("snapshot.json", { encoding: "utf-8" }))
@@ -99,58 +100,37 @@ async function main() {
 
   const dynamoDb = new DynamoDB({});
 
-  const baseProvider = new ethers.providers.CloudflareProvider();
-  const provider = new TransparentMultiCallProvider(baseProvider);
-
-  const context: AgoraContextType = {
-    provider,
-    snapshot,
-    snapshotVotes,
-    delegateStorage: makeDynamoDelegateStore(dynamoDb),
-    statementStorage: makeDynamoStatementStorage(dynamoDb),
-
-    cache: {
-      cache: makeNoOpCache(),
-      waitUntil: () => {},
-      span: makeFakeSpan(),
-    },
-    emailStorage: {
-      async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
-        console.log({ verifiedEmail });
-      },
-    },
-    tracingContext: makeEmptyTracingContext(),
-  };
-
   const server = createServer({
     schema,
-    context,
+    context(): AgoraContextType {
+      const provider = new TransparentMultiCallProvider(baseProvider);
+
+      return {
+        provider,
+        snapshot,
+        snapshotVotes,
+        delegateStorage: makeDynamoDelegateStore(dynamoDb),
+        statementStorage: makeDynamoStatementStorage(dynamoDb),
+
+        cache: {
+          cache: makeNoOpCache(),
+          waitUntil: () => {},
+          span: makeFakeSpan(),
+        },
+        emailStorage: {
+          async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
+            console.log({ verifiedEmail });
+          },
+        },
+        tracingContext: makeEmptyTracingContext(),
+      };
+    },
     port: 4001,
     maskedErrors: false,
     plugins: [useTiming(), useApolloTracing(), useErrorInspection()],
   });
   await server.start();
 }
-
-function makeStatementStorageFromMap(
-  delegateStatements: Map<string, StoredStatement>
-): StatementStorage {
-  return {
-    async getStatement(address: string): Promise<StoredStatement> {
-      return delegateStatements.get(address.toLowerCase()) ?? null;
-    },
-    async addStatement(statement: StoredStatement): Promise<void> {
-      delegateStatements.set(statement.address.toLowerCase(), statement);
-    },
-    async listStatements(): Promise<string[]> {
-      return Array.from(delegateStatements.keys()).map((it) =>
-        it.toLowerCase()
-      );
-    },
-  };
-}
-
-main();
 
 function useErrorInspection(): Plugin<AgoraContextType> {
   return {
@@ -167,10 +147,4 @@ function useErrorInspection(): Plugin<AgoraContextType> {
   };
 }
 
-function stripPrefix(str: string, prefix: string) {
-  if (str.startsWith(prefix)) {
-    return str.replace(prefix, "");
-  }
-
-  return null;
-}
+main();
