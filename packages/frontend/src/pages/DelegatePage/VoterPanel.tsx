@@ -160,40 +160,23 @@ function DelegateFromList({
 }: {
   fragment: VoterPanelDelegateFromListFragment$key;
 }) {
-  const { delegateMetrics, tokenHoldersRepresented } = useFragment(
+  const { delegateMetrics } = useFragment(
     graphql`
       fragment VoterPanelDelegateFromListFragment on Delegate {
         delegateMetrics {
           tokenHoldersRepresentedCount
-        }
-
-        tokenHoldersRepresented {
-          id
-          amountOwned {
-            amount {
-              ...TokenAmountDisplayFragment
-            }
-          }
-
-          address {
-            resolvedName {
-              ...NounResolvedLinkFragment
-            }
-          }
         }
       }
     `,
     fragment
   );
 
-  const [isExpanded, setIsExpanded] = useState(false);
-
   return (
     <VStack gap="1">
       <PanelRow
         title="Delegated from"
         detail={
-          <div onClick={() => setIsExpanded((lastValue) => !lastValue)}>
+          <div>
             <HStack
               alignItems="center"
               gap="1"
@@ -207,47 +190,10 @@ function DelegateFromList({
                   delegateMetrics.tokenHoldersRepresentedCount
                 )}
               </div>
-              <ChevronDownIcon
-                aria-hidden="true"
-                className={css`
-                  margin-bottom: -0.125rem;
-                  transition: transform 0.3s;
-                  width: ${theme.spacing["4"]};
-                  height: ${theme.spacing["4"]};
-                  ${isExpanded &&
-                  css`
-                    transform: rotateZ(180deg);
-                  `}
-                `}
-              />
             </HStack>
           </div>
         }
       />
-
-      {isExpanded &&
-        tokenHoldersRepresented.map((holder) => (
-          <HStack justifyContent="space-between">
-            <div
-              className={css`
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                overflow: hidden;
-              `}
-            >
-              <NounResolvedLink resolvedName={holder.address.resolvedName} />
-            </div>
-
-            <HStack
-              gap="1"
-              className={css`
-                flex-shrink: 0;
-              `}
-            >
-              <TokenAmountDisplay fragment={holder.amountOwned.amount} />
-            </HStack>
-          </HStack>
-        ))}
     </VStack>
   );
 }
