@@ -7,6 +7,8 @@ import { ExpiringCache } from "../utils/cache";
 import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
 import { makeDynamoClient } from "./dynamodb";
 import { makeDynamoStatementStorage } from "../store/dynamo/statement";
+import { ethers } from "ethers";
+import { TransparentMultiCallProvider } from "../multicall";
 
 // Initializing the schema takes about 250ms. We should avoid doing it once
 // per request. We need to move this calculation into some kind of compile time
@@ -25,7 +27,11 @@ export async function getGraphQLCallingContext(
   const latestSnapshot = await getOrInitializeLatestSnapshot(env);
   const dynamoClient = makeDynamoClient(env);
 
+  const baseProvider = new ethers.providers.CloudflareProvider();
+  const provider = new TransparentMultiCallProvider(baseProvider);
+
   const context: AgoraContextType = {
+    provider,
     delegateStorage: makeDynamoDelegateStore(dynamoClient),
     snapshotVotes: {
       votes: [],

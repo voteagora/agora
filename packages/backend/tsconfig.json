@@ -5,6 +5,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "skipDefaultLibCheck": true,
+    "esModuleInterop": true,
     "skipLibCheck": true
   },
   "include": [
