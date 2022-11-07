@@ -101,6 +101,7 @@ export type DelegateStorage = {
 };
 
 export type AgoraContextType = {
+  provider: ethers.providers.Provider;
   delegateStorage: DelegateStorage;
   snapshot: Snapshot;
   snapshotVotes: Awaited<ReturnType<typeof getSnapshotVotes>>;

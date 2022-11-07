@@ -19,6 +19,8 @@ import * as path from "path";
 import { z } from "zod";
 import { makeDynamoStatementStorage } from "../store/dynamo/statement";
 import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
+import { ethers } from "ethers";
+import { TransparentMultiCallProvider } from "../multicall";
 
 async function discoursePostsByNumber() {
   const postsFolder = "./data/discourse/posts/";
@@ -97,7 +99,11 @@ async function main() {
 
   const dynamoDb = new DynamoDB({});
 
+  const baseProvider = new ethers.providers.CloudflareProvider();
+  const provider = new TransparentMultiCallProvider(baseProvider);
+
   const context: AgoraContextType = {
+    provider,
     snapshot,
     snapshotVotes,
     delegateStorage: makeDynamoDelegateStore(dynamoDb),
@@ -151,7 +157,7 @@ function useErrorInspection(): Plugin<AgoraContextType> {
     onResolverCalled({ info, context }) {
       return ({ result }) => {
         if (result instanceof Error) {
-          console.log(info);
+          console.log(result);
           return result;
         }
 

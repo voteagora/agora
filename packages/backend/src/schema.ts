@@ -33,8 +33,6 @@ import { Snapshot } from "./snapshot";
 // todo: decompose this file
 
 export function makeGatewaySchema() {
-  const provider = new ethers.providers.CloudflareProvider();
-
   const amountSpec = {
     currency: "ENS",
     decimals: 18,
@@ -116,7 +114,7 @@ export function makeGatewaySchema() {
     }),
     Query: {
       address: {
-        async resolve(_, { addressOrEnsName }) {
+        async resolve(_, { addressOrEnsName }, _args, { provider }) {
           if (ethers.utils.isAddress(addressOrEnsName)) {
             const address = addressOrEnsName.toLowerCase();
             return { address };
@@ -124,6 +122,7 @@ export function makeGatewaySchema() {
 
           const address = await resolveEnsName(addressOrEnsName, provider);
           return {
+            // todo: thread through the ens name here too
             address: address.toLowerCase(),
           };
         },
@@ -180,7 +179,7 @@ export function makeGatewaySchema() {
 
     Address: {
       isContract: {
-        async resolve({ address }) {
+        async resolve({ address }, _args, { provider }) {
           const code = await provider.getCode(address);
           const parsedCode = ethers.utils.arrayify(code);
           return !!parsedCode.length;
@@ -207,7 +206,7 @@ export function makeGatewaySchema() {
     },
 
     ResolvedName: {
-      async name({ address }) {
+      async name({ address }, _args, { provider }) {
         return await resolveNameFromAddress(address, provider);
       },
 
@@ -403,7 +402,7 @@ export function makeGatewaySchema() {
         return transactionHash;
       },
 
-      async block({ blockHash }) {
+      async block({ blockHash }, _args, { provider }) {
         return await provider.getBlock(blockHash);
       },
     },
@@ -527,7 +526,7 @@ export function makeGatewaySchema() {
       async createNewDelegateStatement(
         parent,
         args,
-        { statementStorage, emailStorage },
+        { statementStorage, emailStorage, provider },
         info
       ) {
         const updatedAt = Date.now();
