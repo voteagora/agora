@@ -12,9 +12,6 @@ kv_namespaces = [
     { binding = "INDEXER", id = "355e22c9ae734ff999094adc275f6829", preview_id = "59da2e88635249b7b941cb5379c3553a" },
     { binding = "LAST_BLOCKED_FETCHED", id = "9ad843c85209463083cc998fd24b4e40", preview_id = "44e6dad6150145a3bee032d2822a5fca" }
 ]
-r2_buckets = [
-    { binding = "SNAPSHOT", bucket_name = "test" }
-]
 
 [env.staging]
 name = "nouns-agora-staging"

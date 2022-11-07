@@ -19,8 +19,6 @@ export interface Env {
   INDEXER: KVNamespace;
   __STATIC_CONTENT: KVNamespace;
 
-  SNAPSHOT: R2Bucket;
-
   AWS_ACCESS_KEY_ID: string;
   AWS_SECRET_ACCESS_KEY: string;
 
