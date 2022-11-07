@@ -1,0 +1,79 @@
+import { MapperKind, mapSchema } from "@graphql-tools/utils";
+import {
+  defaultFieldResolver,
+  GraphQLSchema,
+  responsePathAsArray,
+} from "graphql";
+import { AgoraContextType, TracingContext } from "../model";
+import { Span } from "@cloudflare/workers-honeycomb-logger";
+
+export function attachTracingContextInjection(
+  schema: GraphQLSchema
+): GraphQLSchema {
+  return mapSchema(schema, {
+    [MapperKind.OBJECT_FIELD](fieldConfig) {
+      // Only apply to user-implemented resolvers. Default resolvers will
+      // probably not have interesting information.
+      if (
+        !fieldConfig.resolve ||
+        fieldConfig.resolve === defaultFieldResolver
+      ) {
+        return fieldConfig;
+      }
+
+      return {
+        ...fieldConfig,
+        async resolve(...resolverArgs) {
+          const [parentValue, args, context, info] = resolverArgs;
+
+          const tracingContext: TracingContext = context.tracingContext;
+          function getFirstMatchingParentSpan(
+            path: ReadonlyArray<string | number>
+          ): Span {
+            if (!path.length) {
+              return tracingContext.rootSpan as any;
+            }
+
+            const parentSpan = tracingContext.spanMap.get(path.join(" > "));
+            if (parentSpan) {
+              return parentSpan as any;
+            }
+
+            return getFirstMatchingParentSpan(path.slice(0, -1));
+          }
+
+          const path = responsePathAsArray(info.path);
+          const parentSpan = getFirstMatchingParentSpan(path.slice(0, -1));
+
+          const span = parentSpan.startChildSpan(
+            `${info.parentType.name}.${info.fieldName}`
+          );
+
+          span.addData({
+            graphql: {
+              path,
+              args,
+            },
+          });
+
+          tracingContext.spanMap.set(path.join(" > "), span);
+
+          const nextContext: AgoraContextType = {
+            ...context,
+            cache: { ...context.cache, span },
+          };
+          const response = await fieldConfig.resolve(
+            parentValue,
+            args,
+            nextContext,
+            info
+          );
+
+          span.finish();
+
+          return response;
+        },
+      };
+    },
+  });
+}
