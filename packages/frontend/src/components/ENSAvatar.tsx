@@ -8,33 +8,33 @@ type Props = {
 
 export function ENSAvatar({ addressOrName, className }: Props) {
   return null;
-  const provider = useProvider();
+  // const provider = useProvider();
 
-  const image = useQuery({
-    queryKey: ["ens-avatar", addressOrName],
-    suspense: true,
-    useErrorBoundary: false,
-    async queryFn() {
-      const avatar = await provider.getAvatar(addressOrName);
-      if (!avatar) {
-        return null;
-      }
+  // const image = useQuery({
+  //   queryKey: ["ens-avatar", addressOrName],
+  //   suspense: true,
+  //   useErrorBoundary: false,
+  //   async queryFn() {
+  //     const avatar = await provider.getAvatar(addressOrName);
+  //     if (!avatar) {
+  //       return null;
+  //     }
 
-      try {
-        await fetchImage(avatar);
-      } catch (e) {
-        return null;
-      }
+  //     try {
+  //       await fetchImage(avatar);
+  //     } catch (e) {
+  //       return null;
+  //     }
 
-      return avatar;
-    },
-  });
+  //     return avatar;
+  //   },
+  // });
 
-  if (!image.data) {
-    return null;
-  }
+  // if (!image.data) {
+  //   return null;
+  // }
 
-  return <img src={image.data} className={className} />;
+  // return <img src={image.data} className={className} />;
 }
 
 function fetchImage(src: string): Promise<HTMLImageElement> {

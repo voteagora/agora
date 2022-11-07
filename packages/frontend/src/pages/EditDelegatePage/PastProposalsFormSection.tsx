@@ -83,6 +83,7 @@ function ProposalList({
 
   const [filterText, setFilterText] = useState("");
 
+  // @ts-ignore
   const mappedProposals: SearchableProposal[] = useMemo(
     () =>
       allProposals.map((proposal) => {

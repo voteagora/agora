@@ -125,7 +125,9 @@ export function DelegateStatementForm({
     return {
       discord: statement.discord,
       twitter: statement.twitter,
+      // @ts-ignore
       leastValuableProposals: statement.leastValuableProposals.slice(),
+      // @ts-ignore
       mostValuableProposals: statement.mostValuableProposals.slice(),
       topIssues: statement.topIssues.slice(),
       delegateStatement: statement.statement,

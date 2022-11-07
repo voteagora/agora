@@ -141,14 +141,6 @@ function DelegateDialogContents({
           tokensRepresented {
             __typename
           }
-
-          tokenHoldersRepresented {
-            address {
-              resolvedName {
-                address
-              }
-            }
-          }
         }
       }
     `,
@@ -292,13 +284,8 @@ function DelegateDialogContents({
           return null;
         }
 
-        const addressesRepresented =
-          wrappedDelegate?.delegate?.tokenHoldersRepresented.map(
-            (holder) => holder.address.resolvedName.address
-          ) ?? [];
-        const alreadyDelegated = addressesRepresented.includes(
-          address.resolvedName.address
-        );
+        // todo: better way to tell this
+        const alreadyDelegated = false;
 
         if (alreadyDelegated) {
           return <DelegateButton>You're already delegated!</DelegateButton>;
