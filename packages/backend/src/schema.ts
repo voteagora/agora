@@ -1,31 +1,21 @@
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import { MapperKind, mapSchema } from "@graphql-tools/utils";
 import {
   extractFirstParagraph,
   getTitleFromProposalDescription,
   trimENSStatementHeader,
 } from "./utils/markdown";
-import {
-  defaultFieldResolver,
-  GraphQLScalarType,
-  GraphQLSchema,
-  responsePathAsArray,
-} from "graphql";
+import { GraphQLScalarType } from "graphql";
 import { BigNumber, ethers } from "ethers";
 import { QueryWrappedDelegatesArgs, Resolvers } from "./generated/types";
 import { formSchema } from "./formSchema";
-import {
-  Account,
-  AgoraContextType,
-  StoredStatement,
-  TracingContext,
-} from "./model";
+import { Account, StoredStatement } from "./model";
 import schema from "./schema.graphql";
 import { marked } from "marked";
 import { validateSigned } from "./utils/signing";
-import { Span } from "@cloudflare/workers-honeycomb-logger";
 import { resolveEnsName, resolveNameFromAddress } from "./utils/resolveName";
 import { Snapshot } from "./snapshot";
+import { attachTracingContextInjection } from "./graphql/tracingContext";
+import { applyIdPrefix } from "./graphql/applyIdPrefix";
 
 // todo: fix everything in here
 // todo: __typename
@@ -114,7 +104,7 @@ export function makeGatewaySchema() {
     }),
     Query: {
       address: {
-        async resolve(_, { addressOrEnsName }, _args, { provider }) {
+        async resolve(_, { addressOrEnsName }, { provider }) {
           if (ethers.utils.isAddress(addressOrEnsName)) {
             const address = addressOrEnsName.toLowerCase();
             return { address };
@@ -561,105 +551,14 @@ export function makeGatewaySchema() {
   const resolvers = typedResolvers;
 
   return attachTracingContextInjection(
-    mapSchema(
+    applyIdPrefix(
       makeExecutableSchema({
         typeDefs: schema,
 
         resolvers,
-      }),
-      {
-        [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
-          if (fieldName !== "id") {
-            return fieldConfig;
-          }
-
-          if (typeName === "Governance" && fieldName === "id") {
-            return null;
-          }
-
-          return {
-            ...fieldConfig,
-            resolve: (...args) => {
-              const resolvedValue = (
-                fieldConfig.resolve ?? defaultFieldResolver
-              )(...args);
-
-              return [typeName, resolvedValue].join("|");
-            },
-          };
-        },
-      }
+      })
     )
   );
-}
-
-function attachTracingContextInjection(schema: GraphQLSchema): GraphQLSchema {
-  return mapSchema(schema, {
-    [MapperKind.OBJECT_FIELD](fieldConfig) {
-      // Only apply to user-implemented resolvers. Default resolvers will
-      // probably not have interesting information.
-      if (
-        !fieldConfig.resolve ||
-        fieldConfig.resolve === defaultFieldResolver
-      ) {
-        return fieldConfig;
-      }
-
-      return {
-        ...fieldConfig,
-        async resolve(...resolverArgs) {
-          const [parentValue, args, context, info] = resolverArgs;
-
-          const tracingContext: TracingContext = context.tracingContext;
-          function getFirstMatchingParentSpan(
-            path: ReadonlyArray<string | number>
-          ): Span {
-            if (!path.length) {
-              return tracingContext.rootSpan as any;
-            }
-
-            const parentSpan = tracingContext.spanMap.get(path.join(" > "));
-            if (parentSpan) {
-              return parentSpan as any;
-            }
-
-            return getFirstMatchingParentSpan(path.slice(0, -1));
-          }
-
-          const path = responsePathAsArray(info.path);
-          const parentSpan = getFirstMatchingParentSpan(path.slice(0, -1));
-
-          const span = parentSpan.startChildSpan(
-            `${info.parentType.name}.${info.fieldName}`
-          );
-
-          span.addData({
-            graphql: {
-              path,
-              args,
-            },
-          });
-
-          tracingContext.spanMap.set(path.join(" > "), span);
-
-          const nextContext: AgoraContextType = {
-            ...context,
-            cache: { ...context.cache, span },
-          };
-          const response = await fieldConfig.resolve(
-            parentValue,
-            args,
-            nextContext,
-            info
-          );
-
-          span.finish();
-
-          return response;
-        },
-      };
-    },
-  });
 }
 
 function bigNumberDescendingComparator<T>(fn: (item: T) => BigNumber) {
