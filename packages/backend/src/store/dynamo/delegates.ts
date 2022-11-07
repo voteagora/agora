@@ -1,5 +1,5 @@
 import {
-  DelegateDetail,
+  DelegateOverview,
   DelegatesPage,
   DelegateStorage,
   GetDelegatesParams,
@@ -22,8 +22,30 @@ import {
   withAttributes,
 } from "./utils";
 
+function loadDelegateOverview(item: any): DelegateOverview {
+  return {
+    address: item.address as string,
+    tokensOwned: BigNumber.from(item.tokensOwned),
+    tokensRepresented: BigNumber.from(item.tokensRepresented),
+    tokenHoldersRepresented: item.tokenHoldersRepresented as number,
+    statement: item.statement as StoredStatement,
+  };
+}
+
 export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
   return {
+    async getDelegate(address: string): Promise<DelegateOverview> {
+      const result = await client.getItem({
+        TableName,
+        Key: makeKey({
+          PartitionKey: `MergedDelegate`,
+          SortKey: address.toString(),
+        }),
+      });
+
+      return loadDelegateOverview(marshaller.unmarshallItem(result.Item));
+    },
+
     async getDelegates({
       first,
       after,
@@ -110,13 +132,7 @@ export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
           const item = marshaller.unmarshallItem(rawItem);
 
           return {
-            node: {
-              address: item.address as string,
-              tokensOwned: BigNumber.from(item.tokensOwned),
-              tokensRepresented: BigNumber.from(item.tokensRepresented),
-              tokenHoldersRepresented: item.tokenHoldersRepresented as number,
-              statement: item.statement as StoredStatement,
-            },
+            node: loadDelegateOverview(item),
             cursor:
               list.length - 1 === idx
                 ? JSON.stringify(result.LastEvaluatedKey)
