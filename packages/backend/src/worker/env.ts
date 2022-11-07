@@ -21,6 +21,9 @@ export interface Env {
 
   SNAPSHOT: R2Bucket;
 
+  AWS_ACCESS_KEY_ID: string;
+  AWS_SECRET_ACCESS_KEY: string;
+
   DISCORD_WEBHOOK_URL: string;
   LAST_BLOCKED_FETCHED: KVNamespace;
 }

@@ -63,7 +63,9 @@ export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
         })(),
         ...(() => {
           switch (orderBy) {
-            case "mostVotingPower":
+            // todo: separate these
+            case "mostRelevant":
+            case "mostVotingPower": {
               const expressionAttributes = new ExpressionAttributes();
 
               return {
@@ -78,12 +80,7 @@ export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
                 ScanIndexForward: false,
                 ...withAttributes(expressionAttributes),
               };
-
-            case "mostRelevant":
-              return {
-                IndexName: "MergedDelegatesStatementVotingPower",
-                ScanIndexForward: false,
-              };
+            }
 
             case "mostDelegates":
               return {
