@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "name": "nouns-agora-backend",
   "scripts": {
+    "write-data": "ts-node src/bin/writeData.ts",
     "download-snapshot-history": "ts-node src/bin/downloadSnapshotHistory/main.ts",
     "download-discourse-thread": "ts-node src/bin/downloadDiscourseThread.ts",
     "build-generate-schema": "esbuild --bundle --sourcemap src/bin/generateSchema.ts --outfile=dist/generateSchema.js --loader:.graphql=text",
@@ -24,6 +25,9 @@
     "test": "jest"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.199.0",
+    "@aws/dynamodb-auto-marshaller": "^0.7.1",
+    "@aws/dynamodb-expressions": "^0.7.3",
     "@cloudflare/kv-asset-handler": "^0.2.0",
     "@cloudflare/workers-honeycomb-logger": "^2.3.3",
     "@envelop/core": "^2.6.0",

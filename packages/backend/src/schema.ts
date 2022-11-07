@@ -12,21 +12,20 @@ import {
   responsePathAsArray,
 } from "graphql";
 import { BigNumber, ethers } from "ethers";
-import {
-  QueryWrappedDelegatesArgs,
-  Resolvers,
-  WrappedDelegatesOrder,
-  WrappedDelegatesWhere,
-} from "./generated/types";
+import { QueryWrappedDelegatesArgs, Resolvers } from "./generated/types";
 import { formSchema } from "./formSchema";
-import { Account, AgoraContextType, TracingContext } from "./model";
+import {
+  Account,
+  AgoraContextType,
+  StoredStatement,
+  TracingContext,
+} from "./model";
 import schema from "./schema.graphql";
 import { marked } from "marked";
 import { validateSigned } from "./utils/signing";
 import { Span } from "@cloudflare/workers-honeycomb-logger";
 import { resolveEnsName, resolveNameFromAddress } from "./utils/resolveName";
 import { Snapshot } from "./snapshot";
-import { descendingValueComparator } from "./utils/sorting";
 
 // todo: fix everything in here
 // todo: __typename
@@ -42,10 +41,7 @@ export function makeGatewaySchema() {
   };
 
   function getTotalSupply(snapshot: Snapshot) {
-    const mintAccount = snapshot.ENSToken.accounts.get(
-      ethers.constants.AddressZero
-    );
-    return mintAccount.balance.mul(-1);
+    return snapshot.ENSToken.totalSupply;
   }
 
   function getQuorum(snapshot: Snapshot) {
@@ -120,7 +116,7 @@ export function makeGatewaySchema() {
     }),
     Query: {
       address: {
-        async resolve(_, { addressOrEnsName }, { snapshot }) {
+        async resolve(_, { addressOrEnsName }) {
           if (ethers.utils.isAddress(addressOrEnsName)) {
             const address = addressOrEnsName.toLowerCase();
             return { address };
@@ -136,139 +132,14 @@ export function makeGatewaySchema() {
       async wrappedDelegates(
         _,
         { where, orderBy, first, after }: QueryWrappedDelegatesArgs,
-        context
+        { delegateStorage }
       ) {
-        const { statementStorage, snapshot } = context;
-
-        const delegateStatements = await statementStorage.listStatements();
-
-        const remoteDelegates = Array.from(
-          snapshot.ENSToken.accounts.entries()
-        ).map(([address, value]) => ({
-          address,
-          ...value,
-        }));
-
-        type NormalizedDelegate = {
-          id: string;
-          delegateStatementExists: boolean;
-          delegatedDelegate: Account | null;
-        };
-
-        const remoteDelegateSet = new Set(
-          remoteDelegates.map(({ address }) => address.toLowerCase())
-        );
-
-        const delegates: NormalizedDelegate[] = [
-          ...remoteDelegates.map((delegatedDelegate) => {
-            const id = delegatedDelegate.address.toLowerCase();
-            const hasDelegateStatement = delegateStatements.includes(id);
-
-            return {
-              id,
-              delegateStatementExists: hasDelegateStatement,
-              delegatedDelegate,
-            };
-          }),
-          ...delegateStatements.flatMap((address) => {
-            if (remoteDelegateSet.has(address)) {
-              return [];
-            }
-
-            return {
-              id: address,
-              delegateStatementExists: true,
-              delegatedDelegate: null,
-            };
-          }),
-        ];
-
-        const filteredDelegates = (() => {
-          switch (where) {
-            case WrappedDelegatesWhere.SeekingDelegation:
-              return delegates.filter((delegate) => {
-                if (!delegate.delegatedDelegate) {
-                  return true;
-                }
-
-                return (
-                  BigNumber.from(
-                    delegate.delegatedDelegate.delegatedVotes
-                  ).isZero() && delegate.delegateStatementExists
-                );
-              });
-
-            case WrappedDelegatesWhere.WithStatement: {
-              return delegates.filter(
-                (delegate) => delegate.delegateStatementExists
-              );
-            }
-
-            default: {
-              return delegates;
-            }
-          }
-        })();
-
-        const sortedDelegates = (() => {
-          switch (orderBy) {
-            case WrappedDelegatesOrder.MostDelegates:
-              return filteredDelegates.sort(
-                descendingValueComparator(
-                  (it) => it.delegatedDelegate.representing.length
-                )
-              );
-
-            case WrappedDelegatesOrder.MostRelevant:
-              const { hasStatements, withoutStatements } =
-                filteredDelegates.reduce(
-                  (acc, value) => {
-                    if (value.delegateStatementExists) {
-                      acc.hasStatements.push(value);
-                    } else {
-                      acc.withoutStatements.push(value);
-                    }
-
-                    return acc;
-                  },
-                  { hasStatements: [], withoutStatements: [] }
-                );
-
-              return [...hasStatements, ...withoutStatements];
-
-            case WrappedDelegatesOrder.MostVotingPower:
-              return filteredDelegates.reverse();
-
-            default:
-              throw new Error("unknown");
-          }
-        })();
-
-        const parsedAfter = parseInt(after);
-        const offset = isNaN(parsedAfter) ? 0 : parsedAfter + 1;
-        const count = first;
-
-        const edges = sortedDelegates
-          .map((node, index) => ({
-            node: {
-              address: node.id,
-              delegateStatementExists: node.delegateStatementExists,
-              underlyingDelegate: node.delegatedDelegate,
-            },
-            cursor: `${index}`,
-          }))
-          .slice(offset, offset + count);
-
-        return {
-          edges,
-          pageInfo: {
-            count: sortedDelegates.length,
-            hasPreviousPage: offset > 0,
-            hasNextPage: offset + count < sortedDelegates.length,
-            startCursor: `${edges[0]?.cursor ?? ""}`,
-            endCursor: `${edges[edges.length - 1]?.cursor ?? ""}`,
-          },
-        };
+        return await delegateStorage.getDelegates({
+          first,
+          after,
+          orderBy,
+          where,
+        });
       },
 
       proposals(_parent, _args, { snapshot }) {
@@ -289,9 +160,7 @@ export function makeGatewaySchema() {
         return 1500;
       },
       delegatedSupply(_parent, _args, { snapshot }) {
-        const delegatedSupply = Array.from(snapshot.ENSToken.accounts.values())
-          .filter((it) => !!it.delegatingTo)
-          .reduce((acc, it) => it.balance.add(acc), BigNumber.from(0));
+        const delegatedSupply = snapshot.ENSToken.delegatedSupply;
 
         return {
           amount: delegatedSupply,
@@ -325,6 +194,7 @@ export function makeGatewaySchema() {
       },
 
       wrappedDelegate({ address }) {
+        // todo: detail type here
         return {
           address,
           delegateStatementExists: null,
@@ -376,15 +246,11 @@ export function makeGatewaySchema() {
         };
       },
 
-      tokenHoldersRepresented({ representing }, _args, { snapshot }) {
-        // todo: paginate?
-        return representing
-          .map((address) => getAccount(address, snapshot))
-          .sort(bigNumberDescendingComparator((it) => it.balance))
-          .slice(0, 10);
-      },
-
-      delegateMetrics({ address, representing }, _args, { snapshot }) {
+      delegateMetrics(
+        { address, tokenHoldersRepresented },
+        _args,
+        { snapshot }
+      ) {
         const votes = votesByAddress(address, snapshot);
         const lastTenProps = new Set(
           recentCompletedProposals(snapshot)
@@ -394,7 +260,7 @@ export function makeGatewaySchema() {
 
         // todo: implement
         return {
-          tokenHoldersRepresentedCount: representing.length,
+          tokenHoldersRepresentedCount: tokenHoldersRepresented,
           totalVotes: votes.length,
           forVotes: votes.filter((vote) => vote.support === 1).length,
           againstVotes: votes.filter((vote) => vote.support === 0).length,
@@ -423,8 +289,8 @@ export function makeGatewaySchema() {
         );
       },
 
-      tokensRepresented({ represented }) {
-        return represented;
+      tokensRepresented({ tokensRepresented }) {
+        return tokensRepresented;
       },
     },
 
@@ -587,24 +453,11 @@ export function makeGatewaySchema() {
         };
       },
 
-      delegate({ underlyingDelegate, address }, args, { snapshot }) {
-        if (underlyingDelegate) {
-          return underlyingDelegate;
-        }
-
-        return getAccount(address, snapshot);
+      delegate(delegate) {
+        return delegate;
       },
 
-      async statement(
-        { address, delegateStatementExists },
-        _args,
-        { statementStorage }
-      ) {
-        const statement = await statementStorage.getStatement(address);
-        if (!statement) {
-          return null;
-        }
-
+      async statement({ address, statement }, _args) {
         const values = formSchema.parse(JSON.parse(statement.signedPayload));
         return {
           address,
@@ -680,13 +533,15 @@ export function makeGatewaySchema() {
         const updatedAt = Date.now();
         const validated = await validateSigned(provider, args.data.statement);
 
-        await statementStorage.addStatement({
+        const nextStatement: StoredStatement = {
           address: validated.address,
           signedPayload: validated.value,
           signature: validated.signature,
           signatureType: validated.signatureType,
           updatedAt,
-        });
+        };
+
+        await statementStorage.addStatement(nextStatement);
 
         if (args.data.email) {
           await emailStorage.addEmail(
@@ -694,9 +549,11 @@ export function makeGatewaySchema() {
           );
         }
 
+        // todo: fix return type
+
         return {
           address: validated.address,
-          delegateStatementExists: true,
+          statement: nextStatement,
         };
       },
     },

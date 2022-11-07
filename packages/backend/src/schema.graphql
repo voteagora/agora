@@ -100,7 +100,6 @@ type Delegate {
   address: Address!
 
   tokensRepresented: VotingPower!
-  tokenHoldersRepresented: [Account!]!
 
   proposed: [Proposal!]!
   votes: [Vote!]!
@@ -179,11 +178,10 @@ type WrappedDelegatesEdge {
 }
 
 type PageInfo {
-  count: Int!
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
-  startCursor: String!
-  endCursor: String!
+  startCursor: String
+  endCursor: String
 }
 
 type Proposal {

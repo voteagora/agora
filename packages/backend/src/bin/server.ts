@@ -4,10 +4,7 @@ import { createServer } from "@graphql-yoga/node";
 import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
 import { AgoraContextType, StatementStorage, StoredStatement } from "../model";
-import {
-  makeStoredStatement,
-  presetDelegateStatements,
-} from "../presetStatements";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { ValidatedMessage } from "../utils/signing";
 import {
   makeEmptyTracingContext,
@@ -17,10 +14,11 @@ import {
 import { useApolloTracing } from "@envelop/apollo-tracing";
 import { promises as fs } from "fs";
 import { parseStorage } from "../snapshot";
-import { ethers } from "ethers";
 import { fetchPostResponse } from "../discourse";
 import * as path from "path";
 import { z } from "zod";
+import { makeDynamoStatementStorage } from "../store/dynamo/statement";
+import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
 
 async function discoursePostsByNumber() {
   const postsFolder = "./data/discourse/posts/";
@@ -89,11 +87,7 @@ export async function getSnapshotVotes() {
 }
 
 async function main() {
-  const discoursePostMapping = await discoursePostsByNumber();
-  const delegateStatements = new Map();
   const schema = makeGatewaySchema();
-
-  const provider = new ethers.providers.CloudflareProvider();
 
   const snapshot = parseStorage(
     JSON.parse(await fs.readFile("snapshot.json", { encoding: "utf-8" }))
@@ -101,41 +95,13 @@ async function main() {
 
   const snapshotVotes = await getSnapshotVotes();
 
+  const dynamoDb = new DynamoDB({});
+
   const context: AgoraContextType = {
     snapshot,
     snapshotVotes,
-    statementStorage: {
-      async addStatement(statement: StoredStatement): Promise<void> {},
-      async listStatements(): Promise<string[]> {
-        return [];
-      },
-      async getStatement(address: string): Promise<StoredStatement | null> {
-        const name = await provider.lookupAddress(address);
-        if (!name) {
-          return null;
-        }
-
-        const resolver = await provider.getResolver(name);
-        if (!resolver) {
-          return null;
-        }
-
-        const delegateValue = await resolver.getText("eth.ens.delegate");
-        const withoutPrefix = stripPrefix(
-          delegateValue,
-          "https://discuss.ens.domains/t/ens-dao-delegate-applications/815/"
-        );
-        if (!withoutPrefix) {
-          return null;
-        }
-
-        const post = discoursePostMapping.get(parseInt(withoutPrefix));
-
-        return makeStoredStatement(address, {
-          delegateStatement: post.raw,
-        });
-      },
-    },
+    delegateStorage: makeDynamoDelegateStore(dynamoDb),
+    statementStorage: makeDynamoStatementStorage(dynamoDb),
 
     cache: {
       cache: makeNoOpCache(),
