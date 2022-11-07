@@ -27,9 +27,10 @@ generates:
         Proposal: ../model#Proposal as ProposalModel
         Account: ../model#Account as AccountModel
         VotingPower: ../model#VotingPower as VotingPowerModel
-        Delegate: ../model#Account as DelegateModel
+        Delegate: ../model#DelegateOverview as DelegateModel
         Vote: ../model#Vote as VoteModel
         Transaction: ../model#Transaction as TransactionModel
         Block: ../model#Block as BlockModel
         SnapshotVote: ../model#SnapshotVote as SnapshotVoteModel
         SnapshotProposal: ../model#SnapshotProposal as SnapshotProposalModel
+        WrappedDelegatesConnection: ../model#DelegatesPage as WrappedDelegatesConnectionModel

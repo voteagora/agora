@@ -14,12 +14,7 @@ export type ResolvedName = {
   address: string;
 };
 
-export type WrappedDelegate = {
-  address: string;
-
-  delegateStatementExists: boolean;
-  underlyingDelegate?: Account;
-};
+export type WrappedDelegate = DelegateOverview;
 
 export type DelegateStatement = {
   address: string;
@@ -37,7 +32,6 @@ export type StoredStatement = {
 export interface StatementStorage {
   addStatement(statement: StoredStatement): Promise<void>;
   getStatement(address: string): Promise<StoredStatement | null>;
-  listStatements(): Promise<string[]>;
 }
 
 export interface EmailStorage {
@@ -64,7 +58,50 @@ export type TracingContext = {
   rootSpan: Span;
 };
 
+export type PageInfo = {
+  startCursor?: string;
+  endCursor?: string;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+};
+
+export type Connection<T> = {
+  edges: Edge<T>[];
+  pageInfo: PageInfo;
+};
+
+export type Edge<T> = {
+  node: T;
+  cursor: string;
+};
+
+export type DelegateOverview = {
+  address: string;
+  tokensOwned: ethers.BigNumber;
+  tokensRepresented: ethers.BigNumber;
+  tokenHoldersRepresented: number;
+  statement: StoredStatement;
+};
+
+export type DelegatesPage = Connection<DelegateOverview>;
+
+export type GetDelegatesParams = {
+  where?: "withStatement" | "seekingDelegation";
+  orderBy: "mostVotingPower" | "mostRelevant" | "mostDelegates" | "mostActive";
+  first: number;
+  after?: string;
+};
+
+export type DelegateDetail = {
+  address: string;
+};
+
+export type DelegateStorage = {
+  getDelegates(params: GetDelegatesParams): Promise<DelegatesPage>;
+};
+
 export type AgoraContextType = {
+  delegateStorage: DelegateStorage;
   snapshot: Snapshot;
   snapshotVotes: Awaited<ReturnType<typeof getSnapshotVotes>>;
   tracingContext: TracingContext;
