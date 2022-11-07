@@ -182,12 +182,9 @@ export function makeGatewaySchema() {
         },
       },
 
-      wrappedDelegate({ address }) {
-        // todo: detail type here
-        return {
-          address,
-          delegateStatementExists: null,
-        };
+      async wrappedDelegate({ address }, _args, { delegateStorage }) {
+        const delegate = await delegateStorage.getDelegate(address);
+        return delegate;
       },
 
       account({ address }, _args, { snapshot }) {
@@ -447,6 +444,10 @@ export function makeGatewaySchema() {
       },
 
       async statement({ address, statement }, _args) {
+        if (!statement) {
+          return null;
+        }
+
         const values = formSchema.parse(JSON.parse(statement.signedPayload));
         return {
           address,

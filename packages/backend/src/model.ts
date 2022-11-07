@@ -97,6 +97,7 @@ export type DelegateDetail = {
 };
 
 export type DelegateStorage = {
+  getDelegate(address: string): Promise<DelegateOverview>;
   getDelegates(params: GetDelegatesParams): Promise<DelegatesPage>;
 };
 
