@@ -1,9 +1,12 @@
 import { Env } from "./env";
 import { makeGatewaySchema } from "../schema";
 import { AgoraContextType } from "../model";
-import { makeEmailStorage, makeStatementStorage } from "./storage";
+import { makeEmailStorage } from "./storage";
 import { getOrInitializeLatestSnapshot } from "./snapshot";
 import { ExpiringCache } from "../utils/cache";
+import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
+import { makeDynamoClient } from "./dynamodb";
+import { makeDynamoStatementStorage } from "../store/dynamo/statement";
 
 // Initializing the schema takes about 250ms. We should avoid doing it once
 // per request. We need to move this calculation into some kind of compile time
@@ -20,14 +23,16 @@ export async function getGraphQLCallingContext(
   }
 
   const latestSnapshot = await getOrInitializeLatestSnapshot(env);
+  const dynamoClient = makeDynamoClient(env);
 
   const context: AgoraContextType = {
+    delegateStorage: makeDynamoDelegateStore(dynamoClient),
     snapshotVotes: {
       votes: [],
       proposals: [],
     },
     snapshot: latestSnapshot,
-    statementStorage: makeStatementStorage(env.STATEMENTS),
+    statementStorage: makeDynamoStatementStorage(dynamoClient),
     emailStorage: makeEmailStorage(env.EMAILS),
     tracingContext: {
       spanMap: new Map(),

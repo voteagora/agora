@@ -6,14 +6,14 @@ let latestSnapshot = null;
 const snapshotKey = "snapshot.json";
 
 export async function loadSnapshot(env: Env) {
-  const snapshotValue = await env.SNAPSHOT.get(snapshotKey);
-  return snapshotValue.json();
+  const snapshotValue = await env.INDEXER.get(snapshotKey, "json");
+  return snapshotValue;
 }
 
 export async function writeSnapshot(env: Env, nextSnapshot: any) {
   updateLatestSnapshot(parseStorage(nextSnapshot));
   const serializedSnapshot = JSON.stringify(nextSnapshot);
-  await env.SNAPSHOT.put(snapshotKey, serializedSnapshot);
+  await env.INDEXER.put(snapshotKey, serializedSnapshot);
 }
 
 function updateLatestSnapshot(nextSnapshot: Snapshot) {
