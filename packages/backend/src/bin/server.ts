@@ -137,7 +137,7 @@ function useErrorInspection(): Plugin<AgoraContextType> {
     onResolverCalled({ info, context }) {
       return ({ result }) => {
         if (result instanceof Error) {
-          console.log(result);
+          console.log(result, info.path);
           return result;
         }
 
