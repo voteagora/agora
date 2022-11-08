@@ -1,53 +1,44 @@
 import { useQuery } from "@tanstack/react-query";
-import { useProvider } from "wagmi";
+import graphql from "babel-plugin-relay/macro";
+import { useFragment } from "react-relay";
+import { ENSAvatarFragment$key } from "./__generated__/ENSAvatarFragment.graphql";
+import { SuspenseImage } from "./SuspenseImage";
+import { useEnsAvatar, useProvider } from "wagmi";
+import { AvatarResolver } from "@ensdomains/ens-avatar";
 
 type Props = {
-  addressOrName: string;
+  fragment: ENSAvatarFragment$key;
   className: string;
 };
 
-export function ENSAvatar({ addressOrName, className }: Props) {
-  return null;
-  // const provider = useProvider();
+export function ENSAvatar({ fragment, className }: Props) {
+  useEnsAvatar();
+  const { name } = useFragment(
+    graphql`
+      fragment ENSAvatarFragment on ResolvedName {
+        name
+      }
+    `,
+    fragment
+  );
 
-  // const image = useQuery({
-  //   queryKey: ["ens-avatar", addressOrName],
-  //   suspense: true,
-  //   useErrorBoundary: false,
-  //   async queryFn() {
-  //     const avatar = await provider.getAvatar(addressOrName);
-  //     if (!avatar) {
-  //       return null;
-  //     }
+  const provider = useProvider();
 
-  //     try {
-  //       await fetchImage(avatar);
-  //     } catch (e) {
-  //       return null;
-  //     }
+  const url = useQuery(
+    ["ENSAvatar", name],
+    async () => {
+      if (!name) {
+        return null;
+      }
 
-  //     return avatar;
-  //   },
-  // });
+      const resolver = new AvatarResolver(provider);
 
-  // if (!image.data) {
-  //   return null;
-  // }
+      return await resolver.getAvatar(name, {});
+    },
+    {
+      useErrorBoundary: false,
+    }
+  );
 
-  // return <img src={image.data} className={className} />;
-}
-
-function fetchImage(src: string): Promise<HTMLImageElement> {
-  const image = new Image();
-  image.src = src;
-
-  return new Promise((resolve, reject) => {
-    image.onload = (e) => {
-      resolve(image);
-    };
-
-    image.onerror = (e) => {
-      reject(e);
-    };
-  });
+  return <SuspenseImage src={url.data ?? null} className={className} />;
 }

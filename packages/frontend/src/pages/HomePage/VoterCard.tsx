@@ -123,6 +123,7 @@ export function DelegateProfileImage({
             address
 
             ...NounResolvedNameFragment
+            ...ENSAvatarFragment
           }
         }
 
@@ -146,7 +147,7 @@ export function DelegateProfileImage({
           height: 44px;
           border-radius: 100%;
         `}
-        addressOrName={delegate.address.resolvedName.address}
+        fragment={delegate.address.resolvedName}
       />
 
       <VStack>
