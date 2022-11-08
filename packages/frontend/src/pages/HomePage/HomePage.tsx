@@ -23,6 +23,8 @@ export function locationToVariables(location: Location) {
   };
 }
 
+export default HomePage;
+
 export function HomePage() {
   const location = useLocation();
   const variables = locationToVariables(location);

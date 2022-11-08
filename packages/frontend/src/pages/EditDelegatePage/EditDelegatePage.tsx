@@ -10,6 +10,8 @@ import { useAccount } from "wagmi";
 import { HStack } from "../../components/VStack";
 import { Navigate } from "../../components/HammockRouter/Navigate";
 
+export default EditDelegatePage;
+
 export function EditDelegatePage() {
   const { address } = useAccount();
 
