@@ -13,7 +13,7 @@ async function main() {
   });
 
   await fs.promises.writeFile(
-    "./data/discourse/threads/815.json",
+    `./data/discourse/threads/${threadId}.json`,
     JSON.stringify(thread)
   );
 

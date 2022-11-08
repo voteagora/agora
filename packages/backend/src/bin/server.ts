@@ -14,31 +14,11 @@ import {
 import { useApolloTracing } from "@envelop/apollo-tracing";
 import { promises as fs } from "fs";
 import { parseStorage } from "../snapshot";
-import { fetchPostResponse } from "../discourse";
-import * as path from "path";
 import { z } from "zod";
 import { makeDynamoStatementStorage } from "../store/dynamo/statement";
 import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
 import { ethers } from "ethers";
 import { TransparentMultiCallProvider } from "../multicall";
-
-async function discoursePostsByNumber() {
-  const postsFolder = "./data/discourse/posts/";
-  const postFiles = await fs.readdir(postsFolder);
-
-  const mapping = new Map<number, z.infer<typeof fetchPostResponse>>();
-  for (const file of postFiles) {
-    const contents = await fs.readFile(path.join(postsFolder, file), {
-      encoding: "utf-8",
-    });
-
-    const response = fetchPostResponse.parse(JSON.parse(contents));
-
-    mapping.set(response.post_number, response);
-  }
-
-  return mapping;
-}
 
 const snapshotVoteSchema = z.array(
   z.object({
