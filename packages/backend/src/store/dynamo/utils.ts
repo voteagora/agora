@@ -48,3 +48,15 @@ export function setFields(updateExpression: UpdateExpression, fields: Object) {
     );
   }
 }
+
+export function updateExpression(fn: (expression: UpdateExpression) => void) {
+  const updateExpression = new UpdateExpression();
+  const expressionAttributes = new ExpressionAttributes();
+
+  fn(updateExpression);
+
+  return {
+    UpdateExpression: updateExpression.serialize(expressionAttributes),
+    ...withAttributes(expressionAttributes),
+  };
+}
