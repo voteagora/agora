@@ -69,23 +69,26 @@ async function main() {
             return null;
           }
 
-          const delegateValue = await resolver.getText("eth.ens.delegate");
-          if (!delegateValue) {
-            return null;
-          }
-
-          const withoutPrefix = stripPrefix(
-            delegateValue,
-            "https://discuss.ens.domains/t/ens-dao-delegate-applications/815/"
-          );
-          if (!withoutPrefix) {
-            return null;
-          }
-
-          const post = discoursePostMapping.get(parseInt(withoutPrefix));
-
           return makeStoredStatement(node.address, {
-            delegateStatement: post.raw,
+            twitter: await resolver.getText("com.twitter"),
+            delegateStatement: await (async () => {
+              const delegateValue = await resolver.getText("eth.ens.delegate");
+              if (!delegateValue) {
+                return null;
+              }
+
+              const withoutPrefix = stripPrefix(
+                delegateValue,
+                "https://discuss.ens.domains/t/ens-dao-delegate-applications/815/"
+              );
+              if (!withoutPrefix) {
+                return null;
+              }
+
+              const post = discoursePostMapping.get(parseInt(withoutPrefix));
+
+              return post.raw;
+            })(),
           });
         })();
 
