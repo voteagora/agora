@@ -30,6 +30,7 @@ function loadDelegateOverview(item: any): DelegateOverview {
     tokensOwned: BigNumber.from(item.tokensOwned),
     tokensRepresented: BigNumber.from(item.tokensRepresented),
     tokenHoldersRepresented: item.tokenHoldersRepresented as number,
+    resolvedName: item.resolvedName as string | null,
     statement: item.statement as StoredStatement,
   };
 }

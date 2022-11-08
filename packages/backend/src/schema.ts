@@ -448,7 +448,7 @@ export function makeGatewaySchema() {
         return delegate;
       },
 
-      async statement({ address, statement }, _args) {
+      statement({ address, statement }, _args) {
         if (!statement) {
           return null;
         }
