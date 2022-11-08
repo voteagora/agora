@@ -177,8 +177,8 @@ export function makeGatewaySchema() {
       },
 
       resolvedName: {
-        resolve({ address }) {
-          return { address };
+        resolve(address) {
+          return address;
         },
       },
 
@@ -193,7 +193,11 @@ export function makeGatewaySchema() {
     },
 
     ResolvedName: {
-      async name({ address }, _args, { provider }) {
+      async name({ address, resolvedName }, _args, { provider }) {
+        if (typeof resolvedName !== "undefined") {
+          return resolvedName;
+        }
+
         return await resolveNameFromAddress(address, provider);
       },
 
@@ -433,9 +437,10 @@ export function makeGatewaySchema() {
         return address;
       },
 
-      address({ address }) {
+      address({ address, resolvedName }) {
         return {
           address,
+          resolvedName,
         };
       },
 

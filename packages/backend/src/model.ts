@@ -8,10 +8,12 @@ import { getSnapshotVotes } from "./bin/server";
 
 export type Address = {
   address: string;
+  resolvedName?: string | null;
 };
 
 export type ResolvedName = {
   address: string;
+  resolvedName?: string | null;
 };
 
 export type WrappedDelegate = DelegateOverview;
