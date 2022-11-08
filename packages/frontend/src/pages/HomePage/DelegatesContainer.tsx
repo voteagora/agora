@@ -22,10 +22,8 @@ type Props = {
 };
 
 const orderNames: { [K in WrappedDelegatesOrder]?: string } = {
-  mostRelevant: "Most relevant",
-  mostDelegates: "Most delegates",
-  mostActive: "Most active",
   mostVotingPower: "Most voting power",
+  mostDelegates: "Most delegates",
 };
 
 const filterNames = [
@@ -38,8 +36,8 @@ const filterNames = [
     value: "withStatement" as const,
   },
   {
-    title: "View seeking delegation",
-    value: "seekingDelegation" as const,
+    title: "View without statement",
+    value: "withoutStatement" as const,
   },
 ];
 
@@ -83,7 +81,10 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
       @argumentDefinitions(
         first: { type: "Int", defaultValue: 30 }
         after: { type: "String" }
-        orderBy: { type: "WrappedDelegatesOrder", defaultValue: mostRelevant }
+        orderBy: {
+          type: "WrappedDelegatesOrder"
+          defaultValue: mostVotingPower
+        }
         filterBy: { type: "WrappedDelegatesWhere" }
       )
       @refetchable(queryName: "DelegatesContainerPaginationQuery") {
@@ -183,7 +184,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                   navigate({
                     search: {
                       orderBy:
-                        orderBy === "mostRelevant" ? null : orderBy ?? null,
+                        orderBy === "mostVotingPower" ? null : orderBy ?? null,
                     },
                   });
                 });

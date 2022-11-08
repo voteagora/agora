@@ -4,7 +4,7 @@ scalar Timestamp
 
 type Query {
   address(addressOrEnsName: String!): Address
-  wrappedDelegates(where: WrappedDelegatesWhere, orderBy: WrappedDelegatesOrder! = mostRelevant, first: Int!, after: String): WrappedDelegatesConnection!
+  wrappedDelegates(where: WrappedDelegatesWhere, orderBy: WrappedDelegatesOrder!, first: Int!, after: String): WrappedDelegatesConnection!
   proposals: [Proposal!]!
   metrics: Metrics!
 }
@@ -136,13 +136,11 @@ type TopIssue {
 
 enum WrappedDelegatesWhere {
   withStatement
-  seekingDelegation
+  withoutStatement
 }
 
 enum WrappedDelegatesOrder {
-  mostRelevant
   mostVotingPower
-  mostActive
   mostDelegates
 }
 

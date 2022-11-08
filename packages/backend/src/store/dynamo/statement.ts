@@ -67,8 +67,6 @@ export function makeDynamoStatementStorage(client: DynamoDB): StatementStorage {
 
                 setFields(updateExpression, {
                   address: statement.address.toLowerCase(),
-                  PartitionKey__MergedDelegatesStatementHolders,
-                  SortKey__MergedDelegatesStatementHolders: 1,
                 });
 
                 return {

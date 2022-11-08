@@ -19,7 +19,7 @@ import { orgName } from "../../components/PageHeader";
 export function locationToVariables(location: Location) {
   return {
     filterBy: parseFilterName(location.search["filterBy"]),
-    orderBy: parseOrderName(location.search["orderBy"]) ?? "mostRelevant",
+    orderBy: parseOrderName(location.search["orderBy"]) ?? "mostVotingPower",
   };
 }
 

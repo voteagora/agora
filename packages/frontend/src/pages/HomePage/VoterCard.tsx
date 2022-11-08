@@ -76,12 +76,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           cursor: pointer;
         `}
       >
-        <VStack
-          justifyContent="center"
-          className={css`
-            flex: 1;
-          `}
-        >
+        <VStack justifyContent="center">
           <DelegateProfileImage fragment={delegate} />
         </VStack>
 
@@ -103,6 +98,12 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
             {delegate.statement.summary}
           </div>
         )}
+
+        <div
+          className={css`
+            flex: 1;
+          `}
+        />
 
         <VoterPanelActions fragment={delegate} />
       </VStack>
