@@ -5,6 +5,7 @@
   "proxy": "http://localhost:4001",
   "dependencies": {
     "@emotion/css": "^11.10.0",
+    "@ensdomains/ens-avatar": "^0.1.8",
     "@graphql-tools/schema": "^9.0.2",
     "@headlessui/react": "^1.7.0",
     "@heroicons/react": "^2.0.10",
