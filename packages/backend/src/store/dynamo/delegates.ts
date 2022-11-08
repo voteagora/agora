@@ -32,15 +32,19 @@ function loadDelegateOverview(item: any): DelegateOverview {
   };
 }
 
+export function makeMergedDelegateKey(address: string) {
+  return makeKey({
+    PartitionKey: "MergedDelegate",
+    SortKey: address.toLowerCase(),
+  });
+}
+
 export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
   return {
     async getDelegate(address: string): Promise<DelegateOverview> {
       const result = await client.getItem({
         TableName,
-        Key: makeKey({
-          PartitionKey: `MergedDelegate`,
-          SortKey: address.toString(),
-        }),
+        Key: makeMergedDelegateKey(address),
       });
 
       return loadDelegateOverview(marshaller.unmarshallItem(result.Item));
@@ -147,7 +151,7 @@ export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
 
           hasPreviousPage: true,
           startCursor: "empty",
-        },
+        } as any,
       };
     },
   };

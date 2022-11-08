@@ -58,12 +58,26 @@ export type TracingContext = {
   rootSpan: Span;
 };
 
-export type PageInfo = {
-  startCursor?: string;
-  endCursor?: string;
-  hasPreviousPage: boolean;
-  hasNextPage: boolean;
-};
+export type PageInfo = (
+  | {
+      hasPreviousPage: false;
+      startCursor: undefined;
+    }
+  | {
+      hasPreviousPage: true;
+      startCursor: string;
+    }
+) &
+  (
+    | {
+        hasNextPage: false;
+        endCursor: undefined;
+      }
+    | {
+        hasNextPage: true;
+        endCursor: string;
+      }
+  );
 
 export type Connection<T> = {
   edges: Edge<T>[];
@@ -77,6 +91,8 @@ export type Edge<T> = {
 
 export type DelegateOverview = {
   address: string;
+  resolvedName?: string | null;
+
   tokensOwned: ethers.BigNumber;
   tokensRepresented: ethers.BigNumber;
   tokenHoldersRepresented: number;
@@ -102,7 +118,7 @@ export type DelegateStorage = {
 };
 
 export type AgoraContextType = {
-  provider: ethers.providers.Provider;
+  provider: ethers.providers.BaseProvider;
   delegateStorage: DelegateStorage;
   snapshot: Snapshot;
   snapshotVotes: Awaited<ReturnType<typeof getSnapshotVotes>>;

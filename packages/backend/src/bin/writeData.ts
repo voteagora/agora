@@ -8,12 +8,9 @@ import {
   PartitionKey__MergedDelegatesVotingPower,
   setFields,
   TableName,
-  withAttributes,
+  updateExpression,
 } from "../store/dynamo/utils";
-import {
-  ExpressionAttributes,
-  UpdateExpression,
-} from "@aws/dynamodb-expressions";
+import { makeMergedDelegateKey } from "../store/dynamo/delegates";
 
 async function main() {
   const dynamoDb = new DynamoDB({});
@@ -48,17 +45,10 @@ async function main() {
         {
           Update: {
             TableName,
-            Key: makeKey({
-              PartitionKey: "MergedDelegate",
-              SortKey: account.address.toLowerCase(),
-            }),
+            Key: makeMergedDelegateKey(account.address),
 
-            ...(() => {
-              const attributes = new ExpressionAttributes();
-
-              const updateExpression = new UpdateExpression();
-
-              setFields(updateExpression, {
+            ...updateExpression((exp) =>
+              setFields(exp, {
                 PartitionKey__MergedDelegatesStatementHolders,
                 PartitionKey__MergedDelegatesVotingPower,
                 SortKey__MergedDelegatesVotingPower: account.represented
@@ -70,13 +60,8 @@ async function main() {
                 tokensOwned: account.balance.toString(),
                 tokensRepresented: account.represented.toString(),
                 tokenHoldersRepresented: account.representing.length,
-              });
-
-              return {
-                UpdateExpression: updateExpression.serialize(attributes),
-                ...withAttributes(attributes),
-              };
-            })(),
+              })
+            ),
           },
         },
       ],
