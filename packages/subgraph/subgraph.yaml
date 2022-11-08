@@ -14,11 +14,8 @@ dataSources:
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - Block
         - Metrics
         - Account
-        - Proposal
-        - Vote
       abis:
         - name: ENSToken
           file: ./abis/ENSToken.json
@@ -44,7 +41,6 @@ dataSources:
       entities:
         - Block
         - Metrics
-        - Account
         - Proposal
         - Vote
       abis:
@@ -63,4 +59,4 @@ dataSources:
           handler: handleProposalQueued
         - event: QuorumNumeratorUpdated(uint256,uint256)
           handler: handleQuorumNumeratorUpdated
-      file: ./src/ens-token.ts
+      file: ./src/ens-governor.ts
