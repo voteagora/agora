@@ -157,13 +157,11 @@ type TopIssue {
 
 enum WrappedDelegatesWhere {
   withStatement
-  seekingDelegation
+  withoutStatement
 }
 
 enum WrappedDelegatesOrder {
-  mostRelevant
   mostVotingPower
-  mostActive
   mostDelegates
 }
 

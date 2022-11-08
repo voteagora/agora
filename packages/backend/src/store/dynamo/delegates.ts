@@ -12,11 +12,13 @@ import {
   serializeConditionExpression,
   ExpressionAttributes,
   equals,
+  attributeNotExists,
 } from "@aws/dynamodb-expressions";
 import { BigNumber } from "ethers";
 import {
   makeKey,
   marshaller,
+  PartitionKey__MergedDelegatesStatementHolders,
   PartitionKey__MergedDelegatesVotingPower,
   TableName,
   withAttributes,
@@ -56,6 +58,8 @@ export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
       orderBy,
       where,
     }: GetDelegatesParams): Promise<DelegatesPage> {
+      const expressionAttributes = new ExpressionAttributes();
+
       const result = await client.query({
         TableName,
         ...(() => {
@@ -65,23 +69,24 @@ export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
 
           switch (where) {
             case "withStatement":
+            case "withoutStatement":
               const filterExpression: ConditionExpression = {
-                subject: "delegateStatement",
-                ...attributeExists(),
+                subject: "statement",
+                ...(() => {
+                  if (where === "withStatement") {
+                    return attributeExists();
+                  } else {
+                    return attributeNotExists();
+                  }
+                })(),
               };
-
-              const expressionAttributes = new ExpressionAttributes();
 
               return {
                 FilterExpression: serializeConditionExpression(
                   filterExpression,
                   expressionAttributes
                 ),
-                ...withAttributes(expressionAttributes),
               };
-
-            case "seekingDelegation":
-            // todo: implement
 
             default:
               return {};
@@ -89,11 +94,7 @@ export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
         })(),
         ...(() => {
           switch (orderBy) {
-            // todo: separate these
-            case "mostRelevant":
             case "mostVotingPower": {
-              const expressionAttributes = new ExpressionAttributes();
-
               return {
                 KeyConditionExpression: serializeConditionExpression(
                   {
@@ -104,19 +105,21 @@ export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
                 ),
                 IndexName: "MergedDelegatesVotingPower",
                 ScanIndexForward: false,
-                ...withAttributes(expressionAttributes),
               };
             }
 
             case "mostDelegates":
               return {
+                KeyConditionExpression: serializeConditionExpression(
+                  {
+                    subject: "PartitionKey__MergedDelegatesStatementHolders",
+                    ...equals(PartitionKey__MergedDelegatesStatementHolders),
+                  },
+                  expressionAttributes
+                ),
                 IndexName: "MergedDelegatesStatementHolders",
                 ScanIndexForward: false,
               };
-
-            case "mostActive":
-              // todo: implement
-              return {};
           }
         })(),
         ...(() => {
@@ -128,26 +131,29 @@ export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
             ExclusiveStartKey: JSON.parse(after),
           };
         })(),
+        ...withAttributes(expressionAttributes),
         Limit: first,
       });
 
-      return {
-        edges: result.Items.map((rawItem, idx, list) => {
-          const item = marshaller.unmarshallItem(rawItem);
+      const edges = result.Items.map((rawItem, idx, list) => {
+        const item = marshaller.unmarshallItem(rawItem);
 
-          return {
-            node: loadDelegateOverview(item),
-            cursor:
-              list.length - 1 === idx
-                ? JSON.stringify(result.LastEvaluatedKey)
-                : JSON.stringify(makeKey(item as any)),
-          };
-        }),
+        return {
+          node: loadDelegateOverview(item),
+          cursor:
+            list.length - 1 === idx
+              ? JSON.stringify(result.LastEvaluatedKey)
+              : JSON.stringify(makeKey(item as any)),
+        };
+      });
+
+      const endCursor = edges[edges.length - 1]?.cursor;
+
+      return {
+        edges,
         pageInfo: {
-          endCursor: result.LastEvaluatedKey
-            ? JSON.stringify(result.LastEvaluatedKey)
-            : null,
-          hasNextPage: !!result.LastEvaluatedKey,
+          endCursor,
+          hasNextPage: !!endCursor,
 
           hasPreviousPage: true,
           startCursor: "empty",

@@ -102,7 +102,7 @@ export type DelegateOverview = {
 export type DelegatesPage = Connection<DelegateOverview>;
 
 export type GetDelegatesParams = {
-  where?: "withStatement" | "seekingDelegation";
+  where?: "withStatement" | "withoutStatement";
   orderBy: "mostVotingPower" | "mostRelevant" | "mostDelegates" | "mostActive";
   first: number;
   after?: string;

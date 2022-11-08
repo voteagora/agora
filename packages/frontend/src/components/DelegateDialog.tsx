@@ -15,9 +15,8 @@ import { DelegateDialogQuery } from "./__generated__/DelegateDialogQuery.graphql
 import { DelegateDialogFragment$key } from "./__generated__/DelegateDialogFragment.graphql";
 import { icons } from "../icons/icons";
 import { NounResolvedLink } from "./NounResolvedLink";
-import { NounsToken__factory } from "../contracts/generated";
 import { ReactNode } from "react";
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 
 export function DelegateDialog({
   fragment,
@@ -150,9 +149,23 @@ function DelegateDialogContents({
   // todo: share contract address configuration
   const { config } = usePrepareContractWrite({
     address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03",
-    abi: NounsToken__factory.abi as any,
+    abi: [
+      {
+        inputs: [
+          {
+            internalType: "address",
+            name: "delegatee",
+            type: "address",
+          },
+        ],
+        name: "delegate",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ],
     functionName: "delegate",
-    args: [wrappedDelegate.address.resolvedName.address],
+    args: [wrappedDelegate.address.resolvedName.address as any],
     onError(e) {
       Sentry.captureException(e);
     },

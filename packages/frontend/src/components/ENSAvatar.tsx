@@ -37,6 +37,7 @@ export function ENSAvatar({ fragment, className }: Props) {
     },
     {
       useErrorBoundary: false,
+      suspense: false,
     }
   );
 
