@@ -51,6 +51,16 @@ resource "aws_dynamodb_table" "application_data_table" {
     type = "S"
   }
 
+  attribute {
+    name = "PartitionKey__MergedDelegatesRelevant"
+    type = "S"
+  }
+
+  attribute {
+    name = "SortKey__MergedDelegatesRelevant"
+    type = "S"
+  }
+
   global_secondary_index {
     name            = "MergedDelegatesVotingPower"
     hash_key        = "PartitionKey__MergedDelegatesVotingPower"
