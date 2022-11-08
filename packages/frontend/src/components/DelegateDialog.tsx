@@ -149,8 +149,8 @@ function DelegateDialogContents({
 
   // todo: share contract address configuration
   const { config } = usePrepareContractWrite({
-    addressOrName: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03",
-    contractInterface: NounsToken__factory.createInterface(),
+    address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03",
+    abi: NounsToken__factory.abi as any,
     functionName: "delegate",
     args: [wrappedDelegate.address.resolvedName.address],
     onError(e) {
@@ -158,12 +158,7 @@ function DelegateDialogContents({
     },
   });
 
-  const { write } = useContractWrite({
-    ...config,
-    onSuccess() {
-      completeDelegation();
-    },
-  });
+  const { write } = useContractWrite(config as any);
 
   const hasValueToDelegate = !BigNumber.from(
     address?.account?.amountOwned?.amount?.amount ?? 0
