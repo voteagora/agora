@@ -1,4 +1,4 @@
-import {
+import React, {
   createContext,
   ReactNode,
   TransitionStartFunction,
@@ -7,9 +7,6 @@ import {
   useLayoutEffect,
   useTransition,
 } from "react";
-import { HomePage } from "../../pages/HomePage/HomePage";
-import { DelegatePage } from "../../pages/DelegatePage/DelegatePage";
-import { EditDelegatePage } from "../../pages/EditDelegatePage/EditDelegatePage";
 import { matchPath, PathMatch } from "react-router-dom";
 
 import { createBrowserHistory } from "history";
@@ -32,15 +29,17 @@ type Route = {
 const routes: Route[] = [
   {
     path: "/",
-    element: HomePage,
+    element: React.lazy(() => import("../../pages/HomePage/HomePage")),
   },
   {
     path: "/delegate/:delegateId",
-    element: DelegatePage,
+    element: React.lazy(() => import("../../pages/DelegatePage/DelegatePage")),
   },
   {
     path: "/create",
-    element: EditDelegatePage,
+    element: React.lazy(
+      () => import("../../pages/EditDelegatePage/EditDelegatePage")
+    ),
   },
 ];
 

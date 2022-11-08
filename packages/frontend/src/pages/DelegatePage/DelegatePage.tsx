@@ -12,6 +12,8 @@ import { useParams } from "../../components/HammockRouter/HammockRouter";
 import { Navigate } from "../../components/HammockRouter/Navigate";
 import { TopIssues } from "./TopIssues";
 
+export default DelegatePage;
+
 export function DelegatePage() {
   const { delegateId } = useParams();
 
