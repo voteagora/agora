@@ -84,51 +84,54 @@ type ENSTokenStateRaw = {
   delegatedSupply: string;
 };
 
-const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> = {
-  name: "ENSToken",
-  initialState: () => ({
-    accounts: new Map<string, ENSAccount>(),
-    totalSupply: BigNumber.from(0),
-    delegatedSupply: BigNumber.from(0),
-  }),
-  encodeState(acc) {
-    return {
-      accounts: Array.from(acc.accounts.entries())
-        .sort(([, a], [, b]) => (a.represented.gt(b.represented) ? -1 : 1))
-        .map(([key, value]) => [
-          key.toLowerCase(),
-          {
-            ...value,
-            representing: value.representing.map((address) =>
-              address.toLowerCase()
-            ),
-            balance: value.balance.toString(),
-            represented: value.represented.toString(),
-          },
-        ]),
-
-      delegatedSupply: acc.delegatedSupply.toString(),
-      totalSupply: acc.totalSupply.toString(),
-    };
-  },
-  decodeState(state) {
-    return {
-      accounts: new Map(
-        state.accounts.map(([key, value]) => [
-          key,
-          {
-            balance: ethers.BigNumber.from(value.balance),
-            delegatingTo: value.delegatingTo,
-            representing: value.representing,
-            represented: BigNumber.from(value.represented),
-          },
-        ])
+export const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> =
+  {
+    name: "ENSToken",
+    initialState: () => ({
+      accounts: new Map<string, ENSAccount>(),
+      totalSupply: BigNumber.from(100_000_000).mul(BigNumber.from(10).pow(18)),
+      delegatedSupply: BigNumber.from(5_000_000).mul(
+        BigNumber.from(10).pow(18)
       ),
-      totalSupply: BigNumber.from(state.totalSupply),
-      delegatedSupply: BigNumber.from(state.delegatedSupply),
-    };
-  },
-};
+    }),
+    encodeState(acc) {
+      return {
+        accounts: Array.from(acc.accounts.entries())
+          .sort(([, a], [, b]) => (a.represented.gt(b.represented) ? -1 : 1))
+          .map(([key, value]) => [
+            key.toLowerCase(),
+            {
+              ...value,
+              representing: value.representing.map((address) =>
+                address.toLowerCase()
+              ),
+              balance: value.balance.toString(),
+              represented: value.represented.toString(),
+            },
+          ]),
+
+        delegatedSupply: acc.delegatedSupply.toString(),
+        totalSupply: acc.totalSupply.toString(),
+      };
+    },
+    decodeState(state) {
+      return {
+        accounts: new Map(
+          state.accounts.map(([key, value]) => [
+            key,
+            {
+              balance: ethers.BigNumber.from(value.balance),
+              delegatingTo: value.delegatingTo,
+              representing: value.representing,
+              represented: BigNumber.from(value.represented),
+            },
+          ])
+        ),
+        totalSupply: BigNumber.from(state.totalSupply),
+        delegatedSupply: BigNumber.from(state.delegatedSupply),
+      };
+    },
+  };
 
 export type Proposal = {
   id: BigNumber;
@@ -197,14 +200,17 @@ type GovernorStateRaw = {
   quorumNumerator: string;
 };
 
-const governorStorage: StorageDefinition<GovernorState, GovernorStateRaw> = {
+export const governorStorage: StorageDefinition<
+  GovernorState,
+  GovernorStateRaw
+> = {
   name: "ENSGovernor",
 
   initialState() {
     return {
       proposals: new Map(),
       votes: [],
-      quorumNumerator: BigNumber.from(0),
+      quorumNumerator: BigNumber.from(10),
     };
   },
 
@@ -286,6 +292,13 @@ export function parseStorage(rawValue: Record<string, any>): Snapshot {
         ];
       })
     ) as any),
+  };
+}
+
+export async function initialSnapshot() {
+  return {
+    ENSGovernor: governorStorage.initialState(),
+    ENSToken: tokensStorage.initialState(),
   };
 }
 
