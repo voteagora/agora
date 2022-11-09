@@ -148,7 +148,9 @@ export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
         };
       });
 
-      const endCursor = edges[edges.length - 1]?.cursor;
+      const endCursor =
+        edges[edges.length - 1]?.cursor ??
+        JSON.stringify(result.LastEvaluatedKey);
 
       return {
         edges,
