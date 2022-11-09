@@ -273,10 +273,8 @@ export function makeGatewaySchema() {
         return votesByAddress(address, snapshot);
       },
 
-      snapshotVotes({ address }, _args, { snapshotVotes }) {
-        return snapshotVotes.votes.filter(
-          (vote) => vote.voter.toLowerCase() === address
-        );
+      async snapshotVotes({ address }, _args, { snapshotVoteStorage }) {
+        return await snapshotVoteStorage.getSnapshotVotesByVoter(address);
       },
 
       tokensRepresented({ tokensRepresented }) {
@@ -291,8 +289,8 @@ export function makeGatewaySchema() {
       createdAt({ created }) {
         return new Date(created * 1000);
       },
-      proposal({ proposal: { id } }, _args, { snapshotVotes }) {
-        return snapshotVotes.proposals.find((prop) => prop.id === id);
+      proposal({ proposal }, _args) {
+        return proposal;
       },
       reason({ reason }) {
         return reason;

@@ -119,11 +119,15 @@ export type DelegateStorage = {
   getDelegates(params: GetDelegatesParams): Promise<DelegatesPage>;
 };
 
+export type SnapshotVoteStorage = {
+  getSnapshotVotesByVoter(address: string): Promise<SnapshotVote[]>;
+};
+
 export type AgoraContextType = {
   provider: ethers.providers.BaseProvider;
   delegateStorage: DelegateStorage;
+  snapshotVoteStorage: SnapshotVoteStorage;
   snapshot: Snapshot;
-  snapshotVotes: Awaited<ReturnType<typeof getSnapshotVotes>>;
   tracingContext: TracingContext;
   statementStorage: StatementStorage;
   cache: CacheDependencies;
@@ -147,6 +151,18 @@ export type Block = ethers.providers.Block;
 
 export type Metrics = {};
 
-export type SnapshotVote = AgoraContextType["snapshotVotes"]["votes"][0];
-export type SnapshotProposal =
-  AgoraContextType["snapshotVotes"]["proposals"][0];
+export type SnapshotVote = {
+  id: string;
+  created: number;
+  reason: string;
+  proposal: SnapshotProposal;
+  choice: [number] | number;
+};
+
+export type SnapshotProposal = {
+  id: string;
+  title: string;
+  link: string;
+  choices: string[];
+  scores: number[];
+};

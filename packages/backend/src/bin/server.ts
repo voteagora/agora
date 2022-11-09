@@ -3,7 +3,7 @@ import { Plugin } from "@graphql-yoga/common";
 import { createServer } from "@graphql-yoga/node";
 import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
-import { AgoraContextType } from "../model";
+import { AgoraContextType, SnapshotVote } from "../model";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { ValidatedMessage } from "../utils/signing";
 import {
@@ -13,7 +13,7 @@ import {
 } from "../utils/cache";
 import { useApolloTracing } from "@envelop/apollo-tracing";
 import { promises as fs } from "fs";
-import { parseStorage } from "../snapshot";
+import { initialSnapshot } from "../snapshot";
 import { z } from "zod";
 import { makeDynamoStatementStorage } from "../store/dynamo/statement";
 import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
@@ -72,9 +72,7 @@ async function main() {
   const schema = makeGatewaySchema();
   const baseProvider = new ethers.providers.CloudflareProvider();
 
-  const snapshot = parseStorage(
-    JSON.parse(await fs.readFile("snapshot.json", { encoding: "utf-8" }))
-  );
+  const snapshot = await initialSnapshot();
 
   const snapshotVotes = await getSnapshotVotes();
 
@@ -88,7 +86,33 @@ async function main() {
       return {
         provider,
         snapshot,
-        snapshotVotes,
+        snapshotVoteStorage: {
+          async getSnapshotVotesByVoter(
+            address: string
+          ): Promise<SnapshotVote[]> {
+            return snapshotVotes.votes
+              .filter((it) => it.voter.toLowerCase() === address.toLowerCase())
+              .map((vote) => {
+                const proposal = snapshotVotes.proposals.find(
+                  (it) => it.id === vote.proposal.id
+                );
+
+                return {
+                  id: vote.id.toString(),
+                  reason: vote.reason,
+                  created: vote.created,
+                  proposal: {
+                    id: proposal.id,
+                    scores: proposal.scores,
+                    choices: proposal.choices,
+                    title: proposal.title,
+                    link: proposal.link,
+                  },
+                  choice: vote.choice as any,
+                };
+              });
+          },
+        },
         delegateStorage: makeDynamoDelegateStore(dynamoDb),
         statementStorage: makeDynamoStatementStorage(dynamoDb),
 
