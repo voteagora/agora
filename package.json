@@ -3,7 +3,8 @@
   "workspaces": [
     "./packages/frontend",
     "./packages/backend",
-    "./packages/subgraph"
+    "./packages/subgraph",
+    "./packages/fetch-snapshot"
   ],
   "scripts": {
     "postinstall": "patch-package",
