@@ -1,0 +1,25 @@
+service: fetch-snapshot
+
+plugins:
+  - serverless-esbuild
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: us-east-2
+  deploymentMethod: direct
+
+functions:
+  rateHandler:
+    name: 'fetch-snapshot'
+    handler: src/handler.run
+    memorySize: 2048
+    timeout: 300
+    events:
+      - schedule: rate(1 hour)
+
+custom:
+  esbuild:
+    packager: yarn
