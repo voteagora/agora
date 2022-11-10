@@ -12,6 +12,7 @@ import useClickOutside from "@restart/ui/useClickOutside";
 import { CloseButton } from "./CloseButton";
 import { Form } from "./DelegateStatementForm";
 import { VStack } from "../../components/VStack";
+import { shortenId } from "../DelegatePage/VoteDetails";
 
 type Props = {
   queryFragment: PastProposalsFormSectionProposalListFragment$key;
@@ -92,7 +93,9 @@ function ProposalList({
         return {
           number: proposal.number,
           title,
-          searchValue: `#${proposal.number} ${title ?? ""}`.toLowerCase(),
+          searchValue: `#${shortenId(proposal.number)} ${
+            title ?? ""
+          }`.toLowerCase(),
         };
       }),
     [allProposals]
