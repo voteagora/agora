@@ -1,156 +1,63 @@
-import { graphql } from "./graphql";
-import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
+import { S3 } from "@aws-sdk/client-s3";
+import { chunk } from "lodash";
+import {
+  getAllFromQuery,
+  proposalsQuery,
+  spaceQuery,
+  url,
+  votesQuery,
+} from "./queries";
 import request from "graphql-request";
-import S3 from "aws-sdk/clients/s3";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { makeKey, marshaller } from "./dynamo";
+import { z } from "zod";
 
-const url = "https://hub.snapshot.org/graphql";
 const spaceId = "ens.eth";
 
-const proposalsQuery = graphql(/* GraphQL */ `
-  query ProposalsQuery($space: String!, $first: Int!, $skip: Int!) {
-    items: proposals(
-      where: { space: $space }
-      orderBy: "id"
-      first: $first
-      skip: $skip
-    ) {
-      id
-      app
-      author
-      body
-      choices
-      created
-      discussion
-      end
-      ipfs
-      link
-      network
-      plugins
-      privacy
-      quorum
-      scores
-      scores_by_strategy
-      scores_state
-      scores_total
-      scores_updated
-      snapshot
-      start
-      state
-      strategies {
-        network
-        name
-        params
-      }
-      symbol
-      title
-      type
-      validation {
-        params
-        name
-      }
-      votes
-    }
-  }
-`);
+async function loadVotesIntoS3(s3: S3, Bucket: string) {
+  const proposalsPromise = await (async () => {
+    const proposals = await getAllFromQuery(proposalsQuery, {
+      space: spaceId,
+    });
 
-const votesQuery = graphql(/* GraphQL */ `
-  query VotesQuery($space: String!, $first: Int!, $skip: Int!) {
-    items: votes(where: { space: $space }, first: $first, skip: $skip) {
-      app
-      choice
-      created
-      id
-      ipfs
-      metadata
-      proposal {
-        id
-      }
+    await s3.putObject({
+      Bucket,
+      Key: `${spaceId}/proposals.json`,
+      Body: JSON.stringify(proposals),
+    });
+  })();
 
-      reason
-      voter
-      vp
-      vp_by_strategy
-      vp_state
-    }
-  }
-`);
+  const votesPromise = (async () => {
+    const votes = await getAllFromQuery(votesQuery, {
+      space: spaceId,
+    });
 
-const spaceQuery = graphql(/* GraphQL */ `
-  query SpaceQuery($space: String) {
-    space(id: $space) {
-      id
-      name
+    await s3.putObject({
+      Bucket,
+      Key: `${spaceId}/votes.json`,
+      Body: JSON.stringify(votes),
+    });
+  })();
 
-      about
-      admins
-      avatar
-      categories
-      children {
-        id
-      }
+  const spacePromise = (async () => {
+    const space = await request({
+      url,
+      document: spaceQuery,
+      variables: {
+        space: spaceId,
+      },
+    });
 
-      coingecko
-      domain
-      email
+    await s3.putObject({
+      Bucket,
+      Key: `${spaceId}/space.json`,
+      Body: JSON.stringify(space),
+    });
+  })();
 
-      filters {
-        minScore
-        onlyMembers
-      }
-
-      followersCount
-      github
-      location
-      members
-      network
-      parent {
-        id
-      }
-      plugins
-      private
-      proposalsCount
-      skin
-      strategies {
-        name
-        params
-        network
-      }
-      symbol
-      terms
-      treasuries {
-        network
-        name
-        address
-      }
-      twitter
-      validation {
-        name
-        params
-      }
-      voteValidation {
-        params
-        name
-      }
-      voting {
-        aliased
-        blind
-        delay
-        hideAbstain
-        period
-        privacy
-        quorum
-        type
-      }
-      website
-    }
-  }
-`);
-
-function logError<T>(promise: Promise<T>): Promise<T> {
-  return promise.catch((error) => {
-    console.error(error);
-    throw error;
-  });
+  await votesPromise;
+  await proposalsPromise;
+  await spacePromise;
 }
 
 export async function run() {
@@ -158,87 +65,111 @@ export async function run() {
 
   const s3 = new S3({});
 
-  await Promise.allSettled(
-    [
-      (async () => {
-        const proposals = await getAllFromQuery(proposalsQuery, {
-          space: spaceId,
-        });
+  const dynamo = new DynamoDB({
+    retryMode: "standard",
+  });
 
-        await s3
-          .putObject({
-            Bucket,
-            Key: `${spaceId}/proposals.json`,
-            Body: JSON.stringify(proposals),
-          })
-          .promise();
-      })(),
-      (async () => {
-        const space = await request({
-          url,
-          document: spaceQuery,
-          variables: {
-            space: spaceId,
-          },
-        });
+  await loadVotesIntoS3(s3, Bucket);
+  await writeVotesToDynamoDb(dynamo, s3, Bucket);
+}
 
-        await s3
-          .putObject({
-            Bucket,
-            Key: `${spaceId}/space.json`,
-            Body: JSON.stringify(space),
-          })
-          .promise();
-      })(),
-      (async () => {
-        const votes = await getAllFromQuery(votesQuery, {
-          space: spaceId,
-        });
+const snapshotVoteSchema = z.array(
+  z.object({
+    choice: z.array(z.number()).or(z.number()),
+    created: z.number(),
+    id: z.string(),
+    reason: z.string(),
+    voter: z.string(),
+    proposal: z.object({
+      id: z.string(),
+    }),
+  })
+);
 
-        await s3
-          .putObject({
-            Bucket,
-            Key: `${spaceId}/votes.json`,
-            Body: JSON.stringify(votes),
-          })
-          .promise();
-      })(),
-    ].map(logError)
+const snapshotProposalsSchema = z.array(
+  z.object({
+    id: z.string(),
+    title: z.string(),
+    link: z.string(),
+    choices: z.array(z.string()),
+    scores: z.array(z.number()),
+  })
+);
+
+async function loadVotes(s3: S3, Bucket: string) {
+  const result = await s3.getObject({
+    Bucket,
+    Key: `${spaceId}/votes.json`,
+  });
+  if (!result.Body) {
+    return;
+  }
+
+  return snapshotVoteSchema.parse(
+    JSON.parse(await result.Body.transformToString())
   );
 }
 
-type VariablesOf<Query extends DocumentNode<any, any>> =
-  Query extends DocumentNode<any, infer Variables> ? Variables : never;
-
-type ResultOf<Query extends DocumentNode<any, any>> =
-  Query extends DocumentNode<infer Result> ? Result : never;
-
-async function getAllFromQuery<
-  Query extends DocumentNode<{ items?: any[] | null }, any>
->(
-  query: Query,
-  variables: Omit<VariablesOf<Query>, "first" | "skip">
-): Promise<ResultOf<Query>["items"]> {
-  const pageSize = 20_000;
-
-  const allItems = [];
-  for (let pageIndex = 0; true; pageIndex++) {
-    const result = await request({
-      url,
-      document: query,
-      variables: {
-        ...variables,
-        first: pageSize,
-        skip: pageSize * pageIndex,
-      } as any,
-    });
-
-    if (!result.items.length) {
-      break;
-    }
-
-    allItems.push(...result.items);
+async function loadProposals(s3: S3, Bucket: string) {
+  const result = await s3.getObject({
+    Bucket,
+    Key: `${spaceId}/proposals.json`,
+  });
+  if (!result.Body) {
+    return;
   }
 
-  return allItems;
+  return snapshotProposalsSchema.parse(
+    JSON.parse(await result.Body.transformToString())
+  );
+}
+
+async function writeVotesToDynamoDb(dynamo: DynamoDB, s3: S3, Bucket: string) {
+  const votes = (await loadVotes(s3, Bucket)) ?? [];
+  const proposals = (await loadProposals(s3, Bucket)) ?? [];
+
+  let i = 0;
+  const batchSize = 25;
+  const pageSize = 5;
+  for (const items of chunk(votes, batchSize * pageSize)) {
+    await Promise.all(
+      chunk(items, batchSize).map((items) =>
+        dynamo.batchWriteItem({
+          RequestItems: {
+            ApplicationData: items.flatMap((item) => {
+              if (!item) {
+                return [];
+              }
+
+              return [
+                {
+                  PutRequest: {
+                    Item: {
+                      ...makeKey({
+                        PartitionKey: `SnapshotVote#${item.voter.toLowerCase()}`,
+                        SortKey: item.created.toString().padStart(12, "0"),
+                      }),
+                      ...marshaller.marshallItem({
+                        ...item,
+                        proposal: proposals.find(
+                          (proposal) => proposal?.id === item.proposal?.id
+                        ),
+                      }),
+                    } as any,
+                  },
+                },
+              ];
+            }),
+          },
+        })
+      )
+    );
+
+    console.log(
+      `put batch completed: ${i} of ${
+        (votes?.length ?? 0) / (batchSize * pageSize)
+      }`
+    );
+    i++;
+  }
 }
