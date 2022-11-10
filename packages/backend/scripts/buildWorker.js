@@ -1,5 +1,3 @@
-const { default: wasmpack } = require("esbuild-plugin-wasm-pack");
-const { copy } = require("esbuild-plugin-copy");
 const { promises: fs } = require("fs");
 const esbuild = require("esbuild");
 
@@ -13,24 +11,6 @@ async function main() {
       ".graphql": "text",
       ".wasm": "copy",
     },
-    plugins: [
-      wasmpack({
-        target: "web",
-        path: "../render-opengraph",
-      }),
-      copy({
-        assets: [
-          {
-            from: "../render-opengraph/resources/*",
-            to: "../../frontend/build/worker-assets/files",
-          },
-          {
-            from: "../../node_modules/@nouns/assets/dist/image-data.json",
-            to: "../../frontend/build/worker-assets/image-data.json",
-          },
-        ],
-      }),
-    ],
     format: "esm",
     metafile: true,
     entryPoints: ["src/worker/index.ts"],
