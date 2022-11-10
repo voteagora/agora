@@ -66,7 +66,7 @@ export function PastVotes({ fragment }: Props) {
         vote,
       })),
     ],
-    [votes]
+    [votes, snapshotVotes]
   );
 
   const filteredVotes = useMemo(
@@ -178,8 +178,8 @@ export function PastVotes({ fragment }: Props) {
       </HStack>
 
       <VStack gap="4">
-        {sortedVotes.map((vote) => {
-          const key = [vote.vote.id, vote.type].join("|");
+        {sortedVotes.map((vote, idx) => {
+          const key = [idx, vote.vote.id, vote.type].join("|");
 
           switch (vote.type) {
             case "ON_CHAIN":
