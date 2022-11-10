@@ -13,6 +13,7 @@
     "generate-snapshot": "ts-node src/bin/generateSnapshot.ts",
     "build-dump": "esbuild --bundle --platform=node src/bin/dumpNamespace.ts --outfile=dist/dump.js",
     "dump": "node dist/dump.js",
+    "check": "tsc --noEmit",
     "build-server": "esbuild --bundle --sourcemap src/bin/server.ts --outfile=dist/server.js --loader:.graphql=text --platform=node",
     "server": "node dist/server.js",
     "generate-typechain": "typechain --target ethers-v5 --out-dir src/contracts/generated src/contracts/abis/*.json",

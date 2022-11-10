@@ -3,14 +3,10 @@ import { Plugin } from "@graphql-yoga/common";
 import { createServer } from "@graphql-yoga/node";
 import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
-import { AgoraContextType, SnapshotVote } from "../model";
+import { AgoraContextType } from "../model";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { ValidatedMessage } from "../utils/signing";
-import {
-  makeEmptyTracingContext,
-  makeFakeSpan,
-  makeNoOpCache,
-} from "../utils/cache";
+import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
 import { useApolloTracing } from "@envelop/apollo-tracing";
 import { parseStorage } from "../snapshot";
 import { makeDynamoStatementStorage } from "../store/dynamo/statement";
@@ -43,8 +39,6 @@ async function main() {
         statementStorage: makeDynamoStatementStorage(dynamoDb),
 
         cache: {
-          cache: makeNoOpCache(),
-          waitUntil: () => {},
           span: makeFakeSpan(),
         },
         emailStorage: {
