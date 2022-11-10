@@ -300,11 +300,22 @@ function DelegateDialogContents({
           </VStack>
         </VStack>
 
-        <ENSAmountDisplay
-          fragment={wrappedDelegate?.delegate?.tokensRepresented?.amount}
-        />
-
-        <NounResolvedLink resolvedName={wrappedDelegate.address.resolvedName} />
+        <VStack>
+          <div
+            className={css`
+              text-align: center;
+            `}
+          >
+            To{" "}
+            <NounResolvedLink
+              resolvedName={wrappedDelegate.address.resolvedName}
+            />{" "}
+            who represents
+          </div>
+          <ENSAmountDisplay
+            fragment={wrappedDelegate?.delegate?.tokensRepresented?.amount}
+          />
+        </VStack>
       </VStack>
 
       {(() => {
