@@ -113,12 +113,6 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
           </>
         }
       />
-
-      <MetricContainer
-        icon="pedestrian"
-        title="Average voter turnout"
-        body={bpsToString(metrics.averageVoterTurnOutBps)}
-      />
     </HStack>
   );
 }
