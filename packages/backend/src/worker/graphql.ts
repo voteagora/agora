@@ -9,6 +9,7 @@ import { makeDynamoClient } from "./dynamodb";
 import { makeDynamoStatementStorage } from "../store/dynamo/statement";
 import { ethers } from "ethers";
 import { TransparentMultiCallProvider } from "../multicall";
+import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
 
 // Initializing the schema takes about 250ms. We should avoid doing it once
 // per request. We need to move this calculation into some kind of compile time
@@ -33,10 +34,7 @@ export async function getGraphQLCallingContext(
   const context: AgoraContextType = {
     provider,
     delegateStorage: makeDynamoDelegateStore(dynamoClient),
-    snapshotVotes: {
-      votes: [],
-      proposals: [],
-    },
+    snapshotVoteStorage: makeSnapshotVoteStorage(dynamoClient),
     snapshot: latestSnapshot,
     statementStorage: makeDynamoStatementStorage(dynamoClient),
     emailStorage: makeEmailStorage(env.EMAILS),
