@@ -89,8 +89,6 @@ export function VoterPanel({ delegateFragment }: Props) {
         <DelegateProfileImage fragment={address.wrappedDelegate} />
       </VStack>
 
-      {/*  todo: for against abstain */}
-
       <div
         className={css`
           ${css`
