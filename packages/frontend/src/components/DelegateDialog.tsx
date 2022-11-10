@@ -2,11 +2,18 @@ import * as Sentry from "@sentry/react";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay";
+import { useMutation } from "@tanstack/react-query";
 import { inset0 } from "../theme";
 import * as theme from "../theme";
 import { HStack, VStack } from "./VStack";
 import { shadow } from "../pages/DelegatePage/VoterPanel";
-import { useAccount, useContractWrite, usePrepareContractWrite } from "wagmi";
+import {
+  useAccount,
+  useContractWrite,
+  usePrepareContractWrite,
+  useProvider,
+  useSigner,
+} from "wagmi";
 import { ArrowDownIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
 import { AnimatePresence, motion } from "framer-motion";
@@ -18,6 +25,7 @@ import { ReactNode } from "react";
 import { TokenAmountDisplay } from "./TokenAmountDisplay";
 import ensIcon from "../icons/ens.png";
 import { TokenAmountDisplayFragment$key } from "./__generated__/TokenAmountDisplayFragment.graphql";
+import { delegateUsingRelay } from "./ensDelegateRelay";
 
 export function DelegateDialog({
   fragment,
@@ -183,7 +191,7 @@ function DelegateDialogContents({
 
   // todo: share contract address configuration
   const { config } = usePrepareContractWrite({
-    address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03",
+    address: "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72",
     abi: [
       {
         inputs: [
@@ -207,6 +215,23 @@ function DelegateDialogContents({
   });
 
   const { write } = useContractWrite(config as any);
+  const provider = useProvider();
+  const signer = useSigner();
+
+  const { mutate: delegate } = useMutation({
+    async mutationFn(delegate: string) {
+      if (!signer.data) {
+        return;
+      }
+
+      const result = await delegateUsingRelay(provider, signer.data, delegate);
+      if (result) {
+        return;
+      }
+
+      return write?.();
+    },
+  });
 
   return (
     <VStack gap="8" alignItems="stretch">
@@ -328,7 +353,13 @@ function DelegateDialogContents({
         }
 
         return (
-          <DelegateButton onClick={() => write?.()}>Delegate</DelegateButton>
+          <DelegateButton
+            onClick={() =>
+              delegate(wrappedDelegate.address.resolvedName.address)
+            }
+          >
+            Delegate
+          </DelegateButton>
         );
       })()}
     </VStack>
