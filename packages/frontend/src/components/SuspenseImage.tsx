@@ -1,3 +1,5 @@
+import { cx } from "@emotion/css";
+import { css } from "@emotion/css";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -27,16 +29,44 @@ export function SuspenseImage({ className, src }: Props) {
     },
   });
 
-  if (!src) {
-    return null;
-  }
-
-  if (isHidden) {
-    return null;
-  }
-
   return (
-    <img src={src} className={className} onError={() => setIsHidden(true)} />
+    <div
+      className={cx(
+        className,
+        css`
+          overflow: hidden;
+        `
+      )}
+    >
+      <div
+        className={cx(
+          css`
+            background: #eee;
+            width: 100%;
+            height: 100%;
+          `
+        )}
+      >
+        {!isHidden && src && (
+          <img
+            className={css`
+              @keyframes fade-in {
+                from {
+                  opacity: 0;
+                }
+                to {
+                  opacity: 1;
+                }
+              }
+
+              animation: 0.3s forwards fade-in;
+            `}
+            src={src}
+            onError={() => setIsHidden(true)}
+          />
+        )}
+      </div>
+    </div>
   );
 }
 
