@@ -17,19 +17,29 @@ type IssueTypeDefinition = {
 
 export const issueDefinitions: IssueTypeDefinition[] = [
   {
-    title: "Proliferation",
-    key: "proliferation",
-    icon: "speakerCone",
-  },
-  {
     title: "Treasury management",
     key: "treasury",
     icon: "piggyBank",
   },
   {
-    title: "Builder funding",
+    title: "Grant funding",
     key: "funding",
     icon: "measure",
+  },
+  {
+    title: "Public goods",
+    key: "publicGoods",
+    icon: "ballot",
+  },
+  {
+    title: "Fees",
+    key: "fees",
+    icon: "ballot",
+  },
+  {
+    title: "Name ownership",
+    key: "nameOwnership",
+    icon: "community",
   },
 ];
 
