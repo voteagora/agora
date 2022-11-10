@@ -13,10 +13,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
 import { DelegateDialogQuery } from "./__generated__/DelegateDialogQuery.graphql";
 import { DelegateDialogFragment$key } from "./__generated__/DelegateDialogFragment.graphql";
-import { icons } from "../icons/icons";
 import { NounResolvedLink } from "./NounResolvedLink";
 import { ReactNode } from "react";
-import { BigNumber } from "ethers";
+import { TokenAmountDisplay } from "./TokenAmountDisplay";
+import ensIcon from "../icons/ens.png";
+import { TokenAmountDisplayFragment$key } from "./__generated__/TokenAmountDisplayFragment.graphql";
 
 export function DelegateDialog({
   fragment,
@@ -94,6 +95,38 @@ export function DelegateDialog({
   );
 }
 
+function ENSAmountDisplay({
+  fragment,
+}: {
+  fragment: TokenAmountDisplayFragment$key | null | undefined;
+}) {
+  if (!fragment) {
+    return null;
+  }
+
+  return (
+    <HStack
+      gap="2"
+      className={css`
+        color: ${theme.colors.black};
+        font-size: ${theme.fontSize["4xl"]};
+      `}
+      alignItems="center"
+    >
+      <img
+        className={css`
+          width: ${theme.spacing["8"]};
+          height: ${theme.spacing["8"]};
+        `}
+        src={ensIcon}
+        alt="ens-token"
+      />
+
+      <TokenAmountDisplay fragment={fragment} />
+    </HStack>
+  );
+}
+
 function DelegateDialogContents({
   fragment,
   completeDelegation,
@@ -113,7 +146,7 @@ function DelegateDialogContents({
           account {
             amountOwned {
               amount {
-                amount
+                ...TokenAmountDisplayFragment
               }
             }
           }
@@ -138,7 +171,9 @@ function DelegateDialogContents({
 
         delegate {
           tokensRepresented {
-            __typename
+            amount {
+              ...TokenAmountDisplayFragment
+            }
           }
         }
       }
@@ -173,10 +208,6 @@ function DelegateDialogContents({
 
   const { write } = useContractWrite(config as any);
 
-  const hasValueToDelegate = !BigNumber.from(
-    address?.account?.amountOwned?.amount?.amount ?? 0
-  ).isZero();
-
   return (
     <VStack gap="8" alignItems="stretch">
       <VStack
@@ -197,23 +228,12 @@ function DelegateDialogContents({
           if (!address) {
             return (
               <VStack gap="3" alignItems="center">
-                <div>Delegating your nouns</div>
-
-                <HStack>
-                  <img
-                    alt="anon noun"
-                    className={css`
-                      width: ${theme.spacing["8"]};
-                      height: ${theme.spacing["8"]};
-                    `}
-                    src={icons.anonNoun}
-                  />
-                </HStack>
+                <div>Delegating your tokens</div>
               </VStack>
             );
           }
 
-          if (!hasValueToDelegate) {
+          if (!address?.account?.amountOwned) {
             return (
               <div
                 className={css`
@@ -227,9 +247,11 @@ function DelegateDialogContents({
           } else {
             return (
               <VStack gap="3" alignItems="center">
-                <div>Delegating your nouns</div>
+                <div>Delegating your</div>
 
-                {/* todo: show balance */}
+                <ENSAmountDisplay
+                  fragment={address.account.amountOwned.amount}
+                />
               </VStack>
             );
           }
@@ -278,7 +300,9 @@ function DelegateDialogContents({
           </VStack>
         </VStack>
 
-        {/* todo: show balance here */}
+        <ENSAmountDisplay
+          fragment={wrappedDelegate?.delegate?.tokensRepresented?.amount}
+        />
 
         <NounResolvedLink resolvedName={wrappedDelegate.address.resolvedName} />
       </VStack>
@@ -288,15 +312,8 @@ function DelegateDialogContents({
           return <DelegateButton>Connect Wallet</DelegateButton>;
         }
 
-        if (!hasValueToDelegate) {
+        if (!address?.account?.amountOwned) {
           return null;
-        }
-
-        // todo: better way to tell this
-        const alreadyDelegated = false;
-
-        if (alreadyDelegated) {
-          return <DelegateButton>You're already delegated!</DelegateButton>;
         }
 
         return (
