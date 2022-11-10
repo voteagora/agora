@@ -118,7 +118,7 @@ export function VoterPanel({ delegateFragment }: Props) {
           />
 
           <PanelRow
-            title={"Voting Power"}
+            title={"Vote Power"}
             detail={
               !delegate
                 ? "N/A"
