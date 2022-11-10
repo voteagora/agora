@@ -1,6 +1,6 @@
 import { extractFirstParagraph, trimENSStatementHeader } from "./markdown";
 import { marked } from "marked";
-import * as dedent from "dedent";
+import dedent from "dedent";
 
 describe("trimENSStatementHeader", () => {
   it("trims header for coinbase.eth", () => {

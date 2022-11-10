@@ -4,7 +4,6 @@ import { formSchema } from "./formSchema";
 import { ValidatedMessage } from "./utils/signing";
 import { CacheDependencies, Span } from "./utils/cache";
 import { ENSAccount, Snapshot } from "./snapshot";
-import { getSnapshotVotes } from "./bin/server";
 
 export type Address = {
   address: string;

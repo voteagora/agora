@@ -3,7 +3,6 @@ import { makeGatewaySchema } from "../schema";
 import { AgoraContextType } from "../model";
 import { makeEmailStorage } from "./storage";
 import { getOrInitializeLatestSnapshot } from "./snapshot";
-import { ExpiringCache } from "../utils/cache";
 import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
 import { makeDynamoClient } from "./dynamodb";
 import { makeDynamoStatementStorage } from "../store/dynamo/statement";
@@ -43,10 +42,6 @@ export async function getGraphQLCallingContext(
       rootSpan: request.tracer,
     },
     cache: {
-      cache: makeCacheFromKvNamespace(env.APPLICATION_CACHE),
-      waitUntil(promise) {
-        return ctx.waitUntil(promise);
-      },
       span: request.tracer,
     },
   };
@@ -54,16 +49,5 @@ export async function getGraphQLCallingContext(
   return {
     schema: gatewaySchema,
     context,
-  };
-}
-
-function makeCacheFromKvNamespace(kvNamespace: KVNamespace): ExpiringCache {
-  return {
-    async get(key: string): Promise<string | null> {
-      return await kvNamespace.get(key);
-    },
-    async put(key: string, value: string): Promise<void> {
-      await kvNamespace.put(key, value, { expirationTtl: 60 * 60 * 24 * 7 });
-    },
   };
 }
