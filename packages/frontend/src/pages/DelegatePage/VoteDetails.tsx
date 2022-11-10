@@ -164,6 +164,6 @@ export function VoteDetails({ voteFragment }: Props) {
   );
 }
 
-function shortenId(id: string) {
+export function shortenId(id: string) {
   return `${id.slice(0, 4)}...${id.slice(-4)}`;
 }
