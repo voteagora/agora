@@ -12,6 +12,7 @@ import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
 import { Suspense, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
+import { TokenAmountDisplay } from "./TokenAmountDisplay";
 
 export const orgName = "ENS";
 
@@ -150,7 +151,9 @@ function OwnedValuePanel({ fragment }: OwnedValuePanelProps) {
       fragment PageHeaderFragment on Address {
         account {
           amountOwned {
-            __typename
+            amount {
+              ...TokenAmountDisplayFragment
+            }
           }
         }
       }
@@ -180,7 +183,7 @@ function OwnedValuePanel({ fragment }: OwnedValuePanelProps) {
           padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
         `}
       >
-        {/* todo: change to display balance */}
+        <TokenAmountDisplay fragment={account.amountOwned.amount} />
       </HStack>
     </HStack>
   );
