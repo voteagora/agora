@@ -1,0 +1,20 @@
+name = "cname-worker"
+main = "src/index.ts"
+compatibility_date = "2022-11-11"
+
+[env.dev]
+name = "cname-worker-dev"
+vars = { ENVIRONMENT = "dev" }
+account_id = "86fdf8ef811b4d0aa8954fa036684ea3"
+
+services = [
+    { binding = "ENS", service = "ens-agora-dev" },
+]
+
+[env.prod]
+name = "cname-worker-prod"
+vars = { ENVIRONMENT = "prod" }
+account_id = "d0222542a05849995856d260759717d4"
+
+services = [
+]

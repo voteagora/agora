@@ -4,7 +4,8 @@
     "./packages/frontend",
     "./packages/backend",
     "./packages/subgraph",
-    "./packages/fetch-snapshot"
+    "./packages/fetch-snapshot",
+    "./packages/cname-worker"
   ],
   "scripts": {
     "postinstall": "patch-package",
