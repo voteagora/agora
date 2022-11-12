@@ -214,11 +214,13 @@ function DelegateDialogContents({
     },
   });
 
-  const { write } = useContractWrite(config as any);
+  const { writeAsync: delegateUsingTransaction } = useContractWrite(
+    config as any
+  );
   const provider = useProvider();
   const signer = useSigner();
 
-  const { mutate: delegate } = useMutation({
+  const { mutate: delegate, isLoading } = useMutation({
     async mutationFn(delegate: string) {
       if (!signer.data) {
         return;
@@ -229,7 +231,7 @@ function DelegateDialogContents({
         return;
       }
 
-      return write?.();
+      return await delegateUsingTransaction?.();
     },
   });
 
@@ -341,7 +343,9 @@ function DelegateDialogContents({
 
       {(() => {
         if (!address) {
-          return <DelegateButton>Connect Wallet</DelegateButton>;
+          return (
+            <DelegateButton disabled={isLoading}>Connect Wallet</DelegateButton>
+          );
         }
 
         if (!address?.account?.amountOwned) {
@@ -350,6 +354,7 @@ function DelegateDialogContents({
 
         return (
           <DelegateButton
+            disabled={isLoading}
             onClick={() =>
               delegate(wrappedDelegate.address.resolvedName.address)
             }
@@ -364,13 +369,19 @@ function DelegateDialogContents({
 
 type DelegateButtonProps = {
   onClick?: () => void;
+  disabled: boolean;
   children: ReactNode;
 };
 
-const DelegateButton = ({ children, onClick }: DelegateButtonProps) => {
+const DelegateButton = ({
+  children,
+  disabled,
+  onClick,
+}: DelegateButtonProps) => {
+  const effectiveOnClick = !disabled ? onClick : undefined;
   return (
     <div
-      onClick={onClick}
+      onClick={effectiveOnClick}
       className={css`
         text-align: center;
         border-radius: ${theme.spacing["2"]};
@@ -379,7 +390,7 @@ const DelegateButton = ({ children, onClick }: DelegateButtonProps) => {
         padding: ${theme.spacing["4"]} 0;
         cursor: pointer;
 
-        ${!onClick &&
+        ${!effectiveOnClick &&
         css`
           background: ${theme.colors.gray.eb};
           color: ${theme.colors.gray["700"]};
