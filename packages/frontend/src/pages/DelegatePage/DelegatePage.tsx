@@ -9,8 +9,8 @@ import { Markdown } from "../../components/Markdown";
 import { HStack, VStack } from "../../components/VStack";
 import { ImpactfulProposals } from "./ImpactfulProposals";
 import { useParams } from "../../components/HammockRouter/HammockRouter";
-import { Navigate } from "../../components/HammockRouter/Navigate";
 import { TopIssues } from "./TopIssues";
+import { Navigate } from "../../components/HammockRouter/Navigate";
 
 export default DelegatePage;
 
@@ -47,12 +47,7 @@ export function DelegatePage() {
     return <Navigate to="/" />;
   }
 
-  const wrappedDelegate = query.address.wrappedDelegate;
-
-  if (!wrappedDelegate.delegate && !wrappedDelegate.statement) {
-    // todo: handle delegate not found
-    return <Navigate to="/" />;
-  }
+  const wrappedDelegate = query.address?.wrappedDelegate;
 
   return (
     <>
@@ -92,7 +87,7 @@ export function DelegatePage() {
         >
           <VoterPanel delegateFragment={query.address} />
 
-          {!wrappedDelegate.statement && (
+          {wrappedDelegate && !wrappedDelegate.statement && (
             <div
               className={css`
                 color: #66676b;
@@ -115,7 +110,7 @@ export function DelegatePage() {
             flex: 1;
           `}
         >
-          {!!wrappedDelegate.statement && (
+          {!!wrappedDelegate?.statement && (
             <>
               {wrappedDelegate.statement.statement && (
                 <VStack gap="4">
@@ -137,7 +132,7 @@ export function DelegatePage() {
             </>
           )}
 
-          {wrappedDelegate.delegate && (
+          {wrappedDelegate?.delegate && (
             <PastVotes fragment={wrappedDelegate.delegate} />
           )}
         </VStack>

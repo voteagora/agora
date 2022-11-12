@@ -111,6 +111,10 @@ export function makeGatewaySchema() {
           }
 
           const address = await resolveEnsName(addressOrEnsName, provider);
+          if (!address) {
+            return null;
+          }
+
           return {
             // todo: thread through the ens name here too
             address: address.toLowerCase(),
@@ -184,6 +188,12 @@ export function makeGatewaySchema() {
 
       async wrappedDelegate({ address }, _args, { delegateStorage }) {
         const delegate = await delegateStorage.getDelegate(address);
+        if (!delegate) {
+          return {
+            address,
+          } as any;
+        }
+
         return delegate;
       },
 

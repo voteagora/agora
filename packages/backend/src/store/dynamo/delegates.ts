@@ -50,6 +50,10 @@ export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
         Key: makeMergedDelegateKey(address),
       });
 
+      if (!result.Item) {
+        return null;
+      }
+
       return loadDelegateOverview(marshaller.unmarshallItem(result.Item));
     },
 
