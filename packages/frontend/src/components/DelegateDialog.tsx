@@ -253,8 +253,7 @@ function DelegateDialogContents({
       >
         <VStack
           className={css`
-            padding: ${theme.spacing["12"]};
-            padding-bottom: ${theme.spacing["4"]};
+            padding: ${theme.spacing["4"]} ${theme.spacing["12"]};
           `}
           alignItems="center"
           gap="3"
@@ -321,7 +320,7 @@ function DelegateDialogContents({
 
         <VStack
           className={css`
-            padding: ${theme.spacing["12"]};
+            padding: ${theme.spacing["4"]} ${theme.spacing["12"]};
           `}
         >
           <div
