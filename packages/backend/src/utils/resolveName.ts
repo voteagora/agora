@@ -35,7 +35,7 @@ async function resolveAddress(
 
 export async function resolveNameFromAddress(
   address: string,
-  provider: ethers.providers.Provider
+  provider: ethers.providers.BaseProvider
 ) {
   const resolvedName = await resolveAddress(address, provider);
   if (!resolvedName) {
@@ -52,32 +52,14 @@ export async function resolveNameFromAddress(
 
 export async function resolveEnsName(
   name: string,
-  provider: ethers.providers.Provider
+  provider: ethers.providers.BaseProvider
 ) {
-  return resolveName(name, makeEnsRegistry(provider));
-}
-
-async function resolveName(
-  nameOrAddress: string,
-  registry: ENSRegistryWithFallback
-): Promise<string | null> {
-  if (ethers.utils.isHexString(nameOrAddress)) {
-    return ethers.utils.getAddress(nameOrAddress);
-  }
-
-  const name = nameOrAddress;
-  const resolverAddress = await getResolver(name, registry);
-  if (!resolverAddress) {
+  const resolver = await provider.getResolver(name);
+  if (!resolver) {
     return null;
   }
 
-  const resolver = ENSAddressResolver__factory.connect(
-    resolverAddress,
-    registry.provider
-  );
-
-  const hash = ethers.utils.namehash(name);
-  return await resolver.addr(hash);
+  return await resolver.getAddress();
 }
 
 async function getResolver(

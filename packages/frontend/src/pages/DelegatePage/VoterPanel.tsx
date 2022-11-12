@@ -67,7 +67,7 @@ export function VoterPanel({ delegateFragment }: Props) {
     delegateFragment
   );
 
-  const delegate = address.wrappedDelegate.delegate;
+  const delegate = address?.wrappedDelegate.delegate;
 
   return (
     <VStack
@@ -146,7 +146,7 @@ export function VoterPanel({ delegateFragment }: Props) {
 
           {delegate && <DelegateFromList fragment={delegate} />}
 
-          <VoterPanelActions fragment={address.wrappedDelegate} />
+          {address && <VoterPanelActions fragment={address.wrappedDelegate} />}
         </VStack>
       </div>
     </VStack>
