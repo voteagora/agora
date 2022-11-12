@@ -23,8 +23,6 @@ export function locationToVariables(location: Location) {
   };
 }
 
-export default HomePage;
-
 export function HomePage() {
   const location = useLocation();
   const variables = locationToVariables(location);
@@ -32,8 +30,8 @@ export function HomePage() {
   const result = useLazyLoadQuery<HomePageQuery>(
     graphql`
       query HomePageQuery(
-        $orderBy: WrappedDelegatesOrder!
-        $filterBy: WrappedDelegatesWhere
+        $orderBy: DelegatesOrder!
+        $filterBy: DelegatesWhere
       ) {
         ...DelegatesContainerFragment
           @arguments(orderBy: $orderBy, filterBy: $filterBy)
@@ -102,3 +100,5 @@ function PageDivider() {
     />
   );
 }
+
+export default HomePage;

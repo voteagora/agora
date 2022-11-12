@@ -3,10 +3,9 @@ import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay";
 import { useMutation } from "@tanstack/react-query";
-import { inset0 } from "../theme";
+import { inset0, shadow } from "../theme";
 import * as theme from "../theme";
 import { HStack, VStack } from "./VStack";
-import { shadow } from "../pages/DelegatePage/VoterPanel";
 import {
   useAccount,
   useContractWrite,
@@ -106,7 +105,7 @@ export function DelegateDialog({
 function ENSAmountDisplay({
   fragment,
 }: {
-  fragment: TokenAmountDisplayFragment$key | null | undefined;
+  fragment: TokenAmountDisplayFragment$key;
 }) {
   if (!fragment) {
     return null;
@@ -143,19 +142,13 @@ function DelegateDialogContents({
   completeDelegation: () => void;
 }) {
   const { address: accountAddress } = useAccount();
-  const { address } = useLazyLoadQuery<DelegateDialogQuery>(
+  const { delegate: currentAccount } = useLazyLoadQuery<DelegateDialogQuery>(
     graphql`
       query DelegateDialogQuery($address: String!, $skip: Boolean!) {
-        address(addressOrEnsName: $address) @skip(if: $skip) {
-          resolvedName {
-            address
-          }
-
-          account {
-            amountOwned {
-              amount {
-                ...TokenAmountDisplayFragment
-              }
+        delegate(addressOrEnsName: $address) @skip(if: $skip) {
+          amountOwned {
+            amount {
+              ...TokenAmountDisplayFragment
             }
           }
         }
@@ -167,9 +160,9 @@ function DelegateDialogContents({
     }
   );
 
-  const wrappedDelegate = useFragment(
+  const delegate = useFragment(
     graphql`
-      fragment DelegateDialogFragment on WrappedDelegate {
+      fragment DelegateDialogFragment on Delegate {
         address {
           resolvedName {
             address
@@ -177,11 +170,9 @@ function DelegateDialogContents({
           }
         }
 
-        delegate {
-          tokensRepresented {
-            amount {
-              ...TokenAmountDisplayFragment
-            }
+        tokensRepresented {
+          amount {
+            ...TokenAmountDisplayFragment
           }
         }
       }
@@ -208,7 +199,7 @@ function DelegateDialogContents({
       },
     ],
     functionName: "delegate",
-    args: [wrappedDelegate.address.resolvedName.address as any],
+    args: [delegate.address.resolvedName.address as any],
     onError(e) {
       Sentry.captureException(e);
     },
@@ -220,7 +211,7 @@ function DelegateDialogContents({
   const provider = useProvider();
   const signer = useSigner();
 
-  const { mutate: delegate, isLoading } = useMutation({
+  const { mutate: delegateVotes, isLoading } = useMutation({
     async mutationFn(delegate: string) {
       if (!signer.data) {
         return;
@@ -259,7 +250,7 @@ function DelegateDialogContents({
           gap="3"
         >
           {(() => {
-            if (!address?.account?.amountOwned) {
+            if (!currentAccount?.amountOwned?.amount) {
               return <div>You don't have any tokens to delegate</div>;
             } else {
               return (
@@ -267,7 +258,7 @@ function DelegateDialogContents({
                   <div>Delegating your</div>
 
                   <ENSAmountDisplay
-                    fragment={address.account.amountOwned.amount}
+                    fragment={currentAccount.amountOwned.amount}
                   />
                 </>
               );
@@ -328,35 +319,25 @@ function DelegateDialogContents({
               text-align: center;
             `}
           >
-            To{" "}
-            <NounResolvedLink
-              resolvedName={wrappedDelegate.address.resolvedName}
-            />{" "}
+            To <NounResolvedLink resolvedName={delegate.address.resolvedName} />{" "}
             who represents
           </div>
-          <ENSAmountDisplay
-            fragment={wrappedDelegate?.delegate?.tokensRepresented?.amount}
-          />
+
+          <ENSAmountDisplay fragment={delegate.tokensRepresented.amount} />
         </VStack>
       </VStack>
 
       {(() => {
-        if (!address) {
+        if (!currentAccount) {
           return (
             <DelegateButton disabled={isLoading}>Connect Wallet</DelegateButton>
           );
         }
 
-        if (!address?.account?.amountOwned) {
-          return null;
-        }
-
         return (
           <DelegateButton
             disabled={isLoading}
-            onClick={() =>
-              delegate(wrappedDelegate.address.resolvedName.address)
-            }
+            onClick={() => delegateVotes(delegate.address.resolvedName.address)}
           >
             Delegate
           </DelegateButton>

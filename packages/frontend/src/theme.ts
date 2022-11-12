@@ -296,3 +296,6 @@ export const inset0 = css`
   bottom: 0;
   right: 0;
 `;
+
+export const shadow =
+  "0px 4px 12px rgba(0, 0, 0, 0.02), 0px 2px 2px rgba(0, 0, 0, 0.03);";

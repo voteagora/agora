@@ -8,8 +8,8 @@ import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContain
 import { HStack, VStack } from "../../components/VStack";
 import { useCallback, useState, useTransition } from "react";
 import {
-  WrappedDelegatesOrder,
-  WrappedDelegatesWhere,
+  DelegatesOrder,
+  DelegatesWhere,
 } from "./__generated__/DelegatesContainerPaginationQuery.graphql";
 import { Selector, SelectorItem } from "./Selector";
 import { motion } from "framer-motion";
@@ -22,7 +22,7 @@ type Props = {
   variables: ReturnType<typeof locationToVariables>;
 };
 
-const orderNames: { [K in WrappedDelegatesOrder]?: string } = {
+const orderNames: { [K in DelegatesOrder]?: string } = {
   mostVotingPower: "Most voting power",
   mostDelegates: "Most delegates",
 };
@@ -42,9 +42,7 @@ const filterNames = [
   },
 ];
 
-export function parseOrderName(
-  orderName: string
-): WrappedDelegatesOrder | null {
+export function parseOrderName(orderName: string): DelegatesOrder | null {
   if (orderName in orderNames) {
     return orderName as any;
   }
@@ -52,9 +50,7 @@ export function parseOrderName(
   return null;
 }
 
-export function parseFilterName(
-  filterName: string
-): WrappedDelegatesWhere | null {
+export function parseFilterName(filterName: string): DelegatesWhere | null {
   return (
     filterNames.find((filter) => filter.value === filterName)?.value ?? null
   );
@@ -62,12 +58,13 @@ export function parseFilterName(
 
 export function DelegatesContainer({ fragmentKey, variables }: Props) {
   const [isPending, startTransition] = useTransition();
-  const [localOrderBy, setLocalOrderBy] = useState<WrappedDelegatesOrder>(
+  const [localOrderBy, setLocalOrderBy] = useState<DelegatesOrder>(
     variables.orderBy
   );
 
-  const [localFilterBy, setLocalFilterBy] =
-    useState<WrappedDelegatesWhere | null>(variables.filterBy);
+  const [localFilterBy, setLocalFilterBy] = useState<DelegatesWhere | null>(
+    variables.filterBy
+  );
 
   const navigate = useNavigate();
 
@@ -82,14 +79,11 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
       @argumentDefinitions(
         first: { type: "Int", defaultValue: 30 }
         after: { type: "String" }
-        orderBy: {
-          type: "WrappedDelegatesOrder"
-          defaultValue: mostVotingPower
-        }
-        filterBy: { type: "WrappedDelegatesWhere" }
+        orderBy: { type: "DelegatesOrder", defaultValue: mostVotingPower }
+        filterBy: { type: "DelegatesWhere" }
       )
       @refetchable(queryName: "DelegatesContainerPaginationQuery") {
-        voters: wrappedDelegates(
+        voters: delegates(
           first: $first
           after: $after
           orderBy: $orderBy
@@ -161,9 +155,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
             <DelegatePageInput />
 
             <Selector
-              items={
-                filterNames as SelectorItem<WrappedDelegatesWhere | null>[]
-              }
+              items={filterNames as SelectorItem<DelegatesWhere | null>[]}
               value={isPending ? localFilterBy : variables.filterBy}
               onChange={(filterBy) => {
                 setLocalFilterBy(filterBy);
@@ -175,9 +167,9 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
 
             <Selector
               items={Object.entries(orderNames).map(
-                ([value, title]): SelectorItem<WrappedDelegatesOrder> => ({
+                ([value, title]): SelectorItem<DelegatesOrder> => ({
                   title,
-                  value: value as WrappedDelegatesOrder,
+                  value: value as DelegatesOrder,
                 })
               )}
               value={isPending ? localOrderBy : variables.orderBy}

@@ -8,7 +8,7 @@ import graphql from "babel-plugin-relay/macro";
 import { OverviewMetricsContainerFragment$key } from "./__generated__/OverviewMetricsContainerFragment.graphql";
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
 import { BigNumber } from "ethers";
-import { bpsToString } from "../DelegatePage/VoterPanel";
+import { bpsToString } from "../../utils/bps";
 
 type Props = {
   fragmentRef: OverviewMetricsContainerFragment$key;

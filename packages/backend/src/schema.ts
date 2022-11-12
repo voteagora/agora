@@ -100,7 +100,17 @@ export function makeGatewaySchema() {
           return null;
         }
 
-        return delegateStorage.getDelegate(address);
+        const delegate = await delegateStorage.getDelegate(address);
+        if (!delegate) {
+          return {
+            address,
+            tokensOwned: BigNumber.from(0),
+            tokensRepresented: BigNumber.from(0),
+            tokenHoldersRepresented: 0,
+            statement: null,
+          };
+        }
+        return delegate;
       },
 
       async delegates(
@@ -114,6 +124,10 @@ export function makeGatewaySchema() {
           orderBy,
           where,
         });
+      },
+
+      proposals(_, _args, { snapshot }) {
+        return Array.from(snapshot.ENSGovernor.proposals.values());
       },
 
       metrics() {

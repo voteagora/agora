@@ -8,7 +8,6 @@ import { HStack, VStack } from "../../components/VStack";
 import { Selector } from "../HomePage/Selector";
 import { useMemo, useState } from "react";
 import { BigNumber } from "ethers";
-import { descendingValueComparator } from "./VoterPanel";
 import { SnapshotVoteDetails } from "./SnapshotVoteDetails";
 
 type Props = {
@@ -195,4 +194,21 @@ export function PastVotes({ fragment }: Props) {
       </VStack>
     </VStack>
   );
+}
+
+export type Comparator<T> = (a: T, b: T) => number;
+
+export function descendingValueComparator<T>(
+  getValueFor: (item: T) => number
+): Comparator<T> {
+  return (a, b) => {
+    const aValue = getValueFor(a);
+    const bValue = getValueFor(b);
+
+    return bValue - aValue;
+  };
+}
+
+export function flipComparator<T>(toFlip: Comparator<T>): Comparator<T> {
+  return (a, b) => toFlip(b, a);
 }

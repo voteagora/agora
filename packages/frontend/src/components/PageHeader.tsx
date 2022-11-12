@@ -92,14 +92,12 @@ function PageHeaderContents() {
     });
   }, [accountAddress]);
 
-  const { address } = useLazyLoadQuery<PageHeaderQuery>(
+  const { delegate } = useLazyLoadQuery<PageHeaderQuery>(
     graphql`
       query PageHeaderQuery($address: String!, $skip: Boolean!) {
-        address(addressOrEnsName: $address) @skip(if: $skip) {
-          wrappedDelegate {
-            statement {
-              __typename
-            }
+        delegate(addressOrEnsName: $address) @skip(if: $skip) {
+          statement {
+            __typename
           }
 
           ...PageHeaderFragment
@@ -114,7 +112,7 @@ function PageHeaderContents() {
 
   return (
     <HStack gap="2" justifyContent="center">
-      {address && (
+      {delegate && (
         <Link
           to="/create"
           className={css`
@@ -132,11 +130,11 @@ function PageHeaderContents() {
             }
           `}
         >
-          <div>{!!address.wrappedDelegate.statement ? "Edit" : "Create"}</div>
+          <div>{!!delegate.statement ? "Edit" : "Create"}</div>
         </Link>
       )}
 
-      {address && <OwnedValuePanel fragment={address} />}
+      {delegate && <OwnedValuePanel fragment={delegate} />}
     </HStack>
   );
 }
@@ -146,24 +144,18 @@ type OwnedValuePanelProps = {
 };
 
 function OwnedValuePanel({ fragment }: OwnedValuePanelProps) {
-  const { account } = useFragment(
+  const delegate = useFragment(
     graphql`
-      fragment PageHeaderFragment on Address {
-        account {
-          amountOwned {
-            amount {
-              ...TokenAmountDisplayFragment
-            }
+      fragment PageHeaderFragment on Delegate {
+        amountOwned {
+          amount {
+            ...TokenAmountDisplayFragment
           }
         }
       }
     `,
     fragment
   );
-
-  if (!account) {
-    return null;
-  }
 
   return (
     <HStack
@@ -183,7 +175,7 @@ function OwnedValuePanel({ fragment }: OwnedValuePanelProps) {
           padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
         `}
       >
-        <TokenAmountDisplay fragment={account.amountOwned.amount} />
+        <TokenAmountDisplay fragment={delegate.amountOwned.amount} />
       </HStack>
     </HStack>
   );

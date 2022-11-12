@@ -3,12 +3,12 @@ import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import { EditDelegatePageQuery } from "./__generated__/EditDelegatePageQuery.graphql";
 import * as theme from "../../theme";
-import { VoterPanel } from "../DelegatePage/VoterPanel";
 import { DelegateStatementForm } from "./DelegateStatementForm";
 import { EditDelegatePageLazyVoterPanelQuery } from "./__generated__/EditDelegatePageLazyVoterPanelQuery.graphql";
 import { useAccount } from "wagmi";
 import { HStack } from "../../components/VStack";
 import { Navigate } from "../../components/HammockRouter/Navigate";
+import { VoterPanel } from "../../components/VoterPanel/VoterPanel";
 
 export default EditDelegatePage;
 
@@ -101,8 +101,8 @@ function LazyVoterPanel({ address }: LazyVoterPanelProps) {
   const query = useLazyLoadQuery<EditDelegatePageLazyVoterPanelQuery>(
     graphql`
       query EditDelegatePageLazyVoterPanelQuery($address: String!) {
-        address(addressOrEnsName: $address) {
-          ...VoterPanelDelegateFragment
+        delegate(addressOrEnsName: $address) {
+          ...VoterPanelFragment
         }
       }
     `,
@@ -111,9 +111,9 @@ function LazyVoterPanel({ address }: LazyVoterPanelProps) {
     }
   );
 
-  if (!query.address) {
+  if (!query.delegate) {
     return <Navigate to="/" />;
   }
 
-  return <VoterPanel delegateFragment={query.address} />;
+  return <VoterPanel fragment={query.delegate} />;
 }

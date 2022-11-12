@@ -25,4 +25,5 @@ generates:
         DelegateStatement: ../model#DelegateStatement as DelegateStatementModel
         Transaction: ../model#Transaction as TransactionModel
         Block: ../model#Block as BlockModel
+        Metrics: ../model#Metrics as MetricsModel
 
