@@ -1,4 +1,5 @@
 import { usePaginationFragment } from "react-relay";
+import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
@@ -157,6 +158,8 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
               }
             `}
           >
+            <DelegatePageInput />
+
             <Selector
               items={
                 filterNames as SelectorItem<WrappedDelegatesWhere | null>[]
@@ -243,3 +246,61 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
     </VStack>
   );
 }
+
+const DelegatePageInput = () => {
+  const [enteredName, setEnteredName] = useState("");
+  const navigate = useNavigate();
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        navigate({ path: `/delegate/${enteredName}` });
+      }}
+    >
+      <div
+        className={css`
+          position: relative;
+        `}
+      >
+        <VStack
+          justifyContent="center"
+          className={css`
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+
+            padding: ${theme.spacing["2"]};
+          `}
+        >
+          <MagnifyingGlassIcon
+            className={css`
+              color: #4f4f4f;
+              width: ${theme.spacing["4"]};
+              height: ${theme.spacing["4"]};
+            `}
+          />
+        </VStack>
+
+        <input
+          type="text"
+          onChange={(event) => setEnteredName(event.target.value)}
+          placeholder="Enter ENS or address"
+          className={css`
+            padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+            padding-left: ${theme.spacing["8"]};
+            border-radius: ${theme.borderRadius.full};
+            background: #fafafa;
+            border-color: #ebebeb;
+            border-width: 1px;
+
+            &::placeholder {
+              color: #afafaf;
+            }
+          `}
+        />
+      </div>
+    </form>
+  );
+};
