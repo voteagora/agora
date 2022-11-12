@@ -100,6 +100,8 @@ export type DelegateOverview = {
   statement: StoredStatement;
 };
 
+export type Delegate = DelegateOverview;
+
 export type DelegatesPage = Connection<DelegateOverview>;
 
 export type GetDelegatesParams = {

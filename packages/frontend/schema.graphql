@@ -3,10 +3,53 @@ scalar BigInt
 scalar Timestamp
 
 type Query {
-  address(addressOrEnsName: String!): Address
-  wrappedDelegates(where: WrappedDelegatesWhere, orderBy: WrappedDelegatesOrder!, first: Int!, after: String): WrappedDelegatesConnection!
-  proposals: [Proposal!]!
+  delegate(addressOrEnsName: String!): Delegate
+  delegates(where: DelegatesWhere, orderBy: DelegatesOrder!, first: Int!, after: String): DelegatesConnection!
   metrics: Metrics!
+}
+
+type Delegate {
+  id: ID!
+  address: Address!
+  statement: DelegateStatement
+  amountOwned: VotingPower!
+  tokensRepresented: VotingPower!
+  delegateMetrics: DelegateMetrics!
+  proposed: [Proposal!]!
+  votes: [Vote!]!
+  snapshotVotes: [SnapshotVote!]!
+}
+
+type Address {
+  resolvedName: ResolvedName!
+  isContract: Boolean!
+}
+
+type DelegateStatement {
+  statement: String!
+  summary: String
+  topIssues: [TopIssue!]!
+  mostValuableProposals: [Proposal!]!
+  leastValuableProposals: [Proposal!]!
+  twitter: String!
+  discord: String!
+  openToSponsoringProposals: Boolean
+}
+
+type ResolvedName {
+  address: ID!
+  name: String
+}
+
+type DelegateMetrics {
+  totalVotes: Int!
+  forVotes: Int!
+  againstVotes: Int!
+  abstainVotes: Int!
+  ofLastTenProps: Int!
+  ofTotalProps: Int!
+  proposalsCreated: Int!
+  tokenHoldersRepresentedCount: Int!
 }
 
 type Metrics {
@@ -23,7 +66,6 @@ type Vote {
   supportDetailed: Int!
   votes: VotingPower!
   proposal: Proposal!
-  voter: Delegate!
   transaction: Transaction!
 }
 
@@ -39,36 +81,6 @@ type Block {
   timestamp: Timestamp!
 }
 
-type Address {
-  resolvedName: ResolvedName!
-  account: Account
-  wrappedDelegate: WrappedDelegate!
-  isContract: Boolean!
-}
-
-type ResolvedName {
-  address: ID!
-  name: String
-}
-
-type WrappedDelegate {
-  id: ID!
-  address: Address!
-  statement: DelegateStatement
-  delegate: Delegate
-}
-
-type DelegateMetrics {
-  totalVotes: Int!
-  forVotes: Int!
-  againstVotes: Int!
-  abstainVotes: Int!
-  ofLastTenProps: Int!
-  ofTotalProps: Int!
-  proposalsCreated: Int!
-  tokenHoldersRepresentedCount: Int!
-}
-
 type TokenAmount {
   amount: BigInt!
   currency: String!
@@ -79,16 +91,6 @@ type VotingPower {
   amount: TokenAmount!
   bpsOfQuorum: Int!
   bpsOfTotal: Int!
-}
-
-type Delegate {
-  id: ID!
-  address: Address!
-  tokensRepresented: VotingPower!
-  proposed: [Proposal!]!
-  votes: [Vote!]!
-  snapshotVotes: [SnapshotVote!]!
-  delegateMetrics: DelegateMetrics!
 }
 
 type SnapshotVote {
@@ -111,46 +113,28 @@ type ProposalChoice {
   score: Float!
 }
 
-type Account {
-  id: ID!
-  address: Address!
-  amountOwned: VotingPower!
-  delegatingTo: Delegate!
-}
-
-type DelegateStatement {
-  statement: String!
-  summary: String
-  topIssues: [TopIssue!]!
-  mostValuableProposals: [Proposal!]!
-  leastValuableProposals: [Proposal!]!
-  twitter: String!
-  discord: String!
-  openToSponsoringProposals: Boolean
-}
-
 type TopIssue {
   type: String!
   value: String!
 }
 
-enum WrappedDelegatesWhere {
+enum DelegatesWhere {
   withStatement
   withoutStatement
 }
 
-enum WrappedDelegatesOrder {
+enum DelegatesOrder {
   mostVotingPower
   mostDelegates
 }
 
-type WrappedDelegatesConnection {
+type DelegatesConnection {
   pageInfo: PageInfo!
-  edges: [WrappedDelegatesEdge!]!
+  edges: [DelegatesEdge!]!
 }
 
-type WrappedDelegatesEdge {
-  node: WrappedDelegate!
+type DelegatesEdge {
+  node: Delegate!
   cursor: String!
 }
 
@@ -168,11 +152,10 @@ type Proposal {
   totalVotes: BigInt!
   votes: [Vote!]!
   totalValue: BigInt!
-  proposer: Delegate!
 }
 
 type Mutation {
-  createNewDelegateStatement(data: CreateNewDelegateStatementData): WrappedDelegate!
+  createNewDelegateStatement(data: CreateNewDelegateStatementData): Delegate!
 }
 
 input CreateNewDelegateStatementData {

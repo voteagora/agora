@@ -6,13 +6,13 @@ import {
 } from "./utils/markdown";
 import { GraphQLScalarType } from "graphql";
 import { BigNumber, ethers } from "ethers";
-import { QueryWrappedDelegatesArgs, Resolvers } from "./generated/types";
+import { Resolvers } from "./generated/types";
 import { formSchema } from "./formSchema";
-import { Account, StoredStatement } from "./model";
+import { StoredStatement } from "./model";
 import schema from "./schema.graphql";
 import { marked } from "marked";
 import { validateSigned } from "./utils/signing";
-import { resolveEnsName, resolveNameFromAddress } from "./utils/resolveName";
+import { resolveNameFromAddress } from "./utils/resolveName";
 import { Snapshot } from "./snapshot";
 import { attachTracingContextInjection } from "./graphql/tracingContext";
 import { applyIdPrefix } from "./graphql/applyIdPrefix";
@@ -21,6 +21,8 @@ import { applyIdPrefix } from "./graphql/applyIdPrefix";
 // todo: __typename
 // todo: overviewmetricscontainer
 // todo: decompose this file
+// todo: move all reads to dynamodb
+// todo: update snapshot
 
 export function makeGatewaySchema() {
   const amountSpec = {
@@ -45,18 +47,6 @@ export function makeGatewaySchema() {
         .div(bottom)
         .toNumber()
     );
-  }
-
-  function getAccount(address: string, snapshot: Snapshot): Account {
-    const account = snapshot.ENSToken.accounts.get(address.toLowerCase());
-    if (!account) {
-      return null;
-    }
-
-    return {
-      ...account,
-      address,
-    };
   }
 
   function proposedByAddress(address: string, snapshot: Snapshot) {
@@ -102,29 +92,20 @@ export function makeGatewaySchema() {
         new Date(value);
       },
     }),
+
     Query: {
-      address: {
-        async resolve(_, { addressOrEnsName }, { provider }) {
-          if (ethers.utils.isAddress(addressOrEnsName)) {
-            const address = addressOrEnsName.toLowerCase();
-            return { address };
-          }
+      async delegate(_, { addressOrEnsName }, { provider, delegateStorage }) {
+        const address = await provider.resolveName(addressOrEnsName);
+        if (!address) {
+          return null;
+        }
 
-          const address = await resolveEnsName(addressOrEnsName, provider);
-          if (!address) {
-            return null;
-          }
-
-          return {
-            // todo: thread through the ens name here too
-            address: address.toLowerCase(),
-          };
-        },
+        return delegateStorage.getDelegate(address);
       },
 
-      async wrappedDelegates(
+      async delegates(
         _,
-        { where, orderBy, first, after }: QueryWrappedDelegatesArgs,
+        { where, orderBy, first, after },
         { delegateStorage }
       ) {
         return await delegateStorage.getDelegates({
@@ -133,10 +114,6 @@ export function makeGatewaySchema() {
           orderBy,
           where,
         });
-      },
-
-      proposals(_parent, _args, { snapshot }) {
-        return Array.from(snapshot.ENSGovernor.proposals.values());
       },
 
       metrics() {
@@ -185,21 +162,6 @@ export function makeGatewaySchema() {
           return address;
         },
       },
-
-      async wrappedDelegate({ address }, _args, { delegateStorage }) {
-        const delegate = await delegateStorage.getDelegate(address);
-        if (!delegate) {
-          return {
-            address,
-          } as any;
-        }
-
-        return delegate;
-      },
-
-      account({ address }, _args, { snapshot }) {
-        return getAccount(address, snapshot);
-      },
     },
 
     ResolvedName: {
@@ -216,34 +178,36 @@ export function makeGatewaySchema() {
       },
     },
 
-    Account: {
-      id({ address }) {
-        return `Account|${address}`;
-      },
-      address({ address }) {
-        return {
-          address,
-        };
-      },
-
-      amountOwned({ balance }) {
-        return balance;
-      },
-
-      delegatingTo({ delegatingTo }, _args, { snapshot }) {
-        return getAccount(delegatingTo, snapshot);
-      },
-    },
-
     Delegate: {
       id({ address }) {
         return `Delegate|${address}`;
       },
 
-      address({ address }) {
+      address({ address, resolvedName }) {
         return {
           address,
+          resolvedName,
         };
+      },
+
+      statement({ address, statement }, _args) {
+        if (!statement) {
+          return null;
+        }
+
+        const values = formSchema.parse(JSON.parse(statement.signedPayload));
+        return {
+          address,
+          values,
+        };
+      },
+
+      amountOwned({ tokensOwned }) {
+        return tokensOwned;
+      },
+
+      tokensRepresented({ tokensRepresented }) {
+        return tokensRepresented;
       },
 
       delegateMetrics(
@@ -285,10 +249,6 @@ export function makeGatewaySchema() {
 
       async snapshotVotes({ address }, _args, { snapshotVoteStorage }) {
         return await snapshotVoteStorage.getSnapshotVotesByVoter(address);
-      },
-
-      tokensRepresented({ tokensRepresented }) {
-        return tokensRepresented;
       },
     },
 
@@ -352,10 +312,6 @@ export function makeGatewaySchema() {
       votes({ weight }) {
         return weight;
       },
-
-      voter({ voter }, _args, { snapshot }) {
-        return getAccount(voter, snapshot);
-      },
     },
 
     Proposal: {
@@ -365,10 +321,6 @@ export function makeGatewaySchema() {
 
       number({ id }) {
         return id;
-      },
-
-      proposer({ proposer }, _args, { snapshot }) {
-        return getAccount(proposer, snapshot);
       },
 
       votes({ id }, _args, { snapshot }) {
@@ -440,35 +392,6 @@ export function makeGatewaySchema() {
       },
     },
 
-    WrappedDelegate: {
-      id({ address }) {
-        return address;
-      },
-
-      address({ address, resolvedName }) {
-        return {
-          address,
-          resolvedName,
-        };
-      },
-
-      delegate(delegate) {
-        return delegate;
-      },
-
-      statement({ address, statement }, _args) {
-        if (!statement) {
-          return null;
-        }
-
-        const values = formSchema.parse(JSON.parse(statement.signedPayload));
-        return {
-          address,
-          values,
-        };
-      },
-    },
-
     DelegateStatement: {
       summary({ values: { delegateStatement } }) {
         return extractFirstParagraph(
@@ -530,7 +453,7 @@ export function makeGatewaySchema() {
       async createNewDelegateStatement(
         parent,
         args,
-        { statementStorage, emailStorage, provider },
+        { statementStorage, emailStorage, delegateStorage, provider },
         info
       ) {
         const updatedAt = Date.now();
@@ -544,6 +467,8 @@ export function makeGatewaySchema() {
           updatedAt,
         };
 
+        const delegate = await delegateStorage.getDelegate(validated.address);
+
         await statementStorage.addStatement(nextStatement);
 
         if (args.data.email) {
@@ -552,12 +477,7 @@ export function makeGatewaySchema() {
           );
         }
 
-        // todo: fix return type
-
-        return {
-          address: validated.address,
-          statement: nextStatement,
-        };
+        return { ...delegate, statement: nextStatement };
       },
     },
   };
