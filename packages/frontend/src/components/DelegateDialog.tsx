@@ -249,38 +249,30 @@ function DelegateDialogContents({
           font-size: ${theme.fontSize.xs};
         `}
       >
-        {(() => {
-          if (!address) {
-            return (
-              <VStack gap="3" alignItems="center">
-                <div>Delegating your tokens</div>
-              </VStack>
-            );
-          }
+        <VStack
+          className={css`
+            padding: ${theme.spacing["12"]};
+            padding-bottom: ${theme.spacing["4"]};
+          `}
+          alignItems="center"
+          gap="3"
+        >
+          {(() => {
+            if (!address?.account?.amountOwned) {
+              return <div>You don't have any tokens to delegate</div>;
+            } else {
+              return (
+                <>
+                  <div>Delegating your</div>
 
-          if (!address?.account?.amountOwned) {
-            return (
-              <div
-                className={css`
-                  padding: ${theme.spacing["12"]};
-                  padding-bottom: ${theme.spacing["4"]};
-                `}
-              >
-                You don't have any tokens to delegate
-              </div>
-            );
-          } else {
-            return (
-              <VStack gap="3" alignItems="center">
-                <div>Delegating your</div>
-
-                <ENSAmountDisplay
-                  fragment={address.account.amountOwned.amount}
-                />
-              </VStack>
-            );
-          }
-        })()}
+                  <ENSAmountDisplay
+                    fragment={address.account.amountOwned.amount}
+                  />
+                </>
+              );
+            }
+          })()}
+        </VStack>
 
         <VStack
           className={css`
@@ -325,7 +317,11 @@ function DelegateDialogContents({
           </VStack>
         </VStack>
 
-        <VStack>
+        <VStack
+          className={css`
+            padding: ${theme.spacing["12"]};
+          `}
+        >
           <div
             className={css`
               text-align: center;

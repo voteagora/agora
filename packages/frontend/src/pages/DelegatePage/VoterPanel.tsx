@@ -173,24 +173,9 @@ function DelegateFromList({
     <VStack gap="1">
       <PanelRow
         title="Delegated from"
-        detail={
-          <div>
-            <HStack
-              alignItems="center"
-              gap="1"
-              className={css`
-                cursor: pointer;
-                user-select: none;
-              `}
-            >
-              <div>
-                {pluralizeAddresses(
-                  delegateMetrics.tokenHoldersRepresentedCount
-                )}
-              </div>
-            </HStack>
-          </div>
-        }
+        detail={pluralizeAddresses(
+          delegateMetrics.tokenHoldersRepresentedCount
+        )}
       />
     </VStack>
   );
