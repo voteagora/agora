@@ -97,7 +97,7 @@ export type DelegateOverview = {
   tokensOwned: ethers.BigNumber;
   tokensRepresented: ethers.BigNumber;
   tokenHoldersRepresented: number;
-  statement: StoredStatement;
+  statement: StoredStatement | null;
 };
 
 export type Delegate = DelegateOverview;

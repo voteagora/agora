@@ -5,6 +5,7 @@ scalar Timestamp
 type Query {
   delegate(addressOrEnsName: String!): Delegate
   delegates(where: DelegatesWhere, orderBy: DelegatesOrder!, first: Int!, after: String): DelegatesConnection!
+  proposals: [Proposal!]!
   metrics: Metrics!
 }
 

@@ -11,7 +11,7 @@ type Query {
     after: String
   ): DelegatesConnection!
 
-  # proposals: [Proposal!]!
+  proposals: [Proposal!]!
 
   metrics: Metrics!
 }

@@ -79,33 +79,33 @@ export function DelegateStatementForm({
     graphql`
       fragment DelegateStatementFormFragment on Query
       @argumentDefinitions(address: { type: "String!" }) {
-        address(addressOrEnsName: $address) {
-          isContract
-          resolvedName {
-            address
-            name
+        delegate(addressOrEnsName: $address) {
+          address {
+            isContract
+            resolvedName {
+              address
+              name
+            }
           }
 
-          wrappedDelegate {
-            statement {
-              statement
-              mostValuableProposals {
-                number
-              }
-
-              leastValuableProposals {
-                number
-              }
-
-              discord
-              twitter
-              topIssues {
-                type
-                value
-              }
-
-              openToSponsoringProposals
+          statement {
+            statement
+            mostValuableProposals {
+              number
             }
+
+            leastValuableProposals {
+              number
+            }
+
+            discord
+            twitter
+            topIssues {
+              type
+              value
+            }
+
+            openToSponsoringProposals
           }
         }
 
@@ -116,11 +116,11 @@ export function DelegateStatementForm({
   );
 
   const initialFormValuesState = useMemo((): FormValues => {
-    if (!data.address?.wrappedDelegate?.statement) {
+    if (!data.delegate?.statement) {
       return initialFormValues();
     }
 
-    const statement = data.address.wrappedDelegate.statement;
+    const statement = data.delegate.statement;
 
     return {
       discord: statement.discord,
@@ -274,13 +274,14 @@ export function DelegateStatementForm({
       );
 
       withIgnoringBlock(() => {
-        if (!data.address) {
+        if (!data.delegate) {
           return;
         }
 
         navigate({
           path: `/delegate/${
-            data.address.resolvedName.name ?? data.address.resolvedName.address
+            data.delegate.address.resolvedName.name ??
+            data.delegate.address.resolvedName.address
           }`,
         });
       });
@@ -355,7 +356,7 @@ export function DelegateStatementForm({
         </HStack>
       </VStack>
 
-      {data.address?.isContract && (
+      {data?.delegate?.address?.isContract && (
         <VStack
           className={css`
             margin: ${theme.spacing["6"]} 0;
