@@ -124,7 +124,16 @@ export function PastVotes({ fragment }: Props) {
 
   return (
     <VStack gap="4">
-      <HStack justifyContent="space-between">
+      <HStack
+        justifyContent="space-between"
+        gap="2"
+        className={css`
+          @media (max-width: ${theme.maxWidth.lg}) {
+            flex-direction: column;
+            align-items: stretch;
+          }
+        `}
+      >
         <h2
           className={css`
             font-size: ${theme.fontSize["2xl"]};
@@ -134,7 +143,15 @@ export function PastVotes({ fragment }: Props) {
           Past Votes
         </h2>
 
-        <HStack gap="4">
+        <HStack
+          gap="4"
+          className={css`
+            @media (max-width: ${theme.maxWidth.lg}) {
+              flex-direction: column;
+              align-items: stretch;
+            }
+          `}
+        >
           <Selector
             items={[
               {

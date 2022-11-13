@@ -38,6 +38,7 @@ export function Selector<T>({ items, value, onChange }: SelectorProps<T>) {
           >
             <HStack
               alignItems="center"
+              justifyContent="center"
               gap="2"
               className={css`
                 background: #f7f7f7;
