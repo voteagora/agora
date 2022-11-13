@@ -365,7 +365,7 @@ export function VoterPanelActions({
     >
       {statement && (
         <HStack gap="4" alignItems="center">
-          {statement.twitter && (
+          {statement.twitter ? (
             <a
               className={css`
                 padding: ${theme.spacing["1"]};
@@ -377,9 +377,16 @@ export function VoterPanelActions({
             >
               <img src={icons.twitter} alt="twitter" />
             </a>
-          )}
+          ) : maintainSize ? (
+            <div
+              className={css`
+                width: 30%;
+                min-width: 30px;
+              `}
+            />
+          ) : null}
 
-          {statement.discord && (
+          {statement.discord ? (
             <button
               className={css`
                 width: ${maintainSize ? "30%" : "-moz-available"};
@@ -395,7 +402,14 @@ export function VoterPanelActions({
             >
               <img src={icons.discord} alt="discord" />
             </button>
-          )}
+          ) : maintainSize ? (
+            <div
+              className={css`
+                width: 30%;
+                min-width: 30px;
+              `}
+            />
+          ) : null}
         </HStack>
       )}
       {maintainSize ? (
