@@ -5,16 +5,22 @@ import * as theme from "../../theme";
 import { VoterCard } from "./VoterCard";
 import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import {
   WrappedDelegatesOrder,
   WrappedDelegatesWhere,
 } from "./__generated__/DelegatesContainerPaginationQuery.graphql";
-import { Selector, SelectorItem } from "./Selector";
+import { Selector, SelectorItem, SelectorRadius } from "./Selector";
+import {
+  InlineSelector,
+  InlineSelectorItem,
+  InlineSelectorRadius,
+} from "./InlineSelector";
 import { motion } from "framer-motion";
 import InfiniteScroll from "react-infinite-scroller";
 import { useNavigate } from "../../components/HammockRouter/HammockRouter";
 import { locationToVariables } from "./HomePage";
+import { Bars4Icon, Squares2X2Icon } from "@heroicons/react/20/solid";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -37,6 +43,35 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
 
   const [localFilterBy, setLocalFilterBy] =
     useState<WrappedDelegatesWhere | null>(variables.filterBy);
+  const [isGrid, setIsGrid] = useState(true);
+  const [layoutCss, setLayoutCss] = useState<string>();
+  useEffect(() => {
+    if (isGrid) {
+      setLayoutCss(css`
+        display: grid;
+        grid-auto-flow: row;
+        justify-content: space-between;
+        grid-template-columns: repeat(3, 23rem);
+        gap: ${theme.spacing["8"]};
+
+        @media (max-width: ${theme.maxWidth["6xl"]}) {
+          grid-template-columns: repeat(auto-fit, 23rem);
+          justify-content: space-around;
+        }
+
+        @media (max-width: ${theme.maxWidth.md}) {
+          grid-template-columns: 1fr;
+          gap: ${theme.spacing["4"]};
+        }
+      `);
+    } else {
+      setLayoutCss(css`
+        display: grid;
+        grid-auto-flow: row;
+        grid-template-columns: 1fr;
+      `);
+    }
+  }, [isGrid]);
 
   const navigate = useNavigate();
 
@@ -124,31 +159,78 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
               }
             `}
           >
-            <Selector
-              items={
-                [
-                  {
-                    title: "View all",
-                    value: null,
-                  },
-                  {
-                    title: "View with statement",
-                    value: "withStatement" as const,
-                  },
-                  {
-                    title: "View seeking delegation",
-                    value: "seekingDelegation" as const,
-                  },
-                ] as SelectorItem<WrappedDelegatesWhere | null>[]
-              }
-              value={isPending ? localFilterBy : variables.filterBy}
-              onChange={(filterBy) => {
-                setLocalFilterBy(filterBy);
-                startTransition(() => {
-                  navigate({ search: { filterBy: filterBy ?? null } });
-                });
-              }}
-            />
+            <HStack
+              gap="1"
+              className={css`
+                @media (max-width: ${theme.maxWidth.lg}) {
+                  flex-direction: column;
+                  align-items: stretch;
+                }
+              `}
+            >
+              <InlineSelector
+                selectorRadius={InlineSelectorRadius.Left}
+                initValue="grid"
+                items={
+                  [
+                    {
+                      icon: (
+                        <Squares2X2Icon
+                          className={css`
+                            width: ${theme.spacing["4"]};
+                            height: ${theme.spacing["4"]};
+                          `}
+                        />
+                      ),
+                      title: "grid",
+                      value: "grid",
+                    },
+                    {
+                      icon: (
+                        <Bars4Icon
+                          className={css`
+                            width: ${theme.spacing["4"]};
+                            height: ${theme.spacing["4"]};
+                          `}
+                        />
+                      ),
+                      title: "list",
+                      value: "list",
+                    },
+                  ] as InlineSelectorItem<string | null>[]
+                }
+                onChange={(value) => {
+                  setIsGrid(value === "grid");
+                }}
+              />
+
+              <Selector
+                selectorRadius={SelectorRadius.Right}
+                items={
+                  [
+                    {
+                      title: "View all",
+                      value: null,
+                    },
+                    {
+                      title: "View with statement",
+                      value: "withStatement" as const,
+                    },
+                    {
+                      title: "View seeking delegation",
+                      value: "seekingDelegation" as const,
+                    },
+                  ] as SelectorItem<WrappedDelegatesWhere | null>[]
+                }
+                value={isPending ? localFilterBy : variables.filterBy}
+                onChange={(filterBy) => {
+                  setLocalFilterBy(filterBy);
+                  startTransition(() => {
+                    navigate({ search: { filterBy: filterBy ?? null } });
+                  });
+                }}
+              />
+            </HStack>
 
             <Selector
               items={Object.entries(orderNames).map(
@@ -184,27 +266,9 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
         `}
       >
         <InfiniteScroll loadMore={loadMore} hasMore={hasNext}>
-          <div
-            className={css`
-              display: grid;
-              grid-auto-flow: row;
-              justify-content: space-between;
-              grid-template-columns: repeat(3, 23rem);
-              gap: ${theme.spacing["8"]};
-
-              @media (max-width: ${theme.maxWidth["6xl"]}) {
-                grid-template-columns: repeat(auto-fit, 23rem);
-                justify-content: space-around;
-              }
-
-              @media (max-width: ${theme.maxWidth.md}) {
-                grid-template-columns: 1fr;
-                gap: ${theme.spacing["4"]};
-              }
-            `}
-          >
+          <div className={layoutCss}>
             {voters.edges.map(({ node: voter }) => (
-              <VoterCard key={voter.id} fragmentRef={voter} />
+              <VoterCard key={voter.id} isGrid={isGrid} fragmentRef={voter} />
             ))}
           </div>
         </InfiniteScroll>

@@ -18,9 +18,10 @@ import { pluralizeNoun, pluralizeVote } from "../../words";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
+  isGrid?: boolean;
 };
 
-export function VoterCard({ fragmentRef }: VoterCardProps) {
+export function VoterCard({ fragmentRef, isGrid }: VoterCardProps) {
   const delegate = useFragment(
     graphql`
       fragment VoterCardFragment on WrappedDelegate {
@@ -77,85 +78,270 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
         flex-direction: column;
       `}
     >
-      <VStack
-        gap="4"
-        className={css`
-          height: 100%;
-          padding: ${theme.spacing["6"]};
-          border-radius: ${theme.spacing["3"]};
-          background: ${theme.colors.white};
-          border-width: ${theme.spacing.px};
-          border-color: ${theme.colors.gray["300"]};
-          box-shadow: ${theme.boxShadow.newDefault};
-          cursor: pointer;
-        `}
-      >
+      {isGrid ? (
         <VStack
-          justifyContent="center"
-          alignItems="center"
+          gap="4"
           className={css`
-            flex: 1;
+            height: 100%;
+            padding: ${theme.spacing["6"]};
+            border-radius: ${theme.spacing["3"]};
+            background: ${theme.colors.white};
+            border-width: ${theme.spacing.px};
+            border-color: ${theme.colors.gray["300"]};
+            box-shadow: ${theme.boxShadow.newDefault};
+            cursor: pointer;
           `}
         >
-          <DelegateProfileImage fragment={delegate} />
-        </VStack>
-
-        <HStack
-          justifyContent="space-between"
-          className={css`
-            margin-top: ${theme.spacing["2"]};
-          `}
-        >
-          <div
+          <VStack
+            justifyContent="center"
+            alignItems="center"
             className={css`
-              font-weight: ${theme.fontWeight.semibold};
+              flex: 1;
             `}
           >
-            <NounResolvedName resolvedName={delegate.address.resolvedName} />
-          </div>
+            <DelegateProfileImage fragment={delegate} />
+          </VStack>
 
+          <HStack
+            justifyContent="space-between"
+            className={css`
+              margin-top: ${theme.spacing["2"]};
+            `}
+          >
+            <div
+              className={css`
+                font-weight: ${theme.fontWeight.semibold};
+              `}
+            >
+              <NounResolvedName resolvedName={delegate.address.resolvedName} />
+            </div>
+
+            <HStack
+              gap="2"
+              className={css`
+                color: #66676b;
+              `}
+            >
+              <TitleDetail
+                icon={<UserIcon />}
+                detail={`${pluralizeNoun(nounsRepresented)} represented`}
+                value={nounsRepresented.toString()}
+              />
+
+              <TitleDetail
+                icon={<PencilIcon />}
+                detail={`${pluralizeVote(votesCast)} cast`}
+                value={votesCast.toString()}
+              />
+            </HStack>
+          </HStack>
+
+          {!!delegate.statement?.summary && (
+            <div
+              className={css`
+                display: -webkit-box;
+
+                color: #66676b;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                line-clamp: 5;
+                -webkit-line-clamp: 5;
+                -webkit-box-orient: vertical;
+                font-size: ${theme.fontSize.base};
+                line-height: ${theme.lineHeight.normal};
+              `}
+            >
+              {delegate.statement.summary}
+            </div>
+          )}
+
+          <VoterPanelActions fragment={delegate} />
+        </VStack>
+      ) : (
+        <HStack
+          className={css`
+            height: 100%;
+            padding: ${theme.spacing["3"]};
+            border-radius: ${theme.spacing["3"]};
+            background: ${theme.colors.white};
+            border-width: ${theme.spacing.px};
+            border-color: ${theme.colors.gray["300"]};
+            box-shadow: ${theme.boxShadow.newDefault};
+            cursor: pointer;
+            align-items: center;
+            flex-wrap: wrap;
+          `}
+        >
+          <VStack
+            justifyContent="center"
+            alignItems="start"
+            className={css`
+              width: 20%;
+              @media (max-width: ${theme.maxWidth["4xl"]}) {
+                width: 50%;
+              }
+            `}
+          >
+            <div
+              className={css`
+                font-weight: ${theme.fontWeight.semibold};
+                display: -webkit-box;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                line-clamp: 1;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+                width: 90%;
+                @media (max-width: ${theme.maxWidth["4xl"]}) {
+                  font-size: ${theme.fontSize.xs};
+                }
+              `}
+            >
+              <NounResolvedName resolvedName={delegate.address.resolvedName} />
+            </div>
+            <DelegateProfileImage dense flat fragment={delegate} />
+          </VStack>
+
+          <HStack
+            justifyContent="space-between"
+            className={css`
+              margin-top: ${theme.spacing["2"]};
+              width: 30%;
+              @media (max-width: ${theme.maxWidth["4xl"]}) {
+                width: 50%;
+              }
+            `}
+          >
+            <HStack
+              gap="2"
+              className={css`
+                color: #66676b;
+                justify-content: space-around;
+                width: 100%;
+              `}
+            >
+              <VoterDetailColumn
+                title={`${pluralizeNoun(nounsRepresented)}`}
+                subtitle="represented"
+              />
+              <VoterDetailColumn
+                title={`${votesCast.toString()} props`}
+                subtitle="voted on"
+              />
+
+              <VoterDetailColumn
+                title={`placeholder.eth`}
+                subtitle="delegated to them"
+              />
+            </HStack>
+          </HStack>
           <HStack
             gap="2"
             className={css`
               color: #66676b;
+              width: 30%;
+              justify-content: start;
+              padding: ${theme.spacing["2"]};
+              @media (max-width: ${theme.maxWidth["4xl"]}) {
+                width: 50%;
+              }
             `}
           >
-            <TitleDetail
-              icon={<UserIcon />}
-              detail={`${pluralizeNoun(nounsRepresented)} represented`}
-              value={nounsRepresented.toString()}
-            />
-
-            <TitleDetail
-              icon={<PencilIcon />}
-              detail={`${pluralizeVote(votesCast)} cast`}
-              value={votesCast.toString()}
+            {!!delegate.statement?.summary && (
+              <div
+                className={css`
+                  display: -webkit-box;
+                  color: #66676b;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  line-clamp: 2;
+                  -webkit-line-clamp: 2;
+                  -webkit-box-orient: vertical;
+                  font-size: ${theme.fontSize.sm};
+                  line-height: ${theme.lineHeight.snug};
+                  @media (max-width: ${theme.maxWidth.md}) {
+                    font-size: ${theme.fontSize.sm};
+                    line-height: ${theme.lineHeight.tight};
+                    line-clamp: 1;
+                    -webkit-line-clamp: 1;
+                  }
+                `}
+              >
+                {delegate.statement.summary}
+              </div>
+            )}
+          </HStack>
+          <HStack
+            gap="2"
+            className={css`
+              color: #66676b;
+              width: 20%;
+              justify-content: end;
+              @media (max-width: ${theme.maxWidth["4xl"]}) {
+                width: 50%;
+              }
+            `}
+          >
+            <VoterPanelActions
+              className={css`
+              width: 100%;
+              justify-content: space-around;
+              gap: 10px;
+              }
+            `}
+              fragment={delegate}
             />
           </HStack>
         </HStack>
-
-        {!!delegate.statement?.summary && (
-          <div
-            className={css`
-              display: -webkit-box;
-
-              color: #66676b;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              line-clamp: 5;
-              -webkit-line-clamp: 5;
-              -webkit-box-orient: vertical;
-              font-size: ${theme.fontSize.base};
-              line-height: ${theme.lineHeight.normal};
-            `}
-          >
-            {delegate.statement.summary}
-          </div>
-        )}
-
-        <VoterPanelActions fragment={delegate} />
-      </VStack>
+      )}
     </Link>
+  );
+}
+
+type VoterDetailColumnProps = {
+  title: string;
+  subtitle: string;
+};
+
+function VoterDetailColumn({ title, subtitle }: VoterDetailColumnProps) {
+  return (
+    <VStack
+      gap="0"
+      className={css`
+        font-size: ${theme.fontSize.sm};
+        @media (max-width: ${theme.maxWidth.md}) {
+          font-size: ${theme.fontSize.xs};
+          max-width: ${theme.spacing["12"]};
+        }
+      `}
+    >
+      <p
+        className={css`
+          font-weight: ${theme.fontWeight.bold};
+          color: ${theme.colors.black};
+          display: -webkit-box;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          line-clamp: 1;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+        `}
+      >
+        {title}
+      </p>
+      <p
+        className={css`
+          display: -webkit-box;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          line-clamp: 1;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+        `}
+      >
+        {subtitle}
+      </p>
+    </VStack>
   );
 }
 
@@ -217,9 +403,11 @@ function TitleDetail({ detail, value, icon }: TitleDetailProps) {
 export function DelegateProfileImage({
   fragment,
   dense,
+  flat,
 }: {
   fragment: VoterCardDelegateProfileImage$key;
   dense?: boolean;
+  flat?: boolean;
 }) {
   const delegate = useFragment(
     graphql`
@@ -292,6 +480,16 @@ export function DelegateProfileImage({
     >
       No longer has votes
     </VStack>
+  ) : flat ? (
+    <NounsRepresentedGrid
+      normalized
+      rows={1}
+      columns={dense ? 4 : 6}
+      gap={dense ? "0" : "2"}
+      imageSize={dense ? "8" : "12"}
+      overflowFontSize="base"
+      fragmentKey={delegate.delegate}
+    />
   ) : (
     <NounsRepresentedGrid
       rows={3}

@@ -57,6 +57,7 @@ function NounGrid({
 type NounsRepresentedGridProps = {
   fragmentKey: NounGridFragment$key;
   rows: number;
+  normalized?: boolean;
 } & LayoutProps;
 
 type NounGridChildrenProps = {
@@ -136,6 +137,7 @@ export function NounGridChildren({
 
 export function NounsRepresentedGrid({
   fragmentKey,
+  normalized,
   ...layoutProps
 }: NounsRepresentedGridProps) {
   const { nounsRepresented, delegatedVotesRaw } =
@@ -155,7 +157,7 @@ export function NounsRepresentedGrid({
 
   const totalNouns = Number(delegatedVotesRaw);
 
-  if (nounsRepresented.length < layoutProps.columns) {
+  if (nounsRepresented.length < layoutProps.columns && !normalized) {
     return (
       <HStack
         justifyContent="space-evenly"
