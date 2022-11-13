@@ -11,7 +11,7 @@ import { VoterPanelActions } from "../DelegatePage/VoterPanel";
 import { VoterCardDelegateProfileImage$key } from "./__generated__/VoterCardDelegateProfileImage.graphql";
 import { Link } from "../../components/HammockRouter/Link";
 import { UserIcon, PencilIcon } from "@heroicons/react/20/solid";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useEnsAvatar } from "wagmi";
 import { BigNumber } from "ethers";
 import { pluralizeNoun, pluralizeVote } from "../../words";
@@ -177,7 +177,7 @@ export function VoterCard({ fragmentRef, isGrid }: VoterCardProps) {
             alignItems="start"
             className={css`
               width: 20%;
-              @media (max-width: ${theme.maxWidth["4xl"]}) {
+              @media (max-width: ${theme.maxWidth["5xl"]}) {
                 width: 50%;
               }
             `}
@@ -192,14 +192,14 @@ export function VoterCard({ fragmentRef, isGrid }: VoterCardProps) {
                 -webkit-line-clamp: 1;
                 -webkit-box-orient: vertical;
                 width: 90%;
-                @media (max-width: ${theme.maxWidth["4xl"]}) {
+                @media (max-width: ${theme.maxWidth["5xl"]}) {
                   font-size: ${theme.fontSize.xs};
                 }
               `}
             >
               <NounResolvedName resolvedName={delegate.address.resolvedName} />
             </div>
-            <DelegateProfileImage dense flat fragment={delegate} />
+            <DelegateProfileImage flat fragment={delegate} />
           </VStack>
 
           <HStack
@@ -207,7 +207,7 @@ export function VoterCard({ fragmentRef, isGrid }: VoterCardProps) {
             className={css`
               margin-top: ${theme.spacing["2"]};
               width: 30%;
-              @media (max-width: ${theme.maxWidth["4xl"]}) {
+              @media (max-width: ${theme.maxWidth["5xl"]}) {
                 width: 50%;
               }
             `}
@@ -242,7 +242,7 @@ export function VoterCard({ fragmentRef, isGrid }: VoterCardProps) {
               width: 30%;
               justify-content: start;
               padding: ${theme.spacing["2"]};
-              @media (max-width: ${theme.maxWidth["4xl"]}) {
+              @media (max-width: ${theme.maxWidth["5xl"]}) {
                 width: 40%;
               }
             `}
@@ -277,7 +277,7 @@ export function VoterCard({ fragmentRef, isGrid }: VoterCardProps) {
               color: #66676b;
               width: 20%;
               justify-content: end;
-              @media (max-width: ${theme.maxWidth["4xl"]}) {
+              @media (max-width: ${theme.maxWidth["5xl"]}) {
                 width: 60%;
               }
             `}
@@ -410,6 +410,20 @@ export function DelegateProfileImage({
   dense?: boolean;
   flat?: boolean;
 }) {
+  const [imageNum, setImageNum] = useState(4);
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 600) {
+        setImageNum(8);
+      } else {
+        setImageNum(4);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const delegate = useFragment(
     graphql`
       fragment VoterCardDelegateProfileImage on WrappedDelegate {
@@ -484,10 +498,11 @@ export function DelegateProfileImage({
   ) : flat ? (
     <NounsRepresentedGrid
       normalized
+      overlap
       rows={1}
-      columns={dense ? 4 : 6}
-      gap={dense ? "0" : "2"}
-      imageSize={dense ? "8" : "12"}
+      columns={imageNum}
+      gap={"0"}
+      imageSize={"8"}
       overflowFontSize="base"
       fragmentKey={delegate.delegate}
     />

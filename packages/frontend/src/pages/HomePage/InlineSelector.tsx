@@ -88,14 +88,9 @@ export function InlineSelector<T>({
                   white-space: nowrap;
                   border: 1px solid transparent;
                   cursor: pointer;
-                  ${selected !== value &&
-                  css`
-                    color: #66676b;
-                  `}
-                  ${selected === value &&
-                  css`
-                    color: #000000;
-                  `}
+                  color: ${selected !== value
+                    ? theme.colors.gray["500"]
+                    : theme.colors.black};
                 `}
               >
                 {icon}
