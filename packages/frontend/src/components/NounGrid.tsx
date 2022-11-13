@@ -13,6 +13,7 @@ type Props = {
   nouns: NounGridFragment$data["nounsRepresented"];
   totalNouns?: number;
   rows?: number;
+  overlap?: boolean;
 } & LayoutProps;
 
 type LayoutProps = {
@@ -30,6 +31,7 @@ function NounGrid({
   imageSize,
   gap,
   overflowFontSize,
+  overlap,
 }: Props) {
   const possibleSlots = rows ? rows * columns : nouns.length;
   const imageSizeResolved = theme.spacing[imageSize];
@@ -44,6 +46,7 @@ function NounGrid({
       `}
     >
       <NounGridChildren
+        overlap
         totalNouns={totalNouns}
         count={possibleSlots}
         nouns={nouns}
@@ -57,6 +60,8 @@ function NounGrid({
 type NounsRepresentedGridProps = {
   fragmentKey: NounGridFragment$key;
   rows: number;
+  normalized?: boolean;
+  overlap?: boolean;
 } & LayoutProps;
 
 type NounGridChildrenProps = {
@@ -66,6 +71,7 @@ type NounGridChildrenProps = {
   imageSize?: keyof typeof theme.spacing;
   overflowFontSize: keyof typeof theme.fontSize;
   className?: string;
+  overlap?: boolean;
 };
 
 export function NounGridChildren({
@@ -75,6 +81,7 @@ export function NounGridChildren({
   count,
   overflowFontSize,
   className,
+  overlap,
 }: NounGridChildrenProps) {
   const imageSizeResolved = imageSize ? theme.spacing[imageSize] : undefined;
 
@@ -83,7 +90,8 @@ export function NounGridChildren({
   const overflowAmount = length - count;
 
   function nounImageForNoun(
-    noun: NounGridFragment$data["nounsRepresented"][0]
+    noun: NounGridFragment$data["nounsRepresented"][0],
+    index: number
   ) {
     return (
       <NounImage
@@ -96,6 +104,7 @@ export function NounGridChildren({
               height: ${imageSizeResolved};
             `}
             aspect-ratio: 1/1;
+            margin-left: ${overlap ? `${-10 * index}px` : "0"};
           `,
           className
         )}
@@ -113,6 +122,7 @@ export function NounGridChildren({
         className={css`
           min-width: ${imageSizeResolved};
           min-height: ${imageSizeResolved};
+          width: ${overlap ? imageSizeResolved : "auto"};
 
           display: flex;
           align-items: center;
@@ -124,6 +134,7 @@ export function NounGridChildren({
           letter-spacing: ${theme.letterSpacing.tight};
           background-color: ${theme.colors.gray[200]};
           border-radius: ${theme.borderRadius.full};
+          margin-left: ${overlap ? `${-10 * (count - 1)}px` : "0"};
         `}
       >
         +{overflowAmount + 1}
@@ -136,6 +147,8 @@ export function NounGridChildren({
 
 export function NounsRepresentedGrid({
   fragmentKey,
+  normalized,
+  overlap,
   ...layoutProps
 }: NounsRepresentedGridProps) {
   const { nounsRepresented, delegatedVotesRaw } =
@@ -155,7 +168,7 @@ export function NounsRepresentedGrid({
 
   const totalNouns = Number(delegatedVotesRaw);
 
-  if (nounsRepresented.length < layoutProps.columns) {
+  if (nounsRepresented.length < layoutProps.columns && !normalized) {
     return (
       <HStack
         justifyContent="space-evenly"
@@ -184,6 +197,7 @@ export function NounsRepresentedGrid({
 
   return (
     <NounGrid
+      overlap
       nouns={nounsRepresented}
       totalNouns={totalNouns}
       {...layoutProps}

@@ -335,9 +335,11 @@ function DelegateFromList({
 export function VoterPanelActions({
   className,
   fragment,
+  maintainSize,
 }: {
   className?: string;
   fragment: VoterPanelActionsFragment$key;
+  maintainSize?: boolean;
 }) {
   const wrappedDelegate = useFragment(
     graphql`
@@ -363,20 +365,33 @@ export function VoterPanelActions({
     >
       {statement && (
         <HStack gap="4" alignItems="center">
-          {statement.twitter && (
+          {statement.twitter ? (
             <a
               className={css`
                 padding: ${theme.spacing["1"]};
+                width: ${maintainSize ? "35%" : "-moz-available"};
+                min-width: ${maintainSize ? "30px" : "0"};
               `}
               href={`https://twitter.com/${statement.twitter}`}
               onClick={(e) => e.stopPropagation()}
             >
               <img src={icons.twitter} alt="twitter" />
             </a>
-          )}
+          ) : maintainSize ? (
+            <div
+              className={css`
+                width: 30%;
+                min-width: 30px;
+              `}
+            />
+          ) : null}
 
-          {statement.discord && (
+          {statement.discord ? (
             <button
+              className={css`
+                width: ${maintainSize ? "30%" : "-moz-available"};
+                min-width: ${maintainSize ? "30px" : "0"};
+              `}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -387,13 +402,33 @@ export function VoterPanelActions({
             >
               <img src={icons.discord} alt="discord" />
             </button>
-          )}
+          ) : maintainSize ? (
+            <div
+              className={css`
+                width: 30%;
+                min-width: 30px;
+              `}
+            />
+          ) : null}
         </HStack>
       )}
-      <DelegateButton
-        fragment={wrappedDelegate}
-        full={!statement || (!statement.twitter && !statement.discord)}
-      />
+      {maintainSize ? (
+        <div
+          className={css`
+            width: "35%";
+          `}
+        >
+          <DelegateButton
+            fragment={wrappedDelegate}
+            full={!statement || (!statement.twitter && !statement.discord)}
+          />
+        </div>
+      ) : (
+        <DelegateButton
+          fragment={wrappedDelegate}
+          full={!statement || (!statement.twitter && !statement.discord)}
+        />
+      )}
     </HStack>
   );
 }
