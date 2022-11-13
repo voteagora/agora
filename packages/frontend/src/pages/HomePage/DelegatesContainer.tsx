@@ -128,7 +128,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
           gap="2"
           justifyContent="space-between"
           className={css`
-            @media (max-width: ${theme.maxWidth.lg}) {
+            @media (max-width: ${theme.maxWidth["2xl"]}) {
               flex-direction: column;
               align-items: stretch;
             }
@@ -146,7 +146,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
           <HStack
             gap="4"
             className={css`
-              @media (max-width: ${theme.maxWidth.lg}) {
+              @media (max-width: ${theme.maxWidth["2xl"]}) {
                 flex-direction: column;
                 align-items: stretch;
               }
@@ -250,7 +250,7 @@ const DelegatePageInput = () => {
         navigate({ path: `/delegate/${enteredName}` });
       }}
     >
-      <div
+      <VStack
         className={css`
           position: relative;
         `}
@@ -292,7 +292,7 @@ const DelegatePageInput = () => {
             }
           `}
         />
-      </div>
+      </VStack>
     </form>
   );
 };
