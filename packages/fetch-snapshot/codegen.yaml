@@ -1,6 +1,0 @@
-generates:
-  src/graphql/:
-    documents:
-      - src/**/*.ts
-    schema: src/schema.graphql
-    preset: client

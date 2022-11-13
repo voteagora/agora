@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JsonSchemaMappingsProjectConfiguration">
+    <state>
+      <map>
+        <entry key="Serverless Framework Configuration">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="Serverless Framework Configuration" />
+              <option name="relativePathToSchema" value="https://raw.githubusercontent.com/lalcebo/json-schema/master/serverless/reference.json" />
+              <option name="applicationDefined" value="true" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value="packages/fetch-snapshot/serverless.yml" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
+      </map>
+    </state>
+  </component>
+</project>

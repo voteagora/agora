@@ -1,0 +1,33 @@
+service: lambdas
+
+plugins:
+  - serverless-esbuild
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: us-east-2
+  deploymentMethod: direct
+
+functions:
+  loadSnapshotVotes:
+    name: 'load-snapshot-votes'
+    handler: src/handlers/loadSnapshotVotes/handler.run
+    memorySize: 2048
+    timeout: 300
+    events:
+      - schedule: rate(1 hour)
+
+  ingestUpdatesFromChain:
+    name: 'ingest-updates-from-chain'
+    handler: src/handlers/ingestUpdatesFromChain/handler.run
+    memorySize: 2048
+    timeout: 600
+    events:
+      - schedule: rate(15 minute)
+
+custom:
+  esbuild:
+    packager: yarn
