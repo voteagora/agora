@@ -4,7 +4,7 @@
     "./packages/frontend",
     "./packages/backend",
     "./packages/subgraph",
-    "./packages/fetch-snapshot",
+    "./packages/lambdas",
     "./packages/cname-worker"
   ],
   "scripts": {
