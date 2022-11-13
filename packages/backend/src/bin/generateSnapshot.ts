@@ -4,6 +4,8 @@ import { NNSENSReverseResolver__factory } from "../contracts/generated";
 import { promises as fs } from "fs";
 import { updateSnapshot } from "../snapshot";
 import { makeMockSentry } from "../sentry";
+import * as dotenv from "dotenv";
+dotenv.config({path:"../../.env"});
 
 async function main() {
   const provider = new ethers.providers.AlchemyProvider(
