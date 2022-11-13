@@ -335,9 +335,11 @@ function DelegateFromList({
 export function VoterPanelActions({
   className,
   fragment,
+  maintainSize,
 }: {
   className?: string;
   fragment: VoterPanelActionsFragment$key;
+  maintainSize?: boolean;
 }) {
   const wrappedDelegate = useFragment(
     graphql`
@@ -367,6 +369,8 @@ export function VoterPanelActions({
             <a
               className={css`
                 padding: ${theme.spacing["1"]};
+                width: ${maintainSize ? "35%" : "-moz-available"};
+                min-width: ${maintainSize ? "30px" : "0"};
               `}
               href={`https://twitter.com/${statement.twitter}`}
               onClick={(e) => e.stopPropagation()}
@@ -377,6 +381,10 @@ export function VoterPanelActions({
 
           {statement.discord && (
             <button
+              className={css`
+                width: ${maintainSize ? "30%" : "-moz-available"};
+                min-width: ${maintainSize ? "30px" : "0"};
+              `}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -390,10 +398,23 @@ export function VoterPanelActions({
           )}
         </HStack>
       )}
-      <DelegateButton
-        fragment={wrappedDelegate}
-        full={!statement || (!statement.twitter && !statement.discord)}
-      />
+      {maintainSize ? (
+        <div
+          className={css`
+            width: "35%";
+          `}
+        >
+          <DelegateButton
+            fragment={wrappedDelegate}
+            full={!statement || (!statement.twitter && !statement.discord)}
+          />
+        </div>
+      ) : (
+        <DelegateButton
+          fragment={wrappedDelegate}
+          full={!statement || (!statement.twitter && !statement.discord)}
+        />
+      )}
     </HStack>
   );
 }

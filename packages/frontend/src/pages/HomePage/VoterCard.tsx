@@ -243,7 +243,7 @@ export function VoterCard({ fragmentRef, isGrid }: VoterCardProps) {
               justify-content: start;
               padding: ${theme.spacing["2"]};
               @media (max-width: ${theme.maxWidth["4xl"]}) {
-                width: 50%;
+                width: 40%;
               }
             `}
           >
@@ -278,17 +278,18 @@ export function VoterCard({ fragmentRef, isGrid }: VoterCardProps) {
               width: 20%;
               justify-content: end;
               @media (max-width: ${theme.maxWidth["4xl"]}) {
-                width: 50%;
+                width: 60%;
               }
             `}
           >
             <VoterPanelActions
               className={css`
-              width: 100%;
-              justify-content: space-around;
-              gap: 10px;
-              }
-            `}
+                width: 100%;
+                align-items: center;
+                justify-content: end;
+                gap: ${theme.spacing["3"]};
+              `}
+              maintainSize
               fragment={delegate}
             />
           </HStack>
