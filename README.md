@@ -33,7 +33,13 @@
 
 Make sure to follow the development setup instructions before attempting to run the project.
 
-- open a terminal in root of project
+- open a terminal in root of project.
   - run `yarn run start-backend`
-- open a different terminal in root of project
+- open a different terminal in root of project.
   - run `yarn run start-frontend`
+
+## Troubleshooting
+
+### Error `Expected a end of file` in file `schema.graphql` when running `yarn run start-frontend`
+
+- Solution: remove the warnings at the top of the `schema.graphql` file.
