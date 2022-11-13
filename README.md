@@ -19,15 +19,15 @@
 
 - Open terminal in root of project.
 
-- Run `yarn install`
+  - Run `yarn install`
 
 - Navigate to the backend package. (from root)`cd packages/backend`
 
-- Run `yarn install`
-- Run `yarn run generate-snapshot`
+  - Run `yarn install`
+  - Run `yarn run generate-snapshot`
 
 - Navigate to the frontend package. (from root)`cd packages/frontend`
-- Run `yarn install`
+  - Run `yarn install`
 
 ## Running the project
 
