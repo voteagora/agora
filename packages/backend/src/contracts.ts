@@ -2,7 +2,7 @@ import {
   NounsDAOLogicV1__factory,
   NounsToken__factory,
 } from "./contracts/generated";
-import { makeContractInstance } from "./snapshot";
+import {makeContractInstance} from "./utils/contract";
 
 export const nounsToken = makeContractInstance({
   iface: NounsToken__factory.createInterface(),

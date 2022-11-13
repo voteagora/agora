@@ -53,6 +53,7 @@
     "@types/marked": "^4.0.6",
     "@types/node": "^18.7.18",
     "dedent": "^0.7.0",
+    "dotenv": "^16.0.3",
     "esbuild": "^0.15.7",
     "esbuild-plugin-copy": "^1.3.0",
     "esbuild-plugin-wasm-pack": "^1.1.0",
