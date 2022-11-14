@@ -14,7 +14,7 @@ provider:
 functions:
   loadSnapshotVotes:
     name: 'load-snapshot-votes'
-    handler: src/handlers/loadSnapshotVotes/handler.run
+    handler: src/lambdas/loadSnapshotVotes/handler.run
     memorySize: 2048
     timeout: 300
     events:
@@ -22,7 +22,7 @@ functions:
 
   ingestUpdatesFromChain:
     name: 'ingest-updates-from-chain'
-    handler: src/handlers/ingestUpdatesFromChain/handler.run
+    handler: src/lambdas/ingestUpdatesFromChain/handler.run
     memorySize: 2048
     timeout: 600
     events:

@@ -5,6 +5,9 @@ import { ENSTokenInterface } from "./contracts/generated/ENSToken";
 import { BigNumber } from "ethers";
 import { ToucanInterface, withSentryScope } from "./sentry";
 import { getAllLogs } from "./events";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { isEqual, chunk } from "lodash";
+import { makeUpdateForAccount } from "./bin/writeData";
 
 export interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
@@ -27,6 +30,11 @@ type ReducerDefinition<
   RawState
 > = ContractInstance<InterfaceType> & {
   eventHandlers: EventHandler<InterfaceType, Accumulator>[];
+  dumpChangesToDynamo?: (
+    dynamo: DynamoDB,
+    oldState: Accumulator,
+    newState: Accumulator
+  ) => Promise<void>;
 } & StorageDefinition<Accumulator, RawState>;
 
 type StorageDefinition<State, RawState> = {
@@ -69,26 +77,41 @@ export type ENSAccount = {
   representing: string[];
 };
 
+type ENSAccountRaw = {
+  balance: string;
+  delegatingTo: string | null;
+  representing: string[];
+  represented: string;
+};
+
 type ENSTokenStateRaw = {
-  accounts: [
-    string,
-    {
-      balance: string;
-      delegatingTo: string | null;
-      representing: string[];
-      represented: string;
-    }
-  ][];
+  accounts: [string, ENSAccountRaw][];
 
   totalSupply: string;
   delegatedSupply: string;
 };
+
+function encodeAccountEntry([key, value]: [string, ENSAccount]): [
+  string,
+  ENSAccountRaw
+] {
+  return [
+    key.toLowerCase(),
+    {
+      ...value,
+      representing: value.representing.map((address) => address.toLowerCase()),
+      balance: value.balance.toString(),
+      represented: value.represented.toString(),
+    },
+  ];
+}
 
 export const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> =
   {
     name: "ENSToken",
     initialState: () => ({
       accounts: new Map<string, ENSAccount>(),
+      // todo: remove hardcoded?
       totalSupply: BigNumber.from(100_000_000).mul(BigNumber.from(10).pow(18)),
       delegatedSupply: BigNumber.from(5_000_000).mul(
         BigNumber.from(10).pow(18)
@@ -98,17 +121,7 @@ export const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> =
       return {
         accounts: Array.from(acc.accounts.entries())
           .sort(([, a], [, b]) => (a.represented.gt(b.represented) ? -1 : 1))
-          .map(([key, value]) => [
-            key.toLowerCase(),
-            {
-              ...value,
-              representing: value.representing.map((address) =>
-                address.toLowerCase()
-              ),
-              balance: value.balance.toString(),
-              represented: value.represented.toString(),
-            },
-          ]),
+          .map((args) => encodeAccountEntry(args)),
 
         delegatedSupply: acc.delegatedSupply.toString(),
         totalSupply: acc.totalSupply.toString(),
@@ -332,6 +345,41 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
     iface: ENSToken__factory.createInterface(),
     address: "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72",
     startingBlock: 13533418,
+    async dumpChangesToDynamo(dynamo, oldState, newState) {
+      // only track additions
+      const accountsToUpdate = Array.from(newState.accounts.entries()).flatMap(
+        ([account, value]) => {
+          const oldAccount = oldState.accounts.get(account);
+
+          const encodedOldAccount = !oldAccount
+            ? encodeAccountEntry([account, oldAccount])
+            : null;
+
+          const encodedNewAccount = encodeAccountEntry([account, value]);
+
+          if (isEqual(encodedOldAccount, encodedNewAccount)) {
+            return [];
+          }
+
+          return [
+            {
+              address: account,
+              ...value,
+            },
+          ];
+        }
+      );
+
+      for (const accounts of chunk(accountsToUpdate, 100)) {
+        await dynamo.transactWriteItems({
+          TransactItems: accounts.map((account) => {
+            return {
+              Update: makeUpdateForAccount(account),
+            };
+          }),
+        });
+      }
+    },
     eventHandlers: [
       {
         signature: "Transfer(address,address,uint256)",
@@ -426,7 +474,6 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
     address: "0x323A76393544d5ecca80cd6ef2A560C6a395b7E3",
     startingBlock: 13533772,
     iface: ENSGovernor__factory.createInterface(),
-
     eventHandlers: [
       {
         signature:

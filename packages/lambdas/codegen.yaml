@@ -1,6 +1,0 @@
-generates:
-  src/handlers/loadSnapshotVotes/graphql/:
-    documents:
-      - src/handlers/loadSnapshotVotes/**/*.ts
-    schema: src/handlers/loadSnapshotVotes/schema.graphql
-    preset: client
