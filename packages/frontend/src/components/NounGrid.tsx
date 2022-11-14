@@ -104,7 +104,11 @@ export function NounGridChildren({
               height: ${imageSizeResolved};
             `}
             aspect-ratio: 1/1;
-            margin-left: ${overlap ? `${-10 * index}px` : "0"};
+            ${overlap &&
+            css`
+              margin-left: ${-10 * index}px;
+              border: 2px solid ${theme.colors.white};
+            `}
           `,
           className
         )}
