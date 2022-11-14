@@ -13,18 +13,24 @@ provider:
 
 functions:
   loadSnapshotVotes:
+    role: FetchSnapshotExecutionRole
     name: 'load-snapshot-votes'
     handler: src/lambdas/loadSnapshotVotes/handler.run
     memorySize: 2048
     timeout: 300
+    environment:
+      S3_BUCKET: ${ssm:loadSnapshotVotes/s3Bucket}
     events:
       - schedule: rate(1 hour)
 
   ingestUpdatesFromChain:
+    role: IngestUpdatesFromChainExecutionRole
     name: 'ingest-updates-from-chain'
     handler: src/lambdas/ingestUpdatesFromChain/handler.run
     memorySize: 2048
     timeout: 600
+    environment:
+      S3_BUCKET: ${ssm:ingestUpdatesFromChain/s3Bucket}
     events:
       - schedule: rate(15 minutes)
 

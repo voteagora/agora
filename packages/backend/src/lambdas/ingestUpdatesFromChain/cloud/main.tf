@@ -8,21 +8,6 @@ variable "application_data_table_arn" {
   type = string
 }
 
-resource "aws_lambda_function" "ingest-updates-from-chain" {
-  function_name = "ingest-updates-from-chain"
-  role          = aws_iam_role.ingest-updates-from-chain.arn
-
-  environment {
-    variables = {
-      S3_BUCKET = aws_s3_bucket.snapshot-votes.bucket
-    }
-  }
-
-  lifecycle {
-    ignore_changes = [handler, runtime, tags, publish, memory_size, timeout]
-  }
-}
-
 resource "aws_secretsmanager_secret" "alchemy-api-key" {
   name = "mainnet-alchemy-api-key"
 }
