@@ -46,7 +46,7 @@ function NounGrid({
       `}
     >
       <NounGridChildren
-        overlap
+        overlap={overlap}
         totalNouns={totalNouns}
         count={possibleSlots}
         nouns={nouns}
@@ -104,11 +104,8 @@ export function NounGridChildren({
               height: ${imageSizeResolved};
             `}
             aspect-ratio: 1/1;
-            ${overlap &&
-            css`
-              margin-left: ${-10 * index}px;
-              border: 2px solid ${theme.colors.white};
-            `}
+            margin-left: ${overlap ? `${-10 * index}px` : "0"};
+            border: ${overlap ? `2px solid ${theme.colors.white}` : "0px"};
           `,
           className
         )}
@@ -201,7 +198,7 @@ export function NounsRepresentedGrid({
 
   return (
     <NounGrid
-      overlap
+      overlap={overlap}
       nouns={nounsRepresented}
       totalNouns={totalNouns}
       {...layoutProps}
