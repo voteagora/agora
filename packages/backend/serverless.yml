@@ -13,7 +13,7 @@ provider:
 
 functions:
   loadSnapshotVotes:
-    role: FetchSnapshotExecutionRole
+    role: !Sub arn:aws:iam::${AWS::AccountId}:role/FetchSnapshotExecutionRole
     name: 'load-snapshot-votes'
     handler: src/lambdas/loadSnapshotVotes/handler.run
     memorySize: 2048
@@ -24,7 +24,7 @@ functions:
       - schedule: rate(1 hour)
 
   ingestUpdatesFromChain:
-    role: IngestUpdatesFromChainExecutionRole
+    role: !Sub arn:aws:iam::${AWS::AccountId}:role/IngestUpdatesFromChainExecutionRole
     name: 'ingest-updates-from-chain'
     handler: src/lambdas/ingestUpdatesFromChain/handler.run
     memorySize: 2048
