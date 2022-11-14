@@ -1,0 +1,4 @@
+src/generated
+src/contracts/generated
+dist
+.serverless

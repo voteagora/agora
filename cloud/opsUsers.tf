@@ -17,6 +17,3 @@ resource "aws_iam_user_policy_attachment" "engineering-admin" {
   user       = aws_iam_user.admin-operations.name
 }
 
-resource "aws_iam_user" "cloudflare-execution" {
-  name = "cloudflare-execution"
-}
