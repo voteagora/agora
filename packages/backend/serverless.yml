@@ -19,7 +19,7 @@ functions:
     memorySize: 2048
     timeout: 300
     environment:
-      S3_BUCKET: ${ssm:loadSnapshotVotes/s3Bucket}
+      S3_BUCKET: ${ssm:/loadSnapshotVotes/s3Bucket}
     events:
       - schedule: rate(1 hour)
 
@@ -30,7 +30,7 @@ functions:
     memorySize: 2048
     timeout: 600
     environment:
-      S3_BUCKET: ${ssm:ingestUpdatesFromChain/s3Bucket}
+      S3_BUCKET: ${ssm:/ingestUpdatesFromChain/s3Bucket}
     events:
       - schedule: rate(15 minutes)
 

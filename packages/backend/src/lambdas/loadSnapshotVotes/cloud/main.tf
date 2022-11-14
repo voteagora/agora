@@ -9,7 +9,7 @@ variable "application_data_table_arn" {
 }
 
 resource "aws_ssm_parameter" "s3-bucket" {
-  name  = "loadSnapshotVotes/s3Bucket"
+  name  = "/loadSnapshotVotes/s3Bucket"
   type  = "String"
   value = aws_s3_bucket.snapshot-votes.bucket
 }
