@@ -7,7 +7,7 @@ import { ToucanInterface, withSentryScope } from "./sentry";
 import { getAllLogs } from "./events";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { isEqual, chunk } from "lodash";
-import { makeUpdateForAccount } from "./bin/writeData";
+import { makeUpdateForAccount } from "./store/dynamo/delegates";
 
 export interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;

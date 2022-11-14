@@ -36,6 +36,8 @@ resource "aws_iam_role" "ingest-updates-from-chain" {
       ]
     }
   )
+
+  managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
 }
 
 resource "aws_iam_role_policy" "ingest-updates-from-chain" {

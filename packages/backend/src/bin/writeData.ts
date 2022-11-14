@@ -1,14 +1,7 @@
-import { DynamoDB, Update } from "@aws-sdk/client-dynamodb";
-import { ENSAccount, parseStorage } from "../snapshot";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { parseStorage } from "../snapshot";
 import { promises as fs } from "fs";
-import {
-  PartitionKey__MergedDelegatesStatementHolders,
-  PartitionKey__MergedDelegatesVotingPower,
-  setFields,
-  TableName,
-  updateExpression,
-} from "../store/dynamo/utils";
-import { makeMergedDelegateKey } from "../store/dynamo/delegates";
+import { makeUpdateForAccount } from "../store/dynamo/delegates";
 
 async function main() {
   const dynamoDb = new DynamoDB({});
@@ -34,34 +27,6 @@ async function main() {
       ],
     });
   }
-}
-
-export function makeUpdateForAccount(
-  account: ENSAccount & { address: string }
-): Update {
-  return {
-    TableName,
-    Key: makeMergedDelegateKey(account.address),
-
-    ...updateExpression((exp) =>
-      setFields(exp, {
-        PartitionKey__MergedDelegatesVotingPower,
-        SortKey__MergedDelegatesVotingPower: account.represented
-          .toHexString()
-          .replace("0x", "")
-          .toLowerCase()
-          .padStart(256 / 4, "0"),
-        PartitionKey__MergedDelegatesStatementHolders,
-        SortKey__MergedDelegatesStatementHolders: account.representing.length
-          .toString()
-          .padStart(10, "0"),
-        address: account.address.toLowerCase(),
-        tokensOwned: account.balance.toString(),
-        tokensRepresented: account.represented.toString(),
-        tokenHoldersRepresented: account.representing.length,
-      })
-    ),
-  };
 }
 
 main();
