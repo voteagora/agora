@@ -50,8 +50,7 @@ resource "aws_iam_role_policy" "fetch-snapshot-execution-policy" {
         Sid = "AccessS3",
         "Effect" : "Allow",
         "Action" : [
-          "s3:PutObject",
-          "s3:GetObject",
+          "s3:*",
         ],
         "Resource" : [
           aws_s3_bucket.snapshot-votes.arn,
