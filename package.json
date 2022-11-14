@@ -4,7 +4,6 @@
     "./packages/frontend",
     "./packages/backend",
     "./packages/subgraph",
-    "./packages/lambdas",
     "./packages/cname-worker"
   ],
   "scripts": {
