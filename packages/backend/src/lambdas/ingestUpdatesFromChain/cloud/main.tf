@@ -11,7 +11,7 @@ variable "application_data_table_arn" {
 resource "aws_ssm_parameter" "s3-bucket" {
   name  = "/ingestUpdatesFromChain/s3Bucket"
   type  = "String"
-  value = aws_s3_bucket.snapshot-votes.bucket
+  value = aws_s3_bucket.snapshot-bucket.bucket
 }
 
 resource "aws_secretsmanager_secret" "alchemy-api-key" {
@@ -49,12 +49,11 @@ resource "aws_iam_role_policy" "ingest-updates-from-chain" {
         Sid = "AccessS3",
         "Effect" : "Allow",
         "Action" : [
-          "s3:PutObject",
-          "s3:GetObject",
+          "s3:*",
         ],
         "Resource" : [
-          aws_s3_bucket.snapshot-votes.arn,
-          "${aws_s3_bucket.snapshot-votes.arn}/*",
+          aws_s3_bucket.snapshot-bucket.arn,
+          "${aws_s3_bucket.snapshot-bucket.arn}/*",
         ]
       },
       {
@@ -86,6 +85,6 @@ resource "aws_iam_role_policy" "ingest-updates-from-chain" {
   role = aws_iam_role.ingest-updates-from-chain.id
 }
 
-resource "aws_s3_bucket" "snapshot-votes" {
+resource "aws_s3_bucket" "snapshot-bucket" {
   bucket = "agora-${var.environment}-snapshot"
 }

@@ -1,4 +1,4 @@
-import { NotFound, S3 } from "@aws-sdk/client-s3";
+import { NoSuchKey, S3 } from "@aws-sdk/client-s3";
 
 export type StoredSnapshot = {
   lastBlockSynced: number;
@@ -27,7 +27,7 @@ export async function fetchSnapshotFromS3(
 
     return JSON.parse(asString);
   } catch (e) {
-    if (e instanceof NotFound) {
+    if (e instanceof NoSuchKey) {
       return null;
     }
 
