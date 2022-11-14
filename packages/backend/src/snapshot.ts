@@ -352,8 +352,8 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
           const oldAccount = oldState.accounts.get(account);
 
           const encodedOldAccount = !oldAccount
-            ? encodeAccountEntry([account, oldAccount])
-            : null;
+            ? null
+            : encodeAccountEntry([account, oldAccount]);
 
           const encodedNewAccount = encodeAccountEntry([account, value]);
 
