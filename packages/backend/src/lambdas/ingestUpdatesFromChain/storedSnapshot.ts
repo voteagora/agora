@@ -5,13 +5,15 @@ export type StoredSnapshot = {
   contents: any;
 };
 
+const AGORA_DEPLOYMENT = "ens";
+
 export async function fetchSnapshotFromS3(
   s3: S3
 ): Promise<StoredSnapshot | null> {
   try {
     const snapshot = await s3.getObject({
       Bucket: process.env.S3_BUCKET,
-      Key: `${process.env.AGORA_DEPLOYMENT}/snapshot.json`,
+      Key: `${AGORA_DEPLOYMENT}/snapshot.json`,
     });
 
     if (!snapshot.Body) {
@@ -36,7 +38,7 @@ export async function fetchSnapshotFromS3(
 export async function storeSnapshotInS3(s3: S3, snapshot: StoredSnapshot) {
   await s3.putObject({
     Bucket: process.env.S3_BUCKET,
-    Key: `${process.env.AGORA_DEPLOYMENT}/snapshot.json`,
+    Key: `${AGORA_DEPLOYMENT}/snapshot.json`,
     Body: JSON.stringify(snapshot),
   });
 }

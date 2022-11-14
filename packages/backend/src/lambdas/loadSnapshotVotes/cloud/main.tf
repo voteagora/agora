@@ -67,6 +67,7 @@ resource "aws_iam_role_policy" "fetch-snapshot-execution-policy" {
           "dynamodb:TransactWriteItems",
           "dynamodb:PutItem",
           "dynamodb:UpdateItem",
+          "dynamodb:BatchWriteItem"
         ],
         Resource = [
           var.application_data_table_arn,

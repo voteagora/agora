@@ -36,6 +36,18 @@ export async function run() {
 
   await acquireLock(executionId, dynamo);
 
+  try {
+    await update(s3, dynamo, provider);
+  } finally {
+    await releaseLock(executionId, dynamo);
+  }
+}
+
+async function update(
+  s3: S3,
+  dynamo: DynamoDB,
+  provider: ethers.providers.Provider
+) {
   const storedSnapshot = await fetchSnapshotFromS3(s3);
   const snapshotUpdateStatus = await fetchSnapshotUpdateStatus(dynamo);
 
@@ -123,6 +135,4 @@ export async function run() {
       contents: snapshots,
     });
   }
-
-  await releaseLock(executionId, dynamo);
 }
