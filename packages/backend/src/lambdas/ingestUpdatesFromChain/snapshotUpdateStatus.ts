@@ -34,7 +34,7 @@ export async function updateSnapshotUpdateStatus(
 
 const snapshotUpdateStatusKey = makeKey({
   PartitionKey: "SnapshotUpdateStatus",
-  SortKey: "",
+  SortKey: "fixed",
 });
 
 export async function fetchSnapshotUpdateStatus(
