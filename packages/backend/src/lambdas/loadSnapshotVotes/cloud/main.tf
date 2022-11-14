@@ -8,20 +8,12 @@ variable "application_data_table_arn" {
   type = string
 }
 
-resource "aws_lambda_function" "fetch-snapshot" {
-  function_name = "load-snapshot-votes"
-  role          = aws_iam_role.fetch-snapshot-execution-role.arn
-
-  environment {
-    variables = {
-      S3_BUCKET = aws_s3_bucket.snapshot-votes.bucket
-    }
-  }
-
-  lifecycle {
-    ignore_changes = [handler, runtime, tags, publish, memory_size, timeout]
-  }
+resource "aws_ssm_parameter" "s3-bucket" {
+  name  = "loadSnapshotVotes/s3Bucket"
+  type  = "String"
+  value = aws_s3_bucket.snapshot-votes.bucket
 }
+
 
 resource "aws_s3_bucket" "snapshot-votes" {
   bucket = "agora-${var.environment}-snapshot-votes-load"
