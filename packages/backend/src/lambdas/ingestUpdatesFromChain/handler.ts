@@ -71,10 +71,10 @@ async function update(
     ? storedSnapshot.lastBlockSynced + 1
     : reducers.reduce(
         (acc, reducer) => Math.min(acc, reducer.startingBlock),
-        0
+        Infinity
       );
 
-  const snapshots = storedSnapshot?.contents;
+  const snapshots = storedSnapshot?.contents ?? {};
 
   const segmentSize = 10_000;
   let lastBlockInSegment = null;
@@ -96,8 +96,9 @@ async function update(
       );
 
       let state = (() => {
-        if (snapshots) {
-          return reducer.decodeState(snapshots[reducer.name].state);
+        const fromSnapshot = snapshots[reducer.name];
+        if (fromSnapshot) {
+          return reducer.decodeState(fromSnapshot);
         }
 
         return reducer.initialState();
