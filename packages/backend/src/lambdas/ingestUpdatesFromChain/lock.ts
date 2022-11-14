@@ -18,7 +18,7 @@ async function transitionLockState(
     TableName: "ApplicationData",
     Key: makeKey({
       PartitionKey: "AcquireIngestUpdatesLock",
-      SortKey: "",
+      SortKey: "fixed",
     }),
     UpdateExpression: (() => {
       const updateExpression = new UpdateExpression();
