@@ -1,0 +1,5 @@
+src/generated
+src/contracts/generated
+build
+__generated__
+

@@ -10,14 +10,26 @@ import {
 import { fetchSnapshotFromS3, storeSnapshotInS3 } from "./storedSnapshot";
 import { filterForEventHandlers, makeReducers } from "../../snapshot";
 import { getAllLogs } from "../../events";
+import SecretsManager from "aws-sdk/clients/secretsmanager";
 
 export async function run() {
   const executionId = uuidv4();
 
+  const secretsManager = new SecretsManager();
+
   // todo: extract logging library from baseramp and use it here
   console.log("starting", { executionId });
 
-  const provider = new ethers.providers.AlchemyProvider();
+  const secretValue = await secretsManager
+    .getSecretValue({
+      SecretId: "mainnet-alchemy-api-key",
+    })
+    .promise();
+
+  const provider = new ethers.providers.AlchemyProvider(
+    "mainnet",
+    secretValue.SecretString
+  );
 
   const dynamo = new DynamoDB({});
   const s3 = new S3({});

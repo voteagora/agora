@@ -19,6 +19,16 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/frontend/src/contracts/generated" />
       <excludeFolder url="file://$MODULE_DIR$/packages/render-opengraph/pkg" />
       <excludeFolder url="file://$MODULE_DIR$/packages/render-opengraph/target" />
+      <excludeFolder url="file://$MODULE_DIR$/.idea/httpRequests" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/subgraph/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/subgraph/generated" />
+      <excludeFolder url="file://$MODULE_DIR$/cloud/.terraform/providers" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/lambdas/.serverless" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/lambdas/src/graphql" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/lambdas/.esbuild/.serverless" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/backend/src/lambdas/loadSnapshotVotes/graphql" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/frontend/src/components/VoterPanel/Rows/__generated__" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/frontend/src/components/VoterPanel/__generated__" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
