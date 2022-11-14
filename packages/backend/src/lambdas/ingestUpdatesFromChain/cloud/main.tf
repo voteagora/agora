@@ -8,6 +8,12 @@ variable "application_data_table_arn" {
   type = string
 }
 
+resource "aws_ssm_parameter" "s3-bucket" {
+  name  = "/ingestUpdatesFromChain/s3Bucket"
+  type  = "String"
+  value = aws_s3_bucket.snapshot-votes.bucket
+}
+
 resource "aws_secretsmanager_secret" "alchemy-api-key" {
   name = "mainnet-alchemy-api-key"
 }
