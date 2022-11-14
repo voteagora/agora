@@ -9,8 +9,8 @@ import {
 } from "./queries";
 import request from "graphql-request";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { makeKey, marshaller } from "../../dynamo";
 import { z } from "zod";
+import { makeKey, marshaller } from "../../store/dynamo/utils";
 
 const spaceId = "ens.eth";
 

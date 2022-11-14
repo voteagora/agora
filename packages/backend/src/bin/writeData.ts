@@ -1,9 +1,7 @@
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { parseStorage } from "../snapshot";
+import { DynamoDB, Update } from "@aws-sdk/client-dynamodb";
+import { ENSAccount, parseStorage } from "../snapshot";
 import { promises as fs } from "fs";
 import {
-  makeKey,
-  marshaller,
   PartitionKey__MergedDelegatesStatementHolders,
   PartitionKey__MergedDelegatesVotingPower,
   setFields,
@@ -31,44 +29,39 @@ async function main() {
     await dynamoDb.transactWriteItems({
       TransactItems: [
         {
-          Put: {
-            TableName,
-            Item: {
-              ...makeKey({
-                PartitionKey: "Account",
-                SortKey: account.address,
-              }),
-              ...marshaller.marshallItem(account),
-            },
-          },
-        },
-        {
-          Update: {
-            TableName,
-            Key: makeMergedDelegateKey(account.address),
-
-            ...updateExpression((exp) =>
-              setFields(exp, {
-                PartitionKey__MergedDelegatesVotingPower,
-                SortKey__MergedDelegatesVotingPower: account.represented
-                  .toHexString()
-                  .replace("0x", "")
-                  .toLowerCase()
-                  .padStart(256 / 4, "0"),
-                PartitionKey__MergedDelegatesStatementHolders,
-                SortKey__MergedDelegatesStatementHolders:
-                  account.representing.length.toString().padStart(10, "0"),
-                address: account.address.toLowerCase(),
-                tokensOwned: account.balance.toString(),
-                tokensRepresented: account.represented.toString(),
-                tokenHoldersRepresented: account.representing.length,
-              })
-            ),
-          },
+          Update: makeUpdateForAccount(account),
         },
       ],
     });
   }
+}
+
+export function makeUpdateForAccount(
+  account: ENSAccount & { address: string }
+): Update {
+  return {
+    TableName,
+    Key: makeMergedDelegateKey(account.address),
+
+    ...updateExpression((exp) =>
+      setFields(exp, {
+        PartitionKey__MergedDelegatesVotingPower,
+        SortKey__MergedDelegatesVotingPower: account.represented
+          .toHexString()
+          .replace("0x", "")
+          .toLowerCase()
+          .padStart(256 / 4, "0"),
+        PartitionKey__MergedDelegatesStatementHolders,
+        SortKey__MergedDelegatesStatementHolders: account.representing.length
+          .toString()
+          .padStart(10, "0"),
+        address: account.address.toLowerCase(),
+        tokensOwned: account.balance.toString(),
+        tokensRepresented: account.represented.toString(),
+        tokenHoldersRepresented: account.representing.length,
+      })
+    ),
+  };
 }
 
 main();
