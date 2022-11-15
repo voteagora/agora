@@ -3,23 +3,23 @@ import { ethers } from "ethers";
 export async function* getAllLogs(
   provider: ethers.providers.Provider,
   filter: ethers.EventFilter,
-  latestBlockNumber: number,
-  startBlock: number
+  toBlockInclusive: number,
+  fromBlockInclusive: number
 ) {
-  let fromBlock = startBlock;
+  let fromBlock = fromBlockInclusive;
 
-  while (fromBlock < latestBlockNumber) {
-    console.log({ fromBlock, latestBlockNumber });
-    const { toBlock, logs } = await getLogPage(
+  while (fromBlock <= toBlockInclusive) {
+    console.log({ fromBlock, toBlockInclusive });
+    const { lastBlockFetched, logs } = await getLogPage(
       provider,
       filter,
       fromBlock,
-      latestBlockNumber
+      toBlockInclusive + 1
     );
 
     yield logs;
 
-    fromBlock = toBlock + 1;
+    fromBlock = lastBlockFetched + 1;
   }
 }
 
@@ -28,39 +28,40 @@ const maxBlocksPerPage = 2_000_000;
 async function getLogPage(
   provider: ethers.providers.Provider,
   filter: ethers.EventFilter,
-  fromBlock: number,
-  latestBlockNumber: number
+  fromBlockInclusive: number,
+  toBlockExclusive: number
 ): Promise<{
   logs: ethers.providers.Log[];
 
   // The last block fetched.
-  toBlock: number;
+  lastBlockFetched: number;
 }> {
-  if (fromBlock >= latestBlockNumber) {
-    return {
-      toBlock: fromBlock,
-      logs: [],
-    };
-  }
-
   let pageSize = maxBlocksPerPage;
   while (true) {
     if (pageSize === 0) {
-      // todo: this does not account for a boundary condition
       throw new Error("failed to retrieve many pages");
     }
 
-    const toBlock = Math.min(fromBlock + pageSize, latestBlockNumber);
+    // at this point:
+    // * toBlockExclusive > fromBlockInclusive
+    // * pageSize > 0
+    const toBlock = Math.min(fromBlockInclusive + pageSize, toBlockExclusive);
+
+    // for:
+    //   rangeSize = toBlock - fromBlockInclusive
+    // then:
+    //  rangeSize is always >= 1
+
     try {
       const logs = await provider.getLogs({
         ...filter,
-        fromBlock,
-        toBlock,
+        fromBlock: fromBlockInclusive,
+        toBlock: toBlock - 1,
       });
 
       return {
         logs,
-        toBlock,
+        lastBlockFetched: toBlock - 1,
       };
     } catch (e) {
       if (

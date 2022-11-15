@@ -76,64 +76,48 @@ async function update(
 
   const snapshots = storedSnapshot?.contents ?? {};
 
-  const segmentSize = 10_000;
-  let lastBlockInSegment = null;
-  for (
-    let startingSegmentBlock = startingBlock;
-    startingSegmentBlock < latestSafeBlock;
-    startingSegmentBlock = Math.min(
-      startingSegmentBlock + segmentSize,
-      latestSafeBlock
-    )
-  ) {
-    lastBlockInSegment =
-      Math.min(startingSegmentBlock + segmentSize, latestSafeBlock) - 1;
+  for (const reducer of reducers) {
+    const filter = filterForEventHandlers(
+      reducer,
+      reducer.eventHandlers.map((handler) => handler.signature)
+    );
 
-    for (const reducer of reducers) {
-      const filter = filterForEventHandlers(
-        reducer,
-        reducer.eventHandlers.map((handler) => handler.signature)
-      );
-
-      let state = (() => {
-        const fromSnapshot = snapshots[reducer.name];
-        if (fromSnapshot) {
-          return reducer.decodeState(fromSnapshot);
-        }
-
-        return reducer.initialState();
-      })();
-
-      const initialState = reducer.decodeState(reducer.encodeState(state));
-
-      for await (const logs of getAllLogs(
-        provider,
-        filter,
-        lastBlockInSegment,
-        startingSegmentBlock
-      )) {
-        for (const log of logs) {
-          const event = reducer.iface.parseLog(log);
-          const eventHandler = reducer.eventHandlers.find(
-            (e) => e.signature === event.signature
-          )!;
-
-          state = eventHandler.reduce(state, event, log);
-        }
+    let state = (() => {
+      const fromSnapshot = snapshots[reducer.name];
+      if (fromSnapshot) {
+        return reducer.decodeState(fromSnapshot);
       }
 
-      await reducer?.dumpChangesToDynamo?.(dynamo, initialState, state);
+      return reducer.initialState();
+    })();
 
-      snapshots[reducer.name] = reducer.encodeState(state);
+    const initialState = reducer.decodeState(reducer.encodeState(state));
+
+    for await (const logs of getAllLogs(
+      provider,
+      filter,
+      startingBlock,
+      latestSafeBlock
+    )) {
+      for (const log of logs) {
+        const event = reducer.iface.parseLog(log);
+        const eventHandler = reducer.eventHandlers.find(
+          (e) => e.signature === event.signature
+        )!;
+
+        state = eventHandler.reduce(state, event, log);
+      }
     }
 
-    await updateSnapshotUpdateStatus(lastBlockInSegment, dynamo);
+    await reducer?.dumpChangesToDynamo?.(dynamo, initialState, state);
+
+    snapshots[reducer.name] = reducer.encodeState(state);
   }
 
-  if (lastBlockInSegment) {
-    await storeSnapshotInS3(s3, {
-      lastBlockSynced: lastBlockInSegment,
-      contents: snapshots,
-    });
-  }
+  await updateSnapshotUpdateStatus(latestSafeBlock, dynamo);
+
+  await storeSnapshotInS3(s3, {
+    lastBlockSynced: latestSafeBlock,
+    contents: snapshots,
+  });
 }

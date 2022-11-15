@@ -1,32 +1,45 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { parseStorage } from "../snapshot";
+import { makeReducers, parseStorage } from "../snapshot";
 import { promises as fs } from "fs";
-import { makeUpdateForAccount } from "../store/dynamo/delegates";
+import { updateSnapshotUpdateStatus } from "../lambdas/ingestUpdatesFromChain/snapshotUpdateStatus";
+import { storeSnapshotInS3 } from "../lambdas/ingestUpdatesFromChain/storedSnapshot";
+import { S3 } from "@aws-sdk/client-s3";
 
 async function main() {
-  const dynamoDb = new DynamoDB({});
+  const dynamoDb = new DynamoDB({
+    retryMode: "standard",
+  });
 
-  const snapshot = parseStorage(
-    JSON.parse(await fs.readFile("snapshot.json", { encoding: "utf-8" }))
+  const s3 = new S3({});
+
+  const rawSnapshot = JSON.parse(
+    await fs.readFile("snapshot.json", { encoding: "utf-8" })
   );
 
-  const accounts = Array.from(snapshot.ENSToken.accounts.entries()).map(
-    ([address, value]) => ({
-      ...value,
-      address,
-    })
-  );
+  const snapshot = parseStorage(rawSnapshot);
 
-  for (const account of accounts) {
-    console.log(account);
-    await dynamoDb.transactWriteItems({
-      TransactItems: [
-        {
-          Update: makeUpdateForAccount(account),
-        },
-      ],
-    });
+  const snapshotLatestBlock = Object.values(rawSnapshot).map(
+    (item) => (item as any).block
+  )[0];
+
+  for (const reducer of makeReducers()) {
+    const initialState = reducer.initialState();
+    const currentState = snapshot[reducer.name];
+
+    await reducer.dumpChangesToDynamo?.(dynamoDb, initialState, currentState);
   }
+
+  await updateSnapshotUpdateStatus(snapshotLatestBlock, dynamoDb);
+
+  await storeSnapshotInS3(s3, {
+    lastBlockSynced: snapshotLatestBlock,
+    contents: Object.fromEntries(
+      Object.entries(rawSnapshot).map(([key, value]) => [
+        key,
+        (value as any).state,
+      ])
+    ),
+  });
 }
 
 main();
