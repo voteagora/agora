@@ -370,7 +370,10 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
         }
       );
 
-      for (const accounts of chunk(accountsToUpdate, 100)) {
+      const totalChunks = chunk(accountsToUpdate, 100);
+      let idx = 0;
+      for (const accounts of totalChunks) {
+        console.log({ idx, total: totalChunks.length });
         await dynamo.transactWriteItems({
           TransactItems: accounts.map((account) => {
             return {
@@ -378,6 +381,7 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
             };
           }),
         });
+        idx++;
       }
     },
     eventHandlers: [
