@@ -43,7 +43,7 @@ async function main() {
 
   for (let i = 0; i < maxPages; i++) {
     const delegatesPage = await delegateStore.getDelegates({
-      orderBy: "mostRelevant",
+      orderBy: "mostVotingPower",
       first,
       after,
     });
@@ -92,14 +92,6 @@ async function main() {
           });
         })();
 
-        const resolvedAvatar = await (async () => {
-          if (!resolver) {
-            return null;
-          }
-
-          return resolver.getAvatar();
-        })();
-
         await dynamo.updateItem({
           TableName,
           Key: makeMergedDelegateKey(node.address.toString()),
@@ -115,7 +107,6 @@ async function main() {
                   statement,
                 };
               })(),
-              resolvedAvatar,
               resolvedName,
             });
           }),

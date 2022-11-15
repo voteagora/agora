@@ -6,7 +6,7 @@
     "cloud:build": "yarn codegen",
     "deploy-lambda": "serverless deploy",
     "write-data": "ts-node --transpileOnly src/bin/writeData.ts",
-    "write-ens": "ts-node src/bin/writeEns.ts",
+    "write-ens": "ts-node --transpileOnly src/bin/writeEns.ts",
     "download-snapshot-history": "ts-node src/bin/downloadSnapshotHistory/main.ts",
     "download-discourse-thread": "ts-node src/bin/downloadDiscourseThread.ts",
     "build-generate-schema": "esbuild --bundle --sourcemap src/bin/generateSchema.ts --outfile=dist/generateSchema.js --loader:.graphql=text",
