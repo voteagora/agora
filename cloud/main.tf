@@ -6,6 +6,13 @@ terraform {
     }
   }
 
+  cloud {
+    organization = "0xcaff"
+    workspaces {
+      name = "agora-dev"
+    }
+  }
+
   required_version = ">= 1.2.0"
 }
 
