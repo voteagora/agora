@@ -7,23 +7,8 @@ import { ToucanInterface, withSentryScope } from "./sentry";
 import { getAllLogs } from "./events";
 import { fetchAuctions, fetchAuctionsResponse } from "./propHouse";
 import { z } from "zod";
-import { nounsDao, nounsToken } from "./contracts";
+import { ContractInstance, nounsDao, nounsToken, TypedInterface } from "./contracts";
 
-export interface TypedInterface extends ethers.utils.Interface {
-  events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
-}
-
-export function makeContractInstance<InterfaceType extends TypedInterface>(
-  t: ContractInstance<InterfaceType>
-): ContractInstance<InterfaceType> {
-  return t;
-}
-
-type ContractInstance<InterfaceType extends TypedInterface> = {
-  iface: InterfaceType;
-  address: string;
-  startingBlock: number;
-};
 type ReducerDefinition<
   InterfaceType extends TypedInterface,
   Accumulator,
