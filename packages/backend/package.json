@@ -7,7 +7,7 @@
     "post-discord-updates": "node dist/postDiscordUpdates.js",
     "build-generate-schema": "esbuild --bundle --sourcemap src/bin/generateSchema.ts --outfile=dist/generateSchema.js --loader:.graphql=text",
     "generate-schema": "node dist/generateSchema.js > ../frontend/schema.graphql",
-    "generate-snapshot": "ts-node src/bin/generateSnapshot.ts",
+    "generate-snapshot": "yarn run generate && ts-node src/bin/generateSnapshot.ts",
     "build-dump": "esbuild --bundle --platform=node src/bin/dumpNamespace.ts --outfile=dist/dump.js",
     "dump": "node dist/dump.js",
     "build-server": "esbuild --bundle --sourcemap src/bin/server.ts --outfile=dist/server.js --loader:.graphql=text --platform=node",
@@ -18,8 +18,8 @@
     "build-worker": "node scripts/buildWorker.js",
     "visualize-worker-bundle": "esbuild-visualizer ---metadata ./dist/meta.json",
     "fetch-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph > ./src/schemas/nouns-subgraph.graphql",
-    "build": "yarn build-generate-schema && yarn build-server",
-    "start": "yarn build && yarn run generate && yarn run server",
+    "build": "yarn run generate && yarn build-server",
+    "start": "yarn build && yarn run server",
     "test": "jest"
   },
   "dependencies": {
