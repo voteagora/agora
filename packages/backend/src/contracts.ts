@@ -1,8 +1,23 @@
+import { ethers } from "ethers";
 import {
   NounsDAOLogicV1__factory,
   NounsToken__factory,
 } from "./contracts/generated";
-import { makeContractInstance } from "./snapshot";
+
+export type ContractInstance<InterfaceType extends TypedInterface> = {
+  iface: InterfaceType;
+  address: string;
+  startingBlock: number;
+};
+export interface TypedInterface extends ethers.utils.Interface {
+  events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
+}
+
+function makeContractInstance<InterfaceType extends TypedInterface>(
+  t: ContractInstance<InterfaceType>
+): ContractInstance<InterfaceType> {
+  return t;
+}
 
 export const nounsToken = makeContractInstance({
   iface: NounsToken__factory.createInterface(),
