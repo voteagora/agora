@@ -168,8 +168,6 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
     },
   });
 
-  useEffect(() => {}, []);
-
   return (
     <VStack
       alignItems="center"
@@ -276,7 +274,6 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
               top: 0,
               left: 0,
               right: 0,
-              height: virtualItem.size,
               transform: `translateY(${virtualItem.start}px)`,
             };
 
@@ -286,9 +283,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                   <HStack
                     style={style}
                     justifyContent="center"
-                    className={css`
-                      padding-top: ${theme.spacing["16"]};
-                    `}
+                    alignItems="center"
                   >
                     Loading...
                   </HStack>
@@ -296,7 +291,15 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
               }
 
               case "ITEM": {
-                return <VoterCard fragmentRef={item.node} style={style} />;
+                return (
+                  <VStack
+                    className={css`
+                      margin: ${theme.spacing["4"]};
+                    `}
+                  >
+                    <VoterCard fragmentRef={item.node} style={style} />
+                  </VStack>
+                );
               }
 
               case "LOAD_MORE_SENTINEL":
