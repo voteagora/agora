@@ -7,12 +7,14 @@ import { VStack } from "../../components/VStack";
 import { Link } from "../../components/HammockRouter/Link";
 import { DelegateProfileImage } from "../../components/DelegateProfileImage";
 import { VoterPanelActions } from "../../components/VoterPanel/VoterPanelActions";
+import { CSSProperties } from "react";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
+  style: CSSProperties;
 };
 
-export function VoterCard({ fragmentRef }: VoterCardProps) {
+export function VoterCard({ fragmentRef, style }: VoterCardProps) {
   const delegate = useFragment(
     graphql`
       fragment VoterCardFragment on Delegate {
@@ -46,6 +48,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
         display: flex;
         flex-direction: column;
       `}
+      style={style}
     >
       <VStack
         gap="4"
