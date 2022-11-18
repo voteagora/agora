@@ -52,7 +52,7 @@ resource "aws_dynamodb_table" "application_data_table" {
 resource "aws_dynamodb_table_item" "acquire-ingest-updates-lock" {
   table_name = aws_dynamodb_table.application_data_table.name
   hash_key   = aws_dynamodb_table.application_data_table.hash_key
-  range_key = aws_dynamodb_table.application_data_table.range_key
+  range_key  = aws_dynamodb_table.application_data_table.range_key
   lifecycle {
     ignore_changes = [
       # Value stored at key will change. This value should only be set during
