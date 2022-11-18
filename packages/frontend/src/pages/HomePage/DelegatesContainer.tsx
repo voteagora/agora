@@ -13,9 +13,11 @@ import {
 } from "./__generated__/DelegatesContainerPaginationQuery.graphql";
 import { Selector, SelectorItem } from "./Selector";
 import { motion } from "framer-motion";
-import InfiniteScroll from "react-infinite-scroller";
 import { useNavigate } from "../../components/HammockRouter/HammockRouter";
 import { locationToVariables } from "./HomePage";
+import { ReactWindowScroller } from "react-window-scroller";
+import { FixedSizeList, ListChildComponentProps } from "react-window";
+import InfiniteLoader from "react-window-infinite-loader";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -101,9 +103,54 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
     fragmentKey
   );
 
-  const loadMore = useCallback(() => {
-    loadNext(30);
-  }, [loadNext]);
+  const itemsSize = 350;
+
+  const displayedItemsCount = voters.edges.length + (isLoadingNext ? 1 : 0);
+
+  const totalItemsCountWithLoadingBuffer =
+    voters.edges.length + (hasNext && !isLoadingNext ? 1 : 0);
+  const isItemLoaded = (idx: number) => idx < displayedItemsCount;
+
+  const loadMore = useCallback(
+    (startIndex: number, stopIndex: number) => {
+      console.log({
+        startIndex,
+        stopIndex,
+        displayedItemsCount,
+        totalItemsCountWithLoadingBuffer,
+      });
+      loadNext(30);
+    },
+    [loadNext, totalItemsCountWithLoadingBuffer, displayedItemsCount]
+  );
+
+  const ListChild = useCallback(
+    ({ index, style }: ListChildComponentProps) => {
+      if (index >= displayedItemsCount) {
+        throw new Error("non-displayable index rendered");
+      }
+
+      if (isLoadingNext && index === voters.edges.length) {
+        return (
+          <HStack
+            style={style}
+            justifyContent="center"
+            className={css`
+              padding-top: ${theme.spacing["16"]};
+            `}
+          >
+            Loading...
+          </HStack>
+        );
+      }
+
+      console.log({ len: voters.edges.length, index });
+      const voter = voters.edges[index].node;
+
+      return <VoterCard key={voter.id} fragmentRef={voter} style={style} />;
+    },
+    [voters.edges, displayedItemsCount, isLoadingNext]
+  );
 
   return (
     <VStack
@@ -195,45 +242,39 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
         transition={{ duration: 0.3, delay: isPending ? 0.3 : 0 }}
         className={css`
           width: 100%;
-          /* max-width: ${theme.maxWidth["6xl"]}; */
         `}
       >
-        <InfiniteScroll loadMore={loadMore} hasMore={hasNext}>
-          <div
-            className={css`
-              display: grid;
-              grid-auto-flow: row;
-              justify-content: space-between;
-              grid-template-columns: repeat(3, 23rem);
-              gap: ${theme.spacing["8"]};
-
-              @media (max-width: ${theme.maxWidth["6xl"]}) {
-                grid-template-columns: repeat(auto-fit, 23rem);
-                justify-content: space-around;
-              }
-
-              @media (max-width: ${theme.maxWidth.md}) {
-                grid-template-columns: 1fr;
-                gap: ${theme.spacing["4"]};
-              }
-            `}
+        <div
+          className={css`
+            height: ${displayedItemsCount * itemsSize}px;
+          `}
+        >
+          <InfiniteLoader
+            itemCount={totalItemsCountWithLoadingBuffer}
+            loadMoreItems={loadMore}
+            isItemLoaded={isItemLoaded}
           >
-            {voters.edges.map(({ node: voter }) => (
-              <VoterCard key={voter.id} fragmentRef={voter} />
-            ))}
-          </div>
-        </InfiniteScroll>
-
-        {isLoadingNext && (
-          <HStack
-            justifyContent="center"
-            className={css`
-              padding-top: ${theme.spacing["16"]};
-            `}
-          >
-            Loading...
-          </HStack>
-        )}
+            {({ onItemsRendered }) => (
+              <ReactWindowScroller>
+                {({ ref, outerRef, onScroll }) => (
+                  <FixedSizeList
+                    onItemsRendered={onItemsRendered}
+                    ref={ref}
+                    outerRef={outerRef}
+                    onScroll={onScroll}
+                    width="100%"
+                    height={window.innerHeight}
+                    itemCount={displayedItemsCount}
+                    itemSize={itemsSize}
+                  >
+                    {/*todo: mixed height flowing into */}
+                    {ListChild}
+                  </FixedSizeList>
+                )}
+              </ReactWindowScroller>
+            )}
+          </InfiniteLoader>
+        </div>
       </motion.div>
     </VStack>
   );

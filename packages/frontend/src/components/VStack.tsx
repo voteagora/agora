@@ -1,10 +1,11 @@
 import { css, cx } from "@emotion/css";
-import { ReactNode } from "react";
+import { CSSProperties, ReactNode } from "react";
 import * as theme from "../theme";
 import { DataType } from "csstype";
 
 type Props = {
   className?: string;
+  style?: CSSProperties;
   gap?: keyof typeof theme["spacing"];
   justifyContent?: DataType.ContentDistribution | DataType.ContentPosition;
   alignItems?: DataType.SelfPosition | "baseline" | "normal" | "stretch";
@@ -17,9 +18,11 @@ function Stack({
   alignItems,
   justifyContent,
   children,
+  style,
 }: Props) {
   return (
     <div
+      style={style}
       className={cx(
         css`
           display: flex;
