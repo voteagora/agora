@@ -58,7 +58,6 @@ type Metrics {
   totalSupply: TokenAmount!
   quorum: VotingPower!
   proposalThreshold: VotingPower!
-  averageVoterTurnOutBps: Int!
 }
 
 type Vote {

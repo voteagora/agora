@@ -139,10 +139,6 @@ export function makeGatewaySchema() {
       proposalThreshold() {
         return ethers.BigNumber.from("100000000000000000000000");
       },
-      averageVoterTurnOutBps() {
-        // todo: implement
-        return 1500;
-      },
       delegatedSupply(_parent, _args, { snapshot }) {
         const delegatedSupply = snapshot.ENSToken.delegatedSupply;
 
