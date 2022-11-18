@@ -111,11 +111,8 @@ export const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> =
     name: "ENSToken",
     initialState: () => ({
       accounts: new Map<string, ENSAccount>(),
-      // todo: remove hardcoded?
       totalSupply: BigNumber.from(0),
-      delegatedSupply: BigNumber.from(5_000_000).mul(
-        BigNumber.from(10).pow(18)
-      ),
+      delegatedSupply: BigNumber.from(0),
     }),
     encodeState(acc) {
       return {
