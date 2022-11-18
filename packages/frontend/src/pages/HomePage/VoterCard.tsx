@@ -11,7 +11,7 @@ import { CSSProperties } from "react";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
-  style: CSSProperties;
+  style?: CSSProperties;
 };
 
 export function VoterCard({ fragmentRef, style }: VoterCardProps) {

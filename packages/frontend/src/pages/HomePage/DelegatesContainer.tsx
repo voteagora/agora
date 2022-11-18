@@ -4,9 +4,12 @@ import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCard } from "./VoterCard";
-import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
+import {
+  DelegatesContainerFragment$data,
+  DelegatesContainerFragment$key,
+} from "./__generated__/DelegatesContainerFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
-import { useCallback, useState, useTransition } from "react";
+import { CSSProperties, useEffect, useState, useTransition } from "react";
 import {
   DelegatesOrder,
   DelegatesWhere,
@@ -15,9 +18,7 @@ import { Selector, SelectorItem } from "./Selector";
 import { motion } from "framer-motion";
 import { useNavigate } from "../../components/HammockRouter/HammockRouter";
 import { locationToVariables } from "./HomePage";
-import { ReactWindowScroller } from "react-window-scroller";
-import { FixedSizeList, ListChildComponentProps } from "react-window";
-import InfiniteLoader from "react-window-infinite-loader";
+import { useWindowVirtualizer, VirtualItem } from "@tanstack/react-virtual";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -103,54 +104,71 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
     fragmentKey
   );
 
-  const itemsSize = 350;
+  type ItemType =
+    | {
+        type: "LOADING";
+      }
+    | {
+        type: "LOAD_MORE_SENTINEL";
+      }
+    | {
+        type: "ITEM";
+        node: DelegatesContainerFragment$data["voters"]["edges"][0]["node"];
+      };
 
-  const displayedItemsCount = voters.edges.length + (isLoadingNext ? 1 : 0);
-
-  const totalItemsCountWithLoadingBuffer =
-    voters.edges.length + (hasNext && !isLoadingNext ? 1 : 0);
-  const isItemLoaded = (idx: number) => idx < displayedItemsCount;
-
-  const loadMore = useCallback(
-    (startIndex: number, stopIndex: number) => {
-      console.log({
-        startIndex,
-        stopIndex,
-        displayedItemsCount,
-        totalItemsCountWithLoadingBuffer,
-      });
-      loadNext(30);
-    },
-    [loadNext, totalItemsCountWithLoadingBuffer, displayedItemsCount]
-  );
-
-  const ListChild = useCallback(
-    ({ index, style }: ListChildComponentProps) => {
-      if (index >= displayedItemsCount) {
-        throw new Error("non-displayable index rendered");
+  const items: ItemType[] = [
+    ...voters.edges.map((node) => ({ type: "ITEM" as const, node: node.node })),
+    ...(() => {
+      if (isLoadingNext) {
+        return [{ type: "LOADING" as const }];
       }
 
-      if (isLoadingNext && index === voters.edges.length) {
-        return (
-          <HStack
-            style={style}
-            justifyContent="center"
-            className={css`
-              padding-top: ${theme.spacing["16"]};
-            `}
-          >
-            Loading...
-          </HStack>
-        );
+      if (hasNext) {
+        return [
+          {
+            type: "LOAD_MORE_SENTINEL" as const,
+          },
+        ];
+      } else {
+        return [];
+      }
+    })(),
+  ];
+
+  const virtualizer = useWindowVirtualizer({
+    count: items.length,
+    estimateSize(idx) {
+      switch (items[idx].type) {
+        case "LOADING":
+          return 100;
+
+        case "LOAD_MORE_SENTINEL":
+          return 0;
+
+        case "ITEM":
+          return 350;
+      }
+    },
+    onChange(instance) {
+      const virtualItems = instance.getVirtualItems();
+      const lastItem = virtualItems[virtualItems.length - 1];
+
+      if (!lastItem) {
+        return;
       }
 
-      console.log({ len: voters.edges.length, index });
-      const voter = voters.edges[index].node;
+      const item = items[lastItem.index];
+      if (!item) {
+        return;
+      }
 
-      return <VoterCard key={voter.id} fragmentRef={voter} style={style} />;
+      if (item.type === "LOAD_MORE_SENTINEL") {
+        loadNext(30);
+      }
     },
-    [voters.edges, displayedItemsCount, isLoadingNext]
-  );
+  });
+
+  useEffect(() => {}, []);
 
   return (
     <VStack
@@ -246,34 +264,45 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
       >
         <div
           className={css`
-            height: ${displayedItemsCount * itemsSize}px;
+            height: ${virtualizer.getTotalSize()}px;
+            position: relative;
           `}
         >
-          <InfiniteLoader
-            itemCount={totalItemsCountWithLoadingBuffer}
-            loadMoreItems={loadMore}
-            isItemLoaded={isItemLoaded}
-          >
-            {({ onItemsRendered }) => (
-              <ReactWindowScroller>
-                {({ ref, outerRef, onScroll }) => (
-                  <FixedSizeList
-                    onItemsRendered={onItemsRendered}
-                    ref={ref}
-                    outerRef={outerRef}
-                    onScroll={onScroll}
-                    width="100%"
-                    height={window.innerHeight}
-                    itemCount={displayedItemsCount}
-                    itemSize={itemsSize}
+          {virtualizer.getVirtualItems().map((virtualItem: VirtualItem) => {
+            const item = items[virtualItem.index];
+
+            const style: CSSProperties = {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: virtualItem.size,
+              transform: `translateY(${virtualItem.start}px)`,
+            };
+
+            switch (item.type) {
+              case "LOADING": {
+                return (
+                  <HStack
+                    style={style}
+                    justifyContent="center"
+                    className={css`
+                      padding-top: ${theme.spacing["16"]};
+                    `}
                   >
-                    {/*todo: mixed height flowing into */}
-                    {ListChild}
-                  </FixedSizeList>
-                )}
-              </ReactWindowScroller>
-            )}
-          </InfiniteLoader>
+                    Loading...
+                  </HStack>
+                );
+              }
+
+              case "ITEM": {
+                return <VoterCard fragmentRef={item.node} style={style} />;
+              }
+
+              case "LOAD_MORE_SENTINEL":
+                return null;
+            }
+          })}
         </div>
       </motion.div>
     </VStack>
