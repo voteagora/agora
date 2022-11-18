@@ -77,7 +77,6 @@ type Metrics {
   quorum: VotingPower!
 
   proposalThreshold: VotingPower!
-  averageVoterTurnOutBps: Int!
 }
 
 type Vote {

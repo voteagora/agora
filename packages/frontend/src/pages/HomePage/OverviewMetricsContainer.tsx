@@ -44,8 +44,6 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
 
             bpsOfTotal
           }
-
-          averageVoterTurnOutBps
         }
       }
     `,
