@@ -151,6 +151,10 @@ export type VariablesOf<Query extends DocumentNode<any, any>> =
 export type ResultOf<Query extends DocumentNode<any, any>> =
   Query extends DocumentNode<infer Result, any> ? Result : never;
 
+export type GetAllFromQueryResult<
+  Query extends DocumentNode<Exact<{ items?: any[] | undefined | null }>, any>
+> = ResultOf<Query>["items"];
+
 export async function getAllFromQuery<
   Query extends DocumentNode<Exact<{ items?: any[] | undefined | null }>, any>
 >(
