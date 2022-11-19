@@ -2,63 +2,18 @@ import { S3 } from "@aws-sdk/client-s3";
 import { chunk } from "lodash";
 import {
   getAllFromQuery,
+  GetAllFromQueryResult,
   proposalsQuery,
+  ResultOf,
   spaceQuery,
   url,
   votesQuery,
 } from "./queries";
 import request from "graphql-request";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { z } from "zod";
 import { makeKey, marshaller } from "../../store/dynamo/utils";
 
 const spaceId = "ens.eth";
-
-async function loadVotesIntoS3(s3: S3, Bucket: string) {
-  const proposalsPromise = await (async () => {
-    const proposals = await getAllFromQuery(proposalsQuery, {
-      space: spaceId,
-    });
-
-    await s3.putObject({
-      Bucket,
-      Key: `${spaceId}/proposals.json`,
-      Body: JSON.stringify(proposals),
-    });
-  })();
-
-  const votesPromise = (async () => {
-    const votes = await getAllFromQuery(votesQuery, {
-      space: spaceId,
-    });
-
-    await s3.putObject({
-      Bucket,
-      Key: `${spaceId}/votes.json`,
-      Body: JSON.stringify(votes),
-    });
-  })();
-
-  const spacePromise = (async () => {
-    const space = await request({
-      url,
-      document: spaceQuery,
-      variables: {
-        space: spaceId,
-      },
-    });
-
-    await s3.putObject({
-      Bucket,
-      Key: `${spaceId}/space.json`,
-      Body: JSON.stringify(space),
-    });
-  })();
-
-  await votesPromise;
-  await proposalsPromise;
-  await spacePromise;
-}
 
 export async function run() {
   const Bucket = process.env.S3_BUCKET!;
@@ -69,65 +24,48 @@ export async function run() {
     retryMode: "standard",
   });
 
-  await loadVotesIntoS3(s3, Bucket);
-  await writeVotesToDynamoDb(dynamo, s3, Bucket);
-}
-
-const snapshotVoteSchema = z.array(
-  z.object({
-    choice: z.array(z.number()).or(z.number()),
-    created: z.number(),
-    id: z.string(),
-    reason: z.string(),
-    voter: z.string(),
-    proposal: z.object({
-      id: z.string(),
+  const [proposals, votes, space] = await Promise.all([
+    getAllFromQuery(proposalsQuery, {
+      space: spaceId,
     }),
-  })
-);
+    getAllFromQuery(votesQuery, {
+      space: spaceId,
+    }),
+    request({
+      url,
+      document: spaceQuery,
+      variables: {
+        space: spaceId,
+      },
+    }),
+  ]);
 
-const snapshotProposalsSchema = z.array(
-  z.object({
-    id: z.string(),
-    title: z.string(),
-    link: z.string(),
-    choices: z.array(z.string()),
-    scores: z.array(z.number()),
-  })
-);
-
-async function loadVotes(s3: S3, Bucket: string) {
-  const result = await s3.getObject({
-    Bucket,
-    Key: `${spaceId}/votes.json`,
-  });
-  if (!result.Body) {
-    return;
-  }
-
-  return snapshotVoteSchema.parse(
-    JSON.parse(await result.Body.transformToString())
-  );
+  await Promise.all([
+    s3.putObject({
+      Bucket,
+      Key: `${spaceId}/votes.json`,
+      Body: JSON.stringify(votes),
+    }),
+    s3.putObject({
+      Bucket,
+      Key: `${spaceId}/space.json`,
+      Body: JSON.stringify(space),
+    }),
+    s3.putObject({
+      Bucket,
+      Key: `${spaceId}/votes.json`,
+      Body: JSON.stringify(votes),
+    }),
+    writeVotesToDynamoDb(dynamo, votes, space, proposals),
+  ]);
 }
 
-async function loadProposals(s3: S3, Bucket: string) {
-  const result = await s3.getObject({
-    Bucket,
-    Key: `${spaceId}/proposals.json`,
-  });
-  if (!result.Body) {
-    return;
-  }
-
-  return snapshotProposalsSchema.parse(
-    JSON.parse(await result.Body.transformToString())
-  );
-}
-
-async function writeVotesToDynamoDb(dynamo: DynamoDB, s3: S3, Bucket: string) {
-  const votes = (await loadVotes(s3, Bucket)) ?? [];
-  const proposals = (await loadProposals(s3, Bucket)) ?? [];
-
+async function writeVotesToDynamoDb(
+  dynamo,
+  votes: GetAllFromQueryResult<typeof votesQuery>,
+  space: ResultOf<typeof spaceQuery>,
+  proposals: GetAllFromQueryResult<typeof proposalsQuery>
+) {
   let i = 0;
   const batchSize = 25;
   const pageSize = 5;
