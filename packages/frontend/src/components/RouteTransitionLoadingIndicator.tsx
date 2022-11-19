@@ -5,9 +5,9 @@ import { motion } from "framer-motion";
 import * as theme from "../theme";
 
 const shimmer = keyframes`
-    from {
-      opacity: 0.3;
-    }
+  from {
+    opacity: 0.3;
+  }
   
   to {
     opacity: 0.7;
@@ -19,6 +19,9 @@ export function RouteTransitionLoadingIndicator() {
 
   return (
     <motion.div
+      style={{
+        zIndex: "10",
+      }}
       initial={{
         opacity: 0,
       }}

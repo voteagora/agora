@@ -4,9 +4,9 @@ import * as theme from "../theme";
 import { VStack } from "./VStack";
 
 const shimmer = keyframes`
-    from {
-      opacity: 0.6;
-    }
+  from {
+    opacity: 0.6;
+  }
   
   to {
     opacity: 1;
