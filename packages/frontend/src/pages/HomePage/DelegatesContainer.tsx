@@ -9,7 +9,7 @@ import {
   DelegatesContainerFragment$key,
 } from "./__generated__/DelegatesContainerFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
-import { CSSProperties, useEffect, useState, useTransition } from "react";
+import { CSSProperties, useState, useTransition } from "react";
 import {
   DelegatesOrder,
   DelegatesWhere,
@@ -19,6 +19,8 @@ import { motion } from "framer-motion";
 import { useNavigate } from "../../components/HammockRouter/HammockRouter";
 import { locationToVariables } from "./HomePage";
 import { useWindowVirtualizer, VirtualItem } from "@tanstack/react-virtual";
+import { chunk } from "lodash";
+import { useMediaQuery } from "react-responsive";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -71,6 +73,10 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
 
   const navigate = useNavigate();
 
+  const isSmallerThanThreeColumns = useMediaQuery({
+    query: `(max-width: ${theme.maxWidth["6xl"]})`,
+  });
+
   const {
     data: { voters },
     loadNext,
@@ -104,6 +110,8 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
     fragmentKey
   );
 
+  const columns = isSmallerThanThreeColumns ? 1 : 3;
+
   type ItemType =
     | {
         type: "LOADING";
@@ -112,12 +120,15 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
         type: "LOAD_MORE_SENTINEL";
       }
     | {
-        type: "ITEM";
-        node: DelegatesContainerFragment$data["voters"]["edges"][0]["node"];
+        type: "ITEMS";
+        items: DelegatesContainerFragment$data["voters"]["edges"];
       };
 
   const items: ItemType[] = [
-    ...voters.edges.map((node) => ({ type: "ITEM" as const, node: node.node })),
+    ...chunk(voters.edges, columns).map((items) => ({
+      type: "ITEMS" as const,
+      items,
+    })),
     ...(() => {
       if (isLoadingNext) {
         return [{ type: "LOADING" as const }];
@@ -137,15 +148,14 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
 
   const virtualizer = useWindowVirtualizer({
     count: items.length,
+    overscan: 3,
     estimateSize(idx) {
       switch (items[idx].type) {
-        case "LOADING":
-          return 100;
-
         case "LOAD_MORE_SENTINEL":
           return 0;
 
-        case "ITEM":
+        case "LOADING":
+        case "ITEMS":
           return 350;
       }
     },
@@ -274,6 +284,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
               top: 0,
               left: 0,
               right: 0,
+              height: virtualItem.size,
               transform: `translateY(${virtualItem.start}px)`,
             };
 
@@ -284,21 +295,32 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                     style={style}
                     justifyContent="center"
                     alignItems="center"
+                    className={css`
+                      padding-bottom: ${theme.spacing["8"]};
+                      padding-top: ${theme.spacing["8"]};
+                    `}
                   >
                     Loading...
                   </HStack>
                 );
               }
 
-              case "ITEM": {
+              case "ITEMS": {
                 return (
-                  <VStack
+                  <div
                     className={css`
-                      margin: ${theme.spacing["4"]};
+                      display: grid;
+                      grid-template-columns: repeat(${columns}, 1fr);
+                      padding-top: ${theme.spacing["4"]};
+                      padding-bottom: ${theme.spacing["4"]};
+                      gap: ${theme.spacing["8"]};
                     `}
+                    style={style}
                   >
-                    <VoterCard fragmentRef={item.node} style={style} />
-                  </VStack>
+                    {item.items.map((item) => (
+                      <VoterCard fragmentRef={item.node} />
+                    ))}
+                  </div>
                 );
               }
 
