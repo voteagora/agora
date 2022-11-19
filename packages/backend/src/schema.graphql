@@ -119,10 +119,43 @@ type VotingPower {
 
 type SnapshotVote {
   id: ID!
-  selectedChoiceIdx: Int!
+  choice: SnapshotVoteChoice!
+  votingPower: Float!
   proposal: SnapshotProposal!
   createdAt: Timestamp!
   reason: String!
+}
+
+union SnapshotVoteChoice =
+  SnapshotVoteChoiceApproval
+  | SnapshotVoteChoiceRanked
+  | SnapshotVoteChoiceSingle
+  | SnapshotVoteChoiceQuadratic
+  | SnapshotVoteChoiceWeighted
+
+type SnapshotVoteChoiceApproval {
+  approvedChoices: [Int!]!
+}
+
+type SnapshotVoteChoiceRanked {
+  choices: [Int!]!
+}
+
+type SnapshotVoteChoiceSingle {
+  selectedChoiceIdx: Int!
+}
+
+type SnapshotVoteChoiceQuadratic {
+  weights: [WeightedSelectedChoice!]!
+}
+
+type SnapshotVoteChoiceWeighted {
+  weights: [WeightedSelectedChoice!]!
+}
+
+type WeightedSelectedChoice {
+  choiceIdx: Int!
+  weight: Int!
 }
 
 type SnapshotProposal {

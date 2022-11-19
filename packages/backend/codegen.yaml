@@ -31,4 +31,11 @@ generates:
         Transaction: ../model#Transaction as TransactionModel
         Block: ../model#Block as BlockModel
         Metrics: ../model#Metrics as MetricsModel
+        SnapshotVoteChoice: ../model#SnapshotVoteChoice as SnapshotVoteChoiceModel
+        SnapshotVoteChoiceSingle: ../model#SnapshotVoteChoice as SnapshotVoteChoiceModel
+        SnapshotVoteChoiceRanked: ../model#SnapshotVoteChoice as SnapshotVoteChoiceModel
+        SnapshotVoteChoiceQuadratic: ../model#SnapshotVoteChoice as SnapshotVoteChoiceModel
+        SnapshotVoteChoiceApproval: ../model#SnapshotVoteChoice as SnapshotVoteChoiceModel
+        SnapshotVoteChoiceWeighted: ../model#SnapshotVoteChoice as SnapshotVoteChoiceModel
+        WeightedSelectedChoice: ../model#WeightedSelectedChoice as WeightedSelectedChoiceModel
 

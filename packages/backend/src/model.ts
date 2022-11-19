@@ -157,7 +157,8 @@ export type SnapshotVote = {
   created: number;
   reason: string;
   proposal: SnapshotProposal;
-  choice: [number] | number;
+  choice: any;
+  vp: number;
 };
 
 export type SnapshotProposal = {
@@ -166,4 +167,12 @@ export type SnapshotProposal = {
   link: string;
   choices: string[];
   scores: number[];
+  type: string;
+};
+
+export type SnapshotVoteChoice = SnapshotVote;
+
+export type WeightedSelectedChoice = {
+  choiceIdx: number;
+  weight: number;
 };
