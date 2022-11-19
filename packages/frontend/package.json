@@ -35,6 +35,7 @@
     "react-infinite-scroller": "^1.2.6",
     "react-markdown": "^8.0.3",
     "react-relay": "^14.1.0",
+    "react-responsive": "^9.0.0",
     "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.1",
     "react-textfit": "^1.1.1",
