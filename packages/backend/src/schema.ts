@@ -275,8 +275,63 @@ export function makeGatewaySchema() {
       reason({ reason }) {
         return reason;
       },
+      votingPower({ vp }) {
+        return vp;
+      },
+      choice(vote) {
+        return vote;
+      },
+    },
+
+    SnapshotVoteChoice: {
+      __resolveType({ proposal }) {
+        switch (proposal.type) {
+          case "basic":
+          case "single-choice":
+            return "SnapshotVoteChoiceSingle";
+
+          case "ranked-choice":
+            return "SnapshotVoteChoiceRanked";
+          case "quadratic":
+            return "SnapshotVoteChoiceQuadratic";
+
+          case "approval":
+            return "SnapshotVoteChoiceApproval";
+          case "weighted":
+            return "SnapshotVoteChoiceWeighted";
+        }
+      },
+    },
+
+    SnapshotVoteChoiceSingle: {
       selectedChoiceIdx({ choice }) {
-        return Array.isArray(choice) ? choice[0] : choice;
+        return choice;
+      },
+    },
+
+    SnapshotVoteChoiceRanked: {
+      choices({ choice }) {
+        return choice;
+      },
+    },
+
+    SnapshotVoteChoiceQuadratic: {
+      // @ts-ignore
+      weights({ choice }) {
+        return Object.entries(choice).map(([choiceIdx, weight]) => ({
+          choiceIdx: Number(choiceIdx),
+          weight,
+        }));
+      },
+    },
+
+    SnapshotVoteChoiceWeighted: {
+      // @ts-ignore
+      weights({ choice }) {
+        return Object.entries(choice).map(([choiceIdx, weight]) => ({
+          choiceIdx: Number(choiceIdx),
+          weight,
+        }));
       },
     },
 
