@@ -71,24 +71,27 @@ async function main() {
 
           const fields = {
             twitter: await resolver.getText("com.twitter"),
-            delegateStatement: await (async () => {
-              const delegateValue = await resolver.getText("eth.ens.delegate");
-              if (!delegateValue) {
-                return null;
-              }
+            delegateStatement:
+              (await (async () => {
+                const delegateValue = await resolver.getText(
+                  "eth.ens.delegate"
+                );
+                if (!delegateValue) {
+                  return null;
+                }
 
-              const withoutPrefix = stripPrefix(
-                delegateValue,
-                "https://discuss.ens.domains/t/ens-dao-delegate-applications/815/"
-              );
-              if (!withoutPrefix) {
-                return null;
-              }
+                const withoutPrefix = stripPrefix(
+                  delegateValue,
+                  "https://discuss.ens.domains/t/ens-dao-delegate-applications/815/"
+                );
+                if (!withoutPrefix) {
+                  return null;
+                }
 
-              const post = discoursePostMapping.get(parseInt(withoutPrefix));
+                const post = discoursePostMapping.get(parseInt(withoutPrefix));
 
-              return post.raw;
-            })(),
+                return post.raw;
+              })()) ?? "",
           };
 
           if (!fields.twitter && !fields.delegateStatement) {
