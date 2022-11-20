@@ -48,7 +48,7 @@ export function VoteDetails({ voteFragment }: Props) {
     voteFragment
   );
 
-  const proposalHref = `https://www.tally.xyz/governance/eip155:1:0x323A76393544d5ecca80cd6ef2A560C6a395b7E3/proposal/8759198094868535520038506706231539487662297008587733129541987545743856603253/${vote.proposal.number}`;
+  const proposalHref = `https://www.tally.xyz/governance/eip155:1:0x323A76393544d5ecca80cd6ef2A560C6a395b7E3/proposal/${vote.proposal.number}`;
 
   const supportType = toSupportType(vote.supportDetailed);
 
