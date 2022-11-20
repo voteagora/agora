@@ -3,6 +3,7 @@ import graphql from "babel-plugin-relay/macro";
 import { intersection } from "../../utils/set";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
+import { DelegateProfileImage } from "../../components/DelegateProfileImage";
 import { NounGridChildren } from "../../components/NounGrid";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { VoterPanelDelegateFragment$key } from "./__generated__/VoterPanelDelegateFragment.graphql";
@@ -21,7 +22,6 @@ import { Textfit } from "react-textfit";
 import { DelegateDialog } from "../../components/DelegateDialog";
 import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
 import toast from "react-hot-toast";
-import { DelegateProfileImage } from "../HomePage/VoterCard";
 import { BigNumber } from "ethers";
 import { pluralizeAddresses, pluralizeNoun } from "../../words";
 
@@ -39,7 +39,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
         }
 
         wrappedDelegate {
-          ...VoterCardDelegateProfileImage
+          ...DelegateProfileImageFragment
           ...VoterPanelActionsFragment
 
           delegate {

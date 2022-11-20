@@ -18,7 +18,6 @@ import { useNavigate } from "../../components/HammockRouter/HammockRouter";
 import { locationToVariables } from "./HomePage";
 import { Tab } from "@headlessui/react";
 import { icons } from "../../icons/icons";
-import styles from './DelegatesContainer.module.scss'
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -75,6 +74,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
             node {
               id
               ...VoterCardFragment
+              ...VoterTabularFragment
             }
           }
         }
@@ -87,6 +87,37 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
     loadNext(30);
   }, [loadNext]);
 
+  const voterContainerClassNames = {
+    Card: css`
+      display: grid;
+      grid-auto-flow: row;
+      justify-content: space-between;
+      grid-template-columns: repeat(3, 23rem);
+      gap: ${theme.spacing["8"]};
+      @media (max-width: ${theme.maxWidth["6xl"]}) {
+        grid-template-columns: repeat(auto-fit, 23rem);
+        justify-content: space-around;
+      }
+      @media (max-width: ${theme.maxWidth.md}) {
+        grid-template-columns: 1fr;
+        gap: ${theme.spacing["4"]};
+      }
+    `,
+    Tabular: css`
+      display: grid;
+      grid-template-columns: 1fr;
+
+      @media (max-width: ${theme.maxWidth["6xl"]}) {
+        grid-template-columns: 1fr;
+        justify-content: space-around;
+      }
+
+      @media (max-width: $max_width_md) {
+        grid-template-columns: 1fr;
+        gap: ${theme.spacing["4"]};
+      }
+    `,
+  };
   return (
     <VStack
       alignItems="center"
@@ -239,19 +270,19 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
         `}
       >
         <InfiniteScroll loadMore={loadMore} hasMore={hasNext}>
-          <div
-            className={styles[`container${layoutMode}`]}
-          >
-            {voters.edges.map(({ node: voter }) => (
-              <>
-                {layoutMode === "Card" && (
-                  <VoterCard key={voter.id} fragmentRef={voter} />
-                )}
-                {layoutMode === "Tabular" && (
-                  <VoterTabular key={voter.id} fragmentRef={voter} />
-                )}
-              </>
-            ))}
+          <div className={voterContainerClassNames[layoutMode]}>
+            {voters.edges.map(({ node: voter }) => {
+              switch (layoutMode) {
+                case "Card":
+                  return <VoterCard key={voter.id} fragmentRef={voter} />;
+
+                case "Tabular":
+                  return <VoterTabular key={voter.id} fragmentRef={voter} />;
+
+                default:
+                  throw new Error(`unknown layout mode ${layoutMode}`);
+              }
+            })}
           </div>
         </InfiniteScroll>
 

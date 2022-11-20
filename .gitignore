@@ -8,3 +8,5 @@ packages/backend/dist
 
 packages/frontend/build
 __generated__
+packages/frontend/yarn.lock
+packages/backend/yarn.lock
