@@ -303,6 +303,12 @@ export function makeGatewaySchema() {
       },
     },
 
+    SnapshotVoteChoiceApproval: {
+      approvedChoices({ choice }) {
+        return choice;
+      },
+    },
+
     SnapshotVoteChoiceSingle: {
       selectedChoiceIdx({ choice }) {
         return choice;

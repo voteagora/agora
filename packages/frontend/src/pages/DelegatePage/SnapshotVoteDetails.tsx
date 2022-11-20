@@ -3,9 +3,16 @@ import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VStack } from "../../components/VStack";
-import { VoteDetailsContainer, VoteTitle } from "./VoteDetailsContainer";
+import {
+  colorForSupportType,
+  VoteDetailsContainer,
+  VoteTitle,
+} from "./VoteDetailsContainer";
 import { formatDistanceToNow } from "date-fns";
 import { SnapshotVoteDetailsFragment$key } from "./__generated__/SnapshotVoteDetailsFragment.graphql";
+import { SnapshotVoteDetailsVoteChoiceFragment$key } from "./__generated__/SnapshotVoteDetailsVoteChoiceFragment.graphql";
+import { pluralizeVote } from "../../words";
+import { BigNumber } from "ethers";
 
 type Props = {
   voteFragment: SnapshotVoteDetailsFragment$key;
@@ -15,7 +22,6 @@ export function SnapshotVoteDetails({ voteFragment }: Props) {
   const vote = useFragment(
     graphql`
       fragment SnapshotVoteDetailsFragment on SnapshotVote {
-        selectedChoiceIdx
         reason
         createdAt
 
@@ -28,6 +34,8 @@ export function SnapshotVoteDetails({ voteFragment }: Props) {
             score
           }
         }
+
+        ...SnapshotVoteDetailsVoteChoiceFragment
       }
     `,
     voteFragment
@@ -74,13 +82,7 @@ export function SnapshotVoteDetails({ voteFragment }: Props) {
               font-weight: ${theme.fontWeight.medium};
             `}
           >
-            <span
-              className={css`
-                text-transform: capitalize;
-              `}
-            >
-              {vote.proposal.choices[vote.selectedChoiceIdx - 1].title}
-            </span>{" "}
+            <SnapshotVoteChoicePart fragment={vote} />
           </span>
         </VStack>
 
@@ -125,4 +127,150 @@ export function SnapshotVoteDetails({ voteFragment }: Props) {
       </div>
     </VoteDetailsContainer>
   );
+}
+
+export function SnapshotVoteChoicePart({
+  fragment,
+}: {
+  fragment: SnapshotVoteDetailsVoteChoiceFragment$key;
+}) {
+  const vote = useFragment(
+    graphql`
+      fragment SnapshotVoteDetailsVoteChoiceFragment on SnapshotVote {
+        votingPower
+
+        choice {
+          __typename
+          ... on SnapshotVoteChoiceSingle {
+            selectedChoiceIdx
+          }
+
+          ... on SnapshotVoteChoiceWeighted {
+            weights {
+              choiceIdx
+              weight
+            }
+          }
+
+          ... on SnapshotVoteChoiceRanked {
+            choices
+          }
+
+          ... on SnapshotVoteChoiceApproval {
+            approvedChoices
+          }
+
+          ... on SnapshotVoteChoiceQuadratic {
+            weights {
+              weight
+              choiceIdx
+            }
+          }
+        }
+
+        proposal {
+          choices {
+            title
+          }
+        }
+      }
+    `,
+    fragment
+  );
+
+  const withPart = (
+    <span>
+      with {pluralizeVote(BigNumber.from(Math.floor(vote.votingPower)), 0)}
+    </span>
+  );
+
+  switch (vote.choice.__typename) {
+    case "SnapshotVoteChoiceApproval": {
+      return (
+        <span
+          className={css`
+            color: ${colorForSupportType("FOR")};
+          `}
+        >
+          {vote.choice.approvedChoices
+            .map((idx) => vote.proposal.choices[idx - 1])
+            .map((choice) => choice.title)
+            .join(", ")}{" "}
+          {withPart}
+        </span>
+      );
+    }
+
+    case "SnapshotVoteChoiceSingle": {
+      const choiceName =
+        vote.proposal.choices[vote.choice.selectedChoiceIdx - 1].title;
+
+      return (
+        <span
+          className={css`
+            color: ${colorForSupportType(
+              asSupportType(choiceName) ?? "ABSTAIN"
+            )};
+          `}
+        >
+          {choiceName} {withPart}
+        </span>
+      );
+    }
+
+    case "SnapshotVoteChoiceRanked": {
+      return (
+        <span
+          className={css`
+            color: ${colorForSupportType("FOR")};
+          `}
+        >
+          {vote.choice.choices
+            .map((idx) => vote.proposal.choices[idx - 1])
+            .map(({ title }, idx) => `${idx + 1}. ${title}`)
+            .join(", ")}{" "}
+          {withPart}
+        </span>
+      );
+    }
+
+    case "SnapshotVoteChoiceQuadratic":
+    case "SnapshotVoteChoiceWeighted": {
+      const totalWeight = vote.choice.weights.reduce(
+        (acc, value) => value.weight + acc,
+        0
+      );
+
+      return (
+        <span
+          className={css`
+            color: ${colorForSupportType("FOR")};
+          `}
+        >
+          {vote.choice.weights
+            .map(({ choiceIdx, weight }) => {
+              const choice = vote.proposal.choices[choiceIdx];
+
+              return { choice, weight };
+            })
+            .map(({ choice, weight }) => {
+              return `${weight / totalWeight} for ${choice.title}`;
+            })
+            .join(", ")}{" "}
+          {withPart}
+        </span>
+      );
+    }
+  }
+
+  return null;
+}
+
+function asSupportType(string: string): "FOR" | "AGAINST" | "ABSTAIN" | null {
+  const normalized = string.toUpperCase();
+  if (["FOR", "AGAINST", "ABSTAIN"].includes(normalized)) {
+    return normalized as any;
+  }
+
+  return null;
 }
