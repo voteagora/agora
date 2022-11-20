@@ -51,7 +51,7 @@ export function makeGatewaySchema() {
 
   function proposedByAddress(address: string, snapshot: Snapshot) {
     return Array.from(snapshot.ENSGovernor.proposals.values()).filter(
-      (prop) => prop.proposer === address
+      (prop) => prop.proposer.toLowerCase() === address
     );
   }
 
