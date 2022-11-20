@@ -116,9 +116,7 @@ export const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> =
     }),
     encodeState(acc) {
       return {
-        accounts: Array.from(acc.accounts.entries())
-          .sort(([, a], [, b]) => (a.represented.gt(b.represented) ? -1 : 1))
-          .map((args) => encodeAccountEntry(args)),
+        accounts: [],
 
         delegatedSupply: acc.delegatedSupply.toString(),
         totalSupply: acc.totalSupply.toString(),
