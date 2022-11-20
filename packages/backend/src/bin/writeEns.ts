@@ -69,7 +69,7 @@ async function main() {
             return null;
           }
 
-          return makeStoredStatement(node.address, {
+          const fields = {
             twitter: await resolver.getText("com.twitter"),
             delegateStatement: await (async () => {
               const delegateValue = await resolver.getText("eth.ens.delegate");
@@ -89,7 +89,13 @@ async function main() {
 
               return post.raw;
             })(),
-          });
+          };
+
+          if (!fields.twitter && !fields.delegateStatement) {
+            return null;
+          }
+
+          return makeStoredStatement(node.address, fields);
         })();
 
         await dynamo.updateItem({
