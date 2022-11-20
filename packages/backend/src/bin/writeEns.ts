@@ -70,7 +70,7 @@ async function main() {
           }
 
           const fields = {
-            twitter: await resolver.getText("com.twitter"),
+            twitter: (await resolver.getText("com.twitter")) ?? "",
             delegateStatement:
               (await (async () => {
                 const delegateValue = await resolver.getText(
