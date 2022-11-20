@@ -24,6 +24,7 @@ import { useStartTransition } from "../../components/HammockRouter/HammockRouter
 import toast from "react-hot-toast";
 import { BigNumber } from "ethers";
 import { pluralizeAddresses, pluralizeNoun } from "../../words";
+import { descendingValueComparator } from "../../utils/sorting";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -536,20 +537,3 @@ function NameSection({ resolvedName }: NameSectionProps) {
 
 export const shadow =
   "0px 4px 12px rgba(0, 0, 0, 0.02), 0px 2px 2px rgba(0, 0, 0, 0.03);";
-
-export type Comparator<T> = (a: T, b: T) => number;
-
-export function descendingValueComparator<T>(
-  getValueFor: (item: T) => number
-): Comparator<T> {
-  return (a, b) => {
-    const aValue = getValueFor(a);
-    const bValue = getValueFor(b);
-
-    return bValue - aValue;
-  };
-}
-
-export function flipComparator<T>(toFlip: Comparator<T>): Comparator<T> {
-  return (a, b) => toFlip(b, a);
-}

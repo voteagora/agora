@@ -23,3 +23,11 @@ export function pluralizeAddresses(count: number) {
     return `${count} addresses`;
   }
 }
+
+export function pluralizeOthers(count: number) {
+  if (count === 1) {
+    return "1 other";
+  } else {
+    return `${count} others`;
+  }
+}

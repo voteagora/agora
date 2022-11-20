@@ -1,4 +1,5 @@
 import { useFragment } from "react-relay";
+import { useMemo } from "react";
 import graphql from "babel-plugin-relay/macro";
 import { css, cx } from "@emotion/css";
 import * as theme from "../../theme";
@@ -8,10 +9,9 @@ import { DelegateProfileImage } from "../../components/DelegateProfileImage";
 import { HStack, VStack } from "../../components/VStack";
 import { VoterPanelActions } from "../DelegatePage/VoterPanel";
 import { Link } from "../../components/HammockRouter/Link";
-import { UserIcon, PencilIcon } from "@heroicons/react/20/solid";
-import { ReactNode } from "react";
 import { BigNumber } from "ethers";
-import { pluralizeNoun, pluralizeVote } from "../../words";
+import { pluralizeNoun, pluralizeVote, pluralizeOthers } from "../../words";
+import { descendingValueComparator } from "../../utils/sorting";
 
 type VoterTabularProps = {
   fragmentRef: VoterTabularFragment$key;
@@ -49,6 +49,18 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
           voteSummary {
             totalVotes
           }
+
+          tokenHoldersRepresented {
+            address {
+              resolvedName {
+                ...NounResolvedNameFragment
+              }
+            }
+
+            nouns {
+              id
+            }
+          }
         }
       }
     `,
@@ -62,6 +74,13 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
   const votesCast = BigNumber.from(
     delegate.delegate?.voteSummary?.totalVotes ?? 0
   );
+
+  const tokenHolders = useMemo(() => {
+    return delegate.delegate?.tokenHoldersRepresented
+      .filter((holder) => !!holder.nouns.length)
+      .slice()
+      .sort(descendingValueComparator((item) => item.nouns.length));
+  }, [delegate]);
 
   return (
     <Link
@@ -92,7 +111,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
           alignItems="center"
           className={css`
             display: grid;
-            grid-template-columns: repeat(8, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 
             @media (max-width: ${theme.maxWidth["2xl"]}) {
               grid-template-rows: 1fr;
@@ -119,37 +138,43 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
           </VStack>
 
           <TitleDetail
-            icon={<UserIcon />}
             detail={`${pluralizeNoun(nounsRepresented)} represented`}
             value={nounsRepresented.toString()}
           />
 
           <TitleDetail
-            icon={<PencilIcon />}
-            detail={`${pluralizeVote(votesCast)} cast`}
+            detail={`${pluralizeVote(votesCast)} props voted on`}
             value={votesCast.toString()}
           />
 
-          {!!delegate.statement?.summary ? (
-            <div
-              className={css`
-                display: -webkit-box;
+          {(() => {
+            if (!tokenHolders?.length) {
+              return (
+                <div
+                  className={css`
+                    padding: ${theme.spacing["12"]};
+                    padding-bottom: ${theme.spacing["4"]};
+                  `}
+                >
+                  Currently seeking delegation
+                </div>
+              );
+            } else {
+              return (
+                <VStack gap="1" alignItems="center">
+                  <div>
+                    <NounResolvedName
+                      resolvedName={tokenHolders[0].address.resolvedName}
+                    />
+                    {tokenHolders.length > 1 &&
+                      ` + ${pluralizeOthers(tokenHolders.length - 1)}`}
+                  </div>
 
-                color: #66676b;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                line-clamp: 5;
-                -webkit-line-clamp: 5;
-                -webkit-box-orient: vertical;
-                font-size: ${theme.fontSize.base};
-                line-height: ${theme.lineHeight.normal};
-              `}
-            >
-              {delegate.statement.summary}
-            </div>
-          ) : (
-            <>aaa</>
-          )}
+                  <div>delegated to them</div>
+                </VStack>
+              );
+            }
+          })()}
 
           <VoterPanelActions fragment={delegate} />
         </HStack>
@@ -159,50 +184,18 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
 }
 
 type TitleDetailProps = {
-  icon: ReactNode;
   detail: string;
   value: string;
 };
 
-function TitleDetail({ detail, value, icon }: TitleDetailProps) {
+function TitleDetail({ detail, value }: TitleDetailProps) {
   return (
-    <HStack
-      gap="1"
-      alignItems="center"
-      className={css`
-        position: relative;
-
-        &:hover .test {
-          visibility: visible;
-        }
-      `}
-    >
-      <div
-        className={css`
-          width: ${theme.spacing["4"]};
-          height: ${theme.spacing["4"]};
-        `}
-      >
-        {icon}
-      </div>
-
-      <div>{value}</div>
-
+    <HStack gap="1" alignItems="center">
       <div
         className={cx(
           css`
-            position: absolute;
-            top: calc(100% + ${theme.spacing["1"]});
-            right: -${theme.spacing["2"]};
-
             font-size: ${theme.fontSize.sm};
             white-space: nowrap;
-            visibility: hidden;
-            background: #66676b;
-            border-radius: ${theme.spacing["1"]};
-            color: white;
-
-            padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
           `,
           "test"
         )}

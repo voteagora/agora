@@ -87,7 +87,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
     loadNext(30);
   }, [loadNext]);
 
-  const voterContainerClassNames = {
+  const voterClassNames = {
     Card: css`
       display: grid;
       grid-auto-flow: row;
@@ -270,7 +270,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
         `}
       >
         <InfiniteScroll loadMore={loadMore} hasMore={hasNext}>
-          <div className={voterContainerClassNames[layoutMode]}>
+          <div className={voterClassNames[layoutMode]}>
             {voters.edges.map(({ node: voter }) => {
               switch (layoutMode) {
                 case "Card":
