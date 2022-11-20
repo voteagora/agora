@@ -3,6 +3,7 @@ import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCard } from "./VoterCard";
+import { VoterTabular } from "./VoterTabular";
 import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { useCallback, useState, useTransition } from "react";
@@ -15,11 +16,18 @@ import { motion } from "framer-motion";
 import InfiniteScroll from "react-infinite-scroller";
 import { useNavigate } from "../../components/HammockRouter/HammockRouter";
 import { locationToVariables } from "./HomePage";
+import { Tab } from "@headlessui/react";
+import { icons } from "../../icons/icons";
+import styles from './DelegatesContainer.module.scss'
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
   variables: ReturnType<typeof locationToVariables>;
 };
+
+const layoutModes = ["Card", "Tabular"] as const;
+type LayoutModes = typeof layoutModes;
+type LayoutMode = LayoutModes[number];
 
 const orderNames: { [K in WrappedDelegatesOrder]?: string } = {
   mostRelevant: "Most relevant",
@@ -37,6 +45,8 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
 
   const [localFilterBy, setLocalFilterBy] =
     useState<WrappedDelegatesWhere | null>(variables.filterBy);
+
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>("Card");
 
   const navigate = useNavigate();
 
@@ -124,7 +134,52 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
               }
             `}
           >
+            <HStack
+              alignItems="center"
+              gap="0"
+              className={css`
+                background: #f7f7f7;
+                border-radius: 35px 0 0 35px;
+                border: 1px solid ${theme.colors.gray.eb};
+                padding: 0 ${theme.spacing["1"]} 0 ${theme.spacing["3"]};
+              `}
+            >
+              <Tab.Group onChange={(i) => setLayoutMode(layoutModes[i])}>
+                <Tab.List>
+                  <Tab>
+                    <div
+                      className={css`
+                        display: flex;
+                        width: 24px;
+                        height: 24px;
+                        padding: ${theme.spacing["1"]};
+                      `}
+                    >
+                      <img src={icons.discord} alt="discord" />
+                    </div>
+                  </Tab>
+                  <Tab>
+                    <div
+                      className={css`
+                        display: flex;
+                        width: 24px;
+                        height: 24px;
+                        padding: ${theme.spacing["1"]};
+                      `}
+                    >
+                      <img src={icons.discord} alt="discord" />
+                    </div>
+                  </Tab>
+                </Tab.List>
+              </Tab.Group>
+            </HStack>
+
             <Selector
+              classNames={{
+                hstack: css`
+                  border-radius: 0 35px 35px 0;
+                `,
+              }}
               items={
                 [
                   {
@@ -185,26 +240,17 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
       >
         <InfiniteScroll loadMore={loadMore} hasMore={hasNext}>
           <div
-            className={css`
-              display: grid;
-              grid-auto-flow: row;
-              justify-content: space-between;
-              grid-template-columns: repeat(3, 23rem);
-              gap: ${theme.spacing["8"]};
-
-              @media (max-width: ${theme.maxWidth["6xl"]}) {
-                grid-template-columns: repeat(auto-fit, 23rem);
-                justify-content: space-around;
-              }
-
-              @media (max-width: ${theme.maxWidth.md}) {
-                grid-template-columns: 1fr;
-                gap: ${theme.spacing["4"]};
-              }
-            `}
+            className={styles[`container${layoutMode}`]}
           >
             {voters.edges.map(({ node: voter }) => (
-              <VoterCard key={voter.id} fragmentRef={voter} />
+              <>
+                {layoutMode === "Card" && (
+                  <VoterCard key={voter.id} fragmentRef={voter} />
+                )}
+                {layoutMode === "Tabular" && (
+                  <VoterTabular key={voter.id} fragmentRef={voter} />
+                )}
+              </>
             ))}
           </div>
         </InfiniteScroll>

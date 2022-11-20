@@ -1,0 +1,37 @@
+@import "../../theme.scss";
+
+.containerCard {
+  display: grid;
+  grid-auto-flow: row;
+  justify-content: space-between;
+  grid-template-columns: repeat(3, 23rem);
+  gap: $spacing_8;
+
+  @media (max-width: $max_width_6xl) {
+    grid-template-columns: repeat(auto-fit, 23rem);
+    justify-content: space-around;
+  }
+
+  @media (max-width: $max_width_md) {
+    grid-template-columns: 1fr;
+    gap: $spacing_4;
+  }
+}
+
+.containerTabular {
+    display: grid;
+    grid-auto-flow: row;
+    justify-content: space-between;
+    grid-template-columns: 1fr;
+    gap: $spacing_8;
+
+    @media (max-width: $max_width_6xl) {
+      grid-template-columns: repeat(auto-fit, 23rem);
+      justify-content: space-around;
+    }
+
+    @media (max-width: $max_width_md) {
+      grid-template-columns: 1fr;
+      gap: $spacing_4;
+    }
+}

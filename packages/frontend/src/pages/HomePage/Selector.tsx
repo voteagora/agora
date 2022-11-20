@@ -7,7 +7,7 @@ import {
 import { HStack } from "../../components/VStack";
 import * as theme from "../../theme";
 import { Listbox } from "@headlessui/react";
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 
 export type SelectorItem<T> = {
@@ -16,12 +16,18 @@ export type SelectorItem<T> = {
 };
 
 type SelectorProps<T> = {
+  classNames?: Record<string, string>;
   items: SelectorItem<T>[];
   value: T;
   onChange: (item: T) => void;
 };
 
-export function Selector<T>({ items, value, onChange }: SelectorProps<T>) {
+export function Selector<T>({
+  classNames,
+  items,
+  value,
+  onChange,
+}: SelectorProps<T>) {
   return (
     <Listbox
       value={value}
@@ -39,12 +45,15 @@ export function Selector<T>({ items, value, onChange }: SelectorProps<T>) {
             <HStack
               alignItems="center"
               gap="2"
-              className={css`
-                background: #f7f7f7;
-                border-radius: ${theme.borderRadius.full};
-                border: 1px solid ${theme.colors.gray.eb};
-                padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
-              `}
+              className={cx(
+                css`
+                  background: #f7f7f7;
+                  border-radius: ${theme.borderRadius.full};
+                  border: 1px solid ${theme.colors.gray.eb};
+                  padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+                `,
+                classNames?.hstack
+              )}
             >
               <div>{items.find((item) => item.value === value)?.title}</div>
 
