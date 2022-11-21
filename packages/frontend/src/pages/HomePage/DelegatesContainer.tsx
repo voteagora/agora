@@ -318,7 +318,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                     style={style}
                   >
                     {item.items.map((item) => (
-                      <VoterCard fragmentRef={item.node} />
+                      <VoterCard key={item.node.id} fragmentRef={item.node} />
                     ))}
                   </div>
                 );
