@@ -15,6 +15,7 @@ import { Toaster } from "react-hot-toast";
 import { RecoilRoot } from "recoil";
 import { TransparentMultiCallProvider } from "./multicallProvider";
 import { ethers } from "ethers";
+import { DialogProvider } from "./components/DialogProvider/DialogProvider";
 
 const multicallProvider = new TransparentMultiCallProvider(
   new ethers.providers.AlchemyProvider(
@@ -40,16 +41,18 @@ function App() {
           <WagmiConfig client={wagmiClient}>
             <ConnectKitProvider>
               <RelayEnvironmentProvider environment={relayEnvironment}>
-                <HammockRouter>
-                  <PageContainer>
-                    <Toaster />
-                    <Suspense fallback={<FullPageLoadingIndicator />}>
-                      <PageHeader />
+                <DialogProvider>
+                  <HammockRouter>
+                    <PageContainer>
+                      <Toaster />
+                      <Suspense fallback={<FullPageLoadingIndicator />}>
+                        <PageHeader />
 
-                      <HammockRouterContents />
-                    </Suspense>
-                  </PageContainer>
-                </HammockRouter>
+                        <HammockRouterContents />
+                      </Suspense>
+                    </PageContainer>
+                  </HammockRouter>
+                </DialogProvider>
               </RelayEnvironmentProvider>
             </ConnectKitProvider>
           </WagmiConfig>

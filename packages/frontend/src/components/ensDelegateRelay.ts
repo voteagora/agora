@@ -21,7 +21,6 @@ export async function delegateUsingRelay(
 
   const { next, nonce } = await query(address);
   if (isFuture(next)) {
-    // todo: in this case delegate by other way
     return;
   }
 
