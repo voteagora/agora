@@ -16,6 +16,14 @@ export function pluralizeVote(count: BigNumber) {
   }
 }
 
+export function pluralizeProb(count: BigNumber) {
+  if (count.eq(1)) {
+    return `1 prop`;
+  } else {
+    return `${count.toString()} props`;
+  }
+}
+
 export function pluralizeAddresses(count: number) {
   if (count === 1) {
     return "1 address";
@@ -24,7 +32,7 @@ export function pluralizeAddresses(count: number) {
   }
 }
 
-export function pluralizeOthers(count: number) {
+export function pluralizeOther(count: number) {
   if (count === 1) {
     return "1 other";
   } else {
