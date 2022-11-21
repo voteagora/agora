@@ -712,6 +712,18 @@ export function makeGatewaySchema() {
               .toString();
           },
         },
+
+        voteEndsAt: {
+          selectionSet: `{ createdBlock, endBlock }`,
+          async resolve({ endBlock }: { endBlock: string }) {
+            // todo: resolve this from snapshot somehow?
+            const latestBlock = await provider.getBlock("latest");
+            return (
+              latestBlock.timestamp +
+              12 * (parseInt(endBlock) - latestBlock.number)
+            ).toString();
+          },
+        },
       },
 
       Vote: {

@@ -4,6 +4,7 @@ extend type Proposal {
   totalValue: BigInt!
   totalVotes: BigInt!
   createdBlockGovernance: Governance!
+  voteEndsAt: BigInt!
 }
 
 extend type Account {
