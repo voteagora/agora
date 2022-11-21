@@ -17,7 +17,7 @@ import InfiniteScroll from "react-infinite-scroller";
 import { useNavigate } from "../../components/HammockRouter/HammockRouter";
 import { locationToVariables } from "./HomePage";
 import { Tab } from "@headlessui/react";
-import { icons } from "../../icons/icons";
+import { Bars4Icon, Squares2X2Icon } from "@heroicons/react/20/solid";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -27,6 +27,22 @@ type Props = {
 const layoutModes = ["Card", "Tabular"] as const;
 type LayoutModes = typeof layoutModes;
 type LayoutMode = LayoutModes[number];
+
+const layoutModeSelectorStyles = css`
+  cursor: pointer;
+  width: ${theme.spacing["8"]};
+  height: ${theme.spacing["8"]};
+  padding: ${theme.spacing["1"]};
+  color: ${theme.colors.gray["500"]};
+
+  :hover {
+    color: ${theme.colors.black};
+  }
+`;
+
+const layoutModeSelectorSelectedStyles = css`
+  color: ${theme.colors.black};
+`;
 
 const orderNames: { [K in WrappedDelegatesOrder]?: string } = {
   mostRelevant: "Most relevant",
@@ -159,7 +175,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
           </h2>
 
           <HStack
-            gap="4"
+            gap="2"
             className={css`
               @media (max-width: ${theme.maxWidth.lg}) {
                 flex-direction: column;
@@ -180,88 +196,86 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
               <Tab.Group onChange={(i) => setLayoutMode(layoutModes[i])}>
                 <Tab.List>
                   <Tab>
-                    <div
-                      className={css`
-                        display: flex;
-                        width: 24px;
-                        height: 24px;
-                        padding: ${theme.spacing["1"]};
-                      `}
-                    >
-                      <img src={icons.discord} alt="discord" />
-                    </div>
+                    {({ selected }) => (
+                      <Squares2X2Icon
+                        className={css`
+                          ${layoutModeSelectorStyles}
+                          ${selected && layoutModeSelectorSelectedStyles}
+                          box-shadow: ${theme.boxShadow.none};
+                        `}
+                      />
+                    )}
                   </Tab>
                   <Tab>
-                    <div
-                      className={css`
-                        display: flex;
-                        width: 24px;
-                        height: 24px;
-                        padding: ${theme.spacing["1"]};
-                      `}
-                    >
-                      <img src={icons.discord} alt="discord" />
-                    </div>
+                    {({ selected }) => (
+                      <Bars4Icon
+                        className={css`
+                          ${layoutModeSelectorStyles}
+                          ${selected && layoutModeSelectorSelectedStyles}
+                        `}
+                      />
+                    )}
                   </Tab>
                 </Tab.List>
               </Tab.Group>
             </HStack>
 
-            <Selector
-              classNames={{
-                hstack: css`
-                  border-radius: 0 35px 35px 0;
-                `,
-              }}
-              items={
-                [
-                  {
-                    title: "View all",
-                    value: null,
-                  },
-                  {
-                    title: "View with statement",
-                    value: "withStatement" as const,
-                  },
-                  {
-                    title: "View seeking delegation",
-                    value: "seekingDelegation" as const,
-                  },
-                ] as SelectorItem<WrappedDelegatesWhere | null>[]
-              }
-              value={isPending ? localFilterBy : variables.filterBy}
-              onChange={(filterBy) => {
-                setLocalFilterBy(filterBy);
-                startTransition(() => {
-                  navigate({ search: { filterBy: filterBy ?? null } });
-                });
-              }}
-            />
-
-            <Selector
-              items={Object.entries(orderNames).map(
-                ([value, title]): SelectorItem<WrappedDelegatesOrder> => ({
-                  title,
-                  value: value as WrappedDelegatesOrder,
-                })
-              )}
-              value={isPending ? localOrderBy : variables.orderBy}
-              onChange={(orderBy) => {
-                setLocalOrderBy(orderBy);
-                startTransition(() => {
-                  navigate({
-                    search: {
-                      orderBy:
-                        orderBy === "mostRelevant" ? null : orderBy ?? null,
+            <HStack gap="4">
+              <Selector
+                classNames={{
+                  hstack: css`
+                    border-radius: 0 35px 35px 0;
+                  `,
+                }}
+                items={
+                  [
+                    {
+                      title: "View all",
+                      value: null,
                     },
+                    {
+                      title: "View with statement",
+                      value: "withStatement" as const,
+                    },
+                    {
+                      title: "View seeking delegation",
+                      value: "seekingDelegation" as const,
+                    },
+                  ] as SelectorItem<WrappedDelegatesWhere | null>[]
+                }
+                value={isPending ? localFilterBy : variables.filterBy}
+                onChange={(filterBy) => {
+                  setLocalFilterBy(filterBy);
+                  startTransition(() => {
+                    navigate({ search: { filterBy: filterBy ?? null } });
                   });
-                });
-              }}
-            />
+                }}
+              />
+
+              <Selector
+                items={Object.entries(orderNames).map(
+                  ([value, title]): SelectorItem<WrappedDelegatesOrder> => ({
+                    title,
+                    value: value as WrappedDelegatesOrder,
+                  })
+                )}
+                value={isPending ? localOrderBy : variables.orderBy}
+                onChange={(orderBy) => {
+                  setLocalOrderBy(orderBy);
+                  startTransition(() => {
+                    navigate({
+                      search: {
+                        orderBy:
+                          orderBy === "mostRelevant" ? null : orderBy ?? null,
+                      },
+                    });
+                  });
+                }}
+              />
+            </HStack>
           </HStack>
         </HStack>
       </VStack>
-
       <motion.div
         initial={{ opacity: 1 }}
         animate={{ opacity: isPending ? 0.3 : 1 }}

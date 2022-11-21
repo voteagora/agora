@@ -112,8 +112,8 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
           alignItems="center"
           className={css`
             display: grid;
-            grid-template-columns: 3fr 1fr 2fr 3fr 4fr 4fr;
-            gap: ${theme.spacing["4"]};
+            grid-template-columns: 3fr 1fr 2fr 3fr 3fr 4fr;
+            gap: ${theme.spacing["6"]};
             @media (max-width: ${theme.maxWidth["2xl"]}) {
               grid-template-rows: 1fr;
               grid-template-columns: none;
@@ -168,13 +168,24 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
 
           {(() => {
             if (!tokenHolders?.length) {
-              return <div>Currently seeking delegation</div>;
+              return (
+                <VStack gap="1" alignItems="center">
+                  <div
+                    className={css`
+                      text-align: center;
+                    `}
+                  >
+                    Currently seeking delegation
+                  </div>
+                </VStack>
+              );
             } else {
               return (
                 <VStack gap="1" alignItems="center">
                   <div
                     className={css`
                       font-weight: ${theme.fontWeight.semibold};
+                      text-align: center;
                     `}
                   >
                     <NounResolvedName
@@ -215,7 +226,12 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
             }
           })()}
 
-          <VoterPanelActions fragment={delegate} />
+          <VoterPanelActions
+            fragment={delegate}
+            className={css`
+              justify-content: space-evenly;
+            `}
+          />
         </HStack>
       </VStack>
     </Link>
