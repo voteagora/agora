@@ -2,34 +2,25 @@ import { marked } from "marked";
 import TokensList = marked.TokensList;
 import Token = marked.Token;
 
-const hashRegex = /^\s*#{0,6}\s+([^\n]+)/;
-const equalTitleRegex = /^\s*([^\n]+)\n(={3,25}|-{3,25})/;
-
-/**
- * Extract a markdown title from a proposal body that uses the `# Title` format
- * Returns null if no title found.
- */
-const extractHashTitle = (body: string) => body.match(hashRegex);
-/**
- * Extract a markdown title from a proposal body that uses the `Title\n===` format.
- * Returns null if no title found.
- */
-const extractEqualTitle = (body: string) => body.match(equalTitleRegex);
-
 /**
  * Extract title from a proposal's body/description. Returns null if no title found in the first line.
  * @param body proposal body
  */
 const extractTitle = (body: string | undefined): string | null => {
   if (!body) return null;
-  const hashResult = extractHashTitle(body);
+  const hashResult = body.match(/^\s*#{1,6}\s+([^\n]+)/);
   if (hashResult) {
     return hashResult[1];
   }
 
-  const equalResult = extractEqualTitle(body);
+  const equalResult = body.match(/^\s*([^\n]+)\n(={3,25}|-{3,25})/);
   if (equalResult) {
     return equalResult[1];
+  }
+
+  const textResult = body.match(/^\s*([^\n]+)\s*/);
+  if (textResult) {
+    return textResult[1];
   }
 
   return null;
@@ -55,7 +46,8 @@ export function getTitleFromProposalDescription(description: string = "") {
     .replace(/(^['"]|['"]$)/g, "");
 
   return (
-    removeItalics(removeBold(extractTitle(normalizedDescription))) ?? "Untitled"
+    removeItalics(removeBold(extractTitle(normalizedDescription)))?.trim() ??
+    "Untitled"
   );
 }
 
