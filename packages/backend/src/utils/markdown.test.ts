@@ -1,6 +1,11 @@
-import { extractFirstParagraph, trimENSStatementHeader } from "./markdown";
+import {
+  extractFirstParagraph,
+  getTitleFromProposalDescription,
+  trimENSStatementHeader,
+} from "./markdown";
 import { marked } from "marked";
 import dedent from "dedent";
+import exp from "constants";
 
 describe("trimENSStatementHeader", () => {
   it("trims header for coinbase.eth", () => {
@@ -70,6 +75,26 @@ describe("trimENSStatementHeader", () => {
 
       We’ve been overwhelmed with the focus, passion and coordination of the ENS core team and now we’re excited to play a role in the further decentralisation of the project by putting our collective hat in the ring to be a delegate!"
     `);
+  });
+});
+
+describe("getTitleFromProposalDescription", () => {
+  it("extracts simple title", () => {
+    expect(
+      getTitleFromProposalDescription(
+        dedent`[EP2] Retrospective Airdrop 
+        Enacts EP2 as approved by Snapshot vote, and described in full here: https://github.com/ensdomains/governance-docs/blob/main/governance-proposals/ep2-executable-retrospective-airdrop-for-accounts-that-owned-another-accounts-primary-ens-1.md`
+      )
+    ).toMatchInlineSnapshot(`"[EP2] Retrospective Airdrop"`);
+  });
+
+  it("extracts hash title", () => {
+    expect(
+      getTitleFromProposalDescription(dedent`
+        # Execute EP7
+        Executes all four EP7 sub-proposals as passed on Snapshot
+    `)
+    ).toMatchInlineSnapshot(`"Execute EP7"`);
   });
 });
 
