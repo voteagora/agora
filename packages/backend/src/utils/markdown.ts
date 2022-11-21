@@ -2,7 +2,7 @@ import { marked } from "marked";
 import TokensList = marked.TokensList;
 import Token = marked.Token;
 
-const hashRegex = /^\s*#{1,6}\s+([^\n]+)/;
+const hashRegex = /^\s*#{0,6}\s+([^\n]+)/;
 const equalTitleRegex = /^\s*([^\n]+)\n(={3,25}|-{3,25})/;
 
 /**
@@ -23,8 +23,16 @@ const extractEqualTitle = (body: string) => body.match(equalTitleRegex);
 const extractTitle = (body: string | undefined): string | null => {
   if (!body) return null;
   const hashResult = extractHashTitle(body);
+  if (hashResult) {
+    return hashResult[1];
+  }
+
   const equalResult = extractEqualTitle(body);
-  return hashResult ? hashResult[1] : equalResult ? equalResult[1] : null;
+  if (equalResult) {
+    return equalResult[1];
+  }
+
+  return null;
 };
 
 const removeBold = (text: string | null): string | null =>
