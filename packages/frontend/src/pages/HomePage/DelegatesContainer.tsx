@@ -292,6 +292,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
               case "LOADING": {
                 return (
                   <HStack
+                    key={virtualItem.key}
                     style={style}
                     justifyContent="center"
                     alignItems="center"
@@ -308,6 +309,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
               case "ITEMS": {
                 return (
                   <div
+                    key={virtualItem.key}
                     className={css`
                       display: grid;
                       grid-template-columns: repeat(${columns}, 1fr);

@@ -1,7 +1,6 @@
 import * as Sentry from "@sentry/react";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
-import { useFragment } from "react-relay";
 import { useMutation } from "@tanstack/react-query";
 import { inset0, shadow } from "../theme";
 import * as theme from "../theme";
@@ -15,10 +14,9 @@ import {
 } from "wagmi";
 import { ArrowDownIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
 import { DelegateDialogQuery } from "./__generated__/DelegateDialogQuery.graphql";
-import { DelegateDialogFragment$key } from "./__generated__/DelegateDialogFragment.graphql";
 import { NounResolvedLink } from "./NounResolvedLink";
 import { ReactNode } from "react";
 import { TokenAmountDisplay } from "./TokenAmountDisplay";
@@ -27,78 +25,41 @@ import { TokenAmountDisplayFragment$key } from "./__generated__/TokenAmountDispl
 import { delegateUsingRelay } from "./ensDelegateRelay";
 
 export function DelegateDialog({
-  fragment,
-  isOpen,
-  closeDialog,
+  target,
   completeDelegation,
 }: {
-  fragment: DelegateDialogFragment$key;
-  isOpen: boolean;
-  closeDialog: () => void;
+  target: string;
   completeDelegation: () => void;
 }) {
   return (
-    <>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.2 }}
-            exit={{ opacity: 0 }}
-            className={css`
-              z-index: 10;
-              background: black;
-              position: fixed;
-              ${inset0};
-            `}
-          />
-        )}
-      </AnimatePresence>
-
-      <Dialog
-        open={isOpen}
-        onClose={closeDialog}
+    <VStack
+      alignItems="center"
+      className={css`
+        padding: ${theme.spacing["8"]};
+        overflow-y: scroll;
+      `}
+    >
+      <Dialog.Panel
+        as={motion.div}
+        initial={{
+          scale: 0.9,
+          translateY: theme.spacing["8"],
+        }}
+        animate={{ translateY: 0, scale: 1 }}
         className={css`
-          z-index: 10;
-          position: fixed;
-          ${inset0};
-
-          display: flex;
-          flex-direction: column;
-          align-content: stretch;
-          justify-content: center;
+          width: 100%;
+          max-width: ${theme.maxWidth.md};
+          background: ${theme.colors.white};
+          border-radius: ${theme.spacing["3"]};
+          padding: ${theme.spacing["6"]};
         `}
       >
-        <VStack
-          alignItems="center"
-          className={css`
-            padding: ${theme.spacing["8"]};
-            overflow-y: scroll;
-          `}
-        >
-          <Dialog.Panel
-            as={motion.div}
-            initial={{
-              scale: 0.9,
-              translateY: theme.spacing["8"],
-            }}
-            animate={{ translateY: 0, scale: 1 }}
-            className={css`
-              width: 100%;
-              max-width: ${theme.maxWidth.md};
-              background: ${theme.colors.white};
-              border-radius: ${theme.spacing["3"]};
-              padding: ${theme.spacing["6"]};
-            `}
-          >
-            <DelegateDialogContents
-              fragment={fragment}
-              completeDelegation={completeDelegation}
-            />
-          </Dialog.Panel>
-        </VStack>
-      </Dialog>
-    </>
+        <DelegateDialogContents
+          targetAccountAddress={target}
+          completeDelegation={completeDelegation}
+        />
+      </Dialog.Panel>
+    </VStack>
   );
 }
 
@@ -135,17 +96,37 @@ function ENSAmountDisplay({
 }
 
 function DelegateDialogContents({
-  fragment,
+  targetAccountAddress,
   completeDelegation,
 }: {
-  fragment: DelegateDialogFragment$key;
+  targetAccountAddress: string;
   completeDelegation: () => void;
 }) {
   const { address: accountAddress } = useAccount();
-  const { delegate: currentAccount } = useLazyLoadQuery<DelegateDialogQuery>(
+  const { currentAccount, delegate } = useLazyLoadQuery<DelegateDialogQuery>(
     graphql`
-      query DelegateDialogQuery($address: String!, $skip: Boolean!) {
-        delegate(addressOrEnsName: $address) @skip(if: $skip) {
+      query DelegateDialogQuery(
+        $targetAccountAddress: String!
+        $currentAccountAddress: String!
+        $skipCurrentAccount: Boolean!
+      ) {
+        delegate(addressOrEnsName: $targetAccountAddress) {
+          address {
+            resolvedName {
+              address
+              ...NounResolvedLinkFragment
+            }
+          }
+
+          tokensRepresented {
+            amount {
+              ...TokenAmountDisplayFragment
+            }
+          }
+        }
+
+        currentAccount: delegate(addressOrEnsName: $currentAccountAddress)
+          @skip(if: $skipCurrentAccount) {
           amountOwned {
             amount {
               ...TokenAmountDisplayFragment
@@ -155,29 +136,10 @@ function DelegateDialogContents({
       }
     `,
     {
-      address: accountAddress ?? "",
-      skip: !accountAddress,
+      targetAccountAddress,
+      currentAccountAddress: accountAddress ?? "",
+      skipCurrentAccount: !accountAddress,
     }
-  );
-
-  const delegate = useFragment(
-    graphql`
-      fragment DelegateDialogFragment on Delegate {
-        address {
-          resolvedName {
-            address
-            ...NounResolvedLinkFragment
-          }
-        }
-
-        tokensRepresented {
-          amount {
-            ...TokenAmountDisplayFragment
-          }
-        }
-      }
-    `,
-    fragment
   );
 
   // todo: share contract address configuration
@@ -199,7 +161,7 @@ function DelegateDialogContents({
       },
     ],
     functionName: "delegate",
-    args: [delegate.address.resolvedName.address as any],
+    args: [delegate?.address?.resolvedName?.address as any],
     onError(e) {
       Sentry.captureException(e);
     },
@@ -218,13 +180,17 @@ function DelegateDialogContents({
       }
 
       const result = await delegateUsingRelay(provider, signer.data, delegate);
-      if (result) {
-        return;
+      if (!result) {
+        await delegateUsingTransaction?.();
       }
 
-      return await delegateUsingTransaction?.();
+      completeDelegation();
     },
   });
+
+  if (!delegate) {
+    return null;
+  }
 
   return (
     <VStack gap="8" alignItems="stretch">

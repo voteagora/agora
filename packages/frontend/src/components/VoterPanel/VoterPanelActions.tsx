@@ -6,11 +6,10 @@ import * as theme from "../../theme";
 import { icons } from "../../icons/icons";
 import toast from "react-hot-toast";
 import { useStartTransition } from "../HammockRouter/HammockRouter";
-import { useState } from "react";
-import { DelegateDialog } from "../DelegateDialog";
 import { buttonStyles } from "../../pages/EditDelegatePage/EditDelegatePage";
 import { VoterPanelActionsFragment$key } from "./__generated__/VoterPanelActionsFragment.graphql";
 import { VoterPanelActionsDelegateButtonFragment$key } from "./__generated__/VoterPanelActionsDelegateButtonFragment.graphql";
+import { useOpenDialog } from "../DialogProvider/DialogProvider";
 
 export function VoterPanelActions({
   className,
@@ -86,45 +85,43 @@ function DelegateButton({
   fragment: VoterPanelActionsDelegateButtonFragment$key;
   full: boolean;
 }) {
-  const wrappedDelegate = useFragment(
+  const delegate = useFragment(
     graphql`
       fragment VoterPanelActionsDelegateButtonFragment on Delegate {
-        ...DelegateDialogFragment
+        address {
+          resolvedName {
+            address
+          }
+        }
       }
     `,
     fragment
   );
 
   const startTransition = useStartTransition();
-  const [isDialogOpen, setDialogOpen] = useState(false);
+  const openDialog = useOpenDialog();
 
   return (
-    <>
-      <DelegateDialog
-        fragment={wrappedDelegate}
-        isOpen={isDialogOpen}
-        closeDialog={() => setDialogOpen(false)}
-        completeDelegation={() => {
-          setDialogOpen(false);
-        }}
-      />
-
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          startTransition(() => setDialogOpen(true));
-        }}
-        className={css`
-          ${buttonStyles};
-          ${full &&
-          css`
-            width: 100%;
-          `}
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        startTransition(() =>
+          openDialog({
+            type: "DELEGATE",
+            params: { target: delegate.address.resolvedName.address },
+          })
+        );
+      }}
+      className={css`
+        ${buttonStyles};
+        ${full &&
+        css`
+          width: 100%;
         `}
-      >
-        Delegate
-      </button>
-    </>
+      `}
+    >
+      Delegate
+    </button>
   );
 }
