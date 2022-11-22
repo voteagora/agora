@@ -1,31 +1,25 @@
-import { useLazyLoadQuery } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
-import { css } from "@emotion/css";
-import { EditDelegatePageQuery } from "./__generated__/EditDelegatePageQuery.graphql";
 import * as theme from "../../theme";
+import { usePreloadedQuery } from "react-relay/hooks";
+import { css } from "@emotion/css";
 import { DelegateStatementForm } from "./DelegateStatementForm";
-import { EditDelegatePageLazyVoterPanelQuery } from "./__generated__/EditDelegatePageLazyVoterPanelQuery.graphql";
-import { useAccount } from "wagmi";
 import { HStack } from "../../components/VStack";
-import { Navigate } from "../../components/HammockRouter/Navigate";
 import { VoterPanel } from "../../components/VoterPanel/VoterPanel";
+import { RouteProps } from "../../components/HammockRouter/HammockRouter";
+import { editDelegateQuery } from "./EditDelegatePageRoute";
+import { EditDelegatePageRouteQuery } from "./__generated__/EditDelegatePageRouteQuery.graphql";
 
 export default EditDelegatePage;
 
-export function EditDelegatePage() {
-  const { address } = useAccount();
-
-  const query = useLazyLoadQuery<EditDelegatePageQuery>(
-    graphql`
-      query EditDelegatePageQuery($address: String!) {
-        ...DelegateStatementFormFragment @arguments(address: $address)
-      }
-    `,
-    { address: address ?? "" }
+export function EditDelegatePage({
+  initialQueryRef,
+}: RouteProps<EditDelegatePageRouteQuery>) {
+  const query = usePreloadedQuery<EditDelegatePageRouteQuery>(
+    editDelegateQuery,
+    initialQueryRef
   );
 
-  if (!address) {
-    return <Navigate to="/" />;
+  if (!query.delegate) {
+    return null;
   }
 
   return (
@@ -63,7 +57,7 @@ export function EditDelegatePage() {
           }
         `}
       >
-        <LazyVoterPanel address={address} />
+        <VoterPanel fragment={query.delegate} />
       </div>
     </HStack>
   );
@@ -92,28 +86,3 @@ export const buttonStyles = css`
     color: ${theme.colors.gray["700"]};
   }
 `;
-
-type LazyVoterPanelProps = {
-  address: string;
-};
-
-function LazyVoterPanel({ address }: LazyVoterPanelProps) {
-  const query = useLazyLoadQuery<EditDelegatePageLazyVoterPanelQuery>(
-    graphql`
-      query EditDelegatePageLazyVoterPanelQuery($address: String!) {
-        delegate(addressOrEnsName: $address) {
-          ...VoterPanelFragment
-        }
-      }
-    `,
-    {
-      address,
-    }
-  );
-
-  if (!query.delegate) {
-    return <Navigate to="/" />;
-  }
-
-  return <VoterPanel fragment={query.delegate} />;
-}

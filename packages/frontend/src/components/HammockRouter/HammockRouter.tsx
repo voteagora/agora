@@ -9,7 +9,6 @@ import React, {
   useTransition,
 } from "react";
 import { matchPath, PathMatch } from "react-router-dom";
-
 import { createBrowserHistory, History } from "history";
 import {
   atom,
@@ -18,11 +17,11 @@ import {
   useRecoilValue_TRANSITION_SUPPORT_UNSTABLE,
 } from "recoil";
 import { isEqual } from "lodash";
-import { homeRoute } from "../../pages/HomePage/HomePageRoute";
 import { Environment, GraphQLTaggedNode, OperationType } from "relay-runtime";
 import { loadQuery, useRelayEnvironment } from "react-relay";
 import { PreloadedQuery } from "react-relay/hooks";
 import { relayEnvironment } from "../../relayEnvironment";
+import { routes } from "./routes";
 
 export const browserHistory = createBrowserHistory();
 
@@ -39,31 +38,11 @@ export type Route = {
 export type RouteLoadingParams<QueryType extends OperationType> = {
   element: ComponentType<RouteProps<QueryType>>;
   query?: GraphQLTaggedNode;
-  variablesFromLocation?: (location: Location) => QueryType["variables"];
+  variablesFromLocation?: (
+    location: Location,
+    pathMatch: PathMatch
+  ) => QueryType["variables"];
 };
-
-const routes: Route[] = [
-  {
-    path: "/",
-    params: homeRoute,
-  },
-  {
-    path: "/delegate/:delegateId",
-    params: {
-      element: React.lazy(
-        () => import("../../pages/DelegatePage/DelegatePage")
-      ),
-    },
-  },
-  {
-    path: "/create",
-    params: {
-      element: React.lazy(
-        () => import("../../pages/EditDelegatePage/EditDelegatePage")
-      ),
-    },
-  },
-];
 
 type RouteMatch = {
   match?: PathMatch;
@@ -140,8 +119,9 @@ function routingStateForLocation(
     match,
     location,
     preloadState: (() => {
-      if (params.query && relayEnvironment) {
-        const variables = params?.variablesFromLocation?.(location) ?? {};
+      if (params.query && relayEnvironment && match.match) {
+        const variables =
+          params?.variablesFromLocation?.(location, match.match) ?? {};
 
         const initialQueryRef = loadQuery(
           relayEnvironment,
