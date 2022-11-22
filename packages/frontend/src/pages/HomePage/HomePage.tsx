@@ -1,5 +1,4 @@
 import { usePreloadedQuery } from "react-relay/hooks";
-import { HomePageQuery } from "./__generated__/HomePageQuery.graphql";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
@@ -8,12 +7,13 @@ import { VStack } from "../../components/VStack";
 import { orgName } from "../../components/PageHeader";
 import { query } from "./HomePageRoute";
 import { RouteProps } from "../../components/HammockRouter/HammockRouter";
+import { HomePageRouteQuery } from "./__generated__/HomePageRouteQuery.graphql";
 
 export function HomePage({
   initialQueryRef,
   variables,
-}: RouteProps<HomePageQuery>) {
-  const result = usePreloadedQuery<HomePageQuery>(query, initialQueryRef);
+}: RouteProps<HomePageRouteQuery>) {
+  const result = usePreloadedQuery<HomePageRouteQuery>(query, initialQueryRef);
 
   return (
     <>

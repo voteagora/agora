@@ -1,40 +1,23 @@
-import { useLazyLoadQuery } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
-import { DelegatePageQuery } from "./__generated__/DelegatePageQuery.graphql";
+import { usePreloadedQuery } from "react-relay/hooks";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { PastVotes } from "./PastVotes";
 import { HStack, VStack } from "../../components/VStack";
 import { ImpactfulProposals } from "./ImpactfulProposals";
-import { useParams } from "../../components/HammockRouter/HammockRouter";
+import { RouteProps } from "../../components/HammockRouter/HammockRouter";
 import { TopIssues } from "./TopIssues";
 import { Navigate } from "../../components/HammockRouter/Navigate";
 import { VoterPanel } from "../../components/VoterPanel/VoterPanel";
 import { StatementSection } from "./StatementSection";
+import { query } from "./DelegatePageRoute";
+import { DelegatePageRouteQuery } from "./__generated__/DelegatePageRouteQuery.graphql";
 
-export function DelegatePage() {
-  const { delegateId } = useParams();
-
-  const { delegate } = useLazyLoadQuery<DelegatePageQuery>(
-    graphql`
-      query DelegatePageQuery($addressOrEnsName: String!) {
-        delegate(addressOrEnsName: $addressOrEnsName) {
-          ...VoterPanelFragment
-
-          statement {
-            ...StatementSectionFragment
-
-            ...TopIssuesFragment
-            ...ImpactfulProposalsFragment
-          }
-
-          ...PastVotesFragment
-        }
-      }
-    `,
-    {
-      addressOrEnsName: delegateId ?? "",
-    }
+export function DelegatePage({
+  initialQueryRef,
+}: RouteProps<DelegatePageRouteQuery>) {
+  const { delegate } = usePreloadedQuery<DelegatePageRouteQuery>(
+    query,
+    initialQueryRef
   );
 
   if (!delegate) {

@@ -3,9 +3,9 @@ import {
   RouteLoadingParams,
   Location,
 } from "../../components/HammockRouter/HammockRouter";
-import { HomePageQuery } from "./__generated__/HomePageQuery.graphql";
 import React from "react";
 import { parseFilterName, parseOrderName } from "./DelegatesContainer";
+import { HomePageRouteQuery } from "./__generated__/HomePageRouteQuery.graphql";
 
 export const query = graphql`
   query HomePageRouteQuery(
@@ -28,7 +28,7 @@ function locationToVariables(location: Location) {
   };
 }
 
-export const homeRoute: RouteLoadingParams<HomePageQuery> = {
+export const homeRoute: RouteLoadingParams<HomePageRouteQuery> = {
   query,
   element: React.lazy(() => import("./HomePage")),
   variablesFromLocation(location) {
