@@ -1,4 +1,5 @@
 import React, {
+  ComponentType,
   createContext,
   ReactNode,
   TransitionStartFunction,
@@ -9,37 +10,58 @@ import React, {
 } from "react";
 import { matchPath, PathMatch } from "react-router-dom";
 
-import { createBrowserHistory } from "history";
+import { createBrowserHistory, History } from "history";
 import {
   atom,
   selector,
   useRecoilState_TRANSITION_SUPPORT_UNSTABLE,
   useRecoilValue_TRANSITION_SUPPORT_UNSTABLE,
 } from "recoil";
-import { History } from "history";
 import { isEqual } from "lodash";
+import { homeRoute } from "../../pages/HomePage/HomePageRoute";
+import { Environment, GraphQLTaggedNode, OperationType } from "relay-runtime";
+import { loadQuery, useRelayEnvironment } from "react-relay";
+import { PreloadedQuery } from "react-relay/hooks";
+import { relayEnvironment } from "../../relayEnvironment";
 
 export const browserHistory = createBrowserHistory();
 
-type Route = {
+export type RouteProps<QueryType extends OperationType> = {
+  initialQueryRef: PreloadedQuery<QueryType>;
+  variables: QueryType["variables"];
+};
+
+export type Route = {
   path: string;
-  element: any;
+  params: RouteLoadingParams<any>;
+};
+
+export type RouteLoadingParams<QueryType extends OperationType> = {
+  element: ComponentType<RouteProps<QueryType>>;
+  query?: GraphQLTaggedNode;
+  variablesFromLocation?: (location: Location) => QueryType["variables"];
 };
 
 const routes: Route[] = [
   {
     path: "/",
-    element: React.lazy(() => import("../../pages/HomePage/HomePage")),
+    params: homeRoute,
   },
   {
     path: "/delegate/:delegateId",
-    element: React.lazy(() => import("../../pages/DelegatePage/DelegatePage")),
+    params: {
+      element: React.lazy(
+        () => import("../../pages/DelegatePage/DelegatePage")
+      ),
+    },
   },
   {
     path: "/create",
-    element: React.lazy(
-      () => import("../../pages/EditDelegatePage/EditDelegatePage")
-    ),
+    params: {
+      element: React.lazy(
+        () => import("../../pages/EditDelegatePage/EditDelegatePage")
+      ),
+    },
   },
 ];
 
@@ -56,6 +78,12 @@ export type Location = {
 type RoutingState = {
   location: Location;
   match: RouteMatch;
+  preloadState?: PreloadState<any>;
+};
+
+export type PreloadState<QueryType extends OperationType> = {
+  variables: QueryType["variables"];
+  initialQueryRef: PreloadedQuery<QueryType>;
 };
 
 type NavigateUpdate = {
@@ -101,10 +129,32 @@ function locationFromHistoryLocation(location: History["location"]): Location {
   };
 }
 
-function routingStateForLocation(location: Location): RoutingState {
+function routingStateForLocation(
+  location: Location,
+  relayEnvironment: Environment
+): RoutingState {
+  const match = findMatchingRoute(location.pathname, routes);
+  const params = routes[match.index].params;
+
   return {
-    match: findMatchingRoute(location.pathname, routes),
+    match,
     location,
+    preloadState: (() => {
+      if (params.query && relayEnvironment) {
+        const variables = params?.variablesFromLocation?.(location) ?? {};
+
+        const initialQueryRef = loadQuery(
+          relayEnvironment,
+          params.query,
+          variables
+        );
+
+        return {
+          initialQueryRef,
+          variables,
+        };
+      }
+    })(),
   };
 }
 
@@ -142,15 +192,24 @@ function mergeUpdateWithPreviousValue(
   };
 }
 
+const mutabilityOptions = {
+  // Allow mutability to ensure loadQuery can complete.
+  dangerouslyAllowMutability: true,
+};
+
 // We use recoil here because recoil is able to schedule updates to an external
 // store (browserHistory) AFTER the updated state has been committed.
 const routingStateAtom = atom<RoutingState>({
   key: "RoutingState",
+
+  ...mutabilityOptions,
   default: selector({
     key: "RoutingStateInitializer",
+    ...mutabilityOptions,
     get() {
       return routingStateForLocation(
-        locationFromHistoryLocation(browserHistory.location)
+        locationFromHistoryLocation(browserHistory.location),
+        relayEnvironment
       );
     },
   }),
@@ -170,7 +229,10 @@ const routingStateAtom = atom<RoutingState>({
       });
       return browserHistory.listen((update) =>
         setSelf(
-          routingStateForLocation(locationFromHistoryLocation(update.location))
+          routingStateForLocation(
+            locationFromHistoryLocation(update.location),
+            relayEnvironment
+          )
         )
       );
     },
@@ -183,6 +245,8 @@ export function HammockRouter({ children }: Props) {
   const [currentRoute, setCurrentRoute] =
     useRecoilState_TRANSITION_SUPPORT_UNSTABLE(routingStateAtom);
   const [isPending, startTransition] = useTransition();
+
+  const relayEnvironment = useRelayEnvironment();
 
   const navigate = useCallback(
     (update: NavigateUpdate, asTransition: boolean = true) => {
@@ -209,7 +273,7 @@ export function HammockRouter({ children }: Props) {
               previousValue.location,
               update
             );
-            return routingStateForLocation(nextLocation);
+            return routingStateForLocation(nextLocation, relayEnvironment);
           });
         } catch (e) {
           if (e instanceof BlockNavigationError) {
@@ -242,8 +306,13 @@ export function HammockRouterContents() {
     window.scrollTo(0, 0);
   }, [currentRoute.location.pathname]);
 
-  const Element = routes[currentRoute.match.index].element;
-  return <Element />;
+  const Element = routes[currentRoute.match.index].params.element;
+  return (
+    <Element
+      initialQueryRef={currentRoute.preloadState?.initialQueryRef as any}
+      variables={currentRoute.preloadState?.variables as any}
+    />
+  );
 }
 
 export function useNavigate() {
