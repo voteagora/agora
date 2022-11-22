@@ -1,22 +1,36 @@
 import * as theme from "../../theme";
-import { usePreloadedQuery } from "react-relay/hooks";
+import { useLazyLoadQuery } from "react-relay/hooks";
 import { css } from "@emotion/css";
 import { DelegateStatementForm } from "./DelegateStatementForm";
 import { HStack } from "../../components/VStack";
 import { VoterPanel } from "../../components/VoterPanel/VoterPanel";
-import { RouteProps } from "../../components/HammockRouter/HammockRouter";
-import { editDelegateQuery } from "./EditDelegatePageRoute";
 import { EditDelegatePageRouteQuery } from "./__generated__/EditDelegatePageRouteQuery.graphql";
+import graphql from "babel-plugin-relay/macro";
+import { useAccount } from "wagmi";
 
 export default EditDelegatePage;
 
-export function EditDelegatePage({
-  initialQueryRef,
-}: RouteProps<EditDelegatePageRouteQuery>) {
-  const query = usePreloadedQuery<EditDelegatePageRouteQuery>(
-    editDelegateQuery,
-    initialQueryRef
+export function EditDelegatePage() {
+  const { address } = useAccount();
+
+  const query = useLazyLoadQuery<EditDelegatePageRouteQuery>(
+    graphql`
+      query EditDelegatePageRouteQuery($address: String!) {
+        ...DelegateStatementFormFragment @arguments(address: $address)
+
+        delegate(addressOrEnsName: $address) {
+          ...VoterPanelFragment
+        }
+      }
+    `,
+    {
+      address: address ?? "",
+    }
   );
+
+  if (!address) {
+    return null;
+  }
 
   if (!query.delegate) {
     return null;
