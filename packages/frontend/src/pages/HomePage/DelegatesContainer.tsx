@@ -17,14 +17,14 @@ import {
 import { Selector, SelectorItem } from "./Selector";
 import { motion } from "framer-motion";
 import { useNavigate } from "../../components/HammockRouter/HammockRouter";
-import { locationToVariables } from "./HomePage";
 import { useWindowVirtualizer, VirtualItem } from "@tanstack/react-virtual";
 import { chunk } from "lodash";
 import { useMediaQuery } from "react-responsive";
+import { Variables } from "./HomePageRoute";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
-  variables: ReturnType<typeof locationToVariables>;
+  variables: Variables;
 };
 
 const orderNames: { [K in DelegatesOrder]?: string } = {

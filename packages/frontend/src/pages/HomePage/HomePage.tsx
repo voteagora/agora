@@ -1,55 +1,26 @@
-import { useLazyLoadQuery } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
+import { usePreloadedQuery } from "react-relay/hooks";
 import { HomePageQuery } from "./__generated__/HomePageQuery.graphql";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
-import {
-  DelegatesContainer,
-  parseFilterName,
-  parseOrderName,
-} from "./DelegatesContainer";
+import { DelegatesContainer } from "./DelegatesContainer";
 import { VStack } from "../../components/VStack";
-import {
-  useLocation,
-  Location,
-} from "../../components/HammockRouter/HammockRouter";
 import { orgName } from "../../components/PageHeader";
+import { query } from "./HomePageRoute";
+import { RouteProps } from "../../components/HammockRouter/HammockRouter";
 
-export function locationToVariables(location: Location) {
-  return {
-    filterBy: parseFilterName(location.search["filterBy"]),
-    orderBy: parseOrderName(location.search["orderBy"]) ?? "mostVotingPower",
-  };
-}
-
-export function HomePage() {
-  const location = useLocation();
-  const variables = locationToVariables(location);
-
-  const result = useLazyLoadQuery<HomePageQuery>(
-    graphql`
-      query HomePageQuery(
-        $orderBy: DelegatesOrder!
-        $filterBy: DelegatesWhere
-      ) {
-        ...DelegatesContainerFragment
-          @arguments(orderBy: $orderBy, filterBy: $filterBy)
-
-        ...OverviewMetricsContainerFragment
-      }
-    `,
-    {
-      ...variables,
-    }
-  );
+export function HomePage({
+  initialQueryRef,
+  variables,
+}: RouteProps<HomePageQuery>) {
+  const result = usePreloadedQuery<HomePageQuery>(query, initialQueryRef);
 
   return (
     <>
       <Hero />
       <OverviewMetricsContainer fragmentRef={result} />
       <PageDivider />
-      <DelegatesContainer fragmentKey={result} variables={variables} />
+      <DelegatesContainer fragmentKey={result} variables={variables as any} />
     </>
   );
 }

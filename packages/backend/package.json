@@ -19,7 +19,7 @@
     "build-server": "esbuild --bundle --sourcemap src/bin/server.ts --outfile=dist/server.js --loader:.graphql=text --platform=node",
     "server": "node dist/server.js",
     "generate-typechain": "typechain --target ethers-v5 --out-dir src/contracts/generated src/contracts/abis/*.json",
-    "generate-schema-types": "graphql-codegen --watch",
+    "generate-schema-types": "graphql-codegen",
     "generate": "yarn run generate-typechain && yarn run generate-schema-types",
     "build-worker": "node scripts/buildWorker.js",
     "visualize-worker-bundle": "esbuild-visualizer ---metadata ./dist/meta.json",
