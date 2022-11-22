@@ -62,7 +62,7 @@ export const formSectionContainerStyles = css`
 `;
 
 export function initialTopIssues(): IssueState[] {
-  return [initialIssueState("treasury"), initialIssueState("proliferation")];
+  return [initialIssueState("treasury"), initialIssueState("funding")];
 }
 
 type Props = {
@@ -135,6 +135,8 @@ export function TopIssuesFormSection({ form }: Props) {
           const issueDef = issueDefinitions.find(
             (needle) => issue.type === needle.key
           )!;
+
+          console.log(topIssues, issue);
 
           return (
             <HStack gap="4" alignItems="center" key={index}>
