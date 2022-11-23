@@ -13,6 +13,9 @@ import {
 import { FullPageLoadingIndicator } from "./components/FullPageLoadingIndicator";
 import { Toaster } from "react-hot-toast";
 import { RecoilRoot } from "recoil";
+import ReactGA from 'react-ga4';
+
+ReactGA.initialize("G-N2PLRX9FD4")
 
 const wagmiClient = createClient(
   getDefaultClient({
