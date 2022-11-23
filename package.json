@@ -13,5 +13,8 @@
   "devDependencies": {
     "patch-package": "^6.4.7",
     "prettier": "^2.7.1"
+  },
+  "dependencies": {
+    "react-ga4": "^1.4.1"
   }
 }
