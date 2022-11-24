@@ -13,9 +13,12 @@ import {
 import { FullPageLoadingIndicator } from "./components/FullPageLoadingIndicator";
 import { Toaster } from "react-hot-toast";
 import { RecoilRoot } from "recoil";
-import ReactGA from 'react-ga4';
+import TagManager from 'react-gtm-module';
 
-ReactGA.initialize("G-N2PLRX9FD4")
+const tagManagerArgs = {
+  gtmId: 'G-N2PLRX9FD4'
+}
+TagManager.initialize(tagManagerArgs)
 
 const wagmiClient = createClient(
   getDefaultClient({

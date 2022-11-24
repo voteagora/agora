@@ -11,10 +11,11 @@
     "prettier": "prettier --write . --ignore-path .gitignore"
   },
   "devDependencies": {
+    "@types/react-gtm-module": "^2.0.1",
     "patch-package": "^6.4.7",
     "prettier": "^2.7.1"
   },
   "dependencies": {
-    "react-ga4": "^1.4.1"
+    "react-gtm-module": "^2.0.11"
   }
 }
