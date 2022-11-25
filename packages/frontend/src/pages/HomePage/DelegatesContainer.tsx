@@ -130,7 +130,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
         justify-content: space-around;
       }
 
-      @media (max-width: $max_width_md) {
+      @media (max-width: ${theme.maxWidth.md}) {
         grid-template-columns: 1fr;
         gap: ${theme.spacing["4"]};
       }
@@ -222,11 +222,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
 
             <HStack gap="4">
               <Selector
-                classNames={{
-                  hstack: css`
-                    border-radius: 0 35px 35px 0;
-                  `,
-                }}
+                borderType={"rightOnly"}
                 items={
                   [
                     {

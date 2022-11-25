@@ -139,7 +139,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
               <NounsRepresentedGrid
                 fragmentKey={delegate.delegate}
                 dense
-                columns={10}
+                columns={20}
                 gap={"0"}
                 imageSize={"6"}
                 rows={1}
@@ -201,30 +201,32 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
             }
           })()}
 
-          {(() => {
-            if (!delegate.statement?.summary) {
-              return <div></div>;
-            } else {
-              return (
-                <div
-                  className={css`
-                    display: -webkit-box;
+          <VStack gap="1" alignItems="center">
+            {(() => {
+              if (!delegate.statement?.summary) {
+                return null;
+              } else {
+                return (
+                  <div
+                    className={css`
+                      display: -webkit-box;
 
-                    color: #66676b;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    line-clamp: 2;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    font-size: ${theme.fontSize.base};
-                    line-height: ${theme.lineHeight.normal};
-                  `}
-                >
-                  {delegate.statement.summary}
-                </div>
-              );
-            }
-          })()}
+                      color: #66676b;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      line-clamp: 2;
+                      -webkit-line-clamp: 2;
+                      -webkit-box-orient: vertical;
+                      font-size: ${theme.fontSize.base};
+                      line-height: ${theme.lineHeight.normal};
+                    `}
+                  >
+                    {delegate.statement.summary}
+                  </div>
+                );
+              }
+            })()}
+          </VStack>
 
           <VoterPanelActions
             fragment={delegate}

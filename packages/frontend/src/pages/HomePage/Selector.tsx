@@ -16,14 +16,14 @@ export type SelectorItem<T> = {
 };
 
 type SelectorProps<T> = {
-  classNames?: Record<string, string>;
+  borderType?: string;
   items: SelectorItem<T>[];
   value: T;
   onChange: (item: T) => void;
 };
 
 export function Selector<T>({
-  classNames,
+  borderType,
   items,
   value,
   onChange,
@@ -52,7 +52,11 @@ export function Selector<T>({
                   border: 1px solid ${theme.colors.gray.eb};
                   padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
                 `,
-                classNames?.hstack
+                borderType === "rightOnly"
+                  ? css`
+                      border-radius: 0 35px 35px 0;
+                    `
+                  : ""
               )}
             >
               <div>{items.find((item) => item.value === value)?.title}</div>

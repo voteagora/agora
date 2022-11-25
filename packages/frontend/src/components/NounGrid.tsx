@@ -10,6 +10,7 @@ import {
 import { HStack } from "./VStack";
 
 type Props = {
+  dense?: boolean;
   nouns: NounGridFragment$data["nounsRepresented"];
   totalNouns?: number;
   rows?: number;
@@ -23,6 +24,7 @@ type LayoutProps = {
 };
 
 function NounGrid({
+  dense,
   nouns,
   totalNouns,
   rows,
@@ -44,6 +46,7 @@ function NounGrid({
       `}
     >
       <NounGridChildren
+        dense={dense}
         totalNouns={totalNouns}
         count={possibleSlots}
         nouns={nouns}
@@ -61,6 +64,7 @@ type NounsRepresentedGridProps = {
 } & LayoutProps;
 
 type NounGridChildrenProps = {
+  dense?: boolean;
   count: number;
   nouns: NounGridFragment$data["nounsRepresented"];
   totalNouns?: number;
@@ -70,6 +74,7 @@ type NounGridChildrenProps = {
 };
 
 export function NounGridChildren({
+  dense,
   imageSize,
   totalNouns,
   nouns,
@@ -84,7 +89,9 @@ export function NounGridChildren({
   const overflowAmount = length - count;
 
   function nounImageForNoun(
-    noun: NounGridFragment$data["nounsRepresented"][0]
+    noun: NounGridFragment$data["nounsRepresented"][0],
+    index: number,
+    dense?: boolean
   ) {
     return (
       <NounImage
@@ -97,6 +104,11 @@ export function NounGridChildren({
               height: ${imageSizeResolved};
             `}
             aspect-ratio: 1/1;
+            ${dense &&
+            imageSizeResolved &&
+            css`
+              margin-left: calc(${imageSizeResolved} * -0.5 * ${index});
+            `}
           `,
           className
         )}
@@ -108,30 +120,41 @@ export function NounGridChildren({
 
   return overflowAmount > 0 ? (
     <>
-      {nouns.slice(0, count - 1).map(nounImageForNoun)}
+      {nouns
+        .slice(0, count - 1)
+        .map((noun, index) => nounImageForNoun(noun, index, dense))}
       <div
         key="overflowAmount"
-        className={css`
-          min-width: ${imageSizeResolved};
-          min-height: ${imageSizeResolved};
+        className={cx(
+          css`
+            min-width: ${imageSizeResolved};
+            min-height: ${imageSizeResolved};
 
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: ${theme.fontWeight.medium};
-          color: ${theme.colors.gray[600]};
-          font-size: ${theme.fontSize[overflowFontSize]};
-          white-space: nowrap;
-          letter-spacing: ${theme.letterSpacing.tight};
-          background-color: ${theme.colors.gray[200]};
-          border-radius: ${theme.borderRadius.full};
-        `}
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: ${theme.fontWeight.medium};
+            color: ${theme.colors.gray[600]};
+            font-size: ${theme.fontSize[overflowFontSize]};
+            white-space: nowrap;
+            letter-spacing: ${theme.letterSpacing.tight};
+            background-color: ${theme.colors.gray[200]};
+            border-radius: ${theme.borderRadius.full};
+          `,
+          css`
+            ${dense &&
+            css`
+              margin-left: calc(${imageSizeResolved} * -0.5 * ${count});
+              width: ${imageSizeResolved};
+            `}
+          `
+        )}
       >
         +{overflowAmount + 1}
       </div>
     </>
   ) : (
-    <>{nouns.map(nounImageForNoun)}</>
+    <>{nouns.map((noun, index) => nounImageForNoun(noun, index, dense))}</>
   );
 }
 
@@ -186,6 +209,7 @@ export function NounsRepresentedGrid({
 
   return (
     <NounGrid
+      dense={dense}
       nouns={nounsRepresented}
       totalNouns={totalNouns}
       {...layoutProps}
