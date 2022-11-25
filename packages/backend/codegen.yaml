@@ -12,4 +12,3 @@ generates:
         ResolvedName: ../model#ResolvedName as ResolvedNameModel
         WrappedDelegate: ../model#WrappedDelegate as WrappedDelegateModel
         DelegateStatement: ../model#DelegateStatement as DelegateStatementModel
-
