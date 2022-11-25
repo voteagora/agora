@@ -38,12 +38,22 @@ function NounGrid({
 
   return (
     <div
-      className={css`
-        display: grid;
-        grid-template-columns: repeat(${columns}, ${imageSizeResolved});
-        grid-template-rows: repeat(auto-fit, ${imageSizeResolved});
-        gap: ${theme.spacing[gap]};
-      `}
+      className={cx(
+        css`
+          display: grid;
+          grid-template-columns: repeat(${columns}, ${imageSizeResolved});
+          grid-template-rows: repeat(auto-fit, ${imageSizeResolved});
+          gap: ${theme.spacing[gap]};
+        `,
+        css`
+          ${dense &&
+          css`
+            max-width: calc(
+              ${imageSizeResolved} * ${(possibleSlots * 2) / 3 + 1}
+            );
+          `}
+        `
+      )}
     >
       <NounGridChildren
         dense={dense}
@@ -107,7 +117,7 @@ export function NounGridChildren({
             ${dense &&
             imageSizeResolved &&
             css`
-              margin-left: calc(${imageSizeResolved} * -0.5 * ${index});
+              margin-left: calc(${imageSizeResolved} * -0.3 * ${index});
             `}
           `,
           className
@@ -144,7 +154,7 @@ export function NounGridChildren({
           css`
             ${dense &&
             css`
-              margin-left: calc(${imageSizeResolved} * -0.5 * ${count});
+              margin-left: calc(${imageSizeResolved} * -0.3 * ${count - 1});
               width: ${imageSizeResolved};
             `}
           `

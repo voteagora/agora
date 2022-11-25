@@ -105,6 +105,8 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
           border-color: ${theme.colors.gray["300"]};
           box-shadow: ${theme.boxShadow.newDefault};
           cursor: pointer;
+          font-size: ${theme.fontSize.sm};
+          line-height: ${theme.lineHeight.tight};
         `}
       >
         <HStack
@@ -112,7 +114,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
           alignItems="center"
           className={css`
             display: grid;
-            grid-template-columns: 3fr 1fr 2fr 3fr 3fr 4fr;
+            grid-template-columns: 260px 90px 80px 155px 255px 4fr;
             gap: ${theme.spacing["6"]};
             @media (max-width: ${theme.maxWidth["2xl"]}) {
               grid-template-rows: 1fr;
@@ -130,6 +132,8 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
           >
             <div
               className={css`
+                font-size: ${theme.fontSize.base};
+                line-height: ${theme.lineHeight.normal};
                 font-weight: ${theme.fontWeight.semibold};
               `}
             >
@@ -141,38 +145,50 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
                 dense
                 columns={20}
                 gap={"0"}
-                imageSize={"6"}
+                imageSize={"4"}
                 rows={1}
-                overflowFontSize="base"
+                overflowFontSize="xs"
               />
             )}
           </VStack>
 
-          <VStack gap="1" alignItems="center">
+          <VStack gap="0" alignItems="normal">
             <div
               className={css`
                 font-weight: ${theme.fontWeight.semibold};
               `}
             >{`${pluralizeNoun(nounsRepresented)}`}</div>
-            <div>represented</div>
+            <div
+              className={css`
+                color: #66676b;
+              `}
+            >
+              represented
+            </div>
           </VStack>
 
-          <VStack gap="1" alignItems="center">
+          <VStack gap="0" alignItems="normal">
             <div
               className={css`
                 font-weight: ${theme.fontWeight.semibold};
               `}
             >{`${pluralizeProb(votesCast)}`}</div>
-            <div>voted on</div>
+            <div
+              className={css`
+                color: #66676b;
+              `}
+            >
+              voted on
+            </div>
           </VStack>
 
           {(() => {
             if (!tokenHolders?.length) {
               return (
-                <VStack gap="1" alignItems="center">
+                <VStack gap="0" alignItems="normal">
                   <div
                     className={css`
-                      text-align: center;
+                      color: #66676b;
                     `}
                   >
                     Currently seeking delegation
@@ -181,27 +197,33 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
               );
             } else {
               return (
-                <VStack gap="1" alignItems="center">
+                <VStack gap="0" alignItems="normal">
                   <div
                     className={css`
                       font-weight: ${theme.fontWeight.semibold};
-                      text-align: center;
                     `}
                   >
                     <NounResolvedName
+                      dense
                       resolvedName={tokenHolders[0].address.resolvedName}
                     />
                     {tokenHolders.length > 1 &&
                       ` + ${pluralizeOther(tokenHolders.length - 1)}`}
                   </div>
 
-                  <div>delegated to them</div>
+                  <div
+                    className={css`
+                      color: #66676b;
+                    `}
+                  >
+                    delegated to them
+                  </div>
                 </VStack>
               );
             }
           })()}
 
-          <VStack gap="1" alignItems="center">
+          <VStack gap="0" alignItems="normal">
             {(() => {
               if (!delegate.statement?.summary) {
                 return null;
@@ -217,8 +239,6 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
                       line-clamp: 2;
                       -webkit-line-clamp: 2;
                       -webkit-box-orient: vertical;
-                      font-size: ${theme.fontSize.base};
-                      line-height: ${theme.lineHeight.normal};
                     `}
                   >
                     {delegate.statement.summary}

@@ -1,13 +1,14 @@
-import { shortAddress } from "../utils/address";
+import { shortAddress, shortENS } from "../utils/address";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { NounResolvedNameFragment$key } from "./__generated__/NounResolvedNameFragment.graphql";
 
 type Props = {
   resolvedName: NounResolvedNameFragment$key;
+  dense?: boolean;
 };
 
-export function NounResolvedName({ resolvedName }: Props) {
+export function NounResolvedName({ resolvedName, dense }: Props) {
   const { address, name } = useFragment(
     graphql`
       fragment NounResolvedNameFragment on ResolvedName {
@@ -22,5 +23,5 @@ export function NounResolvedName({ resolvedName }: Props) {
     return <>{shortAddress(address)}</>;
   }
 
-  return <>{name}</>;
+  return <>{dense ? shortENS(name) : name}</>;
 }
