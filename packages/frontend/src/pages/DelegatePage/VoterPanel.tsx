@@ -399,7 +399,7 @@ export function VoterPanelActions({
   );
 }
 
-function DelegateButton({
+export function DelegateButton({
   fragment,
   full,
 }: {

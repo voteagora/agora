@@ -7,11 +7,13 @@ import { VoterTabularFragment$key } from "./__generated__/VoterTabularFragment.g
 import { NounResolvedName } from "../../components/NounResolvedName";
 import { NounsRepresentedGrid } from "../../components/NounGrid";
 import { HStack, VStack } from "../../components/VStack";
-import { VoterPanelActions } from "../DelegatePage/VoterPanel";
+import { DelegateButton } from "../DelegatePage/VoterPanel";
 import { Link } from "../../components/HammockRouter/Link";
 import { BigNumber } from "ethers";
 import { pluralizeNoun, pluralizeProb, pluralizeOther } from "../../words";
 import { descendingValueComparator } from "../../utils/sorting";
+import { icons } from "../../icons/icons";
+import toast from "react-hot-toast";
 
 type VoterTabularProps = {
   fragmentRef: VoterTabularFragment$key;
@@ -21,8 +23,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
   const delegate = useFragment(
     graphql`
       fragment VoterTabularFragment on WrappedDelegate {
-        ...VoterPanelActionsFragment
-
+        ...VoterPanelDelegateButtonFragment
         ...DelegateProfileImageFragment
 
         address {
@@ -37,6 +38,8 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
         statement {
           statement
           summary
+          twitter
+          discord
         }
 
         delegate {
@@ -114,7 +117,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
           alignItems="center"
           className={css`
             display: grid;
-            grid-template-columns: 260px 90px 80px 155px 255px 4fr;
+            grid-template-columns: 260px 90px 80px 155px 255px 48px 110px;
             gap: ${theme.spacing["6"]};
             @media (max-width: ${theme.maxWidth["2xl"]}) {
               grid-template-rows: 1fr;
@@ -247,12 +250,52 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
               }
             })()}
           </VStack>
+          <VStack gap="0" alignItems="normal">
+            {delegate.statement && (
+              <HStack gap="3" alignItems="center">
+                {delegate.statement.twitter && (
+                  <a
+                    href={`https://twitter.com/${delegate.statement.twitter}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <img
+                      src={icons.twitterLight}
+                      alt="twitter"
+                      width={16}
+                      height={16}
+                    />
+                  </a>
+                )}
 
-          <VoterPanelActions
+                {delegate.statement.discord && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toast("copied discord handle to clipboard");
+                      navigator.clipboard.writeText(
+                        delegate.statement?.discord ?? ""
+                      );
+                    }}
+                  >
+                    <img
+                      src={icons.discordLight}
+                      alt="discord"
+                      width={16}
+                      height={16}
+                    />
+                  </button>
+                )}
+              </HStack>
+            )}{" "}
+          </VStack>
+
+          <DelegateButton
             fragment={delegate}
-            className={css`
-              justify-content: space-evenly;
-            `}
+            full={
+              !delegate.statement ||
+              (!delegate.statement.twitter && !delegate.statement.discord)
+            }
           />
         </HStack>
       </VStack>

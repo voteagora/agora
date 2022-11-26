@@ -198,10 +198,11 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                 background: #f7f7f7;
                 border-radius: 35px 0 0 35px;
                 border: 1px solid ${theme.colors.gray.eb};
-                padding: 0 ${theme.spacing["1"]} 0 ${theme.spacing["3"]};
+                padding: 0 ${theme.spacing["2"]} 0 ${theme.spacing["3"]};
               `}
             >
               <Tab.Group
+                selectedIndex={(() => layoutModes.indexOf(layoutMode))()}
                 onChange={(i) => {
                   setLayoutMode(layoutModes[i]);
                   startTransition(() => {
