@@ -208,13 +208,20 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                     navigate({
                       search: {
                         layoutMode:
-                          layoutModes[i] == "Card" ? null : layoutModes[i],
+                          layoutModes[i] === "Card" ? null : layoutModes[i],
                       },
                     });
                   });
                 }}
               >
-                <Tab.List>
+                <Tab.List
+                  className={css`
+                    height: ${theme.spacing["8"]};
+                    *:focus {
+                      outline: none;
+                    }
+                  `}
+                >
                   <Tab>
                     {({ selected }) => (
                       <Squares2X2Icon
