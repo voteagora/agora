@@ -14,7 +14,10 @@ import {
 import { Selector, SelectorItem } from "./Selector";
 import { motion } from "framer-motion";
 import InfiniteScroll from "react-infinite-scroller";
-import { useNavigate } from "../../components/HammockRouter/HammockRouter";
+import {
+  useLocation,
+  useNavigate,
+} from "../../components/HammockRouter/HammockRouter";
 import { locationToVariables } from "./HomePage";
 import { Tab } from "@headlessui/react";
 import { Bars4Icon, Squares2X2Icon } from "@heroicons/react/20/solid";
@@ -61,7 +64,12 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
   const [localFilterBy, setLocalFilterBy] =
     useState<WrappedDelegatesWhere | null>(variables.filterBy);
 
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>("Card");
+  const location = useLocation();
+  const locationToLayoutMode =
+    layoutModes.find((needle) => needle === location.search["layoutMode"]) ??
+    "Card";
+  const [layoutMode, setLayoutMode] =
+    useState<LayoutMode>(locationToLayoutMode);
 
   const navigate = useNavigate();
 
@@ -193,7 +201,19 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                 padding: 0 ${theme.spacing["1"]} 0 ${theme.spacing["3"]};
               `}
             >
-              <Tab.Group onChange={(i) => setLayoutMode(layoutModes[i])}>
+              <Tab.Group
+                onChange={(i) => {
+                  setLayoutMode(layoutModes[i]);
+                  startTransition(() => {
+                    navigate({
+                      search: {
+                        layoutMode:
+                          layoutModes[i] == "Card" ? null : layoutModes[i],
+                      },
+                    });
+                  });
+                }}
+              >
                 <Tab.List>
                   <Tab>
                     {({ selected }) => (
