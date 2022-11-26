@@ -133,6 +133,16 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
       & a:first-child > div {
         border-radius: ${theme.spacing["3"]} ${theme.spacing["3"]} 0 0;
       }
+      ${!hasNext &&
+      css`
+        & a:last-child > div {
+          border-radius: 0 0 ${theme.spacing["3"]} ${theme.spacing["3"]};
+        }
+      `}
+      & a:first-child:last-child > div {
+        border-radius: ${theme.spacing["3"]} ${theme.spacing["3"]}
+          ${theme.spacing["3"]} ${theme.spacing["3"]};
+      }
       @media (max-width: ${theme.maxWidth["6xl"]}) {
         grid-template-columns: 1fr;
         justify-content: space-around;
