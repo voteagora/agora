@@ -144,7 +144,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
           ${theme.spacing["3"]} ${theme.spacing["3"]};
       }
       @media (max-width: ${theme.maxWidth["6xl"]}) {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fit, 23rem);
         justify-content: space-around;
       }
 
