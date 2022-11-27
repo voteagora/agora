@@ -192,9 +192,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
             Voters
           </h2>
 
-          <HStack
-            gap="2"
-          >
+          <HStack gap="2">
             <HStack
               alignItems="center"
               gap="0"

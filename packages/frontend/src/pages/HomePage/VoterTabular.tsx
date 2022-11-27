@@ -113,6 +113,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
         `}
       >
         <HStack
+          alignItems="center"
           className={css`
             display: grid;
             grid-template-columns: 260px 90px 80px 155px 255px 48px 110px;
