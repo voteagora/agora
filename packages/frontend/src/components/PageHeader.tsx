@@ -78,12 +78,14 @@ export function PageHeader() {
         <Link to="/">
           <div
             className={css`
+              padding: ${theme.spacing[1]} ${theme.spacing[4]};
+              border-radius: ${theme.borderRadius.full};
+              color:${theme.colors.gray[700]};
               ${!isProposalsPageActive &&
               css`
                 background-color: ${theme.colors.gray.fa};
+                color:inherit;
               `};
-              padding: ${theme.spacing[1]} ${theme.spacing[4]};
-              border-radius: ${theme.borderRadius.full};
             `}
           >
             Voters
@@ -92,12 +94,14 @@ export function PageHeader() {
         <Link to="/proposals">
           <div
             className={css`
+              padding: ${theme.spacing[1]} ${theme.spacing[4]};
+              border-radius: ${theme.borderRadius.full};
+              color:${theme.colors.gray[700]};
               ${isProposalsPageActive &&
               css`
                 background-color: ${theme.colors.gray.fa};
+                color:inherit;
               `};
-              padding: ${theme.spacing[1]} ${theme.spacing[4]};
-              border-radius: ${theme.borderRadius.full};
             `}
           >
             Proposals
