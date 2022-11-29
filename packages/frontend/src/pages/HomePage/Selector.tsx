@@ -7,7 +7,7 @@ import {
 import { HStack } from "../../components/VStack";
 import * as theme from "../../theme";
 import { Listbox } from "@headlessui/react";
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 
 export type SelectorItem<T> = {
@@ -19,9 +19,29 @@ type SelectorProps<T> = {
   items: SelectorItem<T>[];
   value: T;
   onChange: (item: T) => void;
+  size: string;
 };
 
-export function Selector<T>({ items, value, onChange }: SelectorProps<T>) {
+export function Selector<T>({
+  items,
+  value,
+  onChange,
+  size,
+}: SelectorProps<T>) {
+  const sizeM = css`
+    background: #f7f7f7;
+    font-size: ${theme.fontSize.xs};
+    font-weight: ${theme.fontWeight.medium};
+    border-radius: ${theme.borderRadius.full};
+    padding: ${theme.spacing["1"]} ${theme.spacing["3"]};
+  `;
+
+  const sizeL = css`
+    background: #f7f7f7;
+    border-radius: ${theme.borderRadius.full};
+    padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+  `;
+
   return (
     <Listbox
       value={value}
@@ -38,21 +58,21 @@ export function Selector<T>({ items, value, onChange }: SelectorProps<T>) {
           >
             <HStack
               alignItems="center"
-              gap="2"
-              className={css`
-                background: #f7f7f7;
-                border-radius: ${theme.borderRadius.full};
-                border: 1px solid ${theme.colors.gray.eb};
-                padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
-              `}
+              gap="1"
+              className={cx({ [sizeM]: size == "m" }, { [sizeL]: size == "l" })}
             >
               <div>{items.find((item) => item.value === value)?.title}</div>
 
               <ChevronDownIcon
                 aria-hidden="true"
                 className={css`
+                  opacity: 30%;
+                  transition: 200ms all;
                   width: ${theme.spacing["4"]};
                   height: ${theme.spacing["4"]};
+                  :hover {
+                    opacity: 100%;
+                  }
                 `}
               />
             </HStack>
@@ -69,6 +89,7 @@ export function Selector<T>({ items, value, onChange }: SelectorProps<T>) {
                         ${!selected &&
                         active &&
                         css`
+                          transition: 200ms all;
                           background: ${theme.colors.gray.eb};
                         `}
                       `}

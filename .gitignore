@@ -8,3 +8,4 @@ packages/backend/dist
 
 packages/frontend/build
 __generated__
+.DS_Store

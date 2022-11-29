@@ -148,6 +148,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                   navigate({ search: { filterBy: filterBy ?? null } });
                 });
               }}
+              size={"l"}
             />
 
             <Selector
@@ -169,6 +170,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                   });
                 });
               }}
+              size={"l"}
             />
           </HStack>
         </HStack>

@@ -6,6 +6,7 @@ import { HStack, VStack } from "../../components/VStack";
 import { ImpactfulProposalsFragment$key } from "./__generated__/ImpactfulProposalsFragment.graphql";
 import { ImpactfulProposalsProposalFragment$key } from "./__generated__/ImpactfulProposalsProposalFragment.graphql";
 import { ValuePart } from "./VoteDetailsContainer";
+import { ProposalLink } from "../../components/ProposalLink";
 
 export type Props = {
   fragment: ImpactfulProposalsFragment$key;
@@ -131,13 +132,15 @@ function Proposal({ fragment }: ProposalProps) {
         number
         title
         totalValue
+
+        ...ProposalLinkFragment
       }
     `,
     fragment
   );
 
   return (
-    <a href={`https://nouns.wtf/vote/${proposal.number}`}>
+    <ProposalLink fragmentRef={proposal}>
       <VStack
         justifyContent="center"
         className={css`
@@ -157,6 +160,6 @@ function Proposal({ fragment }: ProposalProps) {
         </div>
         {proposal.title}
       </VStack>
-    </a>
+    </ProposalLink>
   );
 }

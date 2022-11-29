@@ -21,8 +21,12 @@ import {
 } from "recoil";
 import { History } from "history";
 import { isEqual } from "lodash";
+import { ProposalsPage } from "../../pages/ProposalsPage/ProposalsPage";
+import { ProposalsRedirectPage } from "../../pages/ProposalsPage/ProposalsRedirectPage";
 
 export const browserHistory = createBrowserHistory();
+// TODO: Set this to false before merging
+export const PROPOSALS_ENABLED = false;
 
 type Route = {
   path: string;
@@ -42,6 +46,22 @@ const routes: Route[] = [
     path: "/create",
     element: EditDelegatePage,
   },
+  ...(PROPOSALS_ENABLED
+    ? [
+        {
+          path: "/proposals",
+          element: ProposalsRedirectPage,
+        },
+      ]
+    : []),
+  ...(PROPOSALS_ENABLED
+    ? [
+        {
+          path: "/proposals/:proposalId",
+          element: ProposalsPage,
+        },
+      ]
+    : []),
 ];
 
 type RouteMatch = {

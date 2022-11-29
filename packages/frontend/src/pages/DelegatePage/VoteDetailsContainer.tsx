@@ -60,7 +60,7 @@ export function ValuePart({ value }: ValuePartProps) {
   );
 }
 
-type SupportTextProps = {
+export type SupportTextProps = {
   supportType: "FOR" | "AGAINST" | "ABSTAIN";
 };
 
@@ -82,12 +82,12 @@ export function colorForSupportType(
 ) {
   switch (supportType) {
     case "AGAINST":
-      return theme.colors.red["700"];
+      return theme.colors.red["600"];
 
     case "ABSTAIN":
       return theme.colors.gray["700"];
 
     case "FOR":
-      return theme.colors.green["700"];
+      return theme.colors.green["600"];
   }
 }

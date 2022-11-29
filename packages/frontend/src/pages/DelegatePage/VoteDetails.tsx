@@ -14,6 +14,7 @@ import {
 import { pluralizeVote } from "../../words";
 import { BigNumber } from "ethers";
 import { formatDistanceToNow } from "date-fns";
+import { ProposalLink } from "../../components/ProposalLink";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;
@@ -36,6 +37,8 @@ export function VoteDetails({ voteFragment }: Props) {
           number
           title
 
+          ...ProposalLinkFragment
+
           totalValue
           proposer {
             resolvedName {
@@ -47,7 +50,6 @@ export function VoteDetails({ voteFragment }: Props) {
     `,
     voteFragment
   );
-  const proposalHref = `https://nouns.wtf/vote/${vote.proposal.number}`;
 
   const supportType = toSupportType(vote.supportDetailed);
 
@@ -78,14 +80,18 @@ export function VoteDetails({ voteFragment }: Props) {
               color: #66676b;
             `}
           >
-            <a href={proposalHref}>Prop {vote.proposal.number}</a>
+            <ProposalLink fragmentRef={vote.proposal}>
+              Prop {vote.proposal.number}
+            </ProposalLink>
             <ValuePart value={vote.proposal.totalValue} />
             {vote.createdAt &&
               ` - ${formatDistanceToNow(parseCreatedAt(vote.createdAt))} ago`}
           </div>
 
           <VoteTitle>
-            <a href={proposalHref}>{vote.proposal.title}</a>
+            <ProposalLink fragmentRef={vote.proposal}>
+              {vote.proposal.title}
+            </ProposalLink>
           </VoteTitle>
 
           <span

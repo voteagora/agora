@@ -160,6 +160,7 @@ export function PastVotes({ fragment }: Props) {
             ]}
             value={sort}
             onChange={(newSort) => setSort(newSort)}
+            size={"l"}
           />
 
           <Selector
@@ -179,6 +180,7 @@ export function PastVotes({ fragment }: Props) {
             ]}
             value={filter}
             onChange={(newFilter) => setFilter(newFilter)}
+            size={"l"}
           />
         </HStack>
       </HStack>

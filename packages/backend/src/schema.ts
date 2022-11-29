@@ -713,6 +713,17 @@ export function makeGatewaySchema() {
           },
         },
 
+        voteStartsAt: {
+          selectionSet: `{ startBlock }`,
+          async resolve({ startBlock }: { startBlock: string }) {
+            const latestBlock = await provider.getBlock("latest");
+            return (
+              latestBlock.timestamp +
+              12 * (parseInt(startBlock) - latestBlock.number)
+            ).toString();
+          },
+        },
+
         voteEndsAt: {
           selectionSet: `{ endBlock }`,
           async resolve({ endBlock }: { endBlock: string }) {
@@ -790,6 +801,13 @@ export function makeGatewaySchema() {
       },
 
       Delegate: {
+        address: {
+          selectionSet: `{ id }`,
+          resolve({ id }) {
+            return { address: id };
+          },
+        },
+
         resolvedName: {
           selectionSet: `{ id }`,
           resolve({ id }) {

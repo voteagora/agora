@@ -13,8 +13,11 @@ import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
 import { Suspense, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
+import { useLocation } from "./HammockRouter/HammockRouter";
 
 export function PageHeader() {
+  const isProposalsPageActive = useLocation().pathname.startsWith("/proposals");
+
   return (
     <HStack
       className={css`
@@ -40,8 +43,14 @@ export function PageHeader() {
         `}
         to="/"
       >
-        <HStack gap="3">
-          <img alt="logo" src={logo} />
+        <HStack gap="2" alignItems="center">
+          <img
+            alt="logo"
+            src={logo}
+            className={css`
+              height: 16px;
+            `}
+          />
 
           <span
             className={css`
@@ -55,6 +64,46 @@ export function PageHeader() {
           </span>
         </HStack>
       </Link>
+
+      <HStack
+        className={css`
+          background-color: ${theme.colors.white};
+          border-radius: ${theme.borderRadius.full};
+          border: 1px solid ${theme.colors.gray.eb};
+          padding: ${theme.spacing[1]};
+          font-weight: ${theme.fontWeight.medium};
+          box-shadow: ${theme.boxShadow.newDefault};
+        `}
+      >
+        <Link to="/">
+          <div
+            className={css`
+              ${!isProposalsPageActive &&
+              css`
+                background-color: ${theme.colors.gray.fa};
+              `};
+              padding: ${theme.spacing[1]} ${theme.spacing[4]};
+              border-radius: ${theme.borderRadius.full};
+            `}
+          >
+            Voters
+          </div>
+        </Link>
+        <Link to="/proposals">
+          <div
+            className={css`
+              ${isProposalsPageActive &&
+              css`
+                background-color: ${theme.colors.gray.fa};
+              `};
+              padding: ${theme.spacing[1]} ${theme.spacing[4]};
+              border-radius: ${theme.borderRadius.full};
+            `}
+          >
+            Proposals
+          </div>
+        </Link>
+      </HStack>
 
       <HStack
         alignItems="center"

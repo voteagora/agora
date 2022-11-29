@@ -61,8 +61,8 @@ export function DelegatePage() {
         justifyContent="space-between"
         alignItems="flex-start"
         className={css`
-          margin: ${theme.spacing["16"]};
-          margin-top: ${theme.spacing["8"]};
+          margin: ${theme.spacing["20"]};
+          margin-top: ${theme.spacing["0"]};
           padding-left: ${theme.spacing["4"]};
           padding-right: ${theme.spacing["4"]};
           width: 100%;

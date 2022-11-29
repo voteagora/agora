@@ -7,8 +7,10 @@ import twitter from "./twitter.svg";
 import piggyBank from "./piggyBank.svg";
 import speakerCone from "./speakerCone.svg";
 import anonNoun from "./anonNoun.svg";
+import expand from "./expand.svg";
 
 export const icons = {
+  expand,
   anonNoun,
   speakerCone,
   piggyBank,

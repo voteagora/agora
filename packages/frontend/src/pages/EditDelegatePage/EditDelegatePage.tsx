@@ -86,7 +86,8 @@ export const buttonStyles = css`
   }
 
   :disabled {
-    background: ${theme.colors.gray.eb};
+    background: ${theme.colors.gray.fa};
+    border-color: ${theme.colors.gray.eb};
     color: ${theme.colors.gray["700"]};
   }
 `;

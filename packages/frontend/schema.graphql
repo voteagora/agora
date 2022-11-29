@@ -1371,6 +1371,7 @@ type Delegate {
   resolvedName: ResolvedName!
   voteSummary: DelegateVotesSummary!
   propHouseVotes: [PropHouseRoundVotes!]!
+  address: Address!
 }
 
 input Delegate_filter {
@@ -1830,6 +1831,7 @@ type Proposal {
   totalValue: BigInt!
   totalVotes: BigInt!
   createdBlockGovernance: Governance!
+  voteStartsAt: BigInt!
   voteEndsAt: BigInt!
   actualStatus: ProposalStatus!
 }

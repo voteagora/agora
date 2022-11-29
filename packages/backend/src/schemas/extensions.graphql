@@ -4,6 +4,7 @@ extend type Proposal {
   totalValue: BigInt!
   totalVotes: BigInt!
   createdBlockGovernance: Governance!
+  voteStartsAt: BigInt!
   voteEndsAt: BigInt!
   actualStatus: ProposalStatus!
 }
@@ -13,6 +14,7 @@ extend type Account {
 }
 
 extend type Delegate {
+  address: Address!
   resolvedName: ResolvedName!
   voteSummary: DelegateVotesSummary!
   propHouseVotes: [PropHouseRoundVotes!]!

@@ -65,7 +65,10 @@ export const colors = {
   white: "#fff",
 
   gray: {
+    af: "#afafaf",
     eb: "#ebebeb",
+    fa: "#fafafa",
+    "4f": "#4f4f4f",
     100: "#f7fafc",
     200: "#edf2f7",
     300: "#e2e8f0",
@@ -183,6 +186,7 @@ export const borderRadius = {
   default: "0.25rem",
   md: "0.375rem",
   lg: "0.5rem",
+  xl: "0.75rem",
   full: "9999px",
 };
 
@@ -273,6 +277,7 @@ export const fontFamily = {
     '"Courier New"',
     "monospace",
   ]),
+  code: makeFontString(["IBM", "Plex", "Mono"]),
 };
 
 function makeFontString(fonts: string[]): string {
