@@ -714,7 +714,7 @@ export function makeGatewaySchema() {
         },
 
         voteEndsAt: {
-          selectionSet: `{ createdBlock, endBlock }`,
+          selectionSet: `{ endBlock }`,
           async resolve({ endBlock }: { endBlock: string }) {
             // todo: resolve this from snapshot somehow?
             const latestBlock = await provider.getBlock("latest");
@@ -722,6 +722,54 @@ export function makeGatewaySchema() {
               latestBlock.timestamp +
               12 * (parseInt(endBlock) - latestBlock.number)
             ).toString();
+          },
+        },
+
+        actualStatus: {
+          selectionSet: `{ status, startBlock, endBlock, forVotes, againstVotes, quorumVotes }`,
+          async resolve({
+            status,
+            startBlock,
+            endBlock,
+            forVotes,
+            againstVotes,
+            quorumVotes,
+            executionETA,
+          }: {
+            status: string;
+            startBlock: string;
+            endBlock: string;
+            forVotes: string;
+            againstVotes: string;
+            quorumVotes: string;
+            executionETA: number;
+          }) {
+            const latestBlock = await provider.getBlock("latest");
+            // Have to further refine status based on proposal fields
+            if (status == "PENDING") {
+              if (latestBlock.number > parseInt(startBlock)) {
+                return "ACTIVE";
+              }
+            } else if (status == "ACTIVE") {
+              if (latestBlock.number > parseInt(endBlock)) {
+                const forVoteCount = parseInt(forVotes);
+                if (
+                  forVoteCount <= parseInt(againstVotes) ||
+                  forVoteCount < parseInt(quorumVotes)
+                ) {
+                  return "VETOED";
+                }
+                if (!executionETA) {
+                  return "EXECUTED";
+                }
+              }
+            } else if (status === "QUEUED") {
+              const GRACE_PERIOD = 14 * 60 * 60 * 24;
+              if (latestBlock.timestamp >= executionETA + GRACE_PERIOD) {
+                return "CANCELLED";
+              }
+            }
+            return status;
           },
         },
       },
