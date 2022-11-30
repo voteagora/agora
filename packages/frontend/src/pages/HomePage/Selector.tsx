@@ -59,7 +59,10 @@ export function Selector<T>({
             <HStack
               alignItems="center"
               gap="1"
-              className={cx({ [sizeM]: size == "m" }, { [sizeL]: size == "l" })}
+              className={cx(
+                { [sizeM]: size === "m" },
+                { [sizeL]: size === "l" }
+              )}
             >
               <div>{items.find((item) => item.value === value)?.title}</div>
 

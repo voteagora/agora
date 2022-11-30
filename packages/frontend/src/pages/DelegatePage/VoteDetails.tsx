@@ -137,7 +137,7 @@ export function VoteDetails({ voteFragment }: Props) {
                 }
               `}
             >
-              <div
+              <pre
                 className={css`
                   font-size: ${theme.fontSize.xs};
                   font-weight: ${theme.fontWeight.medium};
@@ -146,7 +146,7 @@ export function VoteDetails({ voteFragment }: Props) {
                 `}
               >
                 {vote.reason}
-              </div>
+              </pre>
             </VStack>
           </>
         )}

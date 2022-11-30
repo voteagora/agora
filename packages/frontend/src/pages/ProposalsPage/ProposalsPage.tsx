@@ -81,7 +81,7 @@ export function ProposalsPage() {
         className={css`
           padding-left: ${theme.spacing["4"]};
           padding-right: ${theme.spacing["4"]};
-          max-width: ${theme.maxWidth["6xl"]};
+          max-width: 100rem;
           @media (max-width: ${theme.maxWidth["2xl"]}) {
             flex-direction: column;
             align-items: stretch;
@@ -124,7 +124,7 @@ export function ProposalsPage() {
           <VotesCastPanel
             fragmentRef={selectedProposal!}
             dialogFragmentRef={
-              result.address == undefined ? null : result.address
+              result.address === undefined ? null : result.address
             }
             expanded={proposalsListExpanded}
           />

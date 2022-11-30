@@ -84,13 +84,13 @@ export function ProposalsListPanel({
     const remainingProposals = result.proposals.filter(
       (proposal) =>
         proposal.number != proposalToDisplay.number &&
-        (filter == "ALL" || proposal.actualStatus == filter)
+        (filter === "ALL" || proposal.actualStatus === filter)
     );
-    if (sort == "asc") {
+    if (sort === "asc") {
       remainingProposals.reverse();
     }
     return [proposalToDisplay, ...remainingProposals];
-  }, [fragmentRef, filter, sort]);
+  }, [fragmentRef, filter, sort, proposalToDisplay, result.proposals]);
   if (!expanded) {
     proposalsToDisplay = proposalsToDisplay.slice(0, 1);
   }
@@ -183,7 +183,7 @@ export function ProposalsListPanel({
           {proposalsToDisplay.map((proposal) => (
             <SingleProposal
               proposal={proposal}
-              selected={proposal.number == proposalToDisplay.number}
+              selected={proposal.number === proposalToDisplay.number}
               onClick={() => {
                 setExpanded(false);
                 setSelectedProposalID(proposal.number);

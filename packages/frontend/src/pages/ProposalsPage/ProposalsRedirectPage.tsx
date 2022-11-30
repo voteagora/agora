@@ -15,7 +15,7 @@ export function ProposalsRedirectPage() {
     `,
     {}
   );
-  const [_, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const navigate = useNavigate();
   const proposals = result.proposals;
   // TODO: Show a 404 or something indicating that there are no proposals
