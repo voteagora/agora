@@ -128,7 +128,6 @@ export function VoteDetails({ voteFragment }: Props) {
             <VStack
               className={css`
                 overflow-y: scroll;
-                overflow-x: scroll;
                 padding: ${theme.spacing["4"]} ${theme.spacing["6"]};
 
                 @media (max-width: ${theme.maxWidth["2xl"]}) {
@@ -139,8 +138,10 @@ export function VoteDetails({ voteFragment }: Props) {
             >
               <pre
                 className={css`
+                  font-family: ${theme.fontFamily.sans};
                   font-size: ${theme.fontSize.xs};
                   font-weight: ${theme.fontWeight.medium};
+                  white-space: pre-wrap;
                   color: #66676b;
                   width: fit-content;
                 `}
