@@ -83,14 +83,14 @@ export function ProposalsListPanel({
   let proposalsToDisplay = useMemo(() => {
     const remainingProposals = result.proposals.filter(
       (proposal) =>
-        proposal.number != proposalToDisplay.number &&
+        proposal.number !== proposalToDisplay.number &&
         (filter === "ALL" || proposal.actualStatus === filter)
     );
     if (sort === "asc") {
       remainingProposals.reverse();
     }
     return [proposalToDisplay, ...remainingProposals];
-  }, [fragmentRef, filter, sort, proposalToDisplay, result.proposals]);
+  }, [filter, sort, proposalToDisplay, result.proposals]);
   if (!expanded) {
     proposalsToDisplay = proposalsToDisplay.slice(0, 1);
   }
