@@ -13,7 +13,7 @@ import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
 import { Suspense, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
-import { useLocation } from "./HammockRouter/HammockRouter";
+import { PROPOSALS_ENABLED, useLocation } from "./HammockRouter/HammockRouter";
 
 export function PageHeader() {
   const isProposalsPageActive = useLocation().pathname.startsWith("/proposals");
@@ -65,49 +65,53 @@ export function PageHeader() {
         </HStack>
       </Link>
 
-      <HStack
-        className={css`
-          background-color: ${theme.colors.white};
-          border-radius: ${theme.borderRadius.full};
-          border: 1px solid ${theme.colors.gray.eb};
-          padding: ${theme.spacing[1]};
-          font-weight: ${theme.fontWeight.medium};
-          box-shadow: ${theme.boxShadow.newDefault};
-        `}
-      >
-        <Link to="/">
-          <div
+      {PROPOSALS_ENABLED && (
+        <>
+          <HStack
             className={css`
-              padding: ${theme.spacing[1]} ${theme.spacing[4]};
+              background-color: ${theme.colors.white};
               border-radius: ${theme.borderRadius.full};
-              color: ${theme.colors.gray[700]};
-              ${!isProposalsPageActive &&
-              css`
-                background-color: ${theme.colors.gray.fa};
-                color: inherit;
-              `};
+              border: 1px solid ${theme.colors.gray.eb};
+              padding: ${theme.spacing[1]};
+              font-weight: ${theme.fontWeight.medium};
+              box-shadow: ${theme.boxShadow.newDefault};
             `}
           >
-            Voters
-          </div>
-        </Link>
-        <Link to="/proposals">
-          <div
-            className={css`
-              padding: ${theme.spacing[1]} ${theme.spacing[4]};
-              border-radius: ${theme.borderRadius.full};
-              color: ${theme.colors.gray[700]};
-              ${isProposalsPageActive &&
-              css`
-                background-color: ${theme.colors.gray.fa};
-                color: inherit;
-              `};
-            `}
-          >
-            Proposals
-          </div>
-        </Link>
-      </HStack>
+            <Link to="/">
+              <div
+                className={css`
+                  padding: ${theme.spacing[1]} ${theme.spacing[4]};
+                  border-radius: ${theme.borderRadius.full};
+                  color: ${theme.colors.gray[700]};
+                  ${!isProposalsPageActive &&
+                  css`
+                    background-color: ${theme.colors.gray.fa};
+                    color: inherit;
+                  `};
+                `}
+              >
+                Voters
+              </div>
+            </Link>
+            <Link to="/proposals">
+              <div
+                className={css`
+                  padding: ${theme.spacing[1]} ${theme.spacing[4]};
+                  border-radius: ${theme.borderRadius.full};
+                  color: ${theme.colors.gray[700]};
+                  ${isProposalsPageActive &&
+                  css`
+                    background-color: ${theme.colors.gray.fa};
+                    color: inherit;
+                  `};
+                `}
+              >
+                Proposals
+              </div>
+            </Link>
+          </HStack>
+        </>
+      )}
 
       <HStack
         alignItems="center"

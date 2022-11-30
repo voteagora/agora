@@ -28,6 +28,8 @@ export const browserHistory = createBrowserHistory();
 // TODO: Set this to false before merging
 export const PROPOSALS_ENABLED = false;
 
+// todo: 404 page
+
 type Route = {
   path: string;
   element: any;
