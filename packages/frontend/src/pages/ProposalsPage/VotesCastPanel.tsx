@@ -11,7 +11,10 @@ import { VotesCastPanelTextFragment$key } from "./__generated__/VotesCastPanelTe
 import { VotesCastPanelTimeFragment$key } from "./__generated__/VotesCastPanelTimeFragment.graphql";
 import { VotesCastPanelButtonsFragment$key } from "./__generated__/VotesCastPanelButtonsFragment.graphql";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
-import { colorForSupportType, SupportTextProps } from "../DelegatePage/VoteDetailsContainer";
+import {
+  colorForSupportType,
+  SupportTextProps,
+} from "../DelegatePage/VoteDetailsContainer";
 import { useEffect, useState } from "react";
 import { CastVoteDialog } from "./CastVoteDialog";
 import { CastVoteDialogFragment$key } from "./__generated__/CastVoteDialogFragment.graphql";
@@ -20,20 +23,27 @@ import { useAccount } from "wagmi";
 import { VoterCardFragment$key } from "../HomePage/__generated__/VoterCardFragment.graphql";
 import { VoterCard } from "../HomePage/VoterCard";
 
-export function VotesCastPanel({ fragmentRef, dialogFragmentRef, expanded }: {
-  fragmentRef: VotesCastPanelFragment$key,
-  dialogFragmentRef: CastVoteDialogFragment$key | null,
-  expanded: boolean
+export function VotesCastPanel({
+  fragmentRef,
+  dialogFragmentRef,
+  expanded,
+}: {
+  fragmentRef: VotesCastPanelFragment$key;
+  dialogFragmentRef: CastVoteDialogFragment$key | null;
+  expanded: boolean;
 }) {
-  const [reason, setReason] = useState<string>('');
-  const [supportType, setSupportType] = useState<SupportTextProps['supportType'] | null>(null);
-  const [hoveredVoter, setHoveredVoter] = useState<VoterCardFragment$key | null>(null);
+  const [reason, setReason] = useState<string>("");
+  const [supportType, setSupportType] = useState<
+    SupportTextProps["supportType"] | null
+  >(null);
+  const [hoveredVoter, setHoveredVoter] =
+    useState<VoterCardFragment$key | null>(null);
   useEffect(() => {
-    const handleClick = () => setHoveredVoter(null)
-    window.addEventListener('click', handleClick);
+    const handleClick = () => setHoveredVoter(null);
+    window.addEventListener("click", handleClick);
     return () => {
-      window.removeEventListener('click', handleClick);
-    }
+      window.removeEventListener("click", handleClick);
+    };
   });
   // TODO: What if there are more comments?
   const result = useFragment(
@@ -72,14 +82,14 @@ export function VotesCastPanel({ fragmentRef, dialogFragmentRef, expanded }: {
     font-size: ${theme.fontSize.xs};
     overflow-y: auto;
     height: 113px;
-  `
+  `;
 
   const normalSize = css`
     padding: ${theme.spacing["4"]};
     font-size: ${theme.fontSize.xs};
     overflow-y: auto;
     height: calc(100vh - 223px - 80px);
-  `
+  `;
 
   return (
     <>
@@ -89,7 +99,8 @@ export function VotesCastPanel({ fragmentRef, dialogFragmentRef, expanded }: {
         reason={reason}
         supportType={supportType}
         closeDialog={() => setSupportType(null)}
-        completeVote={() => setSupportType(null)} />
+        completeVote={() => setSupportType(null)}
+      />
       <VStack
         gap="8"
         justifyContent="space-between"
@@ -107,7 +118,7 @@ export function VotesCastPanel({ fragmentRef, dialogFragmentRef, expanded }: {
           <HStack
             justifyContent="space-between"
             className={css`
-              margin-top:${theme.spacing[2]};
+              margin-top: ${theme.spacing[2]};
             `}
           >
             <div
@@ -125,10 +136,9 @@ export function VotesCastPanel({ fragmentRef, dialogFragmentRef, expanded }: {
               AGAINST &nbsp;{result.againstVotes}
             </div>
           </HStack>
-          <VoteBar
-            fragmentRef={result}
-          />
-          <HStack justifyContent="space-between"
+          <VoteBar fragmentRef={result} />
+          <HStack
+            justifyContent="space-between"
             className={css`
               color: ${theme.colors.gray["4f"]};
             `}
@@ -153,19 +163,25 @@ export function VotesCastPanel({ fragmentRef, dialogFragmentRef, expanded }: {
                   color: ${theme.colors.gray["800"]};
                 `}
               >
-                {hoveredVoter && vote.voter.address.wrappedDelegate == hoveredVoter && <div
-                  className={css`
-                  position: absolute;
-                  width: ${theme.maxWidth.xs};
-                  left: -${theme.maxWidth.xs};
-                `}
-                >
-                  <VoterCard fragmentRef={hoveredVoter} />
-                </div>
-                }
+                {hoveredVoter &&
+                  vote.voter.address.wrappedDelegate == hoveredVoter && (
+                    <div
+                      className={css`
+                        position: absolute;
+                        width: ${theme.maxWidth.xs};
+                        left: -${theme.maxWidth.xs};
+                      `}
+                    >
+                      <VoterCard fragmentRef={hoveredVoter} />
+                    </div>
+                  )}
                 <HStack gap="0">
                   {/* TODO: This is pretty inefficient, as we're fetching all of the voter card info even if not displaying data */}
-                  <div onMouseEnter={() => setHoveredVoter(vote.voter.address.wrappedDelegate)}>
+                  <div
+                    onMouseEnter={() =>
+                      setHoveredVoter(vote.voter.address.wrappedDelegate)
+                    }
+                  >
                     <NounResolvedLink resolvedName={vote.voter.resolvedName!} />
                   </div>
                   <VoteText fragmentRef={vote} />
@@ -173,7 +189,7 @@ export function VotesCastPanel({ fragmentRef, dialogFragmentRef, expanded }: {
                 <HStack
                   gap="0"
                   className={css`
-                    color: #66676B;
+                    color: #66676b;
                   `}
                 >
                   <div>{vote.votes}</div>
@@ -187,7 +203,7 @@ export function VotesCastPanel({ fragmentRef, dialogFragmentRef, expanded }: {
                   </div>
                 </HStack>
               </HStack>
-              {vote.reason &&
+              {vote.reason && (
                 <div
                   className={css`
                     font-size: ${theme.fontSize.sm};
@@ -197,49 +213,62 @@ export function VotesCastPanel({ fragmentRef, dialogFragmentRef, expanded }: {
                 >
                   {vote.reason}
                 </div>
-              }
+              )}
             </VStack>
           ))}
         </VStack>
-        {<VStack
-          className={css`
-            border: 1px solid #E0E0E0;
-            border-radius: ${theme.borderRadius.lg};
-            height: ${theme.spacing["32"]};
-          `}
-        >
-          <textarea
+        {
+          <VStack
             className={css`
-              padding: ${theme.spacing["4"]};
-              resize: none;
+              border: 1px solid #e0e0e0;
               border-radius: ${theme.borderRadius.lg};
-              :focus {
-                outline:0px
-              }
-            `}
-            placeholder="I believe..."
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          />
-          <HStack
-            justifyContent="space-between"
-            alignItems="center"
-            className={css`
-              padding-top: ${theme.spacing["1"]};
-              padding-bottom: ${theme.spacing["3"]};
-              padding-left: ${theme.spacing["3"]};
-              padding-right: ${theme.spacing["3"]};
+              height: ${theme.spacing["32"]};
             `}
           >
-            <VoteButtons fragmentRef={result} setSupportType={setSupportType} />
-          </HStack>
-        </VStack>}
+            <textarea
+              className={css`
+                padding: ${theme.spacing["4"]};
+                resize: none;
+                border-radius: ${theme.borderRadius.lg};
+                :focus {
+                  outline: 0px;
+                }
+              `}
+              placeholder="I believe..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+            <HStack
+              justifyContent="space-between"
+              alignItems="center"
+              className={css`
+                padding-top: ${theme.spacing["1"]};
+                padding-bottom: ${theme.spacing["3"]};
+                padding-left: ${theme.spacing["3"]};
+                padding-right: ${theme.spacing["3"]};
+              `}
+            >
+              <VoteButtons
+                fragmentRef={result}
+                setSupportType={setSupportType}
+              />
+            </HStack>
+          </VStack>
+        }
       </VStack>
     </>
   );
 }
 
-function VoteButtons({ fragmentRef, setSupportType }: { fragmentRef: VotesCastPanelButtonsFragment$key, setSupportType: (nextSupportType: SupportTextProps['supportType'] | null) => void }) {
+function VoteButtons({
+  fragmentRef,
+  setSupportType,
+}: {
+  fragmentRef: VotesCastPanelButtonsFragment$key;
+  setSupportType: (
+    nextSupportType: SupportTextProps["supportType"] | null
+  ) => void;
+}) {
   const { address: accountAddress } = useAccount();
   const result = useFragment(
     graphql`
@@ -261,17 +290,28 @@ function VoteButtons({ fragmentRef, setSupportType }: { fragmentRef: VotesCastPa
   } else if (result.hasVoted.length > 0) {
     return <DisabledVoteButton reason="Already voted" />;
   } else {
-    return <>
-      {(["FOR", "AGAINST", "ABSTAIN"] as SupportTextProps["supportType"][]).map((supportType) => (
-        <VoteButton action={supportType} onClick={() => {
-          setSupportType(supportType);
-        }} />
-      ))}
-    </>;
+    return (
+      <>
+        {(
+          ["FOR", "AGAINST", "ABSTAIN"] as SupportTextProps["supportType"][]
+        ).map((supportType) => (
+          <VoteButton
+            action={supportType}
+            onClick={() => {
+              setSupportType(supportType);
+            }}
+          />
+        ))}
+      </>
+    );
   }
 }
 
-function VoteTime({ fragmentRef }: { fragmentRef: VotesCastPanelTimeFragment$key }) {
+function VoteTime({
+  fragmentRef,
+}: {
+  fragmentRef: VotesCastPanelTimeFragment$key;
+}) {
   const result = useFragment(
     graphql`
       fragment VotesCastPanelTimeFragment on Proposal {
@@ -300,10 +340,14 @@ function VoteTime({ fragmentRef }: { fragmentRef: VotesCastPanelTimeFragment$key
 
   const ago = formatDistanceToNowStrict(voteTime * 1000, { addSuffix: true });
   const text = `${voteTextPrefix} ${ago}`;
-  return <span title={formatISO9075(voteTime * 1000)}>{text}</span>
+  return <span title={formatISO9075(voteTime * 1000)}>{text}</span>;
 }
 
-function VoteText({ fragmentRef }: { fragmentRef: VotesCastPanelTextFragment$key }) {
+function VoteText({
+  fragmentRef,
+}: {
+  fragmentRef: VotesCastPanelTextFragment$key;
+}) {
   const { supportDetailed } = useFragment(
     graphql`
       fragment VotesCastPanelTextFragment on Vote {
@@ -315,27 +359,35 @@ function VoteText({ fragmentRef }: { fragmentRef: VotesCastPanelTextFragment$key
   let text;
   let color;
   if (supportDetailed == 0) {
-    text = 'voted against';
+    text = "voted against";
     color = colorForSupportType("AGAINST");
   } else if (supportDetailed == 1) {
-    text = 'voted for';
+    text = "voted for";
     color = colorForSupportType("FOR");
   } else if (supportDetailed == 2) {
     // TODO: Ask Yitong about color and text
-    text = 'abstained';
+    text = "abstained";
     color = colorForSupportType("ABSTAIN");
   } else {
     // TODO: Better way of handling new vote modes
     throw new Error(`unknown vote type ${supportDetailed}`);
   }
-  return <div className={css`
-    color: ${color};
-  `}>
-    &nbsp;{text}
-  </div>
+  return (
+    <div
+      className={css`
+        color: ${color};
+      `}
+    >
+      &nbsp;{text}
+    </div>
+  );
 }
 
-function VoteBar({ fragmentRef }: { fragmentRef: VotesCastPanelBarFragment$key }) {
+function VoteBar({
+  fragmentRef,
+}: {
+  fragmentRef: VotesCastPanelBarFragment$key;
+}) {
   const { forVotes, againstVotes, abstainVotes } = useFragment(
     graphql`
       fragment VotesCastPanelBarFragment on Proposal {
@@ -346,18 +398,28 @@ function VoteBar({ fragmentRef }: { fragmentRef: VotesCastPanelBarFragment$key }
     `,
     fragmentRef
   );
-  const colors = [colorForSupportType('FOR'), colorForSupportType('ABSTAIN'), colorForSupportType('AGAINST')];
+  const colors = [
+    colorForSupportType("FOR"),
+    colorForSupportType("ABSTAIN"),
+    colorForSupportType("AGAINST"),
+  ];
   const bars = roundMaintainSum([forVotes, abstainVotes, againstVotes], 57);
-  return <HStack justifyContent="space-between">
-    {bars.map((barCount, idx) => Array.from({ length: barCount }, (_, __) => (
-      <div className={css`
-      background: ${colors[idx]};
-      border-radius: ${theme.borderRadius.full};
-      width: 2px;
-      height: 12px;
-    `} />
-    )))}
-  </HStack>
+  return (
+    <HStack justifyContent="space-between">
+      {bars.map((barCount, idx) =>
+        Array.from({ length: barCount }, (_, __) => (
+          <div
+            className={css`
+              background: ${colors[idx]};
+              border-radius: ${theme.borderRadius.full};
+              width: 2px;
+              height: 12px;
+            `}
+          />
+        ))
+      )}
+    </HStack>
+  );
 }
 
 function roundMaintainSum(numberStrings: string[], base: number) {
@@ -367,9 +429,9 @@ function roundMaintainSum(numberStrings: string[], base: number) {
   const sum = numbers.reduce((a, b) => a + b, 0);
   if (sum == 0) {
     // When sum is 0, just set all bars to gray
-    return numbers.map((_, idx) => idx == 1 ? base : 0)
+    return numbers.map((_, idx) => (idx == 1 ? base : 0));
   }
-  const rounded = numbers.map((n) => Math.round(n * base / sum));
+  const rounded = numbers.map((n) => Math.round((n * base) / sum));
   const roundedSum = rounded.reduce((a, b) => a + b, 0);
   const diff = base - roundedSum;
   for (let i = 0; i < diff; i++) {
@@ -385,36 +447,41 @@ const voteButtonStyles = css`
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius:${theme.borderRadius.md};
+  border-radius: ${theme.borderRadius.md};
 `;
 
-function VoteButton(
-  { action, onClick }: {
-    action: SupportTextProps["supportType"],
-    onClick: () => void
-  }
-) {
-  return <button
-    className={css`
-      ${voteButtonStyles};
-      color: ${colorForSupportType(action)};
-      width: ${theme.spacing["24"]};
-    `}
-    onClick={onClick}
-  >
-    {action.toLowerCase()}
-  </button>
+function VoteButton({
+  action,
+  onClick,
+}: {
+  action: SupportTextProps["supportType"];
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className={css`
+        ${voteButtonStyles};
+        color: ${colorForSupportType(action)};
+        width: ${theme.spacing["24"]};
+      `}
+      onClick={onClick}
+    >
+      {action.toLowerCase()}
+    </button>
+  );
 }
 
 function DisabledVoteButton({ reason }: { reason: string }) {
-  return <button
-    disabled={true}
-    className={css`
-      ${voteButtonStyles};
-      box-shadow: none;
-      width: 100%;
-    `}
-  >
-    {reason}
-  </button>
+  return (
+    <button
+      disabled={true}
+      className={css`
+        ${voteButtonStyles};
+        box-shadow: none;
+        width: 100%;
+      `}
+    >
+      {reason}
+    </button>
+  );
 }

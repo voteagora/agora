@@ -10,7 +10,10 @@ import { ProposalsListPanel } from "./ProposalsListPanel";
 import { useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
-import { useNavigate, useParams } from "../../components/HammockRouter/HammockRouter";
+import {
+  useNavigate,
+  useParams,
+} from "../../components/HammockRouter/HammockRouter";
 
 export function ProposalsPage() {
   const { proposalId } = useParams();
@@ -33,7 +36,11 @@ export function ProposalsPage() {
 
   const result = useLazyLoadQuery<ProposalsPageDetailQuery>(
     graphql`
-      query ProposalsPageDetailQuery($proposalID: ID!, $address: String!, $skipAddressQuery: Boolean!) {
+      query ProposalsPageDetailQuery(
+        $proposalID: ID!
+        $address: String!
+        $skipAddressQuery: Boolean!
+      ) {
         firstProposal: proposal(id: $proposalID) {
           number
           ...ProposalDetailPanelFragment
@@ -49,7 +56,7 @@ export function ProposalsPage() {
       proposalID: proposalId,
       address: accountAddress ?? "",
       skipAddressQuery: !accountAddress,
-    },
+    }
   );
 
   const selectedProposal = result.firstProposal;
@@ -87,36 +94,40 @@ export function ProposalsPage() {
           gap="0"
           justifyContent="space-between"
           className={css`
-          position: sticky;
-          top: ${theme.spacing["20"]};
-          flex-shrink: 0;
-          width: ${theme.maxWidth.sm};
-          background-color: ${theme.colors.white};
-          border: 1px solid ${theme.colors.gray.eb};
-          border-radius: ${theme.borderRadius["xl"]};
-          box-shadow: ${theme.boxShadow.newDefault};
-          @media (max-width: ${theme.maxWidth["2xl"]}) {
-            align-items: stretch;
-            justify-content: flex-end;
-            width: 100%;
-          }
-        `}
+            position: sticky;
+            top: ${theme.spacing["20"]};
+            flex-shrink: 0;
+            width: ${theme.maxWidth.sm};
+            background-color: ${theme.colors.white};
+            border: 1px solid ${theme.colors.gray.eb};
+            border-radius: ${theme.borderRadius["xl"]};
+            box-shadow: ${theme.boxShadow.newDefault};
+            @media (max-width: ${theme.maxWidth["2xl"]}) {
+              align-items: stretch;
+              justify-content: flex-end;
+              width: 100%;
+            }
+          `}
         >
           <ProposalsListPanel
             fragmentRef={result}
             setSelectedProposalID={(nextProposalID: number) => {
-              startTransition(
-                () => {
-                  setSelectedProposalID(nextProposalID);
-                }
-              )
+              startTransition(() => {
+                setSelectedProposalID(nextProposalID);
+              });
             }}
             // TODO: If we don't want to use collapse the comments panel when expanding the proposals list,
             // we can move this code into the component instead.
             expanded={proposalsListExpanded}
             setExpanded={setExpanded}
           />
-          <VotesCastPanel fragmentRef={selectedProposal!} dialogFragmentRef={result.address == undefined ? null : result.address} expanded={proposalsListExpanded} />
+          <VotesCastPanel
+            fragmentRef={selectedProposal!}
+            dialogFragmentRef={
+              result.address == undefined ? null : result.address
+            }
+            expanded={proposalsListExpanded}
+          />
           {/* {!proposalsListExpanded && <VotesCastPanel fragmentRef={selectedProposal!} dialogFragmentRef={result.address == undefined ? null : result.address} />} */}
         </VStack>
       </HStack>

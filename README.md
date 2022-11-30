@@ -3,6 +3,7 @@
 ## Initial setup
 
 Install yarn packages:
+
 ```sh
 yarn install
 ```

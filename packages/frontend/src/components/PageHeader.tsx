@@ -80,11 +80,11 @@ export function PageHeader() {
             className={css`
               padding: ${theme.spacing[1]} ${theme.spacing[4]};
               border-radius: ${theme.borderRadius.full};
-              color:${theme.colors.gray[700]};
+              color: ${theme.colors.gray[700]};
               ${!isProposalsPageActive &&
               css`
                 background-color: ${theme.colors.gray.fa};
-                color:inherit;
+                color: inherit;
               `};
             `}
           >
@@ -96,11 +96,11 @@ export function PageHeader() {
             className={css`
               padding: ${theme.spacing[1]} ${theme.spacing[4]};
               border-radius: ${theme.borderRadius.full};
-              color:${theme.colors.gray[700]};
+              color: ${theme.colors.gray[700]};
               ${isProposalsPageActive &&
               css`
                 background-color: ${theme.colors.gray.fa};
-                color:inherit;
+                color: inherit;
               `};
             `}
           >

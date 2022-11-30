@@ -28,5 +28,4 @@ export function ProposalsRedirectPage() {
   startTransition(() => {
     navigate({ path: `/proposals/${proposals[0].number}` });
   });
-
 }

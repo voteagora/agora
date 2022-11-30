@@ -91,7 +91,7 @@ jobs:
 
       - name: Test Report
         uses: dorny/test-reporter@v1
-        if: success() || failure()    # run this step even if previous step failed
+        if: success() || failure() # run this step even if previous step failed
         with:
           name: Backend Tests
           path: ./packages/backend/dist/reports/junit.xml

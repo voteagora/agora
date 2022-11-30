@@ -7,7 +7,12 @@ import { ToucanInterface, withSentryScope } from "./sentry";
 import { getAllLogs } from "./events";
 import { fetchAuctions, fetchAuctionsResponse } from "./propHouse";
 import { z } from "zod";
-import { ContractInstance, nounsDao, nounsToken, TypedInterface } from "./contracts";
+import {
+  ContractInstance,
+  nounsDao,
+  nounsToken,
+  TypedInterface,
+} from "./contracts";
 
 type ReducerDefinition<
   InterfaceType extends TypedInterface,

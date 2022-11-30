@@ -4,7 +4,9 @@ is required to be annotated with this directive.
 """
 directive @entity on OBJECT
 
-"""Defined a Subgraph ID for an object type"""
+"""
+Defined a Subgraph ID for an object type
+"""
 directive @subgraphId(id: String!) on OBJECT
 
 """
@@ -13,36 +15,49 @@ creates a virtual field on the entity that may be queried but cannot be set manu
 directive @derivedFrom(field: String!) on FIELD_DEFINITION
 
 type _Block_ {
-  """The hash of the block"""
+  """
+  The hash of the block
+  """
   hash: Bytes
 
-  """The block number"""
+  """
+  The block number
+  """
   number: Int!
 
-  """Timestamp of the block if available, format depends on the chain"""
+  """
+  Timestamp of the block if available, format depends on the chain
+  """
   timestamp: String
 }
 
-"""The type for the top-level _meta field"""
+"""
+The type for the top-level _meta field
+"""
 type _Meta_ {
   """
   Information about a specific subgraph block. The hash of the block
   will be null if the _meta field has a block constraint that asks for
   a block number. It will be filled if the _meta field has no block constraint
   and therefore asks for the latest  block
-  
   """
   block: _Block_!
 
-  """The deployment ID"""
+  """
+  The deployment ID
+  """
   deployment: String!
 
-  """If `true`, the subgraph encountered indexing errors at some past block"""
+  """
+  If `true`, the subgraph encountered indexing errors at some past block
+  """
   hasIndexingErrors: Boolean!
 }
 
 enum _SubgraphErrorPolicy_ {
-  """Data will be returned even if the subgraph has indexing errors"""
+  """
+  Data will be returned even if the subgraph has indexing errors
+  """
   allow
 
   """
@@ -83,8 +98,16 @@ type Account {
   """
   totalTokensHeld: BigInt!
 
-  """The Nouns owned by this account"""
-  nouns(skip: Int = 0, first: Int = 100, orderBy: Noun_orderBy, orderDirection: OrderDirection, where: Noun_filter): [Noun!]!
+  """
+  The Nouns owned by this account
+  """
+  nouns(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: Noun_orderBy
+    orderDirection: OrderDirection
+    where: Noun_filter
+  ): [Noun!]!
 }
 
 input Account_filter {
@@ -157,7 +180,9 @@ input Account_filter {
   nouns_not_contains_nocase: [String!]
   nouns_: Noun_filter
 
-  """Filter for the block changed event."""
+  """
+  Filter for the block changed event.
+  """
   _change_block: BlockChangedFilter
 }
 
@@ -172,29 +197,51 @@ enum Account_orderBy {
 }
 
 type Auction {
-  """The Noun's ERC721 token id"""
+  """
+  The Noun's ERC721 token id
+  """
   id: ID!
 
-  """The Noun"""
+  """
+  The Noun
+  """
   noun: Noun!
 
-  """The current highest bid amount"""
+  """
+  The current highest bid amount
+  """
   amount: BigInt!
 
-  """The time that the auction started"""
+  """
+  The time that the auction started
+  """
   startTime: BigInt!
 
-  """The time that the auction is scheduled to end"""
+  """
+  The time that the auction is scheduled to end
+  """
   endTime: BigInt!
 
-  """The account with the current highest bid"""
+  """
+  The account with the current highest bid
+  """
   bidder: Account
 
-  """Whether or not the auction has been settled"""
+  """
+  Whether or not the auction has been settled
+  """
   settled: Boolean!
 
-  """The auction bids"""
-  bids(skip: Int = 0, first: Int = 100, orderBy: Bid_orderBy, orderDirection: OrderDirection, where: Bid_filter): [Bid!]!
+  """
+  The auction bids
+  """
+  bids(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: Bid_orderBy
+    orderDirection: OrderDirection
+    where: Bid_filter
+  ): [Bid!]!
 }
 
 input Auction_filter {
@@ -278,7 +325,9 @@ input Auction_filter {
   settled_not_in: [Boolean!]
   bids_: Bid_filter
 
-  """Filter for the block changed event."""
+  """
+  Filter for the block changed event.
+  """
   _change_block: BlockChangedFilter
 }
 
@@ -294,28 +343,44 @@ enum Auction_orderBy {
 }
 
 type Bid {
-  """Bid transaction hash"""
+  """
+  Bid transaction hash
+  """
   id: ID!
 
-  """The Noun being bid on"""
+  """
+  The Noun being bid on
+  """
   noun: Noun!
 
-  """Bid amount"""
+  """
+  Bid amount
+  """
   amount: BigInt!
 
-  """Bidder account"""
+  """
+  Bidder account
+  """
   bidder: Account
 
-  """Block number of the bid"""
+  """
+  Block number of the bid
+  """
   blockNumber: BigInt!
 
-  """Index of transaction within block"""
+  """
+  Index of transaction within block
+  """
   txIndex: BigInt!
 
-  """The auction being bid in"""
+  """
+  The auction being bid in
+  """
   auction: Auction!
 
-  """The timestamp of the block the bid is in"""
+  """
+  The timestamp of the block the bid is in
+  """
   blockTimestamp: BigInt!
 }
 
@@ -424,7 +489,9 @@ input Bid_filter {
   blockTimestamp_in: [BigInt!]
   blockTimestamp_not_in: [BigInt!]
 
-  """Filter for the block changed event."""
+  """
+  Filter for the block changed event.
+  """
   _change_block: BlockChangedFilter
 }
 
@@ -475,17 +542,49 @@ type Delegate {
   delegatedVotes: BigInt!
   tokenHoldersRepresentedAmount: Int!
 
-  """Token holders that this delegate represents"""
-  tokenHoldersRepresented(skip: Int = 0, first: Int = 100, orderBy: Account_orderBy, orderDirection: OrderDirection, where: Account_filter): [Account!]!
+  """
+  Token holders that this delegate represents
+  """
+  tokenHoldersRepresented(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: Account_orderBy
+    orderDirection: OrderDirection
+    where: Account_filter
+  ): [Account!]!
 
-  """Nouns that this delegate represents"""
-  nounsRepresented(skip: Int = 0, first: Int = 100, orderBy: Noun_orderBy, orderDirection: OrderDirection, where: Noun_filter): [Noun!]!
+  """
+  Nouns that this delegate represents
+  """
+  nounsRepresented(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: Noun_orderBy
+    orderDirection: OrderDirection
+    where: Noun_filter
+  ): [Noun!]!
 
-  """Votes that a delegate has made in different proposals"""
-  votes(skip: Int = 0, first: Int = 100, orderBy: Vote_orderBy, orderDirection: OrderDirection, where: Vote_filter): [Vote!]!
+  """
+  Votes that a delegate has made in different proposals
+  """
+  votes(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: Vote_orderBy
+    orderDirection: OrderDirection
+    where: Vote_filter
+  ): [Vote!]!
 
-  """Proposals that the delegate has created"""
-  proposals(skip: Int = 0, first: Int = 100, orderBy: Proposal_orderBy, orderDirection: OrderDirection, where: Proposal_filter): [Proposal!]!
+  """
+  Proposals that the delegate has created
+  """
+  proposals(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: Proposal_orderBy
+    orderDirection: OrderDirection
+    where: Proposal_filter
+  ): [Proposal!]!
 }
 
 input Delegate_filter {
@@ -532,7 +631,9 @@ input Delegate_filter {
   votes_: Vote_filter
   proposals_: Proposal_filter
 
-  """Filter for the block changed event."""
+  """
+  Filter for the block changed event.
+  """
   _change_block: BlockChangedFilter
 }
 
@@ -548,22 +649,34 @@ enum Delegate_orderBy {
 }
 
 type DelegationEvent {
-  """The txn hash of this event + nounId"""
+  """
+  The txn hash of this event + nounId
+  """
   id: ID!
 
-  """The Noun being delegated"""
+  """
+  The Noun being delegated
+  """
   noun: Noun!
 
-  """Previous delegate address"""
+  """
+  Previous delegate address
+  """
   previousDelegate: Delegate!
 
-  """New delegate address"""
+  """
+  New delegate address
+  """
   newDelegate: Delegate!
 
-  """Block number of the event"""
+  """
+  Block number of the event
+  """
   blockNumber: BigInt!
 
-  """The timestamp of the block the event is in"""
+  """
+  The timestamp of the block the event is in
+  """
   blockTimestamp: BigInt!
 }
 
@@ -656,7 +769,9 @@ input DelegationEvent_filter {
   blockTimestamp_in: [BigInt!]
   blockTimestamp_not_in: [BigInt!]
 
-  """Filter for the block changed event."""
+  """
+  Filter for the block changed event.
+  """
   _change_block: BlockChangedFilter
 }
 
@@ -670,22 +785,34 @@ enum DelegationEvent_orderBy {
 }
 
 type Governance {
-  """Unique entity used to keep track of common aggregated data"""
+  """
+  Unique entity used to keep track of common aggregated data
+  """
   id: ID!
 
-  """Number of proposals created"""
+  """
+  Number of proposals created
+  """
   proposals: BigInt!
 
-  """Total number of token holders currently"""
+  """
+  Total number of token holders currently
+  """
   currentTokenHolders: BigInt!
 
-  """Total number of delegates participating on the governance currently"""
+  """
+  Total number of delegates participating on the governance currently
+  """
   currentDelegates: BigInt!
 
-  """Total number of token holders"""
+  """
+  Total number of token holders
+  """
   totalTokenHolders: BigInt!
 
-  """Total number of delegates that held delegated votes"""
+  """
+  Total number of delegates that held delegated votes
+  """
   totalDelegates: BigInt!
 
   """
@@ -698,7 +825,9 @@ type Governance {
   """
   delegatedVotes: BigInt!
 
-  """Number of proposals currently queued for execution"""
+  """
+  Number of proposals currently queued for execution
+  """
   proposalsQueued: BigInt!
 }
 
@@ -776,7 +905,9 @@ input Governance_filter {
   proposalsQueued_in: [BigInt!]
   proposalsQueued_not_in: [BigInt!]
 
-  """Filter for the block changed event."""
+  """
+  Filter for the block changed event.
+  """
   _change_block: BlockChangedFilter
 }
 
@@ -793,17 +924,31 @@ enum Governance_orderBy {
 }
 
 type Noun {
-  """The Noun's ERC721 token id"""
+  """
+  The Noun's ERC721 token id
+  """
   id: ID!
 
-  """The seed used to determine the Noun's traits"""
+  """
+  The seed used to determine the Noun's traits
+  """
   seed: Seed
 
-  """The owner of the Noun"""
+  """
+  The owner of the Noun
+  """
   owner: Account!
 
-  """Historical votes for the Noun"""
-  votes(skip: Int = 0, first: Int = 100, orderBy: Vote_orderBy, orderDirection: OrderDirection, where: Vote_filter): [Vote!]!
+  """
+  Historical votes for the Noun
+  """
+  votes(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: Vote_orderBy
+    orderDirection: OrderDirection
+    where: Vote_filter
+  ): [Vote!]!
 }
 
 input Noun_filter {
@@ -859,7 +1004,9 @@ input Noun_filter {
   owner_: Account_filter
   votes_: Vote_filter
 
-  """Filter for the block changed event."""
+  """
+  Filter for the block changed event.
+  """
   _change_block: BlockChangedFilter
 }
 
@@ -870,7 +1017,9 @@ enum Noun_orderBy {
   votes
 }
 
-"""Defines the order direction, either ascending or descending"""
+"""
+Defines the order direction, either ascending or descending
+"""
 enum OrderDirection {
   asc
   desc
@@ -882,37 +1031,59 @@ type Proposal {
   """
   id: ID!
 
-  """Delegate that proposed the change"""
+  """
+  Delegate that proposed the change
+  """
   proposer: Delegate!
 
-  """Targets data for the change"""
+  """
+  Targets data for the change
+  """
   targets: [Bytes!]
 
-  """Values data for the change"""
+  """
+  Values data for the change
+  """
   values: [BigInt!]
 
-  """Signature data for the change"""
+  """
+  Signature data for the change
+  """
   signatures: [String!]
 
-  """Call data for the change"""
+  """
+  Call data for the change
+  """
   calldatas: [Bytes!]
 
-  """The proposal creation timestamp"""
+  """
+  The proposal creation timestamp
+  """
   createdTimestamp: BigInt!
 
-  """The proposal creation block"""
+  """
+  The proposal creation block
+  """
   createdBlock: BigInt!
 
-  """The proposal creation transaction hash"""
+  """
+  The proposal creation transaction hash
+  """
   createdTransactionHash: Bytes!
 
-  """Block number from where the voting starts"""
+  """
+  Block number from where the voting starts
+  """
   startBlock: BigInt!
 
-  """Block number from where the voting ends"""
+  """
+  Block number from where the voting ends
+  """
   endBlock: BigInt!
 
-  """The proposal threshold at the time of proposal creation"""
+  """
+  The proposal threshold at the time of proposal creation
+  """
   proposalThreshold: BigInt!
 
   """
@@ -920,19 +1091,29 @@ type Proposal {
   """
   quorumVotes: BigInt!
 
-  """The number of votes in favor of the proposal"""
+  """
+  The number of votes in favor of the proposal
+  """
   forVotes: BigInt!
 
-  """The number of votes against of the proposal"""
+  """
+  The number of votes against of the proposal
+  """
   againstVotes: BigInt!
 
-  """The number of votes to abstain on the proposal"""
+  """
+  The number of votes to abstain on the proposal
+  """
   abstainVotes: BigInt!
 
-  """String description of the change"""
+  """
+  String description of the change
+  """
   description: String!
 
-  """Status of the proposal"""
+  """
+  Status of the proposal
+  """
   status: ProposalStatus!
 
   """
@@ -940,8 +1121,16 @@ type Proposal {
   """
   executionETA: BigInt
 
-  """Votes associated to this proposal"""
-  votes(skip: Int = 0, first: Int = 100, orderBy: Vote_orderBy, orderDirection: OrderDirection, where: Vote_filter): [Vote!]!
+  """
+  Votes associated to this proposal
+  """
+  votes(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: Vote_orderBy
+    orderDirection: OrderDirection
+    where: Vote_filter
+  ): [Vote!]!
 }
 
 input Proposal_filter {
@@ -1110,7 +1299,9 @@ input Proposal_filter {
   executionETA_not_in: [BigInt!]
   votes_: Vote_filter
 
-  """Filter for the block changed event."""
+  """
+  Filter for the block changed event.
+  """
   _change_block: BlockChangedFilter
 }
 
@@ -1588,27 +1779,41 @@ type Query {
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [Governance!]!
 
-  """Access to subgraph metadata"""
+  """
+  Access to subgraph metadata
+  """
   _meta(block: Block_height): _Meta_
 }
 
 type Seed {
-  """The Noun's ERC721 token id"""
+  """
+  The Noun's ERC721 token id
+  """
   id: ID!
 
-  """The background index"""
+  """
+  The background index
+  """
   background: BigInt!
 
-  """The body index"""
+  """
+  The body index
+  """
   body: BigInt!
 
-  """The accessory index"""
+  """
+  The accessory index
+  """
   accessory: BigInt!
 
-  """The head index"""
+  """
+  The head index
+  """
   head: BigInt!
 
-  """The glasses index"""
+  """
+  The glasses index
+  """
   glasses: BigInt!
 }
 
@@ -1662,7 +1867,9 @@ input Seed_filter {
   glasses_in: [BigInt!]
   glasses_not_in: [BigInt!]
 
-  """Filter for the block changed event."""
+  """
+  Filter for the block changed event.
+  """
   _change_block: BlockChangedFilter
 }
 
@@ -2117,27 +2324,41 @@ type Subscription {
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [Governance!]!
 
-  """Access to subgraph metadata"""
+  """
+  Access to subgraph metadata
+  """
   _meta(block: Block_height): _Meta_
 }
 
 type TransferEvent {
-  """The txn hash of this event"""
+  """
+  The txn hash of this event
+  """
   id: ID!
 
-  """The Noun being transfered"""
+  """
+  The Noun being transfered
+  """
   noun: Noun!
 
-  """Previous holder address"""
+  """
+  Previous holder address
+  """
   previousHolder: Account!
 
-  """New holder address"""
+  """
+  New holder address
+  """
   newHolder: Account!
 
-  """Block number of the event"""
+  """
+  Block number of the event
+  """
   blockNumber: BigInt!
 
-  """The timestamp of the block the event is in"""
+  """
+  The timestamp of the block the event is in
+  """
   blockTimestamp: BigInt!
 }
 
@@ -2230,7 +2451,9 @@ input TransferEvent_filter {
   blockTimestamp_in: [BigInt!]
   blockTimestamp_not_in: [BigInt!]
 
-  """Filter for the block changed event."""
+  """
+  Filter for the block changed event.
+  """
   _change_block: BlockChangedFilter
 }
 
@@ -2244,13 +2467,19 @@ enum TransferEvent_orderBy {
 }
 
 type Vote {
-  """Delegate ID + Proposal ID"""
+  """
+  Delegate ID + Proposal ID
+  """
   id: ID!
 
-  """Whether the vote is in favour of the proposal"""
+  """
+  Whether the vote is in favour of the proposal
+  """
   support: Boolean!
 
-  """The integer support value: against (0), for (1), or abstain (2)"""
+  """
+  The integer support value: against (0), for (1), or abstain (2)
+  """
   supportDetailed: Int!
 
   """
@@ -2263,19 +2492,35 @@ type Vote {
   """
   votes: BigInt!
 
-  """The optional vote reason"""
+  """
+  The optional vote reason
+  """
   reason: String
 
-  """Delegate that emitted the vote"""
+  """
+  Delegate that emitted the vote
+  """
   voter: Delegate!
 
-  """The Nouns used to vote"""
-  nouns(skip: Int = 0, first: Int = 100, orderBy: Noun_orderBy, orderDirection: OrderDirection, where: Noun_filter): [Noun!]
+  """
+  The Nouns used to vote
+  """
+  nouns(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: Noun_orderBy
+    orderDirection: OrderDirection
+    where: Noun_filter
+  ): [Noun!]
 
-  """Proposal that is being voted on"""
+  """
+  Proposal that is being voted on
+  """
   proposal: Proposal!
 
-  """Block number of vote"""
+  """
+  Block number of vote
+  """
   blockNumber: BigInt!
 }
 
@@ -2394,7 +2639,9 @@ input Vote_filter {
   blockNumber_in: [BigInt!]
   blockNumber_not_in: [BigInt!]
 
-  """Filter for the block changed event."""
+  """
+  Filter for the block changed event.
+  """
   _change_block: BlockChangedFilter
 }
 
@@ -2410,4 +2657,3 @@ enum Vote_orderBy {
   proposal
   blockNumber
 }
-
