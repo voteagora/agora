@@ -1,0 +1,73 @@
+name: Verify
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify-frontend:
+    runs-on: ubuntu-latest
+    name: Build Frontend
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.17.0
+          cache: "yarn"
+
+      - run: yarn install
+
+      - run: yarn prettier -- --check
+
+      - run: yarn workspace nouns-agora run build
+
+  build-backend:
+    runs-on: ubuntu-latest
+    name: Build Backend
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.17.0
+          cache: "yarn"
+
+      - run: yarn install
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: package/render-opengraph
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: wasm-pack
+
+      - name: Build render-opengraph
+        working-directory: ./packages/render-opengraph
+        run: |
+          wasm-pack build --target web
+          rm pkg/render_opengraph_bg.wasm.d.ts
+
+      - run: yarn workspace nouns-agora-backend run generate
+
+      - name: Typescript
+        working-directory: ./packages/backend
+        run: yarn tsc --noEmit
+
+      - name: Run Test
+        working-directory: ./packages/backend
+        run: yarn test
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure() # run this step even if previous step failed
+        with:
+          name: Backend Tests
+          path: ./packages/backend/dist/reports/junit.xml
+          reporter: jest-junit
