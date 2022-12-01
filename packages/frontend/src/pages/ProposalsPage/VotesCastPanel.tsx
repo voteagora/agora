@@ -395,9 +395,9 @@ function VoteBar({
   return (
     <HStack justifyContent="space-between">
       {bars.map((barCount, idx) =>
-        Array.from({ length: barCount }, (_, __) => (
+        Array.from({ length: barCount }, (_, idy) => (
           <div
-            key={idx}
+            key={`${idx}-${idy}`}
             className={css`
               background: ${colors[idx]};
               border-radius: ${theme.borderRadius.full};
