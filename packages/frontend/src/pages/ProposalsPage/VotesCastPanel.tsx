@@ -80,6 +80,7 @@ export function VotesCastPanel({
     font-size: ${theme.fontSize.xs};
     overflow-y: auto;
     height: 113px;
+    overflow: hidden;
   `;
 
   const normalSize = css`
@@ -141,6 +142,9 @@ export function VotesCastPanel({
           gap="5"
           className={css`
             overflow-y: auto;
+            ::-webkit-scrollbar {
+              display: none;
+            }
           `}
         >
           {result.votes.map((vote) => (
@@ -158,8 +162,9 @@ export function VotesCastPanel({
                     <div
                       className={css`
                         position: absolute;
-                        width: ${theme.maxWidth.xs};
-                        left: -${theme.maxWidth.xs};
+                        width: 320px;
+                        right: 400px;
+                        top: calc(50% - 168px);
                       `}
                     >
                       <VoterCard fragmentRef={hoveredVoter} />

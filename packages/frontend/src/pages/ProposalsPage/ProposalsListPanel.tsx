@@ -178,6 +178,9 @@ export function ProposalsListPanel({
           className={css`
             overflow-y: auto;
             max-height: calc(100vh - 324px);
+            ::-webkit-scrollbar {
+              display: none;
+            }
           `}
         >
           {proposalsToDisplay.map((proposal) => (
