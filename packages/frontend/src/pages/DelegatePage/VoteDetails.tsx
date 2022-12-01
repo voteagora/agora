@@ -15,6 +15,7 @@ import { pluralizeVote } from "../../words";
 import { BigNumber } from "ethers";
 import { formatDistanceToNow } from "date-fns";
 import { ProposalLink } from "../../components/ProposalLink";
+import { VoteReason } from "../../components/VoteReason";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;
@@ -29,6 +30,7 @@ export function VoteDetails({ voteFragment }: Props) {
     graphql`
       fragment VoteDetailsFragment on Vote {
         reason
+        ...VoteReasonFragment
         supportDetailed
         votes
         createdAt
@@ -136,18 +138,7 @@ export function VoteDetails({ voteFragment }: Props) {
                 }
               `}
             >
-              <pre
-                className={css`
-                  font-family: ${theme.fontFamily.sans};
-                  font-size: ${theme.fontSize.xs};
-                  font-weight: ${theme.fontWeight.medium};
-                  white-space: pre-wrap;
-                  color: #66676b;
-                  width: fit-content;
-                `}
-              >
-                {vote.reason}
-              </pre>
+              <VoteReason fragmentKey={vote} />
             </VStack>
           </>
         )}
