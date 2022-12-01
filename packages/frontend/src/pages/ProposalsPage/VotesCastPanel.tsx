@@ -22,6 +22,7 @@ import { formatDistanceToNowStrict, formatISO9075 } from "date-fns";
 import { useAccount } from "wagmi";
 import { VoterCardFragment$key } from "../HomePage/__generated__/VoterCardFragment.graphql";
 import { VoterCard } from "../HomePage/VoterCard";
+import { VoteReason } from "../../components/VoteReason";
 
 export function VotesCastPanel({
   fragmentRef,
@@ -69,6 +70,7 @@ export function VotesCastPanel({
             }
           }
           ...VotesCastPanelTextFragment
+          ...VoteReasonFragment
         }
         ...VotesCastPanelBarFragment
         ...VotesCastPanelTimeFragment
@@ -203,17 +205,7 @@ export function VotesCastPanel({
                   </div>
                 </HStack>
               </HStack>
-              {vote.reason && (
-                <div
-                  className={css`
-                    font-size: ${theme.fontSize.sm};
-                    line-height: ${theme.lineHeight.snug};
-                    color: ${theme.colors.gray["800"]};
-                  `}
-                >
-                  {vote.reason}
-                </div>
-              )}
+              {vote.reason && <VoteReason fragmentKey={vote} />}
             </VStack>
           ))}
         </VStack>
