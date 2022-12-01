@@ -60,6 +60,9 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
+    "rules": {
+      "react/jsx-key": "error"
+    },
     "extends": [
       "react-app",
       "react-app/jest"
