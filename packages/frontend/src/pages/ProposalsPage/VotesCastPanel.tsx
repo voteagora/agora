@@ -7,7 +7,10 @@ import graphql from "babel-plugin-relay/macro";
 import { VotesCastPanelFragment$key } from "./__generated__/VotesCastPanelFragment.graphql";
 import { VotesCastPanelTextFragment$key } from "./__generated__/VotesCastPanelTextFragment.graphql";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
-import { colorForSupportType } from "../DelegatePage/VoteDetailsContainer";
+import {
+  colorForSupportType,
+  toSupportType,
+} from "../DelegatePage/VoteDetailsContainer";
 import { useEffect, useState } from "react";
 import { VoterCardFragment$key } from "../HomePage/__generated__/VoterCardFragment.graphql";
 import { VoterCard } from "../HomePage/VoterCard";
@@ -25,6 +28,7 @@ export function VotesCastPanel({
 }) {
   const openDialog = useOpenDialog();
 
+  // todo: implement this in a bit less hacky way
   const [hoveredVoter, setHoveredVoter] =
     useState<VoterCardFragment$key | null>(null);
 
@@ -95,8 +99,6 @@ export function VotesCastPanel({
                   <HStack
                     justifyContent="space-between"
                     className={css`
-                      font-weight: ${theme.fontWeight.semibold};
-                      line-height: ${theme.lineHeight.none};
                       color: ${theme.colors.gray["800"]};
                     `}
                   >
@@ -180,29 +182,28 @@ function VoteText({
     `,
     fragmentRef
   );
-  let text;
-  let color;
-  if (supportDetailed === 0) {
-    text = "voted against";
-    color = colorForSupportType("AGAINST");
-  } else if (supportDetailed === 1) {
-    text = "voted for";
-    color = colorForSupportType("FOR");
-  } else if (supportDetailed === 2) {
-    // TODO: Ask Yitong about color and text
-    text = "abstained";
-    color = colorForSupportType("ABSTAIN");
-  } else {
-    // TODO: Better way of handling new vote modes
-    throw new Error(`unknown vote type ${supportDetailed}`);
-  }
+
+  const supportType = toSupportType(supportDetailed);
+
   return (
     <div
       className={css`
-        color: ${color};
+        color: ${colorForSupportType(supportType)};
       `}
     >
-      &nbsp;{text}
+      &nbsp;
+      {(() => {
+        switch (supportType) {
+          case "AGAINST":
+            return "voted against";
+
+          case "ABSTAIN":
+            return "abstained";
+
+          case "FOR":
+            return "voted for";
+        }
+      })()}
     </div>
   );
 }
