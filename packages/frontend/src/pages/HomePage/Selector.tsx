@@ -19,7 +19,7 @@ type SelectorProps<T> = {
   items: SelectorItem<T>[];
   value: T;
   onChange: (item: T) => void;
-  size: string;
+  size: "m" | "l";
 };
 
 export function Selector<T>({
