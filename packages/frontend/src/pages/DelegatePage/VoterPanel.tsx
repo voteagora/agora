@@ -18,12 +18,12 @@ import { VoterPanelDelegateFromListFragment$key } from "./__generated__/VoterPan
 import { VoterPanelNameSectionFragment$key } from "./__generated__/VoterPanelNameSectionFragment.graphql";
 import { shortAddress } from "../../utils/address";
 import { Textfit } from "react-textfit";
-import { DelegateDialog } from "../../components/DelegateDialog";
 import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
 import toast from "react-hot-toast";
 import { DelegateProfileImage } from "../HomePage/VoterCard";
 import { BigNumber } from "ethers";
 import { pluralizeAddresses, pluralizeNoun } from "../../words";
+import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -408,31 +408,34 @@ function DelegateButton({
   const wrappedDelegate = useFragment(
     graphql`
       fragment VoterPanelDelegateButtonFragment on WrappedDelegate {
-        ...DelegateDialogFragment
+        address {
+          resolvedName {
+            address
+          }
+        }
       }
     `,
     fragment
   );
 
   const startTransition = useStartTransition();
-  const [isDialogOpen, setDialogOpen] = useState(false);
+  const openDialog = useOpenDialog();
 
   return (
     <>
-      <DelegateDialog
-        fragment={wrappedDelegate}
-        isOpen={isDialogOpen}
-        closeDialog={() => setDialogOpen(false)}
-        completeDelegation={() => {
-          setDialogOpen(false);
-        }}
-      />
-
       <button
         onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
-          startTransition(() => setDialogOpen(true));
+          startTransition(() =>
+            openDialog({
+              type: "DELEGATE",
+              params: {
+                targetAccountAddress:
+                  wrappedDelegate.address.resolvedName.address,
+              },
+            })
+          );
         }}
         className={css`
           ${buttonStyles};

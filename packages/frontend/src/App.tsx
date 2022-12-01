@@ -13,6 +13,7 @@ import {
 import { FullPageLoadingIndicator } from "./components/FullPageLoadingIndicator";
 import { Toaster } from "react-hot-toast";
 import { RecoilRoot } from "recoil";
+import { DialogProvider } from "./components/DialogProvider/DialogProvider";
 
 const wagmiClient = createClient(
   getDefaultClient({
@@ -31,16 +32,18 @@ function App() {
           <WagmiConfig client={wagmiClient}>
             <ConnectKitProvider>
               <RelayEnvironmentProvider environment={relayEnvironment}>
-                <HammockRouter>
-                  <PageContainer>
-                    <Toaster />
-                    <Suspense fallback={<FullPageLoadingIndicator />}>
-                      <PageHeader />
+                <DialogProvider>
+                  <HammockRouter>
+                    <PageContainer>
+                      <Toaster />
+                      <Suspense fallback={<FullPageLoadingIndicator />}>
+                        <PageHeader />
 
-                      <HammockRouterContents />
-                    </Suspense>
-                  </PageContainer>
-                </HammockRouter>
+                        <HammockRouterContents />
+                      </Suspense>
+                    </PageContainer>
+                  </HammockRouter>
+                </DialogProvider>
               </RelayEnvironmentProvider>
             </ConnectKitProvider>
           </WagmiConfig>
