@@ -105,6 +105,7 @@ function CodeChanges({
           targets.map((target, idx) => {
             return (
               <CodeChange
+                key={idx}
                 target={target}
                 signature={signatures![idx]}
                 calldata={calldatas?.[idx]}

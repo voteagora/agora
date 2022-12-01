@@ -301,7 +301,7 @@ function DelegateFromList({
 
       {isExpanded &&
         tokenHolders.map((holder) => (
-          <HStack justifyContent="space-between">
+          <HStack key={holder.id} justifyContent="space-between">
             <div
               className={css`
                 text-overflow: ellipsis;

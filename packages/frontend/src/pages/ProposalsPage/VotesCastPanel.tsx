@@ -283,6 +283,7 @@ function VoteButtons({
           ["FOR", "AGAINST", "ABSTAIN"] as SupportTextProps["supportType"][]
         ).map((supportType) => (
           <VoteButton
+            key={supportType}
             action={supportType}
             onClick={() => {
               onVoteClicked(supportType);
@@ -396,6 +397,7 @@ function VoteBar({
       {bars.map((barCount, idx) =>
         Array.from({ length: barCount }, (_, __) => (
           <div
+            key={idx}
             className={css`
               background: ${colors[idx]};
               border-radius: ${theme.borderRadius.full};

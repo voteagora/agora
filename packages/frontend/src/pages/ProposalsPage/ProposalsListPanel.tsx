@@ -182,6 +182,7 @@ export function ProposalsListPanel({
         >
           {proposalsToDisplay.map((proposal) => (
             <SingleProposal
+              key={proposal.number}
               proposal={proposal}
               selected={proposal.number === proposalToDisplay.number}
               onClick={() => {

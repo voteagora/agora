@@ -113,8 +113,9 @@ export function PropHouseVoteDetails({ voteFragment }: Props) {
               }
             `}
           >
-            {vote.votes.map((vote) => (
+            {vote.votes.map((vote, idx) => (
               <div
+                key={idx}
                 className={css`
                   white-space: nowrap;
                   text-overflow: ellipsis;

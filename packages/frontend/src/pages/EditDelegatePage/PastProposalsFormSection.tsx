@@ -179,6 +179,7 @@ function ProposalList({
 
       {selectedProposalsWithSearchableProposal.map((proposal) => (
         <ProposalCard
+          key={proposal.number}
           proposal={proposal}
           onClose={() => removeSelectedProposal(proposal.number)}
         />
