@@ -96,12 +96,7 @@ export function VotesCastPanel({
             >
               {result.votes.map((vote) => (
                 <VStack key={vote.id} gap="1">
-                  <HStack
-                    justifyContent="space-between"
-                    className={css`
-                      color: ${theme.colors.gray["800"]};
-                    `}
-                  >
+                  <VStack>
                     {hoveredVoter &&
                       vote.voter.address.wrappedDelegate === hoveredVoter && (
                         <div
@@ -114,35 +109,50 @@ export function VotesCastPanel({
                           <VoterCard fragmentRef={hoveredVoter} />
                         </div>
                       )}
-                    <HStack gap="0">
-                      <div
-                        onMouseEnter={() =>
-                          setHoveredVoter(vote.voter.address.wrappedDelegate)
-                        }
-                      >
-                        <NounResolvedLink
-                          resolvedName={vote.voter.resolvedName!}
-                        />
-                      </div>
-                      <VoteText fragmentRef={vote} />
-                    </HStack>
+
                     <HStack
-                      gap="0"
+                      justifyContent="space-between"
                       className={css`
-                        color: #66676b;
+                        color: ${theme.colors.gray["800"]};
+                        font-weight: ${theme.fontWeight.semibold};
+                        font-size: ${theme.fontSize.xs};
                       `}
                     >
-                      <div>{vote.votes}</div>
-                      <div
+                      <HStack>
+                        <div
+                          onMouseEnter={() =>
+                            setHoveredVoter(vote.voter.address.wrappedDelegate)
+                          }
+                        >
+                          <NounResolvedLink
+                            resolvedName={vote.voter.resolvedName!}
+                          />
+                        </div>
+
+                        <VoteText fragmentRef={vote} />
+                      </HStack>
+
+                      <HStack
+                        gap="1"
+                        alignItems="center"
                         className={css`
-                          width: ${theme.spacing["4"]};
-                          height: ${theme.spacing["4"]};
+                          color: #66676b;
+                          font-size: ${theme.fontSize.xs};
                         `}
                       >
-                        <UserIcon />
-                      </div>
+                        <div>{vote.votes}</div>
+
+                        <div
+                          className={css`
+                            width: ${theme.spacing["3"]};
+                            height: ${theme.spacing["3"]};
+                          `}
+                        >
+                          <UserIcon />
+                        </div>
+                      </HStack>
                     </HStack>
-                  </HStack>
+                  </VStack>
 
                   {vote.reason && <VoteReason fragmentKey={vote} />}
                 </VStack>
