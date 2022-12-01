@@ -22,7 +22,7 @@ export function DialogProvider({ children }: Props) {
     }
 
     const dialog = dialogs[contextValue.type];
-    return dialog(contextValue.params, () => setContextValue(null));
+    return dialog(contextValue.params as any, () => setContextValue(null));
   })();
 
   return (

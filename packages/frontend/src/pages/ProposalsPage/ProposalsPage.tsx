@@ -36,26 +36,18 @@ export function ProposalsPage() {
 
   const result = useLazyLoadQuery<ProposalsPageDetailQuery>(
     graphql`
-      query ProposalsPageDetailQuery(
-        $proposalID: ID!
-        $address: String!
-        $skipAddressQuery: Boolean!
-      ) {
+      query ProposalsPageDetailQuery($proposalID: ID!, $address: String!) {
         firstProposal: proposal(id: $proposalID) {
           number
           ...ProposalDetailPanelFragment
           ...VotesCastPanelFragment @arguments(address: $address)
         }
         ...ProposalsListPanelFragment @arguments(proposalID: $proposalID)
-        address(addressOrEnsName: $address) @skip(if: $skipAddressQuery) {
-          ...CastVoteDialogFragment
-        }
       }
     `,
     {
       proposalID: proposalId,
       address: accountAddress ?? "",
-      skipAddressQuery: !accountAddress,
     }
   );
 
@@ -123,9 +115,6 @@ export function ProposalsPage() {
           />
           <VotesCastPanel
             fragmentRef={selectedProposal!}
-            dialogFragmentRef={
-              result.address === undefined ? null : result.address
-            }
             expanded={proposalsListExpanded}
           />
           {/* {!proposalsListExpanded && <VotesCastPanel fragmentRef={selectedProposal!} dialogFragmentRef={result.address == undefined ? null : result.address} />} */}

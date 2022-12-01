@@ -16,27 +16,23 @@ import {
   SupportTextProps,
 } from "../DelegatePage/VoteDetailsContainer";
 import { useEffect, useState } from "react";
-import { CastVoteDialog } from "./CastVoteDialog";
-import { CastVoteDialogFragment$key } from "./__generated__/CastVoteDialogFragment.graphql";
 import { formatDistanceToNowStrict, formatISO9075 } from "date-fns";
 import { useAccount } from "wagmi";
 import { VoterCardFragment$key } from "../HomePage/__generated__/VoterCardFragment.graphql";
 import { VoterCard } from "../HomePage/VoterCard";
 import { VoteReason } from "../../components/VoteReason";
+import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
 
 export function VotesCastPanel({
   fragmentRef,
-  dialogFragmentRef,
   expanded,
 }: {
   fragmentRef: VotesCastPanelFragment$key;
-  dialogFragmentRef: CastVoteDialogFragment$key | null;
   expanded: boolean;
 }) {
   const [reason, setReason] = useState<string>("");
-  const [supportType, setSupportType] = useState<
-    SupportTextProps["supportType"] | null
-  >(null);
+  const openDialog = useOpenDialog();
+
   const [hoveredVoter, setHoveredVoter] =
     useState<VoterCardFragment$key | null>(null);
   useEffect(() => {
@@ -95,14 +91,6 @@ export function VotesCastPanel({
 
   return (
     <>
-      <CastVoteDialog
-        fragmentRef={dialogFragmentRef}
-        proposalID={result.number}
-        reason={reason}
-        supportType={supportType}
-        closeDialog={() => setSupportType(null)}
-        completeVote={() => setSupportType(null)}
-      />
       <VStack
         gap="8"
         justifyContent="space-between"
@@ -242,7 +230,16 @@ export function VotesCastPanel({
             >
               <VoteButtons
                 fragmentRef={result}
-                setSupportType={setSupportType}
+                onVoteClicked={(supportType) =>
+                  openDialog({
+                    type: "CAST_VOTE",
+                    params: {
+                      reason,
+                      supportType,
+                      proposalId: result.number,
+                    },
+                  })
+                }
               />
             </HStack>
           </VStack>
@@ -254,12 +251,10 @@ export function VotesCastPanel({
 
 function VoteButtons({
   fragmentRef,
-  setSupportType,
+  onVoteClicked,
 }: {
   fragmentRef: VotesCastPanelButtonsFragment$key;
-  setSupportType: (
-    nextSupportType: SupportTextProps["supportType"] | null
-  ) => void;
+  onVoteClicked: (supportType: SupportTextProps["supportType"]) => void;
 }) {
   const { address: accountAddress } = useAccount();
   const result = useFragment(
@@ -290,7 +285,7 @@ function VoteButtons({
           <VoteButton
             action={supportType}
             onClick={() => {
-              setSupportType(supportType);
+              onVoteClicked(supportType);
             }}
           />
         ))}

@@ -1,16 +1,14 @@
 import * as Sentry from "@sentry/react";
-import { useFragment } from "react-relay/hooks";
+import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
-import { inset0 } from "../../theme";
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
 import { NounGridChildren } from "../../components/NounGrid";
-import { useContractWrite, usePrepareContractWrite } from "wagmi";
+import { useAccount, useContractWrite, usePrepareContractWrite } from "wagmi";
 import { UserIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
-import { CastVoteDialogFragment$key } from "./__generated__/CastVoteDialogFragment.graphql";
 import { NounGridFragment$data } from "../../components/__generated__/NounGridFragment.graphql";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { NounsDaoLogicV1__factory } from "../../contracts/generated";
@@ -19,134 +17,86 @@ import {
   colorForSupportType,
   SupportTextProps,
 } from "../DelegatePage/VoteDetailsContainer";
+import { CastVoteDialogQuery } from "./__generated__/CastVoteDialogQuery.graphql";
+
+type Props = {
+  proposalId: number;
+  reason: string;
+  supportType: SupportTextProps["supportType"];
+  closeDialog: () => void;
+};
 
 // TODO: Better rendering for users with no voting power
-export function CastVoteDialog({
-  fragmentRef,
-  proposalID,
-  reason,
-  supportType,
-  closeDialog,
-  completeVote,
-}: {
-  fragmentRef: CastVoteDialogFragment$key | null;
-  proposalID: number;
-  reason: string;
-  supportType: SupportTextProps["supportType"] | null;
-  closeDialog: () => void;
-  completeVote: () => void;
-}) {
-  const isOpen = supportType != null;
-
+export function CastVoteDialog(props: Props) {
   return (
-    <>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.2 }}
-            exit={{ opacity: 0 }}
-            className={css`
-              z-index: 10;
-              background: black;
-              position: fixed;
-              ${inset0};
-            `}
-          />
-        )}
-      </AnimatePresence>
-
-      <Dialog
-        open={isOpen}
-        onClose={closeDialog}
+    <VStack
+      alignItems="center"
+      className={css`
+        padding: ${theme.spacing["8"]};
+      `}
+    >
+      <Dialog.Panel
+        as={motion.div}
+        initial={{
+          scale: 0.9,
+          translateY: theme.spacing["8"],
+        }}
+        animate={{ translateY: 0, scale: 1 }}
         className={css`
-          z-index: 10;
-          position: fixed;
-          ${inset0};
-
-          display: flex;
-          flex-direction: column;
-          align-content: stretch;
-          justify-content: center;
+          width: 100%;
+          max-width: ${theme.maxWidth.xs};
+          background: ${theme.colors.white};
+          border-radius: ${theme.spacing["3"]};
+          padding: ${theme.spacing["6"]};
         `}
       >
-        <VStack
-          alignItems="center"
-          className={css`
-            padding: ${theme.spacing["8"]};
-          `}
-        >
-          <Dialog.Panel
-            as={motion.div}
-            initial={{
-              scale: 0.9,
-              translateY: theme.spacing["8"],
-            }}
-            animate={{ translateY: 0, scale: 1 }}
-            className={css`
-              width: 100%;
-              max-width: ${theme.maxWidth.xs};
-              background: ${theme.colors.white};
-              border-radius: ${theme.spacing["3"]};
-              padding: ${theme.spacing["6"]};
-            `}
-          >
-            {supportType && (
-              <CastVoteDialogContents
-                fragmentRef={fragmentRef}
-                proposalID={proposalID}
-                completeVote={completeVote}
-                supportType={supportType}
-                reason={reason}
-              />
-            )}
-          </Dialog.Panel>
-        </VStack>
-      </Dialog>
-    </>
+        <CastVoteDialogContents {...props} />
+      </Dialog.Panel>
+    </VStack>
   );
 }
 
 function CastVoteDialogContents({
-  fragmentRef,
-  proposalID,
-  completeVote,
-  supportType,
+  proposalId,
   reason,
-}: {
-  fragmentRef: CastVoteDialogFragment$key | null;
-  proposalID: number;
-  reason: string;
-  supportType: SupportTextProps["supportType"];
-  completeVote: () => void;
-}) {
+  supportType,
+  closeDialog,
+}: Props) {
   // Ideal flow (not implemented yet):
   // 1. Check that user doesn't have a delegate
   // 2. Check that user has >0 Nouns
   // 3. Check that user has not already voted
   // Notes:
   // If user has no nouns, fields are null
-  const address = useFragment<CastVoteDialogFragment$key>(
-    graphql`
-      fragment CastVoteDialogFragment on Address {
-        wrappedDelegate {
-          address {
-            resolvedName {
-              ...NounResolvedLinkFragment
-            }
-          }
 
-          delegate {
-            delegatedVotesRaw
-            nounsRepresented {
-              id
-              ...NounImageFragment
+  const { address: accountAddress } = useAccount();
+
+  const { address } = useLazyLoadQuery<CastVoteDialogQuery>(
+    graphql`
+      query CastVoteDialogQuery($accountAddress: String!, $skip: Boolean!) {
+        address(addressOrEnsName: $accountAddress) @skip(if: $skip) {
+          wrappedDelegate {
+            address {
+              resolvedName {
+                ...NounResolvedLinkFragment
+              }
+            }
+
+            delegate {
+              delegatedVotesRaw
+              nounsRepresented {
+                id
+                ...NounImageFragment
+              }
             }
           }
         }
       }
     `,
-    fragmentRef
+    {
+      accountAddress: accountAddress ?? "",
+      skip: !accountAddress,
+    }
   );
 
   const { config } = usePrepareContractWrite({
@@ -154,7 +104,7 @@ function CastVoteDialogContents({
     contractInterface: NounsDaoLogicV1__factory.createInterface(),
     functionName: "castVoteWithReason",
     args: [
-      proposalID,
+      proposalId,
       ["AGAINST", "FOR", "ABSTAIN"].indexOf(supportType),
       reason,
     ],
@@ -167,7 +117,7 @@ function CastVoteDialogContents({
   const { write } = useContractWrite({
     ...config,
     onSuccess() {
-      completeVote();
+      closeDialog();
     },
   });
 
