@@ -13,7 +13,7 @@ import { Selector } from "../HomePage/Selector";
 import { ProposalsListPanelFragment$key } from "./__generated__/ProposalsListPanelFragment.graphql";
 import {
   ProposalsListPanelStatusFragment$key,
-  ProposalStatus,
+  ActualProposalStatus,
 } from "./__generated__/ProposalsListPanelStatusFragment.graphql";
 import { ProposalsListPanelSingleProposalFragment$key } from "./__generated__/ProposalsListPanelSingleProposalFragment.graphql";
 
@@ -289,8 +289,7 @@ function SingleProposal({
               color: ${theme.colors.gray.af};
             `}
           >
-            {" "}
-            •{" "}
+            &nbsp;•&nbsp;
           </div>
           <ProposalStatusPane fragmentRef={proposal} />
         </HStack>
@@ -325,20 +324,24 @@ function ProposalStatusPane({
   );
 }
 
-function colorForProposalStatus(status: ProposalStatus) {
+function colorForProposalStatus(status: ActualProposalStatus) {
   switch (status) {
     case "ACTIVE":
       return colorForSupportType("FOR");
+
     case "EXECUTED":
       return theme.colors.blue["800"];
-    // TODO: Decide what pending color should be. This is when a proposal
-    //       has yet to start voting period
+
     case "PENDING":
     case "QUEUED":
+    case "EXPIRED":
       return colorForSupportType("ABSTAIN");
+
+    case "DEFEATED":
     case "CANCELLED":
     case "VETOED":
       return colorForSupportType("AGAINST");
+
     default:
       throw new Error(`Unknown proposal status ${status}`);
   }
