@@ -10,14 +10,12 @@ import { HStack, VStack } from "../../components/VStack";
 import * as theme from "../../theme";
 import { colorForSupportType } from "../DelegatePage/VoteDetailsContainer";
 import { Selector } from "../HomePage/Selector";
-import {
-  ProposalsListPanelFragment$key,
-  ProposalsListPanelFragment$data,
-} from "./__generated__/ProposalsListPanelFragment.graphql";
+import { ProposalsListPanelFragment$key } from "./__generated__/ProposalsListPanelFragment.graphql";
 import {
   ProposalsListPanelStatusFragment$key,
   ProposalStatus,
 } from "./__generated__/ProposalsListPanelStatusFragment.graphql";
+import { ProposalsListPanelSingleProposalFragment$key } from "./__generated__/ProposalsListPanelSingleProposalFragment.graphql";
 
 export type Filter =
   | "ALL"
@@ -31,80 +29,60 @@ export type Sort = "desc" | "asc";
 
 export function ProposalsListPanel({
   fragmentRef,
+  selectedProposalId,
   setSelectedProposalID,
+  toggleExpanded,
   expanded,
-  setExpanded,
 }: {
+  expanded: boolean;
+  selectedProposalId: number | null;
   fragmentRef: ProposalsListPanelFragment$key;
   setSelectedProposalID: (nextProposalID: number) => void;
-  expanded: boolean;
-  setExpanded: (nextExpanded: boolean) => void;
+  toggleExpanded: () => void;
 }) {
   const [filter, setFilter] = useState<Filter>("ALL");
   const [sort, setSort] = useState<Sort>("desc");
-  const [proposalListIsPending, updateProposalList] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
-  // TODO: What if there are more proposals?
   const result = useFragment(
     graphql`
-      fragment ProposalsListPanelFragment on Query
-      @argumentDefinitions(proposalID: { type: "ID!" }) {
+      fragment ProposalsListPanelFragment on Query {
         proposals(orderBy: createdBlock, orderDirection: desc, first: 1000) {
           number
           actualStatus
-          title
-          totalValue
-          proposer {
-            resolvedName {
-              ...NounResolvedLinkFragment
-            }
-          }
-          ...ProposalsListPanelStatusFragment
-        }
-        proposal(id: $proposalID) {
-          number
-          actualStatus
-          title
-          totalValue
-          proposer {
-            resolvedName {
-              ...NounResolvedLinkFragment
-            }
-          }
-          ...ProposalsListPanelStatusFragment
+
+          ...ProposalsListPanelSingleProposalFragment
         }
       }
     `,
     fragmentRef
   );
 
-  const proposalToDisplay = result.proposal!;
-
-  let proposalsToDisplay = useMemo(() => {
-    const remainingProposals = result.proposals.filter(
-      (proposal) =>
-        proposal.number !== proposalToDisplay.number &&
-        (filter === "ALL" || proposal.actualStatus === filter)
-    );
-    if (sort === "asc") {
-      remainingProposals.reverse();
+  const displayedProposals = useMemo(() => {
+    if (!expanded) {
+      return result.proposals.filter(
+        (proposal) => proposal.number === selectedProposalId
+      );
     }
-    return [proposalToDisplay, ...remainingProposals];
-  }, [filter, sort, proposalToDisplay, result.proposals]);
-  if (!expanded) {
-    proposalsToDisplay = proposalsToDisplay.slice(0, 1);
-  }
+
+    return result.proposals.filter(
+      (proposal) => filter === "ALL" || proposal.actualStatus === filter
+    );
+  }, [expanded, filter, result.proposals, selectedProposalId]);
+
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      animate={{ opacity: proposalListIsPending ? 0.3 : 1 }}
-      transition={{ duration: 0.3, delay: proposalListIsPending ? 0.3 : 0 }}
+      animate={{ opacity: isPending ? 0.3 : 1 }}
+      transition={{ duration: 0.3, delay: isPending ? 0.3 : 0 }}
     >
       <VStack
         gap="4"
         className={css`
           border-bottom: 1px solid ${theme.colors.gray.eb};
           padding: ${theme.spacing["4"]};
+
+          // todo: put this closer to position: absolute below
           position: relative;
         `}
       >
@@ -152,7 +130,7 @@ export function ProposalsListPanel({
               ]}
               value={filter}
               onChange={(newFilter) =>
-                updateProposalList(() => setFilter(newFilter))
+                startTransition(() => setFilter(newFilter))
               }
               size={"m"}
             />
@@ -168,7 +146,7 @@ export function ProposalsListPanel({
                 },
               ]}
               value={sort}
-              onChange={(newSort) => updateProposalList(() => setSort(newSort))}
+              onChange={(newSort) => startTransition(() => setSort(newSort))}
               size={"m"}
             />
           </HStack>
@@ -180,20 +158,20 @@ export function ProposalsListPanel({
             max-height: calc(100vh - 324px);
           `}
         >
-          {proposalsToDisplay.map((proposal) => (
+          {displayedProposals.map((proposal) => (
             <SingleProposal
+              selected={proposal.number === selectedProposalId}
               key={proposal.number}
-              proposal={proposal}
-              selected={proposal.number === proposalToDisplay.number}
+              fragmentRef={proposal}
               onClick={() => {
-                setExpanded(false);
                 setSelectedProposalID(proposal.number);
               }}
             />
           ))}
         </VStack>
+
         <button
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => toggleExpanded()}
           className={css`
             border: 1px solid ${theme.colors.gray.eb};
             width: 40px;
@@ -229,14 +207,32 @@ export function ProposalsListPanel({
 }
 
 function SingleProposal({
-  proposal,
+  fragmentRef,
   selected,
   onClick,
 }: {
-  proposal: ProposalsListPanelFragment$data["proposals"][0];
+  fragmentRef: ProposalsListPanelSingleProposalFragment$key;
   selected: boolean;
   onClick: () => void;
 }) {
+  const proposal = useFragment(
+    graphql`
+      fragment ProposalsListPanelSingleProposalFragment on Proposal {
+        number
+        actualStatus
+        title
+        totalValue
+        proposer {
+          resolvedName {
+            ...NounResolvedLinkFragment
+          }
+        }
+        ...ProposalsListPanelStatusFragment
+      }
+    `,
+    fragmentRef
+  );
+
   return (
     <div onClick={onClick}>
       <VStack
@@ -285,7 +281,7 @@ function SingleProposal({
               color: ${theme.colors.gray["4f"]};
             `}
           >
-            by&nbsp;
+            by{" "}
             <NounResolvedLink resolvedName={proposal.proposer.resolvedName!} />
           </div>
           <div
@@ -293,7 +289,8 @@ function SingleProposal({
               color: ${theme.colors.gray.af};
             `}
           >
-            &nbsp;•&nbsp;
+            {" "}
+            •{" "}
           </div>
           <ProposalStatusPane fragmentRef={proposal} />
         </HStack>
