@@ -26,7 +26,7 @@ import { ProposalsRedirectPage } from "../../pages/ProposalsPage/ProposalsRedire
 
 export const browserHistory = createBrowserHistory();
 // TODO: Set this to false before merging
-export const PROPOSALS_ENABLED = false;
+export const PROPOSALS_ENABLED = true;
 
 // todo: 404 page
 

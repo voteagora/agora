@@ -110,6 +110,7 @@ export function VotesCastPanel({
                         <div
                           className={css`
                             position: absolute;
+                            top: calc(50% - 200px);
                             width: ${theme.maxWidth.xs};
                             left: -${theme.maxWidth.xs};
                           `}
