@@ -43,6 +43,7 @@ import {
   resolveNameFromAddress,
 } from "./utils/resolveName";
 import { NNSENSReverseResolver__factory } from "./contracts/generated";
+import { Snapshot } from "./snapshot";
 
 function makeSimpleFieldNode(name: string): FieldNode {
   return {
@@ -715,47 +716,53 @@ export function makeGatewaySchema() {
 
         voteStartsAt: {
           selectionSet: `{ startBlock }`,
-          async resolve({ startBlock }: { startBlock: string }) {
-            const latestBlock = await provider.getBlock("latest");
-            return (
-              latestBlock.timestamp +
-              12 * (parseInt(startBlock) - latestBlock.number)
-            ).toString();
+          async resolve(
+            { startBlock }: { startBlock: string },
+            args,
+            { snapshot }
+          ) {
+            return approximateTimeStampForBlock(
+              startBlock,
+              snapshot.LatestBlock
+            );
           },
         },
 
         voteEndsAt: {
           selectionSet: `{ endBlock }`,
-          async resolve({ endBlock }: { endBlock: string }) {
-            // todo: resolve this from snapshot somehow?
-            const latestBlock = await provider.getBlock("latest");
-            return (
-              latestBlock.timestamp +
-              12 * (parseInt(endBlock) - latestBlock.number)
-            ).toString();
+          async resolve(
+            { endBlock }: { endBlock: string },
+            _args,
+            { snapshot }
+          ) {
+            return approximateTimeStampForBlock(endBlock, snapshot.LatestBlock);
           },
         },
 
         actualStatus: {
           selectionSet: `{ status, startBlock, endBlock, forVotes, againstVotes, quorumVotes }`,
-          async resolve({
-            status,
-            startBlock,
-            endBlock,
-            forVotes,
-            againstVotes,
-            quorumVotes,
-            executionETA,
-          }: {
-            status: string;
-            startBlock: string;
-            endBlock: string;
-            forVotes: string;
-            againstVotes: string;
-            quorumVotes: string;
-            executionETA: number;
-          }) {
-            const latestBlock = await provider.getBlock("latest");
+          async resolve(
+            {
+              status,
+              startBlock,
+              endBlock,
+              forVotes,
+              againstVotes,
+              quorumVotes,
+              executionETA,
+            }: {
+              status: string;
+              startBlock: string;
+              endBlock: string;
+              forVotes: string;
+              againstVotes: string;
+              quorumVotes: string;
+              executionETA: number;
+            },
+            _args,
+            { snapshot }
+          ) {
+            const latestBlock = snapshot.LatestBlock;
             // Have to further refine status based on proposal fields
             if (status == "PENDING") {
               if (latestBlock.number >= parseInt(startBlock)) {
@@ -997,4 +1004,16 @@ function attachTracingContextInjection(schema: GraphQLSchema): GraphQLSchema {
       };
     },
   });
+}
+
+function approximateTimeStampForBlock(
+  block: string,
+  latestBlock: Snapshot["LatestBlock"]
+) {
+  const blockTimeSeconds = 12;
+
+  return (
+    latestBlock.timestamp +
+    blockTimeSeconds * (parseInt(block) - latestBlock.number)
+  ).toString();
 }

@@ -113,6 +113,10 @@ export type Snapshot = {
   PropHouse: {
     auctions: z.infer<typeof fetchAuctionsResponse>;
   };
+  LatestBlock: {
+    timestamp: number;
+    number: number;
+  };
 };
 
 export function parseStorage(rawValue: Record<string, any>): Snapshot {
@@ -395,6 +399,18 @@ async function updateSnapshotForPropHouse() {
   };
 }
 
+async function updateSnapshotForLatestBlock(
+  provider: ethers.providers.Provider
+) {
+  const block = await provider.getBlock("latest");
+  return {
+    LatestBlock: {
+      timestamp: block.timestamp,
+      number: block.number,
+    },
+  };
+}
+
 export async function updateSnapshot<Snapshot extends any>(
   sentry: ToucanInterface,
   provider: ethers.providers.Provider,
@@ -404,6 +420,7 @@ export async function updateSnapshot<Snapshot extends any>(
   const items = await Promise.allSettled([
     updateSnapshotForIndexers(sentry, provider, resolver, snapshot),
     updateSnapshotForPropHouse(),
+    updateSnapshotForLatestBlock(provider),
   ]);
 
   return items.reduce((acc, item) => {
