@@ -259,12 +259,20 @@ function SingleProposal({
         key={proposal.number}
         gap="2"
         className={css`
+          cursor: pointer;
           border-radius: ${theme.borderRadius.lg};
-          ${selected && `background-color: ${theme.colors.gray.fa}`};
+          ${selected &&
+          css`
+            background-color: ${theme.colors.gray.fa};
+          `};
           padding-top: ${theme.spacing["4"]};
           padding-bottom: ${theme.spacing["4"]};
           padding-left: ${theme.spacing["3"]};
           padding-right: ${theme.spacing["3"]};
+
+          &:hover {
+            background-color: ${theme.colors.gray["100"]};
+          }
         `}
       >
         <div
