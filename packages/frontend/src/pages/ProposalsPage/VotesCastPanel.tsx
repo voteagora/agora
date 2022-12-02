@@ -114,9 +114,10 @@ export function VotesCastPanel({
                         <div
                           className={css`
                             position: absolute;
-                            top: calc(50% - 200px);
-                            width: ${theme.maxWidth.xs};
-                            left: -${theme.maxWidth.xs};
+                            top: 50%;
+                            margin-top: -50%;
+                            width: 23rem;
+                            right: calc(100% + ${theme.spacing["4"]});
                           `}
                         >
                           <VoterCard fragmentRef={hoveredVoter} />
