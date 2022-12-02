@@ -70,6 +70,16 @@ export function ProposalsListPanel({
     );
   }, [expanded, filter, result.proposals, selectedProposalId]);
 
+  const sortedProposals = useMemo(() => {
+    switch (sort) {
+      case "desc":
+        return displayedProposals;
+
+      case "asc":
+        return displayedProposals.slice().reverse();
+    }
+  }, [displayedProposals, sort]);
+
   return (
     <motion.div
       className={css`
@@ -177,7 +187,7 @@ export function ProposalsListPanel({
             padding-bottom: ${theme.spacing["4"]};
           `}
         >
-          {displayedProposals.map((proposal) => (
+          {sortedProposals.map((proposal) => (
             <SingleProposal
               selected={proposal.number === selectedProposalId}
               key={proposal.number}
