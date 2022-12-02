@@ -96,7 +96,7 @@ async function* blocksToMessages(
                     event.args.description
                   ),
                   timestamp: blockTimestamp.toISOString(),
-                  url: `https://nouns.wtf/vote/${event.args.id}`,
+                  url: `https://nounsagora.com/proposals/${event.args.id}`,
                 },
               ],
             };
@@ -133,7 +133,7 @@ async function* blocksToMessages(
                   fields: [
                     {
                       name: "Proposal",
-                      value: `[Prop #${event.args.proposalId}](https://nouns.wtf/vote/${event.args.proposalId})`,
+                      value: `[Prop #${event.args.proposalId}](https://nounsagora.com/proposals/${event.args.proposalId})`,
                     },
                     {
                       name: "Delegate Profile",
