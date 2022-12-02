@@ -82,22 +82,30 @@ export function ProposalsPage() {
         `}
       >
         <ProposalDetailPanel fragmentRef={selectedProposal!} />
+
         <VStack
-          gap="0"
           justifyContent="space-between"
           className={css`
             position: sticky;
             top: ${theme.spacing["20"]};
+            max-height: calc(
+              100vh - ${theme.spacing["20"]} - ${theme.spacing["8"]}
+            );
+
             flex-shrink: 0;
             width: ${theme.maxWidth.sm};
             background-color: ${theme.colors.white};
             border: 1px solid ${theme.colors.gray.eb};
             border-radius: ${theme.borderRadius["xl"]};
             box-shadow: ${theme.boxShadow.newDefault};
+            margin-bottom: ${theme.spacing["8"]};
+
             @media (max-width: ${theme.maxWidth["2xl"]}) {
               align-items: stretch;
               justify-content: flex-end;
               width: 100%;
+
+              height: auto;
             }
           `}
         >

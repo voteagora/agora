@@ -77,23 +77,31 @@ export function VotesCastPanel({
   return (
     <>
       <VStack
-        gap="8"
         justifyContent="space-between"
         className={css`
-          padding: ${theme.spacing["4"]};
           font-size: ${theme.fontSize.xs};
+          min-height: 0;
         `}
       >
-        <ProposalVotesSummary fragmentRef={result} />
+        <VStack
+          gap="4"
+          className={css`
+            min-height: 0;
+            flex-shrink: 1;
+            padding: ${theme.spacing["4"]};
+            max-height: 60vh;
+            overflow-y: scroll;
+          `}
+        >
+          <ProposalVotesSummary
+            fragmentRef={result}
+            className={css`
+              flex-shrink: 0;
+            `}
+          />
 
-        {!expanded && (
-          <VStack gap="4">
-            <VStack
-              gap="5"
-              className={css`
-                overflow-y: auto;
-              `}
-            >
+          {!expanded && (
+            <VStack gap="4">
               {result.votes.map((vote) => (
                 <VStack key={vote.id} gap="1">
                   <VStack>
@@ -158,21 +166,27 @@ export function VotesCastPanel({
                 </VStack>
               ))}
             </VStack>
+          )}
+        </VStack>
 
-            <CastVoteInput
-              fragmentRef={result}
-              onVoteClick={(supportType, reason) => {
-                openDialog({
-                  type: "CAST_VOTE",
-                  params: {
-                    reason,
-                    supportType,
-                    proposalId: result.number,
-                  },
-                });
-              }}
-            />
-          </VStack>
+        {!expanded && (
+          <CastVoteInput
+            className={css`
+              flex-shrink: 0;
+              margin: ${theme.spacing["4"]};
+            `}
+            fragmentRef={result}
+            onVoteClick={(supportType, reason) => {
+              openDialog({
+                type: "CAST_VOTE",
+                params: {
+                  reason,
+                  supportType,
+                  proposalId: result.number,
+                },
+              });
+            }}
+          />
         )}
       </VStack>
     </>

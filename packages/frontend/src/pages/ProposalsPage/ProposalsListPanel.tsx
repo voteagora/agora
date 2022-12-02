@@ -72,6 +72,10 @@ export function ProposalsListPanel({
 
   return (
     <motion.div
+      className={css`
+        display: flex;
+        flex-direction: column;
+      `}
       initial={{ opacity: 1 }}
       animate={{ opacity: isPending ? 0.3 : 1 }}
       transition={{ duration: 0.3, delay: isPending ? 0.3 : 0 }}
@@ -80,13 +84,24 @@ export function ProposalsListPanel({
         gap="4"
         className={css`
           border-bottom: 1px solid ${theme.colors.gray.eb};
-          padding: ${theme.spacing["4"]};
 
           // todo: put this closer to position: absolute below
           position: relative;
+
+          min-height: 0;
+          height: 100%;
         `}
       >
-        <HStack justifyContent="space-between" alignItems="center">
+        <HStack
+          justifyContent="space-between"
+          alignItems="center"
+          className={css`
+            flex-shrink: 0;
+            padding-top: ${theme.spacing["4"]};
+            padding-left: ${theme.spacing["4"]};
+            padding-right: ${theme.spacing["4"]};
+          `}
+        >
           <div
             className={css`
               font-size: ${theme.fontSize.base};
@@ -151,11 +166,15 @@ export function ProposalsListPanel({
             />
           </HStack>
         </HStack>
+
         <VStack
-          gap="0"
           className={css`
-            overflow-y: auto;
-            max-height: calc(100vh - 324px);
+            max-height: 60vh;
+            overflow-y: scroll;
+            flex-shrink: 1;
+            padding-left: ${theme.spacing["4"]};
+            padding-right: ${theme.spacing["4"]};
+            padding-bottom: ${theme.spacing["4"]};
           `}
         >
           {displayedProposals.map((proposal) => (
@@ -173,6 +192,7 @@ export function ProposalsListPanel({
         <button
           onClick={() => toggleExpanded()}
           className={css`
+            flex-shrink: 0;
             border: 1px solid ${theme.colors.gray.eb};
             width: 40px;
             height: 40px;

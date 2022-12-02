@@ -6,13 +6,15 @@ import graphql from "babel-plugin-relay/macro";
 import * as theme from "../../theme";
 import { useFragment } from "react-relay";
 import { colorForSupportType } from "../DelegatePage/VoteDetailsContainer";
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { ProposalVotesSummaryVotesBarFragment$key } from "./__generated__/ProposalVotesSummaryVotesBarFragment.graphql";
 
 export function ProposalVotesSummary({
   fragmentRef,
+  className,
 }: {
   fragmentRef: ProposalVotesSummaryFragment$key;
+  className: string;
 }) {
   const proposal = useFragment(
     graphql`
@@ -30,9 +32,12 @@ export function ProposalVotesSummary({
   return (
     <VStack
       gap="2"
-      className={css`
-        font-weight: ${theme.fontWeight.semibold};
-      `}
+      className={cx(
+        css`
+          font-weight: ${theme.fontWeight.semibold};
+        `,
+        className
+      )}
     >
       <HStack
         justifyContent="space-between"

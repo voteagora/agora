@@ -1,4 +1,4 @@
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
 import {
@@ -19,9 +19,10 @@ type Props = {
     supportType: SupportTextProps["supportType"],
     reason: string
   ) => void;
+  className: string;
 };
 
-export function CastVoteInput({ fragmentRef, onVoteClick }: Props) {
+export function CastVoteInput({ fragmentRef, onVoteClick, className }: Props) {
   const [reason, setReason] = useState<string>("");
   const result = useFragment(
     graphql`
@@ -35,10 +36,13 @@ export function CastVoteInput({ fragmentRef, onVoteClick }: Props) {
 
   return (
     <VStack
-      className={css`
-        border: 1px solid #e0e0e0;
-        border-radius: ${theme.borderRadius.lg};
-      `}
+      className={cx(
+        css`
+          border: 1px solid #e0e0e0;
+          border-radius: ${theme.borderRadius.lg};
+        `,
+        className
+      )}
     >
       <textarea
         className={css`

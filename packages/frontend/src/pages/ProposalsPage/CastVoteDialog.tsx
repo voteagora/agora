@@ -138,7 +138,6 @@ function CastVoteDialogContents({
           `}
         >
           <HStack
-            gap="0"
             className={css`
               color: ${theme.colors.black};
             `}
@@ -159,7 +158,6 @@ function CastVoteDialogContents({
             </div>
           </HStack>
           <HStack
-            gap="0"
             className={css`
               color: #66676b;
             `}
