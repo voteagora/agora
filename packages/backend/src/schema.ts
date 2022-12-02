@@ -758,8 +758,10 @@ export function makeGatewaySchema() {
             const latestBlock = await provider.getBlock("latest");
             // Have to further refine status based on proposal fields
             if (status == "PENDING") {
-              if (latestBlock.number > parseInt(startBlock)) {
+              if (latestBlock.number >= parseInt(startBlock)) {
                 return "ACTIVE";
+              } else {
+                return "PENDING";
               }
             } else if (status == "ACTIVE") {
               if (latestBlock.number > parseInt(endBlock)) {
@@ -768,19 +770,25 @@ export function makeGatewaySchema() {
                   forVoteCount <= parseInt(againstVotes) ||
                   forVoteCount < parseInt(quorumVotes)
                 ) {
-                  return "VETOED";
+                  return "DEFEATED";
                 }
+
                 if (!executionETA) {
                   return "EXECUTED";
                 }
               }
+
+              return "ACTIVE";
             } else if (status === "QUEUED") {
               const GRACE_PERIOD = 14 * 60 * 60 * 24;
               if (latestBlock.timestamp >= executionETA + GRACE_PERIOD) {
-                return "CANCELLED";
+                return "EXPIRED";
               }
+
+              return "QUEUED";
+            } else {
+              return status;
             }
-            return status;
           },
         },
       },

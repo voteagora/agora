@@ -6,7 +6,18 @@ extend type Proposal {
   createdBlockGovernance: Governance!
   voteStartsAt: BigInt!
   voteEndsAt: BigInt!
-  actualStatus: ProposalStatus!
+  actualStatus: ActualProposalStatus!
+}
+
+enum ActualProposalStatus {
+  PENDING
+  ACTIVE
+  CANCELLED
+  VETOED
+  QUEUED
+  EXECUTED
+  DEFEATED
+  EXPIRED
 }
 
 extend type Account {

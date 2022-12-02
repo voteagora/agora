@@ -1475,10 +1475,10 @@ type Delegate {
     orderDirection: OrderDirection
     where: Proposal_filter
   ): [Proposal!]!
+  address: Address!
   resolvedName: ResolvedName!
   voteSummary: DelegateVotesSummary!
   propHouseVotes: [PropHouseRoundVotes!]!
-  address: Address!
 }
 
 input Delegate_filter {
@@ -2028,7 +2028,7 @@ type Proposal {
   createdBlockGovernance: Governance!
   voteStartsAt: BigInt!
   voteEndsAt: BigInt!
-  actualStatus: ProposalStatus!
+  actualStatus: ActualProposalStatus!
 }
 
 input Proposal_filter {
@@ -2659,6 +2659,17 @@ enum Vote_orderBy {
   nouns
   proposal
   blockNumber
+}
+
+enum ActualProposalStatus {
+  PENDING
+  ACTIVE
+  CANCELLED
+  VETOED
+  QUEUED
+  EXECUTED
+  DEFEATED
+  EXPIRED
 }
 
 type PropHouseRoundVotes {

@@ -24,7 +24,7 @@ export function ProposalsPage() {
       navigate({ path: `/proposals/${newProposalID}` });
     });
   };
-  const [proposalsListExpanded, setExpanded] = useState<boolean>(false);
+  const [proposalsListExpanded, setExpanded] = useState<boolean>(!proposalId);
   const { address: accountAddress } = useAccount();
 
   // 0 nouns
@@ -42,7 +42,7 @@ export function ProposalsPage() {
           ...ProposalDetailPanelFragment
           ...VotesCastPanelFragment @arguments(address: $address)
         }
-        ...ProposalsListPanelFragment @arguments(proposalID: $proposalID)
+        ...ProposalsListPanelFragment
       }
     `,
     {
@@ -103,15 +103,17 @@ export function ProposalsPage() {
         >
           <ProposalsListPanel
             fragmentRef={result}
+            selectedProposalId={selectedProposal?.number ?? null}
+            expanded={proposalsListExpanded}
             setSelectedProposalID={(nextProposalID: number) => {
               startTransition(() => {
+                setExpanded(false);
                 setSelectedProposalID(nextProposalID);
               });
             }}
             // TODO: If we don't want to use collapse the comments panel when expanding the proposals list,
             // we can move this code into the component instead.
-            expanded={proposalsListExpanded}
-            setExpanded={setExpanded}
+            toggleExpanded={() => setExpanded((expanded) => !expanded)}
           />
           <VotesCastPanel
             fragmentRef={selectedProposal!}
