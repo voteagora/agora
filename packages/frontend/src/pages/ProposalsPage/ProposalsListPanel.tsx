@@ -179,7 +179,7 @@ export function ProposalsListPanel({
 
         <VStack
           className={css`
-            max-height: 60vh;
+            max-height: calc(100vh - 317px); //martin, this is kind of a hack, but it achieves the desired result lol, please don't remove this unless there's a better way
             overflow-y: scroll;
             flex-shrink: 1;
             padding-left: ${theme.spacing["4"]};
@@ -270,6 +270,7 @@ function SingleProposal({
         gap="2"
         className={css`
           cursor: pointer;
+          transition:200ms all;
           border-radius: ${theme.borderRadius.lg};
           ${selected &&
           css`
@@ -281,7 +282,7 @@ function SingleProposal({
           padding-right: ${theme.spacing["3"]};
 
           &:hover {
-            background-color: ${theme.colors.gray["100"]};
+            background-color: ${theme.colors.gray.fa};
           }
         `}
       >

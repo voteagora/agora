@@ -88,9 +88,7 @@ export function ProposalsPage() {
           className={css`
             position: sticky;
             top: ${theme.spacing["20"]};
-            max-height: calc(
-              100vh - ${theme.spacing["20"]} - ${theme.spacing["8"]}
-            );
+            max-height: calc(100vh - 148px);
 
             flex-shrink: 0;
             width: ${theme.maxWidth.sm};

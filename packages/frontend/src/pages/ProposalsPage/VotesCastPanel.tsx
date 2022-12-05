@@ -80,8 +80,8 @@ export function VotesCastPanel({
         justifyContent="space-between"
         gap="4"
         className={css`
-          padding-top: ${theme.spacing["4"]};
-          padding-bottom: ${theme.spacing["4"]};
+          padding-top: ${theme.spacing["3"]};
+          padding-bottom: ${theme.spacing["6"]};
           font-size: ${theme.fontSize.xs};
           min-height: 0;
         `}
@@ -93,7 +93,6 @@ export function VotesCastPanel({
             flex-shrink: 1;
             padding-left: ${theme.spacing["4"]};
             padding-right: ${theme.spacing["4"]};
-            max-height: 60vh;
             overflow-y: scroll;
           `}
         >
