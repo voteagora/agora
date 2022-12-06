@@ -18,6 +18,7 @@ import { VoteReason } from "../../components/VoteReason";
 import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
 import { CastVoteInput } from "./CastVoteInput";
 import { ProposalVotesSummary } from "./ProposalVotesSummary";
+import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
 
 export function VotesCastPanel({
   fragmentRef,
@@ -26,6 +27,7 @@ export function VotesCastPanel({
   fragmentRef: VotesCastPanelFragment$key;
   expanded: boolean;
 }) {
+  const startTransition = useStartTransition();
   const openDialog = useOpenDialog();
 
   // todo: implement this in a bit less hacky way
@@ -183,13 +185,15 @@ export function VotesCastPanel({
             `}
             fragmentRef={result}
             onVoteClick={(supportType, reason) => {
-              openDialog({
-                type: "CAST_VOTE",
-                params: {
-                  reason,
-                  supportType,
-                  proposalId: result.number,
-                },
+              startTransition(() => {
+                openDialog({
+                  type: "CAST_VOTE",
+                  params: {
+                    reason,
+                    supportType,
+                    proposalId: result.number,
+                  },
+                });
               });
             }}
           />
