@@ -57,9 +57,9 @@ export function CastVoteInput({ fragmentRef, onVoteClick, className }: Props) {
         value={reason}
         onChange={(e) => setReason(e.target.value)}
       />
-      <HStack
-        justifyContent="space-between"
-        alignItems="center"
+      <VStack
+        justifyContent="stretch"
+        alignItems="stretch"
         className={css`
           padding-top: ${theme.spacing["1"]};
           padding-bottom: ${theme.spacing["3"]};
@@ -71,7 +71,7 @@ export function CastVoteInput({ fragmentRef, onVoteClick, className }: Props) {
           fragmentRef={result}
           onClick={(supportType) => onVoteClick(supportType, reason)}
         />
-      </HStack>
+      </VStack>
     </VStack>
   );
 }
@@ -108,7 +108,7 @@ function VoteButtons({
     return <DisabledVoteButton reason="Already voted" />;
   } else {
     return (
-      <>
+      <HStack gap="2">
         {(
           ["FOR", "AGAINST", "ABSTAIN"] as SupportTextProps["supportType"][]
         ).map((supportType) => (
@@ -120,7 +120,7 @@ function VoteButtons({
             }}
           />
         ))}
-      </>
+      </HStack>
     );
   }
 }
@@ -137,6 +137,7 @@ function VoteButton({
       className={css`
         ${voteButtonStyles};
         color: ${colorForSupportType(action)};
+        flex: 1;
       `}
       onClick={onClick}
     >
