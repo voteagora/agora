@@ -20,6 +20,7 @@ type Filter = "ALL" | "PROP_HOUSE" | "ONCHAIN";
 type Sort = "MOST_RECENT" | "LEAST_RECENT" | "MOST_ETH" | "LEAST_ETH";
 
 export function PastVotes({ fragment }: Props) {
+
   const { votes, propHouseVotes } = useFragment(
     graphql`
       fragment PastVotesFragment on Delegate {
@@ -166,15 +167,15 @@ export function PastVotes({ fragment }: Props) {
           <Selector
             items={[
               {
-                title: "Show All",
+                title: `Show All (${votes.length + propHouseVotes.length})`,
                 value: "ALL" as const,
               },
               {
-                title: "Prop House",
+                title: `Prop House (${propHouseVotes.length})`,
                 value: "PROP_HOUSE" as const,
               },
               {
-                title: "Onchain",
+                title: `Onchain (${votes.length})`,
                 value: "ONCHAIN" as const,
               },
             ]}
