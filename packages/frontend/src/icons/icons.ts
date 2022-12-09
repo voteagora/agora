@@ -8,6 +8,8 @@ import piggyBank from "./piggyBank.svg";
 import speakerCone from "./speakerCone.svg";
 import anonNoun from "./anonNoun.svg";
 import expand from "./expand.svg";
+import tableView from "./tableView.svg";
+import cardView from "./cardView.svg";
 
 export const icons = {
   expand,
@@ -20,4 +22,6 @@ export const icons = {
   community,
   measure,
   pedestrian,
+  tableView,
+  cardView
 };

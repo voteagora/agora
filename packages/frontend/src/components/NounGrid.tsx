@@ -10,6 +10,7 @@ import {
 import { HStack } from "./VStack";
 
 type Props = {
+  dense?: boolean;
   nouns: NounGridFragment$data["nounsRepresented"];
   totalNouns?: number;
   rows?: number;
@@ -23,6 +24,7 @@ type LayoutProps = {
 };
 
 function NounGrid({
+  dense,
   nouns,
   totalNouns,
   rows,
@@ -36,14 +38,25 @@ function NounGrid({
 
   return (
     <div
-      className={css`
-        display: grid;
-        grid-template-columns: repeat(${columns}, ${imageSizeResolved});
-        grid-template-rows: repeat(auto-fit, ${imageSizeResolved});
-        gap: ${theme.spacing[gap]};
-      `}
+      className={cx(
+        css`
+          display: grid;
+          grid-template-columns: repeat(${columns}, ${imageSizeResolved});
+          grid-template-rows: repeat(auto-fit, ${imageSizeResolved});
+          gap: ${theme.spacing[gap]};
+        `,
+        css`
+          ${dense &&
+          css`
+            max-width: calc(
+              ${imageSizeResolved} * ${(possibleSlots * 2) / 3 + 1}
+            );
+          `}
+        `
+      )}
     >
       <NounGridChildren
+        dense={dense}
         totalNouns={totalNouns}
         count={possibleSlots}
         nouns={nouns}
@@ -57,9 +70,11 @@ function NounGrid({
 type NounsRepresentedGridProps = {
   fragmentKey: NounGridFragment$key;
   rows: number;
+  dense?: boolean;
 } & LayoutProps;
 
 type NounGridChildrenProps = {
+  dense?: boolean;
   count: number;
   nouns: NounGridFragment$data["nounsRepresented"];
   totalNouns?: number;
@@ -69,6 +84,7 @@ type NounGridChildrenProps = {
 };
 
 export function NounGridChildren({
+  dense,
   imageSize,
   totalNouns,
   nouns,
@@ -83,7 +99,9 @@ export function NounGridChildren({
   const overflowAmount = length - count;
 
   function nounImageForNoun(
-    noun: NounGridFragment$data["nounsRepresented"][0]
+    noun: NounGridFragment$data["nounsRepresented"][0],
+    index: number,
+    dense?: boolean
   ) {
     return (
       <NounImage
@@ -96,6 +114,12 @@ export function NounGridChildren({
               height: ${imageSizeResolved};
             `}
             aspect-ratio: 1/1;
+            ${dense &&
+            imageSizeResolved &&
+            css`
+              outline: 2px solid ${theme.colors.white};
+              margin-left: calc(${imageSizeResolved} * -0.2 * ${index});
+            `}
           `,
           className
         )}
@@ -107,35 +131,47 @@ export function NounGridChildren({
 
   return overflowAmount > 0 ? (
     <>
-      {nouns.slice(0, count - 1).map(nounImageForNoun)}
+      {nouns
+        .slice(0, count - 1)
+        .map((noun, index) => nounImageForNoun(noun, index, dense))}
       <div
         key="overflowAmount"
-        className={css`
-          min-width: ${imageSizeResolved};
-          min-height: ${imageSizeResolved};
+        className={cx(
+          css`
+            min-width: ${imageSizeResolved};
+            min-height: ${imageSizeResolved};
 
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: ${theme.fontWeight.medium};
-          color: ${theme.colors.gray[600]};
-          font-size: ${theme.fontSize[overflowFontSize]};
-          white-space: nowrap;
-          letter-spacing: ${theme.letterSpacing.tight};
-          background-color: ${theme.colors.gray[200]};
-          border-radius: ${theme.borderRadius.full};
-        `}
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: ${theme.fontWeight.medium};
+            color: ${theme.colors.gray[600]};
+            font-size: ${theme.fontSize[overflowFontSize]};
+            white-space: nowrap;
+            letter-spacing: ${theme.letterSpacing.tight};
+            background-color: ${theme.colors.gray[200]};
+            border-radius: ${theme.borderRadius.full};
+          `,
+          css`
+            ${dense &&
+            css`
+              margin-left: calc(${imageSizeResolved} * -0.3 * ${count - 1});
+              width: ${imageSizeResolved};
+            `}
+          `
+        )}
       >
         +{overflowAmount + 1}
       </div>
     </>
   ) : (
-    <>{nouns.map(nounImageForNoun)}</>
+    <>{nouns.map((noun, index) => nounImageForNoun(noun, index, dense))}</>
   );
 }
 
 export function NounsRepresentedGrid({
   fragmentKey,
+  dense,
   ...layoutProps
 }: NounsRepresentedGridProps) {
   const { nounsRepresented, delegatedVotesRaw } =
@@ -155,7 +191,7 @@ export function NounsRepresentedGrid({
 
   const totalNouns = Number(delegatedVotesRaw);
 
-  if (nounsRepresented.length < layoutProps.columns) {
+  if (!dense && nounsRepresented.length < layoutProps.columns) {
     return (
       <HStack
         justifyContent="space-evenly"
@@ -184,6 +220,7 @@ export function NounsRepresentedGrid({
 
   return (
     <NounGrid
+      dense={dense}
       nouns={nounsRepresented}
       totalNouns={totalNouns}
       {...layoutProps}

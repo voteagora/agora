@@ -3,6 +3,7 @@ import graphql from "babel-plugin-relay/macro";
 import { intersection } from "../../utils/set";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
+import { DelegateProfileImage } from "../../components/DelegateProfileImage";
 import { NounGridChildren } from "../../components/NounGrid";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { VoterPanelDelegateFragment$key } from "./__generated__/VoterPanelDelegateFragment.graphql";
@@ -20,10 +21,10 @@ import { shortAddress } from "../../utils/address";
 import { Textfit } from "react-textfit";
 import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
 import toast from "react-hot-toast";
-import { DelegateProfileImage } from "../HomePage/VoterCard";
 import { BigNumber } from "ethers";
 import { pluralizeAddresses, pluralizeNoun } from "../../words";
 import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
+import { descendingValueComparator } from "../../utils/sorting";
 
 type Props = {
   delegateFragment: VoterPanelDelegateFragment$key;
@@ -39,7 +40,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
         }
 
         wrappedDelegate {
-          ...VoterCardDelegateProfileImage
+          ...DelegateProfileImageFragment
           ...VoterPanelActionsFragment
 
           delegate {
@@ -398,7 +399,7 @@ export function VoterPanelActions({
   );
 }
 
-function DelegateButton({
+export function DelegateButton({
   fragment,
   full,
 }: {
@@ -539,20 +540,3 @@ function NameSection({ resolvedName }: NameSectionProps) {
 
 export const shadow =
   "0px 4px 12px rgba(0, 0, 0, 0.02), 0px 2px 2px rgba(0, 0, 0, 0.03);";
-
-export type Comparator<T> = (a: T, b: T) => number;
-
-export function descendingValueComparator<T>(
-  getValueFor: (item: T) => number
-): Comparator<T> {
-  return (a, b) => {
-    const aValue = getValueFor(a);
-    const bValue = getValueFor(b);
-
-    return bValue - aValue;
-  };
-}
-
-export function flipComparator<T>(toFlip: Comparator<T>): Comparator<T> {
-  return (a, b) => toFlip(b, a);
-}

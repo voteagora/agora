@@ -4,15 +4,12 @@ import { css, cx } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql";
 import { NounResolvedName } from "../../components/NounResolvedName";
-import { NounsRepresentedGrid } from "../../components/NounGrid";
+import { DelegateProfileImage } from "../../components/DelegateProfileImage";
 import { HStack, VStack } from "../../components/VStack";
-import { icons } from "../../icons/icons";
 import { VoterPanelActions } from "../DelegatePage/VoterPanel";
-import { VoterCardDelegateProfileImage$key } from "./__generated__/VoterCardDelegateProfileImage.graphql";
 import { Link } from "../../components/HammockRouter/Link";
 import { UserIcon, PencilIcon } from "@heroicons/react/20/solid";
 import { ReactNode } from "react";
-import { useEnsAvatar } from "wagmi";
 import { BigNumber } from "ethers";
 import { pluralizeNoun, pluralizeVote } from "../../words";
 
@@ -26,7 +23,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
       fragment VoterCardFragment on WrappedDelegate {
         ...VoterPanelActionsFragment
 
-        ...VoterCardDelegateProfileImage
+        ...DelegateProfileImageFragment
 
         address {
           resolvedName {
@@ -59,7 +56,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
   );
 
   const nounsRepresented = BigNumber.from(
-    delegate?.delegate?.delegatedVotesRaw ?? "0"
+    delegate.delegate?.delegatedVotesRaw ?? "0"
   );
 
   const votesCast = BigNumber.from(
@@ -211,95 +208,5 @@ function TitleDetail({ detail, value, icon }: TitleDetailProps) {
         {detail}
       </div>
     </HStack>
-  );
-}
-
-export function DelegateProfileImage({
-  fragment,
-  dense,
-}: {
-  fragment: VoterCardDelegateProfileImage$key;
-  dense?: boolean;
-}) {
-  const delegate = useFragment(
-    graphql`
-      fragment VoterCardDelegateProfileImage on WrappedDelegate {
-        address {
-          resolvedName {
-            address
-          }
-        }
-        delegate {
-          nounsRepresented {
-            id
-          }
-
-          ...NounGridFragment
-        }
-      }
-    `,
-    fragment
-  );
-
-  const avatar = useEnsAvatar({
-    addressOrName: delegate.address.resolvedName.address,
-  });
-
-  return !delegate.delegate ? (
-    <HStack
-      alignItems="center"
-      className={css`
-        border-radius: ${theme.borderRadius.full};
-        border: 1px solid ${theme.colors.gray.eb};
-        box-shadow: ${theme.boxShadow.newDefault};
-        margin: ${theme.spacing["4"]} 0;
-      `}
-    >
-      <img
-        className={css`
-          width: 44px;
-          height: 44px;
-          border-radius: 100%;
-        `}
-        src={avatar.data || icons.anonNoun}
-        alt={"anon noun"}
-      />
-      <div
-        className={css`
-          font-size: ${theme.fontSize.sm};
-          font-weight: ${theme.fontWeight.semibold};
-          padding: 0 ${theme.spacing["4"]};
-        `}
-      >
-        Currently seeking delegation
-      </div>
-    </HStack>
-  ) : !delegate.delegate.nounsRepresented.length ? (
-    <VStack
-      justifyContent="center"
-      alignItems="center"
-      className={css`
-        color: #afafaf;
-        min-height: 44px;
-        font-size: ${theme.fontSize.sm};
-        margin: 0 ${theme.spacing["10"]};
-        border-radius: ${theme.borderRadius.full};
-        border: 1px solid ${theme.colors.gray.eb};
-        box-shadow: ${theme.boxShadow.newDefault};
-        margin: ${theme.spacing["4"]} 0;
-        width: 100%;
-      `}
-    >
-      No longer has votes
-    </VStack>
-  ) : (
-    <NounsRepresentedGrid
-      rows={3}
-      columns={dense ? 6 : 5}
-      gap={dense ? "2" : "4"}
-      imageSize={dense ? "10" : "12"}
-      overflowFontSize="base"
-      fragmentKey={delegate.delegate}
-    />
   );
 }

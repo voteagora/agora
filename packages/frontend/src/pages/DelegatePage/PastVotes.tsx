@@ -9,7 +9,7 @@ import { PropHouseVoteDetails } from "./PropHouseVoteDetails";
 import { Selector } from "../HomePage/Selector";
 import { useMemo, useState } from "react";
 import { BigNumber, utils } from "ethers";
-import { descendingValueComparator } from "./VoterPanel";
+import { descendingValueComparator } from "../../utils/sorting";
 
 type Props = {
   fragment: PastVotesFragment$key;

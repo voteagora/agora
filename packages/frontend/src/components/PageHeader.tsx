@@ -32,6 +32,7 @@ export function PageHeader() {
         @media (max-width: ${theme.maxWidth.md}) {
           flex-direction: column;
           text-align: center;
+          align-items:center;
         }
       `}
     >
