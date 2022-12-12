@@ -1,4 +1,5 @@
-# nouns-agora
+# Nouns Agora
+Welcome to Nouns Agora's 
 
 ## Initial setup
 
