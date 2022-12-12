@@ -1,6 +1,6 @@
 # Nouns Agora
-Welcome to Nouns Agora's 
-
+[Agora](www.nounsagora.com) is a supercharged governance tool for Nouns Voters. We were [funded by Nouns](https://www.nounsagora.com/proposals/154), fully open source, MIT-licensed, and have all delegate statements [snapshotted here](https://docs.google.com/spreadsheets/d/1t2srMRHQ437D56OrRK3h8ZA1LJczztIebu8zpfThoE0/edit?usp=sharing) for ease of access.
+More extensive documentation coming soon.
 ## Initial setup
 
 Install yarn packages:
