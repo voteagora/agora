@@ -14,8 +14,36 @@ resource "aws_ssm_parameter" "s3-bucket" {
   value = aws_s3_bucket.snapshot-bucket.bucket
 }
 
+resource "aws_ssm_parameter" "cf-kv-namespace" {
+  name  = "/ingestUpdatesFromChain/cfKvNamespace"
+  type  = "String"
+  value = "initialValue"
+
+  lifecycle {
+    ignore_changes = [
+      "value",
+    ]
+  }
+}
+
+resource "aws_ssm_parameter" "cf-account" {
+  name  = "/ingestUpdatesFromChain/cfAccount"
+  type  = "String"
+  value = "initialValue"
+
+  lifecycle {
+    ignore_changes = [
+      "value",
+    ]
+  }
+}
+
 resource "aws_secretsmanager_secret" "alchemy-api-key" {
   name = "mainnet-alchemy-api-key"
+}
+
+resource "aws_secretsmanager_secret" "cloudflare-token" {
+  name = "cloudflare-token"
 }
 
 resource "aws_iam_role" "ingest-updates-from-chain" {
@@ -77,6 +105,7 @@ resource "aws_iam_role_policy" "ingest-updates-from-chain" {
         Action = "secretsmanager:GetSecretValue",
         Resource = [
           aws_secretsmanager_secret.alchemy-api-key.arn,
+          aws_secretsmanager_secret.cloudflare-token.arn,
         ]
       },
     ]
