@@ -7,8 +7,16 @@ import {
   fetchSnapshotUpdateStatus,
   updateSnapshotUpdateStatus,
 } from "./snapshotUpdateStatus";
-import { fetchSnapshotFromS3, storeSnapshotInS3 } from "./storedSnapshot";
-import { filterForEventHandlers, makeReducers } from "../../snapshot";
+import {
+  fetchSnapshotFromS3,
+  StoredSnapshot,
+  storeSnapshotInS3,
+} from "./storedSnapshot";
+import {
+  filterForEventHandlers,
+  makeReducers,
+  tokensReducer,
+} from "../../snapshot";
 import { getAllLogs } from "../../events";
 import SecretsManager from "aws-sdk/clients/secretsmanager";
 
@@ -20,7 +28,7 @@ export async function run() {
   // todo: extract logging library from baseramp and use it here
   console.log("starting", { executionId });
 
-  const secretValue = await secretsManager
+  const alchemyApiKeySecret = await secretsManager
     .getSecretValue({
       SecretId: "mainnet-alchemy-api-key",
     })
@@ -28,7 +36,7 @@ export async function run() {
 
   const provider = new ethers.providers.AlchemyProvider(
     "mainnet",
-    secretValue.SecretString
+    alchemyApiKeySecret.SecretString
   );
 
   const dynamo = new DynamoDB({});
@@ -37,7 +45,7 @@ export async function run() {
   await acquireLock(executionId, dynamo);
 
   try {
-    await update(s3, dynamo, provider);
+    await update(s3, dynamo, secretsManager, provider);
   } finally {
     await releaseLock(executionId, dynamo);
   }
@@ -46,6 +54,7 @@ export async function run() {
 async function update(
   s3: S3,
   dynamo: DynamoDB,
+  secretsManager: SecretsManager,
   provider: ethers.providers.Provider
 ) {
   const storedSnapshot = await fetchSnapshotFromS3(s3);
@@ -116,8 +125,74 @@ async function update(
 
   await updateSnapshotUpdateStatus(latestSafeBlock, dynamo);
 
-  await storeSnapshotInS3(s3, {
+  const snapshot: StoredSnapshot = {
     lastBlockSynced: latestSafeBlock,
     contents: snapshots,
-  });
+  };
+
+  await storeSnapshotInS3(s3, snapshot);
+
+  await storeSnapshotInCloudflareKV(
+    transformForCloudflareKv(snapshot),
+    secretsManager
+  );
+}
+
+function transformForCloudflareKv(snapshot: StoredSnapshot) {
+  return Object.fromEntries(
+    Object.entries(snapshot.contents).map(([key, value]) => {
+      const normalizedValue = (() => {
+        if (key === "ENSToken") {
+          const state = tokensReducer.decodeState(value as any);
+          state.accounts = new Map(
+            Array.from(state.accounts.entries()).filter(
+              ([, value]) => !value.represented.isZero()
+            )
+          );
+
+          return tokensReducer.encodeState(state);
+        }
+
+        return value;
+      })();
+
+      return [key, { state: normalizedValue, block: snapshot.lastBlockSynced }];
+    })
+  );
+}
+
+async function storeSnapshotInCloudflareKV(
+  value: any,
+  secretsManager: SecretsManager
+) {
+  const namespace = process.env.CF_KV_NAMESPACE;
+  const account = process.env.CF_ACCOUNT;
+  const key = "snapshot.json";
+
+  const cloudflareToken = await secretsManager
+    .getSecretValue({
+      SecretId: "cloudflare-token",
+    })
+    .promise();
+
+  const response = await fetch(
+    new URL(
+      `accounts/${account}/storage/kv/namespaces/${namespace}/values/${key}`,
+      "https://api.cloudflare.com/client/v4/"
+    ),
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${cloudflareToken.SecretString}`,
+      },
+      body: JSON.stringify({
+        metadata: {},
+        value: JSON.stringify(value),
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`response: ${await response.text()}`);
+  }
 }
