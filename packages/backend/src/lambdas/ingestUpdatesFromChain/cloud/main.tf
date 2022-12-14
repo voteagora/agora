@@ -21,7 +21,7 @@ resource "aws_ssm_parameter" "cf-kv-namespace" {
 
   lifecycle {
     ignore_changes = [
-      "value",
+      value
     ]
   }
 }
@@ -33,7 +33,7 @@ resource "aws_ssm_parameter" "cf-account" {
 
   lifecycle {
     ignore_changes = [
-      "value",
+      value
     ]
   }
 }
