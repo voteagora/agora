@@ -19,6 +19,7 @@ import {
 } from "../../snapshot";
 import { getAllLogs } from "../../events";
 import SecretsManager from "aws-sdk/clients/secretsmanager";
+import "isomorphic-fetch";
 
 export async function run() {
   const executionId = uuidv4();
@@ -185,10 +186,7 @@ async function storeSnapshotInCloudflareKV(
       headers: {
         Authorization: `Bearer ${cloudflareToken.SecretString}`,
       },
-      body: JSON.stringify({
-        metadata: {},
-        value: JSON.stringify(value),
-      }),
+      body: JSON.stringify(value),
     }
   );
 
