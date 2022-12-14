@@ -116,7 +116,9 @@ export const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> =
     }),
     encodeState(acc) {
       return {
-        accounts: [],
+        accounts: Array.from(acc.accounts.entries())
+          .sort(([, a], [, b]) => (a.represented.gt(b.represented) ? -1 : 1))
+          .map((args) => encodeAccountEntry(args)),
 
         delegatedSupply: acc.delegatedSupply.toString(),
         totalSupply: acc.totalSupply.toString(),
@@ -310,250 +312,245 @@ export async function initialSnapshot() {
   };
 }
 
-// todo: snapshot encoder / decoder
-
-export function makeReducers(): ReducerDefinition<any, any, any>[] {
-  function getOrCreateAccount(acc: ENSTokenState, address: string) {
-    const existing = acc.accounts.get(address);
-    if (existing) {
-      return existing;
-    }
-
-    const newAccount: ENSAccount = {
-      balance: ethers.BigNumber.from(0),
-      delegatingTo: null,
-      representing: [],
-      represented: BigNumber.from(0),
-    };
-
-    acc.accounts.set(address, newAccount);
-
-    return newAccount;
+function getOrCreateAccount(acc: ENSTokenState, address: string) {
+  const existing = acc.accounts.get(address);
+  if (existing) {
+    return existing;
   }
 
-  const tokensReducer: ReducerDefinition<
-    ENSTokenInterface,
-    ENSTokenState,
-    ENSTokenStateRaw
-  > = {
-    ...tokensStorage,
-    iface: ENSToken__factory.createInterface(),
-    address: "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72",
-    startingBlock: 13533418,
-    async dumpChangesToDynamo(dynamo, oldState, newState) {
-      // only track additions
-      const accountsToUpdate = Array.from(newState.accounts.entries()).flatMap(
-        ([account, value]) => {
-          const oldAccount = oldState.accounts.get(account);
+  const newAccount: ENSAccount = {
+    balance: ethers.BigNumber.from(0),
+    delegatingTo: null,
+    representing: [],
+    represented: BigNumber.from(0),
+  };
 
-          const encodedOldAccount = !oldAccount
-            ? null
-            : encodeAccountEntry([account, oldAccount]);
+  acc.accounts.set(address, newAccount);
 
-          const encodedNewAccount = encodeAccountEntry([account, value]);
+  return newAccount;
+}
 
-          if (isEqual(encodedOldAccount, encodedNewAccount)) {
-            return [];
-          }
+export const tokensReducer: ReducerDefinition<
+  ENSTokenInterface,
+  ENSTokenState,
+  ENSTokenStateRaw
+> = {
+  ...tokensStorage,
+  iface: ENSToken__factory.createInterface(),
+  address: "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72",
+  startingBlock: 13533418,
+  async dumpChangesToDynamo(dynamo, oldState, newState) {
+    // only track additions
+    const accountsToUpdate = Array.from(newState.accounts.entries()).flatMap(
+      ([account, value]) => {
+        const oldAccount = oldState.accounts.get(account);
 
-          return [
-            {
-              address: account,
-              ...value,
-            },
-          ];
+        const encodedOldAccount = !oldAccount
+          ? null
+          : encodeAccountEntry([account, oldAccount]);
+
+        const encodedNewAccount = encodeAccountEntry([account, value]);
+
+        if (isEqual(encodedOldAccount, encodedNewAccount)) {
+          return [];
         }
-      );
 
-      const totalChunks = chunk(accountsToUpdate, 100);
-      let idx = 0;
-      for (const accounts of totalChunks) {
-        console.log({ idx, total: totalChunks.length });
-        await dynamo.transactWriteItems({
-          TransactItems: accounts.map((account) => {
-            return {
-              Update: makeUpdateForAccount(account),
-            };
-          }),
-        });
-        idx++;
+        return [
+          {
+            address: account,
+            ...value,
+          },
+        ];
       }
+    );
+
+    const totalChunks = chunk(accountsToUpdate, 100);
+    let idx = 0;
+    for (const accounts of totalChunks) {
+      console.log({ idx, total: totalChunks.length });
+      await dynamo.transactWriteItems({
+        TransactItems: accounts.map((account) => {
+          return {
+            Update: makeUpdateForAccount(account),
+          };
+        }),
+      });
+      idx++;
+    }
+  },
+  eventHandlers: [
+    {
+      signature: "Transfer(address,address,uint256)",
+      reduce(acc, event, log) {
+        if (event.args.from === event.args.to) {
+          return acc;
+        }
+
+        if (event.args.from === ethers.constants.AddressZero) {
+          acc.totalSupply = acc.totalSupply.add(event.args.value);
+        }
+
+        if (event.args.to === ethers.constants.AddressZero) {
+          acc.totalSupply = acc.totalSupply.sub(event.args.value);
+        }
+
+        const fromAccount = getOrCreateAccount(acc, event.args.from);
+        const toAccount = getOrCreateAccount(acc, event.args.to);
+
+        const amount = event.args.value;
+
+        fromAccount.balance = fromAccount.balance.sub(amount);
+        toAccount.balance = toAccount.balance.add(amount);
+
+        return acc;
+      },
     },
-    eventHandlers: [
-      {
-        signature: "Transfer(address,address,uint256)",
-        reduce(acc, event, log) {
-          if (event.args.from === event.args.to) {
-            return acc;
-          }
+    {
+      signature: "DelegateVotesChanged(address,uint256,uint256)",
+      reduce(acc, event) {
+        const account = getOrCreateAccount(acc, event.args.delegate);
 
-          if (event.args.from === ethers.constants.AddressZero) {
-            acc.totalSupply = acc.totalSupply.add(event.args.value);
-          }
+        if (!event.args.previousBalance.eq(account.represented)) {
+          throw new Error("unexpected previous balance");
+        }
 
-          if (event.args.to === ethers.constants.AddressZero) {
-            acc.totalSupply = acc.totalSupply.sub(event.args.value);
-          }
+        account.represented = event.args.newBalance;
 
-          const fromAccount = getOrCreateAccount(acc, event.args.from);
-          const toAccount = getOrCreateAccount(acc, event.args.to);
+        acc.delegatedSupply = acc.delegatedSupply.add(
+          event.args.newBalance.sub(event.args.previousBalance)
+        );
 
-          const amount = event.args.value;
-
-          fromAccount.balance = fromAccount.balance.sub(amount);
-          toAccount.balance = toAccount.balance.add(amount);
-
-          return acc;
-        },
+        return acc;
       },
-      {
-        signature: "DelegateVotesChanged(address,uint256,uint256)",
-        reduce(acc, event) {
-          const account = getOrCreateAccount(acc, event.args.delegate);
-
-          if (!event.args.previousBalance.eq(account.represented)) {
-            throw new Error("unexpected previous balance");
-          }
-
-          account.represented = event.args.newBalance;
-
-          acc.delegatedSupply = acc.delegatedSupply.add(
-            event.args.newBalance.sub(event.args.previousBalance)
-          );
-
+    },
+    {
+      signature: "DelegateChanged(address,address,address)",
+      reduce(acc, event) {
+        if (event.args.fromDelegate === event.args.toDelegate) {
           return acc;
-        },
+        }
+
+        const delegatorAccount = getOrCreateAccount(acc, event.args.delegator);
+
+        if (
+          (delegatorAccount.delegatingTo ?? ethers.constants.AddressZero) !==
+          event.args.fromDelegate
+        ) {
+          throw new Error("mismatched from address");
+        }
+
+        delegatorAccount.delegatingTo = event.args.toDelegate;
+
+        const fromAccount = getOrCreateAccount(acc, event.args.fromDelegate);
+
+        const toAccounts = getOrCreateAccount(acc, event.args.toDelegate);
+
+        fromAccount.representing = fromAccount.representing.filter(
+          (it) => it !== event.args.delegator
+        );
+
+        toAccounts.representing = [
+          ...toAccounts.representing,
+          event.args.delegator,
+        ];
+
+        return acc;
       },
-      {
-        signature: "DelegateChanged(address,address,address)",
-        reduce(acc, event) {
-          if (event.args.fromDelegate === event.args.toDelegate) {
-            return acc;
-          }
+    },
+  ],
+};
 
-          const delegatorAccount = getOrCreateAccount(
-            acc,
-            event.args.delegator
-          );
+export const governorReducer: ReducerDefinition<
+  ENSGovernorInterface,
+  GovernorState,
+  any
+> = {
+  ...governorStorage,
+  address: "0x323A76393544d5ecca80cd6ef2A560C6a395b7E3",
+  startingBlock: 13533772,
+  iface: ENSGovernor__factory.createInterface(),
+  eventHandlers: [
+    {
+      signature:
+        "ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)",
 
-          if (
-            (delegatorAccount.delegatingTo ?? ethers.constants.AddressZero) !==
-            event.args.fromDelegate
-          ) {
-            throw new Error("mismatched from address");
-          }
+      reduce(acc, event) {
+        acc.proposals.set(event.args.proposalId.toString(), {
+          id: event.args.proposalId,
+          proposer: event.args.proposer,
+          startBlock: event.args.startBlock,
+          endBlock: event.args.endBlock,
+          description: event.args.description,
 
-          delegatorAccount.delegatingTo = event.args.toDelegate;
+          targets: event.args.targets,
+          values: event.args[3],
+          signatures: event.args.signatures,
+          calldatas: event.args.calldatas,
 
-          const fromAccount = getOrCreateAccount(acc, event.args.fromDelegate);
+          status: { type: "CREATED" },
+        });
 
-          const toAccounts = getOrCreateAccount(acc, event.args.toDelegate);
-
-          fromAccount.representing = fromAccount.representing.filter(
-            (it) => it !== event.args.delegator
-          );
-
-          toAccounts.representing = [
-            ...toAccounts.representing,
-            event.args.delegator,
-          ];
-
-          return acc;
-        },
+        return acc;
       },
-    ],
-  };
-
-  const governorReducer: ReducerDefinition<
-    ENSGovernorInterface,
-    GovernorState,
-    any
-  > = {
-    ...governorStorage,
-    address: "0x323A76393544d5ecca80cd6ef2A560C6a395b7E3",
-    startingBlock: 13533772,
-    iface: ENSGovernor__factory.createInterface(),
-    eventHandlers: [
-      {
-        signature:
-          "ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)",
-
-        reduce(acc, event) {
-          acc.proposals.set(event.args.proposalId.toString(), {
-            id: event.args.proposalId,
-            proposer: event.args.proposer,
-            startBlock: event.args.startBlock,
-            endBlock: event.args.endBlock,
-            description: event.args.description,
-
-            targets: event.args.targets,
-            values: event.args[3],
-            signatures: event.args.signatures,
-            calldatas: event.args.calldatas,
-
-            status: { type: "CREATED" },
-          });
-
-          return acc;
-        },
+    },
+    {
+      signature: "QuorumNumeratorUpdated(uint256,uint256)",
+      reduce(acc, event) {
+        acc.quorumNumerator = event.args.newQuorumNumerator;
+        return acc;
       },
-      {
-        signature: "QuorumNumeratorUpdated(uint256,uint256)",
-        reduce(acc, event) {
-          acc.quorumNumerator = event.args.newQuorumNumerator;
-          return acc;
-        },
-      },
-      {
-        signature: "VoteCast(address,uint256,uint8,uint256,string)",
-        reduce(acc, event, log) {
-          acc.votes.push({
-            transactionHash: log.transactionHash,
-            blockHash: log.blockHash,
-            proposalId: event.args.proposalId,
-            voter: event.args.voter,
-            support: event.args.support,
-            weight: event.args.weight,
-            reason: event.args.reason,
-          });
+    },
+    {
+      signature: "VoteCast(address,uint256,uint8,uint256,string)",
+      reduce(acc, event, log) {
+        acc.votes.push({
+          transactionHash: log.transactionHash,
+          blockHash: log.blockHash,
+          proposalId: event.args.proposalId,
+          voter: event.args.voter,
+          support: event.args.support,
+          weight: event.args.weight,
+          reason: event.args.reason,
+        });
 
-          return acc;
-        },
+        return acc;
       },
-      {
-        signature: "ProposalCanceled(uint256)",
-        reduce(acc, event) {
-          acc.proposals.get(event.args.proposalId.toString()).status = {
-            type: "CANCELLED",
-          };
+    },
+    {
+      signature: "ProposalCanceled(uint256)",
+      reduce(acc, event) {
+        acc.proposals.get(event.args.proposalId.toString()).status = {
+          type: "CANCELLED",
+        };
 
-          return acc;
-        },
+        return acc;
       },
-      {
-        signature: "ProposalExecuted(uint256)",
-        reduce(acc, event) {
-          acc.proposals.get(event.args.proposalId.toString()).status = {
-            type: "EXECUTED",
-          };
+    },
+    {
+      signature: "ProposalExecuted(uint256)",
+      reduce(acc, event) {
+        acc.proposals.get(event.args.proposalId.toString()).status = {
+          type: "EXECUTED",
+        };
 
-          return acc;
-        },
+        return acc;
       },
-      {
-        signature: "ProposalQueued(uint256,uint256)",
-        reduce(acc, event) {
-          acc.proposals.get(event.args.proposalId.toString()).status = {
-            type: "QUEUED",
-            activatedAt: event.args.eta,
-          };
+    },
+    {
+      signature: "ProposalQueued(uint256,uint256)",
+      reduce(acc, event) {
+        acc.proposals.get(event.args.proposalId.toString()).status = {
+          type: "QUEUED",
+          activatedAt: event.args.eta,
+        };
 
-          return acc;
-        },
+        return acc;
       },
-    ],
-  };
+    },
+  ],
+};
 
+export function makeReducers(): ReducerDefinition<any, any, any>[] {
   return [tokensReducer, governorReducer];
 }
 
