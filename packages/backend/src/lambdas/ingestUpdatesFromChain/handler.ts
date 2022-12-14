@@ -142,16 +142,16 @@ function transformForCloudflareKv(snapshot: StoredSnapshot) {
   return Object.fromEntries(
     Object.entries(snapshot.contents).map(([key, value]) => {
       const normalizedValue = (() => {
-        if (key === "ENSToken") {
-          const state = tokensReducer.decodeState(value as any);
-          state.accounts = new Map(
-            Array.from(state.accounts.entries()).filter(
-              ([, value]) => !value.represented.isZero()
-            )
-          );
+        // if (key === "ENSToken") {
+        //   const state = tokensReducer.decodeState(value as any);
+        //   state.accounts = new Map(
+        //     Array.from(state.accounts.entries()).filter(
+        //       ([, value]) => !value.represented.isZero()
+        //     )
+        //   );
 
-          return tokensReducer.encodeState(state);
-        }
+        //   return tokensReducer.encodeState(state);
+        // }
 
         return value;
       })();
