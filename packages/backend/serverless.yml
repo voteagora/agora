@@ -31,6 +31,8 @@ functions:
     timeout: 600
     environment:
       S3_BUCKET: ${ssm:/ingestUpdatesFromChain/s3Bucket}
+      CF_KV_NAMESPACE: ${ssm:/ingestUpdatesFromChain/cfKvNamespace}
+      CF_ACCOUNT: ${ssm:/ingestUpdatesFromChain/cfAccount}
     events:
       - schedule: rate(15 minutes)
 
