@@ -20,6 +20,7 @@ const dev: MappingType = {};
 
 const prod: MappingType = {
   "agora.ensdao.xyz": "ENS",
+  "agora.ensdao.org": "ENS",
 };
 
 const mapping: { dev: MappingType; prod: MappingType } = {
