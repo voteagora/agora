@@ -213,7 +213,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
               font-weight: bolder;
             `}
           >
-            Voters
+            Delegates
           </h2>
 
           <HStack
