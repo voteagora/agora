@@ -98,7 +98,7 @@ function CodeChanges({
           color: ${theme.colors.gray.af};
         `}
       >
-        Code changes
+        Proposed Transactions
       </div>
       <VStack>
         {targets &&
