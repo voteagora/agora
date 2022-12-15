@@ -17,4 +17,5 @@ vars = { ENVIRONMENT = "prod" }
 account_id = "d0222542a05849995856d260759717d4"
 
 services = [
+  { binding = "ENS", service = "ens-agora-prod", environment = "production" }
 ]
