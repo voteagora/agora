@@ -51,8 +51,10 @@ function Hero() {
           font-size: ${theme.fontSize.base};
         `}
       >
-        {orgName} voters are the stewards for the DAO. You can see them all
-        below, delegate your votes to them, or contact them about your ideas.
+        Tokenholders of $ENS delegate votes to Delegates, who participate in the
+        governance of the ENS protocol by voting on DAO proposals. You can see
+        all of the Delegates below, delegate your votes to them, or contact them
+        about your ideas.
       </p>
     </VStack>
   );
