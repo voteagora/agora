@@ -1,7 +1,7 @@
 import { usePaginationFragment } from "react-relay";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import graphql from "babel-plugin-relay/macro";
-import { css } from "@emotion/css";
+import { css, keyframes } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCard } from "./VoterCard";
 import {
@@ -46,6 +46,12 @@ const filterNames = [
     value: "withoutStatement" as const,
   },
 ];
+
+const pulseAnimation = keyframes`
+  0%   {opacity: 0.2;}
+  50%  {opacity: 0.8;}
+  100% {opacity: 0.2;}
+`
 
 export function parseOrderName(orderName: string): DelegatesOrder | null {
   if (orderName in orderNames) {
@@ -297,11 +303,12 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                     justifyContent="center"
                     alignItems="center"
                     className={css`
-                      padding-bottom: ${theme.spacing["8"]};
+                      padding-bottom: ${theme.spacing["12"]};
                       padding-top: ${theme.spacing["8"]};
+                      animation: ${pulseAnimation} 1s ease infinite;
                     `}
                   >
-                    Loading...
+                    ⌐◨-◨
                   </HStack>
                 );
               }

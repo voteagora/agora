@@ -26,7 +26,7 @@ const multicallProvider = new TransparentMultiCallProvider(
 
 const wagmiClient = createClient(
   getDefaultClient({
-    appName: "Nouns Agora",
+    appName: "Agora",
     provider: multicallProvider,
   })
 );
