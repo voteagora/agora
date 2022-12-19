@@ -26,18 +26,19 @@ import { applyIdPrefix } from "./graphql/applyIdPrefix";
 
 export function makeGatewaySchema() {
   const amountSpec = {
-    currency: "ENS",
+    currency: "OP",
     decimals: 18,
   };
 
   function getTotalSupply(snapshot: Snapshot) {
-    return snapshot.ENSToken.totalSupply;
+    return snapshot.GovernanceToken.totalSupply;
   }
 
   function getQuorum(snapshot: Snapshot) {
     const totalSupply = getTotalSupply(snapshot);
 
-    return totalSupply.mul(snapshot.ENSGovernor.quorumNumerator).div(10000);
+    // todo:
+    return totalSupply.mul(100).div(10000);
   }
 
   function bpsOf(top: BigNumber, bottom: BigNumber) {
@@ -50,27 +51,35 @@ export function makeGatewaySchema() {
   }
 
   function proposedByAddress(address: string, snapshot: Snapshot) {
-    return Array.from(snapshot.ENSGovernor.proposals.values()).filter(
-      (prop) => prop.proposer.toLowerCase() === address
-    );
+    // todo:
+    return [];
+    // return Array.from(snapshot.ENSGovernor.proposals.values()).filter(
+    //   (prop) => prop.proposer.toLowerCase() === address
+    // );
   }
 
   function votesByAddress(address: string, snapshot: Snapshot) {
-    return snapshot.ENSGovernor.votes.filter(
-      (vote) => vote.voter.toLowerCase() === address
-    );
+    // todo:
+    return [];
+    // return snapshot.ENSGovernor.votes.filter(
+    //   (vote) => vote.voter.toLowerCase() === address
+    // );
   }
 
   function getVotesForProposal(proposalId: BigNumber, snapshot: Snapshot) {
-    return snapshot.ENSGovernor.votes.filter((vote) =>
-      vote.proposalId.eq(proposalId)
-    );
+    // todo:
+    return [];
+    // return snapshot.ENSGovernor.votes.filter((vote) =>
+    //   vote.proposalId.eq(proposalId)
+    // );
   }
 
   function recentCompletedProposals(snapshot: Snapshot) {
-    return Array.from(snapshot.ENSGovernor.proposals.values())
-      .filter((it) => ["EXECUTED", "QUEUED"].includes(it.status.type))
-      .sort(bigNumberDescendingComparator((it) => it.startBlock));
+    // todo:
+    return [];
+    // return Array.from(snapshot.ENSGovernor.proposals.values())
+    //   .filter((it) => ["EXECUTED", "QUEUED"].includes(it.status.type))
+    //   .sort(bigNumberDescendingComparator((it) => it.startBlock));
   }
 
   const typedResolvers: Resolvers = {
@@ -127,7 +136,9 @@ export function makeGatewaySchema() {
       },
 
       proposals(_, _args, { snapshot }) {
-        return Array.from(snapshot.ENSGovernor.proposals.values());
+        // todo:
+        return [];
+        // return Array.from(snapshot.ENSGovernor.proposals.values());
       },
 
       metrics() {
@@ -140,7 +151,7 @@ export function makeGatewaySchema() {
         return ethers.BigNumber.from("100000000000000000000000");
       },
       delegatedSupply(_parent, _args, { snapshot }) {
-        const delegatedSupply = snapshot.ENSToken.delegatedSupply;
+        const delegatedSupply = snapshot.GovernanceToken.delegatedSupply;
 
         return {
           amount: delegatedSupply,
@@ -242,9 +253,8 @@ export function makeGatewaySchema() {
           ofLastTenProps: votes.filter((vote) =>
             lastTenProps.has(vote.proposalId.toString())
           ).length,
-          ofTotalProps: Math.floor(
-            (votes.length / snapshot.ENSGovernor.proposals.size) * 100
-          ),
+          // todo: fix me
+          ofTotalProps: Math.floor((votes.length / 10) * 100),
           proposalsCreated: proposedByAddress(address, snapshot).length,
         };
       },
@@ -365,7 +375,9 @@ export function makeGatewaySchema() {
       },
 
       proposal({ proposalId }, _args, { snapshot }) {
-        return snapshot.ENSGovernor.proposals.get(proposalId.toString());
+        // todo:
+        return null;
+        // return snapshot.ENSGovernor.proposals.get(proposalId.toString());
       },
 
       reason({ reason }) {
