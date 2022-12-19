@@ -21,7 +21,7 @@ export function NounResolvedLink({ resolvedName, className }: Props) {
 
   return (
     <a
-      href={`https://etherscan.io/address/${fragment.address}`}
+      href={`https://optimistic.etherscan.io/address/${fragment.address}`}
       className={className}
     >
       <NounResolvedName resolvedName={fragment} />

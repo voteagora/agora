@@ -37,8 +37,7 @@ export function makeGatewaySchema() {
   function getQuorum(snapshot: Snapshot) {
     const totalSupply = getTotalSupply(snapshot);
 
-    // todo:
-    return totalSupply.mul(100).div(10000);
+    return totalSupply.mul(3000).div(10000);
   }
 
   function bpsOf(top: BigNumber, bottom: BigNumber) {
