@@ -14,7 +14,7 @@ import { Suspense, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
 import { TokenAmountDisplay } from "./TokenAmountDisplay";
 
-export const orgName = "ENS";
+export const orgName = "Optimism";
 
 export function PageHeader() {
   return (

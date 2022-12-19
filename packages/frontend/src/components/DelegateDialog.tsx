@@ -63,7 +63,7 @@ export function DelegateDialog({
   );
 }
 
-function ENSAmountDisplay({
+function OPAmountDisplay({
   fragment,
 }: {
   fragment: TokenAmountDisplayFragment$key;
@@ -223,7 +223,7 @@ function DelegateDialogContents({
                 <>
                   <div>Delegating your</div>
 
-                  <ENSAmountDisplay
+                  <OPAmountDisplay
                     fragment={currentAccount.amountOwned.amount}
                   />
                 </>
@@ -289,7 +289,7 @@ function DelegateDialogContents({
             who represents
           </div>
 
-          <ENSAmountDisplay fragment={delegate.tokensRepresented.amount} />
+          <OPAmountDisplay fragment={delegate.tokensRepresented.amount} />
         </VStack>
       </VStack>
 
