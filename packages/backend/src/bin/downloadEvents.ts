@@ -5,7 +5,7 @@ import { promises as fs } from "fs";
 
 async function main() {
   const provider = new ethers.providers.AlchemyProvider(
-    "mainnet",
+    "optimism",
     process.env.ALCHEMY_API_KEY
   );
 
@@ -20,6 +20,8 @@ async function main() {
     );
 
     const handle = await fs.open(`${reducer.name}.logs.json`, "a+");
+
+    // todo: incrementally update this file
 
     for await (const logs of getAllLogs(
       provider,

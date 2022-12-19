@@ -13,7 +13,7 @@ import request from "graphql-request";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { makeKey, marshaller } from "../../store/dynamo/utils";
 
-const spaceId = "ens.eth";
+const spaceId = "opcollective.eth";
 
 export async function run() {
   const Bucket = process.env.S3_BUCKET!;
@@ -74,6 +74,7 @@ async function writeVotesToDynamoDb(
       chunk(items, batchSize).map((items) =>
         dynamo.batchWriteItem({
           RequestItems: {
+            // todo: table name should be configurable?
             ApplicationData: items.flatMap((item) => {
               if (!item) {
                 return [];

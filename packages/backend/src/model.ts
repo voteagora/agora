@@ -3,7 +3,7 @@ import { z } from "zod";
 import { formSchema } from "./formSchema";
 import { ValidatedMessage } from "./utils/signing";
 import { CacheDependencies, Span } from "./utils/cache";
-import { ENSAccount, Snapshot } from "./snapshot";
+import { GovernanceAccount, Snapshot } from "./snapshot";
 
 export type Address = {
   address: string;
@@ -135,7 +135,7 @@ export type AgoraContextType = {
   emailStorage: EmailStorage;
 };
 
-export type Account = ENSAccount & {
+export type Account = GovernanceAccount & {
   address: string;
 };
 

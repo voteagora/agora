@@ -3,10 +3,10 @@ import { ethers } from "ethers";
 import { fetchPost, fetchThread } from "../discourse";
 import * as fs from "fs";
 
-const baseUrl = "https://discuss.ens.domains";
+const baseUrl = "https://gov.optimism.io";
 
 async function main() {
-  const threadId = 815;
+  const threadId = 235;
   const thread = await fetchThread({
     baseUrl,
     threadId,
