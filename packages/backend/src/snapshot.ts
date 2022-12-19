@@ -5,6 +5,8 @@ import { ToucanInterface, withSentryScope } from "./sentry";
 import { getAllLogs } from "./events";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { GovernanceTokenInterface } from "./contracts/generated/GovernanceToken";
+import { chunk, isEqual } from "lodash";
+import { makeUpdateForAccount } from "./store/dynamo/delegates";
 
 export interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
@@ -340,45 +342,45 @@ export const governanceTokenReducer: ReducerDefinition<
 > = {
   ...governanceTokenStorage,
   ...governanceTokenContract,
-  // async dumpChangesToDynamo(dynamo, oldState, newState) {
-  //   // only track additions
-  //   const accountsToUpdate = Array.from(newState.accounts.entries()).flatMap(
-  //     ([account, value]) => {
-  //       const oldAccount = oldState.accounts.get(account);
+  async dumpChangesToDynamo(dynamo, oldState, newState) {
+    // only track additions
+    const accountsToUpdate = Array.from(newState.accounts.entries()).flatMap(
+      ([account, value]) => {
+        const oldAccount = oldState.accounts.get(account);
 
-  //       const encodedOldAccount = !oldAccount
-  //         ? null
-  //         : encodeAccountEntry([account, oldAccount]);
+        const encodedOldAccount = !oldAccount
+          ? null
+          : encodeAccountEntry([account, oldAccount]);
 
-  //       const encodedNewAccount = encodeAccountEntry([account, value]);
+        const encodedNewAccount = encodeAccountEntry([account, value]);
 
-  //       if (isEqual(encodedOldAccount, encodedNewAccount)) {
-  //         return [];
-  //       }
+        if (isEqual(encodedOldAccount, encodedNewAccount)) {
+          return [];
+        }
 
-  //       return [
-  //         {
-  //           address: account,
-  //           ...value,
-  //         },
-  //       ];
-  //     }
-  //   );
+        return [
+          {
+            address: account,
+            ...value,
+          },
+        ];
+      }
+    );
 
-  //   const totalChunks = chunk(accountsToUpdate, 100);
-  //   let idx = 0;
-  //   for (const accounts of totalChunks) {
-  //     console.log({ idx, total: totalChunks.length });
-  //     await dynamo.transactWriteItems({
-  //       TransactItems: accounts.map((account) => {
-  //         return {
-  //           Update: makeUpdateForAccount(account),
-  //         };
-  //       }),
-  //     });
-  //     idx++;
-  //   }
-  // },
+    const totalChunks = chunk(accountsToUpdate, 100);
+    let idx = 0;
+    for (const accounts of totalChunks) {
+      console.log({ idx, total: totalChunks.length });
+      await dynamo.transactWriteItems({
+        TransactItems: accounts.map((account) => {
+          return {
+            Update: makeUpdateForAccount(account),
+          };
+        }),
+      });
+      idx++;
+    }
+  },
   eventHandlers: [
     {
       signature: "Transfer(address,address,uint256)",
