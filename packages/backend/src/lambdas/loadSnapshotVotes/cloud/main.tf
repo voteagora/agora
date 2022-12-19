@@ -16,7 +16,7 @@ resource "aws_ssm_parameter" "s3-bucket" {
 
 
 resource "aws_s3_bucket" "snapshot-votes" {
-  bucket = "agora-${var.environment}-snapshot-votes-load"
+  bucket = "agora-optimism-${var.environment}-snapshot-votes-load"
 }
 
 resource "aws_iam_role" "fetch-snapshot-execution-role" {
