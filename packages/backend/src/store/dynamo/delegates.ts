@@ -25,7 +25,7 @@ import {
   updateExpression,
   withAttributes,
 } from "./utils";
-import { ENSAccount } from "../../snapshot";
+import { GovernanceAccount } from "../../snapshot";
 
 function loadDelegateOverview(item: any): DelegateOverview {
   return {
@@ -174,7 +174,7 @@ export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {
 }
 
 export function makeUpdateForAccount(
-  account: ENSAccount & { address: string }
+  account: GovernanceAccount & { address: string }
 ): Update {
   return {
     TableName,

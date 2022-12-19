@@ -15,7 +15,7 @@ import {
 import {
   filterForEventHandlers,
   makeReducers,
-  tokensReducer,
+  governanceTokenReducer,
 } from "../../snapshot";
 import { getAllLogs } from "../../events";
 import SecretsManager from "aws-sdk/clients/secretsmanager";
@@ -144,14 +144,14 @@ function transformForCloudflareKv(snapshot: StoredSnapshot) {
     Object.entries(snapshot.contents).map(([key, value]) => {
       const normalizedValue = (() => {
         if (key === "ENSToken") {
-          const state = tokensReducer.decodeState(value as any);
+          const state = governanceTokenReducer.decodeState(value as any);
           state.accounts = new Map(
             Array.from(state.accounts.entries()).filter(
               ([, value]) => !value.represented.isZero()
             )
           );
 
-          return tokensReducer.encodeState(state);
+          return governanceTokenReducer.encodeState(state);
         }
 
         return value;

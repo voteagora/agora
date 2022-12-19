@@ -1,13 +1,10 @@
 import { ethers } from "ethers";
-import { ENSGovernor__factory, ENSToken__factory } from "./contracts/generated";
-import { ENSGovernorInterface } from "./contracts/generated/ENSGovernor";
-import { ENSTokenInterface } from "./contracts/generated/ENSToken";
+import { GovernanceToken__factory } from "./contracts/generated";
 import { BigNumber } from "ethers";
 import { ToucanInterface, withSentryScope } from "./sentry";
 import { getAllLogs } from "./events";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { isEqual, chunk } from "lodash";
-import { makeUpdateForAccount } from "./store/dynamo/delegates";
+import { GovernanceTokenInterface } from "./contracts/generated/GovernanceToken";
 
 export interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
@@ -62,14 +59,14 @@ type EventFragmentArg<T> = T extends ethers.utils.EventFragment<infer Args>
   ? Args
   : never;
 
-export type ENSTokenState = {
-  accounts: Map<string, ENSAccount>;
+export type GovernanceTokenState = {
+  accounts: Map<string, GovernanceAccount>;
 
   totalSupply: BigNumber;
   delegatedSupply: BigNumber;
 };
 
-export type ENSAccount = {
+export type GovernanceAccount = {
   balance: BigNumber;
   delegatingTo: string | null;
 
@@ -77,23 +74,23 @@ export type ENSAccount = {
   representing: string[];
 };
 
-type ENSAccountRaw = {
+type GovernanceAccountRaw = {
   balance: string;
   delegatingTo: string | null;
   representing: string[];
   represented: string;
 };
 
-type ENSTokenStateRaw = {
-  accounts: [string, ENSAccountRaw][];
+type GovernanceStateRaw = {
+  accounts: [string, GovernanceAccountRaw][];
 
   totalSupply: string;
   delegatedSupply: string;
 };
 
-function encodeAccountEntry([key, value]: [string, ENSAccount]): [
+function encodeAccountEntry([key, value]: [string, GovernanceAccount]): [
   string,
-  ENSAccountRaw
+  GovernanceAccountRaw
 ] {
   return [
     key.toLowerCase(),
@@ -106,42 +103,44 @@ function encodeAccountEntry([key, value]: [string, ENSAccount]): [
   ];
 }
 
-export const tokensStorage: StorageDefinition<ENSTokenState, ENSTokenStateRaw> =
-  {
-    name: "ENSToken",
-    initialState: () => ({
-      accounts: new Map<string, ENSAccount>(),
-      totalSupply: BigNumber.from(0),
-      delegatedSupply: BigNumber.from(0),
-    }),
-    encodeState(acc) {
-      return {
-        accounts: Array.from(acc.accounts.entries())
-          .sort(([, a], [, b]) => (a.represented.gt(b.represented) ? -1 : 1))
-          .map((args) => encodeAccountEntry(args)),
+export const governanceTokenStorage: StorageDefinition<
+  GovernanceTokenState,
+  GovernanceStateRaw
+> = {
+  name: "GovernanceToken",
+  initialState: () => ({
+    accounts: new Map<string, GovernanceAccount>(),
+    totalSupply: BigNumber.from(0),
+    delegatedSupply: BigNumber.from(0),
+  }),
+  encodeState(acc) {
+    return {
+      accounts: Array.from(acc.accounts.entries())
+        .sort(([, a], [, b]) => (a.represented.gt(b.represented) ? -1 : 1))
+        .map((args) => encodeAccountEntry(args)),
 
-        delegatedSupply: acc.delegatedSupply.toString(),
-        totalSupply: acc.totalSupply.toString(),
-      };
-    },
-    decodeState(state) {
-      return {
-        accounts: new Map(
-          state.accounts.map(([key, value]) => [
-            key,
-            {
-              balance: ethers.BigNumber.from(value.balance),
-              delegatingTo: value.delegatingTo,
-              representing: value.representing,
-              represented: BigNumber.from(value.represented),
-            },
-          ])
-        ),
-        totalSupply: BigNumber.from(state.totalSupply),
-        delegatedSupply: BigNumber.from(state.delegatedSupply),
-      };
-    },
-  };
+      delegatedSupply: acc.delegatedSupply.toString(),
+      totalSupply: acc.totalSupply.toString(),
+    };
+  },
+  decodeState(state) {
+    return {
+      accounts: new Map(
+        state.accounts.map(([key, value]) => [
+          key,
+          {
+            balance: ethers.BigNumber.from(value.balance),
+            delegatingTo: value.delegatingTo,
+            representing: value.representing,
+            represented: BigNumber.from(value.represented),
+          },
+        ])
+      ),
+      totalSupply: BigNumber.from(state.totalSupply),
+      delegatedSupply: BigNumber.from(state.delegatedSupply),
+    };
+  },
+};
 
 export type Proposal = {
   id: BigNumber;
@@ -214,7 +213,7 @@ export const governorStorage: StorageDefinition<
   GovernorState,
   GovernorStateRaw
 > = {
-  name: "ENSGovernor",
+  name: "Governor",
 
   initialState() {
     return {
@@ -284,11 +283,10 @@ export const governorStorage: StorageDefinition<
   },
 };
 
-const storages = [tokensStorage, governorStorage];
+const storages = [governanceTokenStorage];
 
 export type Snapshot = {
-  ENSGovernor: GovernorState;
-  ENSToken: ENSTokenState;
+  GovernanceToken: GovernanceTokenState;
 };
 
 export function parseStorage(rawValue: Record<string, any>): Snapshot {
@@ -307,18 +305,17 @@ export function parseStorage(rawValue: Record<string, any>): Snapshot {
 
 export async function initialSnapshot() {
   return {
-    ENSGovernor: governorStorage.initialState(),
-    ENSToken: tokensStorage.initialState(),
+    GovernanceToken: governanceTokenStorage.initialState(),
   };
 }
 
-function getOrCreateAccount(acc: ENSTokenState, address: string) {
+function getOrCreateAccount(acc: GovernanceTokenState, address: string) {
   const existing = acc.accounts.get(address);
   if (existing) {
     return existing;
   }
 
-  const newAccount: ENSAccount = {
+  const newAccount: GovernanceAccount = {
     balance: ethers.BigNumber.from(0),
     delegatingTo: null,
     representing: [],
@@ -330,54 +327,58 @@ function getOrCreateAccount(acc: ENSTokenState, address: string) {
   return newAccount;
 }
 
-export const tokensReducer: ReducerDefinition<
-  ENSTokenInterface,
-  ENSTokenState,
-  ENSTokenStateRaw
+const governanceTokenContract = makeContractInstance({
+  iface: GovernanceToken__factory.createInterface(),
+  address: "0x4200000000000000000000000000000000000042",
+  startingBlock: 0,
+});
+
+export const governanceTokenReducer: ReducerDefinition<
+  GovernanceTokenInterface,
+  GovernanceTokenState,
+  GovernanceStateRaw
 > = {
-  ...tokensStorage,
-  iface: ENSToken__factory.createInterface(),
-  address: "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72",
-  startingBlock: 13533418,
-  async dumpChangesToDynamo(dynamo, oldState, newState) {
-    // only track additions
-    const accountsToUpdate = Array.from(newState.accounts.entries()).flatMap(
-      ([account, value]) => {
-        const oldAccount = oldState.accounts.get(account);
+  ...governanceTokenStorage,
+  ...governanceTokenContract,
+  // async dumpChangesToDynamo(dynamo, oldState, newState) {
+  //   // only track additions
+  //   const accountsToUpdate = Array.from(newState.accounts.entries()).flatMap(
+  //     ([account, value]) => {
+  //       const oldAccount = oldState.accounts.get(account);
 
-        const encodedOldAccount = !oldAccount
-          ? null
-          : encodeAccountEntry([account, oldAccount]);
+  //       const encodedOldAccount = !oldAccount
+  //         ? null
+  //         : encodeAccountEntry([account, oldAccount]);
 
-        const encodedNewAccount = encodeAccountEntry([account, value]);
+  //       const encodedNewAccount = encodeAccountEntry([account, value]);
 
-        if (isEqual(encodedOldAccount, encodedNewAccount)) {
-          return [];
-        }
+  //       if (isEqual(encodedOldAccount, encodedNewAccount)) {
+  //         return [];
+  //       }
 
-        return [
-          {
-            address: account,
-            ...value,
-          },
-        ];
-      }
-    );
+  //       return [
+  //         {
+  //           address: account,
+  //           ...value,
+  //         },
+  //       ];
+  //     }
+  //   );
 
-    const totalChunks = chunk(accountsToUpdate, 100);
-    let idx = 0;
-    for (const accounts of totalChunks) {
-      console.log({ idx, total: totalChunks.length });
-      await dynamo.transactWriteItems({
-        TransactItems: accounts.map((account) => {
-          return {
-            Update: makeUpdateForAccount(account),
-          };
-        }),
-      });
-      idx++;
-    }
-  },
+  //   const totalChunks = chunk(accountsToUpdate, 100);
+  //   let idx = 0;
+  //   for (const accounts of totalChunks) {
+  //     console.log({ idx, total: totalChunks.length });
+  //     await dynamo.transactWriteItems({
+  //       TransactItems: accounts.map((account) => {
+  //         return {
+  //           Update: makeUpdateForAccount(account),
+  //         };
+  //       }),
+  //     });
+  //     idx++;
+  //   }
+  // },
   eventHandlers: [
     {
       signature: "Transfer(address,address,uint256)",
@@ -460,98 +461,8 @@ export const tokensReducer: ReducerDefinition<
   ],
 };
 
-export const governorReducer: ReducerDefinition<
-  ENSGovernorInterface,
-  GovernorState,
-  any
-> = {
-  ...governorStorage,
-  address: "0x323A76393544d5ecca80cd6ef2A560C6a395b7E3",
-  startingBlock: 13533772,
-  iface: ENSGovernor__factory.createInterface(),
-  eventHandlers: [
-    {
-      signature:
-        "ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)",
-
-      reduce(acc, event) {
-        acc.proposals.set(event.args.proposalId.toString(), {
-          id: event.args.proposalId,
-          proposer: event.args.proposer,
-          startBlock: event.args.startBlock,
-          endBlock: event.args.endBlock,
-          description: event.args.description,
-
-          targets: event.args.targets,
-          values: event.args[3],
-          signatures: event.args.signatures,
-          calldatas: event.args.calldatas,
-
-          status: { type: "CREATED" },
-        });
-
-        return acc;
-      },
-    },
-    {
-      signature: "QuorumNumeratorUpdated(uint256,uint256)",
-      reduce(acc, event) {
-        acc.quorumNumerator = event.args.newQuorumNumerator;
-        return acc;
-      },
-    },
-    {
-      signature: "VoteCast(address,uint256,uint8,uint256,string)",
-      reduce(acc, event, log) {
-        acc.votes.push({
-          transactionHash: log.transactionHash,
-          blockHash: log.blockHash,
-          proposalId: event.args.proposalId,
-          voter: event.args.voter,
-          support: event.args.support,
-          weight: event.args.weight,
-          reason: event.args.reason,
-        });
-
-        return acc;
-      },
-    },
-    {
-      signature: "ProposalCanceled(uint256)",
-      reduce(acc, event) {
-        acc.proposals.get(event.args.proposalId.toString()).status = {
-          type: "CANCELLED",
-        };
-
-        return acc;
-      },
-    },
-    {
-      signature: "ProposalExecuted(uint256)",
-      reduce(acc, event) {
-        acc.proposals.get(event.args.proposalId.toString()).status = {
-          type: "EXECUTED",
-        };
-
-        return acc;
-      },
-    },
-    {
-      signature: "ProposalQueued(uint256,uint256)",
-      reduce(acc, event) {
-        acc.proposals.get(event.args.proposalId.toString()).status = {
-          type: "QUEUED",
-          activatedAt: event.args.eta,
-        };
-
-        return acc;
-      },
-    },
-  ],
-};
-
 export function makeReducers(): ReducerDefinition<any, any, any>[] {
-  return [tokensReducer, governorReducer];
+  return [governanceTokenReducer];
 }
 
 type Signatures<InterfaceType extends TypedInterface> = {
