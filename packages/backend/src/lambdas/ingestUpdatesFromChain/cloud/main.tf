@@ -115,5 +115,5 @@ resource "aws_iam_role_policy" "ingest-updates-from-chain" {
 }
 
 resource "aws_s3_bucket" "snapshot-bucket" {
-  bucket = "agora-optimism-${var.environment}-snapshot"
+  bucket = "agora-optimism-${var.environment}-snapshot-1"
 }
