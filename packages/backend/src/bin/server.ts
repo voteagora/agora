@@ -1,5 +1,4 @@
 import "isomorphic-fetch";
-import { Plugin } from "@graphql-yoga/common";
 import { createServer } from "@graphql-yoga/node";
 import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
@@ -15,6 +14,7 @@ import { ethers } from "ethers";
 import { TransparentMultiCallProvider } from "../multicall";
 import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
 import { promises as fs } from "fs";
+import { useErrorInspection } from "../useErrorInspection";
 
 async function main() {
   const schema = makeGatewaySchema();
@@ -54,21 +54,6 @@ async function main() {
     plugins: [useTiming(), useApolloTracing(), useErrorInspection()],
   });
   await server.start();
-}
-
-function useErrorInspection(): Plugin<AgoraContextType> {
-  return {
-    onResolverCalled({ info, context }) {
-      return ({ result }) => {
-        if (result instanceof Error) {
-          console.log(result, info.path);
-          return result;
-        }
-
-        return result;
-      };
-    },
-  };
 }
 
 main();

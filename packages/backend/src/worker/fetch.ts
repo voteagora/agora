@@ -6,6 +6,7 @@ import { getGraphQLCallingContext } from "./graphql";
 import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
 
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
+import { useErrorInspection } from "../useErrorInspection";
 const assetManifest = JSON.parse(manifestJSON);
 
 export async function fetch(
@@ -28,7 +29,7 @@ export async function fetch(
       context,
       maskedErrors: isProduction,
       graphiql: !isProduction,
-      plugins: [useSentry(sentry)],
+      plugins: [useSentry(sentry), useErrorInspection()],
     });
 
     return server.handleRequest(request, { env, ctx });
