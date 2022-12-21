@@ -102,7 +102,7 @@ function CastVoteDialogContents({
   const { config } = usePrepareContractWrite({
     addressOrName: "0x6f3E6272A167e8AcCb32072d08E0957F9c79223d",
     contractInterface: NounsDaoLogicV1__factory.createInterface(),
-    functionName: "castVoteWithReason",
+    functionName: "castVoteRefundableWithReason",
     args: [
       proposalId,
       ["AGAINST", "FOR", "ABSTAIN"].indexOf(supportType),

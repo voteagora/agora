@@ -81,10 +81,10 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
         recentProposals: proposals(
           orderBy: createdBlock
           orderDirection: desc
-          first: 10
-          where: { status_not_in: [CANCELLED, VETOED, PENDING] }
+          first: 40
         ) {
           id
+          actualStatus
         }
 
         currentGovernance {
@@ -190,23 +190,33 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
               return <PanelRow title="Recent activity" detail={`N/A`} />;
             }
 
-            const lastTenProposals = new Set(
-              recentProposals.slice(0, 10).map((proposal) => proposal.id)
+            const recentFinishedProposals = recentProposals.filter(
+              (proposal) => {
+                return (
+                  proposal.actualStatus !== "ACTIVE" &&
+                  proposal.actualStatus !== "PENDING"
+                );
+              }
             );
 
+            const lastTenFinishedProposals = new Set(
+              recentFinishedProposals
+                .slice(0, 10)
+                .map((proposal) => proposal.id)
+            );
             const votedProposals = new Set(
               delegate.votes.map((vote) => vote.proposal.id)
             );
 
             const recentParticipation = intersection(
-              lastTenProposals,
+              lastTenFinishedProposals,
               votedProposals
             );
 
             return (
               <PanelRow
                 title="Recent activity"
-                detail={`${recentParticipation.size} of ${lastTenProposals.size} last props`}
+                detail={`${recentParticipation.size} of ${lastTenFinishedProposals.size} last props`}
               />
             );
           })()}

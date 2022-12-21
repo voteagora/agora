@@ -12,6 +12,8 @@ import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 import { useState } from "react";
 import { CastVoteInputFragment$key } from "./__generated__/CastVoteInputFragment.graphql";
 import { CastVoteInputVoteButtonsFragment$key } from "./__generated__/CastVoteInputVoteButtonsFragment.graphql";
+import { useLazyLoadQuery } from "react-relay/hooks";
+import { CastVoteInputQuery } from "./__generated__/CastVoteInputQuery.graphql";
 
 type Props = {
   fragmentRef: CastVoteInputFragment$key;
@@ -87,6 +89,35 @@ function VoteButtons({
   // todo: check if already voted
   // todo: we want to check this from the chain not from the subgraph
   const { address: accountAddress } = useAccount();
+
+  const { address } = useLazyLoadQuery<CastVoteInputQuery>(
+    graphql`
+      query CastVoteInputQuery($accountAddress: String!, $skip: Boolean!) {
+        address(addressOrEnsName: $accountAddress) @skip(if: $skip) {
+          wrappedDelegate {
+            address {
+              resolvedName {
+                ...NounResolvedLinkFragment
+              }
+            }
+
+            delegate {
+              delegatedVotesRaw
+              nounsRepresented {
+                id
+                ...NounImageFragment
+              }
+            }
+          }
+        }
+      }
+    `,
+    {
+      accountAddress: accountAddress ?? "",
+      skip: !accountAddress,
+    }
+  );
+
   const result = useFragment(
     graphql`
       fragment CastVoteInputVoteButtonsFragment on Proposal
@@ -100,12 +131,16 @@ function VoteButtons({
     fragmentRef
   );
 
+  const userVotes = address?.wrappedDelegate.delegate?.delegatedVotesRaw ?? 0;
+
   if (result.actualStatus !== "ACTIVE") {
     return <DisabledVoteButton reason="Not open to voting" />;
   } else if (!accountAddress) {
     return <DisabledVoteButton reason="Connect wallet to vote" />;
   } else if (result.hasVoted.length > 0) {
     return <DisabledVoteButton reason="Already voted" />;
+  } else if (userVotes === 0) {
+    return <DisabledVoteButton reason="No eligible votes" />; //no votes
   } else {
     return (
       <HStack gap="2">

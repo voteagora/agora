@@ -14,37 +14,36 @@ type Props = {
 };
 
 export function OverviewMetricsContainer({ fragmentRef }: Props) {
-  const { metrics, recentlyCompletedProposals, currentGovernance } =
-    useFragment(
-      graphql`
-        fragment OverviewMetricsContainer on Query {
-          recentlyCompletedProposals: proposals(
-            first: 10
-            orderBy: createdBlock
-            orderDirection: desc
-            where: { status_in: [QUEUED, EXECUTED, PENDING, ACTIVE] }
-          ) {
-            totalVotes
+  const { metrics, recentProposals, currentGovernance } = useFragment(
+    graphql`
+      fragment OverviewMetricsContainer on Query {
+        recentProposals: proposals(
+          first: 40
+          orderBy: createdBlock
+          orderDirection: desc
+        ) {
+          totalVotes
+          actualStatus
 
-            createdBlockGovernance {
-              delegatedVotes
-            }
-          }
-
-          metrics {
-            quorumVotesBPS
-            proposalThresholdBPS
-          }
-
-          currentGovernance {
-            delegatedVotesRaw
-            currentTokenHolders
-            currentDelegates
+          createdBlockGovernance {
+            delegatedVotes
           }
         }
-      `,
-      fragmentRef
-    );
+
+        metrics {
+          quorumVotesBPS
+          proposalThresholdBPS
+        }
+
+        currentGovernance {
+          delegatedVotesRaw
+          currentTokenHolders
+          currentDelegates
+        }
+      }
+    `,
+    fragmentRef
+  );
 
   const quorumBps = BigNumber.from(metrics.quorumVotesBPS);
 
@@ -56,6 +55,12 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
     .mul(metrics.proposalThresholdBPS)
     .div(100 * 100)
     .add(1);
+
+  const recentlyCompletedProposals = recentProposals.filter((proposal) => {
+    return (
+      proposal.actualStatus !== "ACTIVE" && proposal.actualStatus !== "PENDING"
+    );
+  }).slice(0, 10);
 
   return (
     <HStack
@@ -127,7 +132,6 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
             },
             0
           );
-
           return (
             ((total / recentlyCompletedProposals.length) * 100).toPrecision(2) +
             "%"
