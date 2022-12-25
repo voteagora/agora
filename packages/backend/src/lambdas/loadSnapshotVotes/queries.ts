@@ -53,8 +53,17 @@ export const proposalsQuery = graphql(/* GraphQL */ `
 `);
 
 export const votesQuery = graphql(/* GraphQL */ `
-  query VotesQuery($space: String!, $first: Int!, $skip: Int!) {
-    items: votes(where: { space: $space }, first: $first, skip: $skip) {
+  query VotesQuery(
+    $space: String!
+    $first: Int!
+    $skip: Int!
+    $proposalId: String
+  ) {
+    items: votes(
+      where: { space: $space, proposal: $proposalId }
+      first: $first
+      skip: $skip
+    ) {
       app
       choice
       created
@@ -155,23 +164,39 @@ export type GetAllFromQueryResult<
   Query extends DocumentNode<Exact<{ items?: any[] | undefined | null }>, any>
 > = ResultOf<Query>["items"];
 
+type LimitsType = {
+  first: number;
+  skip: number;
+};
+
+const defaultLimits: LimitsType = {
+  first: 1000,
+  skip: 5000,
+};
+
 export async function getAllFromQuery<
   Query extends DocumentNode<Exact<{ items?: any[] | undefined | null }>, any>
 >(
   query: Query,
-  variables: Omit<VariablesOf<Query>, "first" | "skip">
+  variables: Omit<VariablesOf<Query>, "first" | "skip">,
+  limits: LimitsType = defaultLimits
 ): Promise<ResultOf<Query>["items"]> {
-  const pageSize = 20_000;
-
   const allItems = [];
   for (let pageIndex = 0; true; pageIndex++) {
+    const first = limits.first;
+    const skip = first * pageIndex;
+
+    if (skip > limits.skip) {
+      break;
+    }
+
     const result = await request({
       url,
       document: query,
       variables: {
         ...variables,
-        first: pageSize,
-        skip: pageSize * pageIndex,
+        first,
+        skip,
       } as any,
     });
 
