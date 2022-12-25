@@ -24,11 +24,8 @@ export async function run() {
     retryMode: "standard",
   });
 
-  const [proposals, votes, space] = await Promise.all([
+  const [proposals, space] = await Promise.all([
     getAllFromQuery(proposalsQuery, {
-      space: spaceId,
-    }),
-    getAllFromQuery(votesQuery, {
       space: spaceId,
     }),
     request({
@@ -39,6 +36,17 @@ export async function run() {
       },
     }),
   ]);
+
+  const votes = [];
+
+  for (const proposal of proposals) {
+    const proposalVotes = await getAllFromQuery(votesQuery, {
+      space: spaceId,
+      proposalId: proposal.id,
+    });
+
+    proposalVotes.push(...votes);
+  }
 
   await Promise.all([
     s3.putObject({
