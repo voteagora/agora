@@ -37,13 +37,9 @@ export async function run() {
     }),
   ]);
 
-  const votes = [];
-
-  for (const proposal of proposals) {
-    const proposalVotes = await getAllFromQuery(votesQuery, {
-      space: spaceId,
-      proposalId: proposal.id,
-    });
+  const votes = await getAllFromQuery(votesQuery, {
+    space: spaceId,
+  });
 
     proposalVotes.push(...votes);
   }

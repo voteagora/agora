@@ -2,16 +2,17 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
 import request from "graphql-request";
 import { graphql } from "./graphql";
 import { Exact } from "./graphql/graphql";
+import { RateLimiter } from "limiter";
 
 export const url = "https://hub.snapshot.org/graphql";
 
 export const proposalsQuery = graphql(/* GraphQL */ `
-  query ProposalsQuery($space: String!, $first: Int!, $skip: Int!) {
+  query ProposalsQuery($space: String!, $first: Int!, $cursor: Int) {
     items: proposals(
-      where: { space: $space }
-      orderBy: "id"
+      where: { space: $space, created_lte: $cursor }
+      orderBy: "created"
+      orderDirection: desc
       first: $first
-      skip: $skip
     ) {
       id
       app
@@ -53,16 +54,12 @@ export const proposalsQuery = graphql(/* GraphQL */ `
 `);
 
 export const votesQuery = graphql(/* GraphQL */ `
-  query VotesQuery(
-    $space: String!
-    $first: Int!
-    $skip: Int!
-    $proposalId: String
-  ) {
+  query VotesQuery($space: String!, $first: Int!, $cursor: Int) {
     items: votes(
-      where: { space: $space, proposal: $proposalId }
+      where: { space: $space, created_lte: $cursor }
+      orderBy: "created"
+      orderDirection: desc
       first: $first
-      skip: $skip
     ) {
       app
       choice
@@ -174,29 +171,35 @@ const defaultLimits: LimitsType = {
   skip: 5000,
 };
 
+const rateLimiter = new RateLimiter({
+  interval: 20 * 1e3,
+  tokensPerInterval: 60 * 0.5,
+});
+
 export async function getAllFromQuery<
-  Query extends DocumentNode<Exact<{ items?: any[] | undefined | null }>, any>
+  Query extends DocumentNode<
+    Exact<{ items?: { created: number }[] | undefined | null }>,
+    any
+  >
 >(
   query: Query,
-  variables: Omit<VariablesOf<Query>, "first" | "skip">,
+  variables: Omit<VariablesOf<Query>, "first" | "cursor">,
   limits: LimitsType = defaultLimits
 ): Promise<ResultOf<Query>["items"]> {
   const allItems = [];
+  let cursor = undefined;
+
   for (let pageIndex = 0; true; pageIndex++) {
     const first = limits.first;
-    const skip = first * pageIndex;
 
-    if (skip > limits.skip) {
-      break;
-    }
-
+    await rateLimiter.removeTokens(1);
     const result = await request({
       url,
       document: query,
       variables: {
         ...variables,
         first,
-        skip,
+        cursor,
       } as any,
     });
 
@@ -204,7 +207,20 @@ export async function getAllFromQuery<
       break;
     }
 
-    allItems.push(...result.items);
+    const items = result.items;
+    const lastItem = items[items.length - 1];
+    const filteredItems = items.filter((it) => it.created !== lastItem.created);
+
+    allItems.push(...filteredItems);
+    if (cursor === lastItem.created) {
+      if (items.length === limits.first) {
+        throw new Error("many items with the same cursor value");
+      }
+
+      break;
+    }
+
+    cursor = lastItem.created;
   }
 
   return allItems;
