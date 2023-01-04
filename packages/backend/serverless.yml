@@ -12,17 +12,6 @@ provider:
   deploymentMethod: direct
 
 functions:
-  loadSnapshotVotes:
-    role: !Sub arn:aws:iam::${AWS::AccountId}:role/FetchSnapshotExecutionRole
-    name: 'load-snapshot-votes'
-    handler: src/lambdas/loadSnapshotVotes/handler.run
-    memorySize: 2048
-    timeout: 300
-    environment:
-      S3_BUCKET: ${ssm:/loadSnapshotVotes/s3Bucket}
-    events:
-      - schedule: rate(1 hour)
-
   ingestUpdatesFromChain:
     role: !Sub arn:aws:iam::${AWS::AccountId}:role/IngestUpdatesFromChainExecutionRole
     name: 'ingest-updates-from-chain'
