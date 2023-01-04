@@ -192,36 +192,46 @@ export async function getAllFromQuery<
   for (let pageIndex = 0; true; pageIndex++) {
     const first = limits.first;
 
-    await rateLimiter.removeTokens(1);
-    const result = await request({
-      url,
-      document: query,
-      variables: {
-        ...variables,
-        first,
-        cursor,
-      } as any,
-    });
+    for (let attemptIdx = 0; attemptIdx < 10; attemptIdx++) {
+      let result;
+      try {
+        await rateLimiter.removeTokens(1);
 
-    if (!result?.items?.length) {
-      break;
-    }
-
-    const items = result.items;
-    const lastItem = items[items.length - 1];
-    const filteredItems = items.filter((it) => it.created !== lastItem.created);
-
-    allItems.push(...filteredItems);
-    if (cursor === lastItem.created) {
-      if (items.length === limits.first) {
-        throw new Error("many items with the same cursor value");
+        result = await request({
+          url,
+          document: query,
+          variables: {
+            ...variables,
+            first,
+            cursor,
+          } as any,
+        });
+      } catch (e) {
+        console.error(e);
+        continue;
       }
 
+      if (!result?.items?.length) {
+        return allItems;
+      }
+
+      const items = result.items;
+      const lastItem = items[items.length - 1];
+      const filteredItems = items.filter(
+        (it) => it.created !== lastItem.created
+      );
+
+      allItems.push(...filteredItems);
+      if (cursor === lastItem.created) {
+        if (items.length === limits.first) {
+          throw new Error("many items with the same cursor value");
+        }
+
+        return allItems;
+      }
+
+      cursor = lastItem.created;
       break;
     }
-
-    cursor = lastItem.created;
   }
-
-  return allItems;
 }
