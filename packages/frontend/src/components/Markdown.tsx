@@ -90,6 +90,10 @@ export function Markdown({ markdown }: Props) {
           a:hover {
             border-bottom: 1px solid ${theme.colors.gray["600"]};
           }
+
+          p{
+            word-break: break-word;
+          }
         `
       )}
     />
