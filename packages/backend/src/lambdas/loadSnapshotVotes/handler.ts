@@ -98,8 +98,8 @@ export async function writeVotesToDynamoDb(
                         PartitionKey: `SnapshotVote#${item.voter.toLowerCase()}`,
                         SortKey:
                           item.created.toString().padStart(12, "0") +
-                          "#" +
-                          item.proposal.id,
+                            "#" +
+                            item.proposal?.id ?? "null",
                       }),
                       ...marshaller.marshallItem({
                         ...item,
