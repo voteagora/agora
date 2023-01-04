@@ -13,18 +13,10 @@ import request from "graphql-request";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { makeKey, marshaller } from "../../store/dynamo/utils";
 
-const spaceId = "opcollective.eth";
+export const spaceId = "opcollective.eth";
 
-export async function run() {
-  const Bucket = process.env.S3_BUCKET!;
-
-  const s3 = new S3({});
-
-  const dynamo = new DynamoDB({
-    retryMode: "standard",
-  });
-
-  const [proposals, space] = await Promise.all([
+export async function fetchEverything() {
+  const [proposals, space, votes] = await Promise.all([
     getAllFromQuery(proposalsQuery, {
       space: spaceId,
     }),
@@ -35,14 +27,28 @@ export async function run() {
         space: spaceId,
       },
     }),
+    getAllFromQuery(votesQuery, {
+      space: spaceId,
+    }),
   ]);
 
-  const votes = await getAllFromQuery(votesQuery, {
-    space: spaceId,
+  return {
+    proposals,
+    space,
+    votes,
+  };
+}
+
+export async function run() {
+  const Bucket = process.env.S3_BUCKET!;
+
+  const s3 = new S3({});
+
+  const dynamo = new DynamoDB({
+    retryMode: "standard",
   });
 
-    proposalVotes.push(...votes);
-  }
+  const { proposals, space, votes } = await fetchEverything();
 
   await Promise.all([
     s3.putObject({
@@ -57,14 +63,14 @@ export async function run() {
     }),
     s3.putObject({
       Bucket,
-      Key: `${spaceId}/votes.json`,
-      Body: JSON.stringify(votes),
+      Key: `${spaceId}/proposals.json`,
+      Body: JSON.stringify(proposals),
     }),
     writeVotesToDynamoDb(dynamo, votes, space, proposals),
   ]);
 }
 
-async function writeVotesToDynamoDb(
+export async function writeVotesToDynamoDb(
   dynamo,
   votes: GetAllFromQueryResult<typeof votesQuery>,
   space: ResultOf<typeof spaceQuery>,
@@ -90,7 +96,10 @@ async function writeVotesToDynamoDb(
                     Item: {
                       ...makeKey({
                         PartitionKey: `SnapshotVote#${item.voter.toLowerCase()}`,
-                        SortKey: item.created.toString().padStart(12, "0"),
+                        SortKey:
+                          item.created.toString().padStart(12, "0") +
+                          "#" +
+                          item.proposal.id,
                       }),
                       ...marshaller.marshallItem({
                         ...item,
