@@ -10,6 +10,7 @@ import {
 import { HomePage } from "../../pages/HomePage/HomePage";
 import { DelegatePage } from "../../pages/DelegatePage/DelegatePage";
 import { EditDelegatePage } from "../../pages/EditDelegatePage/EditDelegatePage";
+import { VoteAuctionPage } from "../../pages/VoteAuctionPage/VoteAuctionPage";
 import { matchPath, PathMatch } from "react-router-dom";
 
 import { createBrowserHistory } from "history";
@@ -43,6 +44,10 @@ const routes: Route[] = [
   {
     path: "/delegate/:delegateId",
     element: DelegatePage,
+  },
+  {
+    path: "/voteauction",
+    element: VoteAuctionPage,
   },
   {
     path: "/create",

@@ -212,7 +212,7 @@ export function VoterPanel({ delegateFragment, queryFragment }: Props) {
               lastTenFinishedProposals,
               votedProposals
             );
-
+            console.log(lastTenFinishedProposals.size)
             return (
               <PanelRow
                 title="Recent activity"
