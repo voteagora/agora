@@ -1,10 +1,14 @@
 import { ethers } from "ethers";
-import { GovernanceToken__factory } from "./contracts/generated";
+import {
+  GovernanceToken__factory,
+  OptimismGovernorV1__factory,
+} from "./contracts/generated";
 import { BigNumber } from "ethers";
 import { ToucanInterface, withSentryScope } from "./sentry";
 import { getAllLogs } from "./events";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { GovernanceTokenInterface } from "./contracts/generated/GovernanceToken";
+import { OptimismGovernorV1Interface } from "./contracts/generated/OptimismGovernorV1";
 import { chunk, isEqual } from "lodash";
 import { makeUpdateForAccount } from "./store/dynamo/delegates";
 
@@ -463,8 +467,93 @@ export const governanceTokenReducer: ReducerDefinition<
   ],
 };
 
+const governorContract = makeContractInstance({
+  iface: OptimismGovernorV1__factory.createInterface(),
+  address: "0x4200dfa134da52d9c96f523af1fcb507199b1042",
+  startingBlock: 60786205,
+});
+
+const governorReducer: ReducerDefinition<
+  OptimismGovernorV1Interface,
+  GovernorState,
+  GovernorStateRaw
+> = {
+  ...governorContract,
+  ...governorStorage,
+
+  name: "OptimismGovernorV1",
+
+  eventHandlers: [
+    {
+      signature:
+        "ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)",
+      reduce(acc, event) {
+        acc.proposals.set(event.args.proposalId.toString(), {
+          id: event.args.proposalId,
+          proposer: event.args.proposer,
+          startBlock: event.args.startBlock,
+          endBlock: event.args.endBlock,
+          description: event.args.description,
+
+          targets: event.args.targets,
+          values: event.args[3],
+          signatures: event.args.signatures,
+          calldatas: event.args.calldatas,
+
+          status: { type: "CREATED" },
+        });
+
+        return acc;
+      },
+    },
+    {
+      signature: "QuorumNumeratorUpdated(uint256,uint256)",
+      reduce(acc, event) {
+        acc.quorumNumerator = event.args.newQuorumNumerator;
+        return acc;
+      },
+    },
+    {
+      signature: "VoteCast(address,uint256,uint8,uint256,string)",
+      reduce(acc, event, log) {
+        acc.votes.push({
+          transactionHash: log.transactionHash,
+          blockHash: log.blockHash,
+          proposalId: event.args.proposalId,
+          voter: event.args.voter,
+          support: event.args.support,
+          weight: event.args.weight,
+          reason: event.args.reason,
+        });
+
+        return acc;
+      },
+    },
+    {
+      signature: "ProposalCanceled(uint256)",
+      reduce(acc, event) {
+        acc.proposals.get(event.args.proposalId.toString()).status = {
+          type: "CANCELLED",
+        };
+
+        return acc;
+      },
+    },
+    {
+      signature: "ProposalExecuted(uint256)",
+      reduce(acc, event) {
+        acc.proposals.get(event.args.proposalId.toString()).status = {
+          type: "EXECUTED",
+        };
+
+        return acc;
+      },
+    },
+  ],
+};
+
 export function makeReducers(): ReducerDefinition<any, any, any>[] {
-  return [governanceTokenReducer];
+  return [governanceTokenReducer, governorReducer];
 }
 
 type Signatures<InterfaceType extends TypedInterface> = {
