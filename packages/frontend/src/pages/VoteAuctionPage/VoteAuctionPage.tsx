@@ -1,33 +1,50 @@
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { useParams } from "../../components/HammockRouter/HammockRouter";
-import { Navigate } from "../../components/HammockRouter/Navigate";
 import { HStack, VStack } from "../../components/VStack";
-
-const currentPrice = 0.2;
-const auctionTimeRemaining = "1d 2h 3m 4s";
-const allBids = [
-  {
-    bidder: "test1.eth",
-    amount: 0.2,
-    link: "etherscan.io",
-  },
-  {
-    bidder: "test2.eth",
-    amount: 0.2,
-    link: "etherscan.io",
-  },
-  {
-    bidder: "test3.eth",
-    amount: 0.2,
-    link: "etherscan.io",
-  },
-];
-const bidItems = allBids.map((bid) =>
-  bidItem(bid.bidder, bid.amount, bid.link)
-);
+import { useNFT } from "@zoralabs/nft-hooks";
+import { formatDistanceToNow, parseISO} from "date-fns";
 
 export function VoteAuctionPage() {
+  const { data } = useNFT("0xd8e6b954f7d3F42570D3B0adB516f2868729eC4D", "1598");
+
+  if (!data || !data.markets || !data.markets.length) {
+    return null;
+  }
+
+  const market = data.markets[0] as any;
+
+  const name = data?.metadata?.name;
+  const ipfsLink = data?.metadata?.imageUri;
+  const imgLink = (ipfsLink as any).replace("ipfs://", "https://ipfs.io/ipfs/");
+
+  const currentBid = market?.currentBid?.amount?.eth?.value; 
+  const auctionEnds = parseISO(market?.endsAt?.timestamp);
+  const timeRemaining = formatDistanceToNow(auctionEnds);
+  
+  console.log(data);
+  console.log(imgLink); 
+  console.log(timeRemaining);
+  const allBids = [
+    {
+      bidder: "test1.eth",
+      amount: 0.2,
+      link: "etherscan.io",
+    },
+    {
+      bidder: "test2.eth",
+      amount: 0.2,
+      link: "etherscan.io",
+    },
+    {
+      bidder: "test3.eth",
+      amount: 0.2,
+      link: "etherscan.io",
+    },
+  ];
+  const bidItems = allBids.map((bid) =>
+    bidItem(bid.bidder, bid.amount, bid.link)
+  );
+
   return (
     <HStack
       gap="16"
@@ -52,7 +69,7 @@ export function VoteAuctionPage() {
             border: 1px solid ${theme.colors.gray["300"]};
             box-shadow: ${theme.boxShadow.newDefault};
           `}
-          src="https://i.imgur.com/wjJxTeO.png"
+          src={imgLink}
           alt=""
         />
         <HStack
@@ -109,7 +126,7 @@ export function VoteAuctionPage() {
               font-weight: ${theme.fontWeight.extrabold};
             `}
           >
-            Delegate for Noun 325
+            {name}
           </div>
           <div
             className={css`
@@ -136,7 +153,7 @@ export function VoteAuctionPage() {
                 font-weight: ${theme.fontWeight.semibold};
               `}
             >
-              {currentPrice + " ETH"}
+              {currentBid + " ETH"}
             </div>
           </VStack>
           <div
@@ -153,14 +170,14 @@ export function VoteAuctionPage() {
                 font-weight: ${theme.fontWeight.medium};
               `}
             >
-              Auction ends in
+              Auction ends on
             </div>
             <div
               className={css`
                 font-weight: ${theme.fontWeight.semibold};
               `}
             >
-              {auctionTimeRemaining}
+              {timeRemaining}
             </div>
           </VStack>
         </HStack>
@@ -177,7 +194,7 @@ export function VoteAuctionPage() {
               }
             `}
             type="text"
-            placeholder={(currentPrice * 1.1).toFixed(2) + " ETH"}
+            placeholder={(currentBid * 1.1).toFixed(2) + " ETH"}
           />
           <button
             className={css`
