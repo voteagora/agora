@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/react";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { inset0 } from "../theme";
@@ -6,7 +5,7 @@ import * as theme from "../theme";
 import { HStack, VStack } from "./VStack";
 import { NounGridChildren } from "./NounGrid";
 import { shadow } from "../pages/DelegatePage/VoterPanel";
-import { useAccount, useContractWrite, usePrepareContractWrite } from "wagmi";
+import { useAccount } from "wagmi";
 import { ArrowDownIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
 import { motion } from "framer-motion";
@@ -15,8 +14,10 @@ import { DelegateDialogQuery } from "./__generated__/DelegateDialogQuery.graphql
 import { NounGridFragment$data } from "./__generated__/NounGridFragment.graphql";
 import { icons } from "../icons/icons";
 import { NounResolvedLink } from "./NounResolvedLink";
-import { NounsToken__factory } from "../contracts/generated";
+import { NounsToken } from "../contracts/generated";
 import { ReactNode } from "react";
+import { nounsToken } from "../contracts/contracts";
+import { useContractWrite } from "../hooks/useContractWrite";
 
 export function DelegateDialog({
   targetAccountAddress,
@@ -123,23 +124,12 @@ function DelegateDialogContents({
     }
   );
 
-  // todo: share contract address configuration
-  const { config } = usePrepareContractWrite({
-    addressOrName: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03",
-    contractInterface: NounsToken__factory.createInterface(),
-    functionName: "delegate",
-    args: [targetAccountAddress],
-    onError(e) {
-      Sentry.captureException(e);
-    },
-  });
-
-  const { write } = useContractWrite({
-    ...config,
-    onSuccess() {
-      completeDelegation();
-    },
-  });
+  const write = useContractWrite<NounsToken, "delegate">(
+    nounsToken,
+    "delegate",
+    [targetAccountAddress],
+    () => completeDelegation()
+  );
 
   if (!wrappedDelegate) {
     return null;
