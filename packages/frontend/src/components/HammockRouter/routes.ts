@@ -2,6 +2,7 @@ import { Route } from "./HammockRouter";
 import { homeRoute } from "../../pages/HomePage/HomePageRoute";
 import { delegatePageRoute } from "../../pages/DelegatePage/DelegatePageRoute";
 import { editDelegatePageRoute } from "../../pages/EditDelegatePage/EditDelegatePageRoute";
+import React from "react";
 
 export const routes: Route[] = [
   {
@@ -15,5 +16,21 @@ export const routes: Route[] = [
   {
     path: "/create",
     params: editDelegatePageRoute,
+  },
+  {
+    path: "/proposals/:proposalId",
+    params: {
+      element: React.lazy(
+        () => import("../../pages/ProposalsPage/ProposalsPage")
+      ),
+    },
+  },
+  {
+    path: "/proposals",
+    params: {
+      element: React.lazy(
+        () => import("../../pages/ProposalsPage/ProposalsRedirectPage")
+      ),
+    },
   },
 ];
