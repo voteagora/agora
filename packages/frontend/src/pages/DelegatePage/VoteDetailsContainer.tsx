@@ -60,7 +60,7 @@ export function ValuePart({ value }: ValuePartProps) {
   );
 }
 
-type SupportTextProps = {
+export type SupportTextProps = {
   supportType: "FOR" | "AGAINST" | "ABSTAIN";
 };
 

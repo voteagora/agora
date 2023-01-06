@@ -66,6 +66,9 @@ export const colors = {
 
   gray: {
     eb: "#ebebeb",
+    "4f": "#4f4f4f",
+    af: "#afafaf",
+    fa: "#fafafa",
     100: "#f7fafc",
     200: "#edf2f7",
     300: "#e2e8f0",
@@ -183,6 +186,7 @@ export const borderRadius = {
   default: "0.25rem",
   md: "0.375rem",
   lg: "0.5rem",
+  xl: "0.75rem",
   full: "9999px",
 };
 

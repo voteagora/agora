@@ -11,6 +11,7 @@ type Query {
     after: String
   ): DelegatesConnection!
 
+  proposal(id: ID!): Proposal!
   proposals: [Proposal!]!
 
   metrics: Metrics!
@@ -87,7 +88,7 @@ type Vote {
   votes: VotingPower!
 
   proposal: Proposal!
-  # voter: Delegate!
+  voter: Delegate!
   transaction: Transaction!
 }
 
@@ -202,16 +203,46 @@ type PageInfo {
   endCursor: String
 }
 
+scalar Bytes
+
 type Proposal {
   id: ID!
   number: BigInt!
+
+  forVotes: BigInt!
+  againstVotes: BigInt!
+  abstainVotes: BigInt!
+
   title: String!
+  description: String!
+
+  voteEndsAt: Int!
+  voteStartsAt: Int!
+  quorumVotes: BigInt!
   totalVotes: BigInt!
   votes: [Vote!]!
 
+  targets: [Bytes!]
+  values: [BigInt!]
+  signatures: [String!]
+  calldatas: [Bytes!]
+
+  status: ProposalStatus!
+
   totalValue: BigInt!
 
-  # proposer: Delegate!
+  proposer: Delegate!
+}
+
+enum ProposalStatus {
+  PENDING
+  ACTIVE
+  CANCELLED
+  VETOED
+  QUEUED
+  EXECUTED
+  DEFEATED
+  EXPIRED
 }
 
 type Mutation {
