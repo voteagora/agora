@@ -27,7 +27,7 @@ async function main() {
       provider,
       filter,
       latestBlockNumber,
-      13554568 ?? reducer.startingBlock
+      reducer.startingBlock
     )) {
       for (const log of logs) {
         await handle.write(JSON.stringify(log) + "\n");

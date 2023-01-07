@@ -6,9 +6,9 @@ import {
 } from "./utils/markdown";
 import { GraphQLScalarType } from "graphql";
 import { BigNumber, ethers } from "ethers";
-import { Resolvers } from "./generated/types";
+import { ProposalStatus, Resolvers } from "./generated/types";
 import { formSchema } from "./formSchema";
-import { StoredStatement } from "./model";
+import { Proposal, StoredStatement } from "./model";
 import schema from "./schema.graphql";
 import { marked } from "marked";
 import { validateSigned } from "./utils/signing";
@@ -134,9 +134,12 @@ export function makeGatewaySchema() {
         });
       },
 
+      async proposal() {
+        return proposal;
+      },
+
       proposals(_, _args, { snapshot }) {
-        // todo:
-        return [];
+        return [proposal];
         // return Array.from(snapshot.ENSGovernor.proposals.values());
       },
 
@@ -401,12 +404,43 @@ export function makeGatewaySchema() {
         return `Proposal|${id.toString()}`;
       },
 
+      async proposer({ proposer }, _args, { delegateStorage }) {
+        return await delegateStorage.getDelegate(proposer);
+      },
+
       number({ id }) {
         return id;
       },
 
       votes({ id }, _args, { snapshot }) {
         return getVotesForProposal(id, snapshot);
+      },
+
+      forVotes({ id }) {
+        // todo: implement
+        return BigNumber.from(0);
+      },
+
+      againstVotes() {
+        // todo: implement
+        return BigNumber.from(0);
+      },
+
+      abstainVotes() {
+        // todo: implement
+        return BigNumber.from(0);
+      },
+
+      voteStartsAt() {
+        return 0;
+      },
+
+      voteEndsAt() {
+        return 0;
+      },
+
+      quorumVotes() {
+        return BigNumber.from(0);
       },
 
       totalValue({ values }) {
@@ -423,6 +457,14 @@ export function makeGatewaySchema() {
           (acc, vote) => acc.add(vote.weight),
           BigNumber.from(0)
         );
+      },
+
+      status({ status }) {
+        // todo: implement
+        switch (status.type) {
+          default:
+            return ProposalStatus.Cancelled;
+        }
       },
     },
 
@@ -580,3 +622,19 @@ export function makeGatewaySchema() {
 function bigNumberDescendingComparator<T>(fn: (item: T) => BigNumber) {
   return (a: T, b: T) => (fn(b).lt(fn(a)) ? -1 : 1);
 }
+
+const proposal: Proposal = {
+  id: BigNumber.from(1),
+  proposer: "0x5e349eca2dc61abcd9dd99ce94d04136151a09ee",
+  calldatas: [],
+  signatures: [],
+  values: [],
+  targets: [],
+  description:
+    "# Badgeholder Nomination Voting\nAs part of the recently announced [retroPGF 2](https://optimism.mirror.xyz/wqk1Yeyn2OhV9paDzbRXvQ0m0JYDu2npbSkMClwk1rY) , voting badges will be distributed to a set of 90 community members. One voting badge will be given to 10 Token House delegates. Below are all valid nominations (please see [the original post](https://gov.optimism.io/t/token-house-badgeholder-nominations/4196/12) and [Token House Badgeholder Election Information](https://gov.optimism.io/t/token-house-badgeholder-election-information/4195)  for more information.)",
+  endBlock: BigNumber.from(100),
+  startBlock: BigNumber.from(0),
+  status: {
+    type: "CANCELLED",
+  },
+};

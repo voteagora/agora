@@ -19,7 +19,7 @@ import { OptimismGovernorV1__factory } from "../../contracts/generated/factories
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
 
 type Props = {
-  proposalId: number;
+  proposalId: string;
   reason: string;
   supportType: SupportTextProps["supportType"];
   closeDialog: () => void;

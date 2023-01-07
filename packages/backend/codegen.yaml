@@ -18,6 +18,7 @@ generates:
       scalars:
         BigInt: ethers.BigNumber
         Timestamp: Date
+        Bytes: string
       mappers:
         Delegate: ../model#Delegate as DelegateModel
         SnapshotVote: ../model#SnapshotVote as SnapshotVoteModel

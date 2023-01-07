@@ -289,10 +289,11 @@ export const governorStorage: StorageDefinition<
   },
 };
 
-const storages = [governanceTokenStorage];
+const storages = [governanceTokenStorage, governorStorage];
 
 export type Snapshot = {
   GovernanceToken: GovernanceTokenState;
+  Governor: GovernorState;
 };
 
 export function parseStorage(rawValue: Record<string, any>): Snapshot {
