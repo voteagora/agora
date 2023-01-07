@@ -16,7 +16,7 @@ export type DelegateDialogType = {
 export type CastVoteDialogType = {
   type: "CAST_VOTE";
   params: {
-    proposalId: number;
+    proposalId: string;
     reason: string;
     supportType: SupportTextProps["supportType"];
   };

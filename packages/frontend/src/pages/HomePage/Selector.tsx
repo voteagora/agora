@@ -19,14 +19,14 @@ type SelectorProps<T> = {
   items: SelectorItem<T>[];
   value: T;
   onChange: (item: T) => void;
-  size: "m" | "l";
+  size?: "m" | "l";
 };
 
 export function Selector<T>({
   items,
   value,
   onChange,
-  size,
+  size = "l",
 }: SelectorProps<T>) {
   const sizeM = css`
     background: #f7f7f7;

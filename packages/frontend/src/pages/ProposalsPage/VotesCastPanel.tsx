@@ -19,6 +19,7 @@ import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
 import { CastVoteInput } from "./CastVoteInput";
 import { ProposalVotesSummary } from "./ProposalVotesSummary";
 import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
+import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
 
 export function VotesCastPanel({
   fragmentRef,
@@ -54,7 +55,7 @@ export function VotesCastPanel({
           reason
           votes {
             amount {
-              amount
+              ...TokenAmountDisplayFragment
             }
           }
           voter {
@@ -111,20 +112,19 @@ export function VotesCastPanel({
               {result.votes.map((vote) => (
                 <VStack key={vote.id} gap="1">
                   <VStack>
-                    {hoveredVoter &&
-                      vote.voter.address.wrappedDelegate === hoveredVoter && (
-                        <div
-                          className={css`
-                            position: absolute;
-                            top: 50%;
-                            margin-top: -50%;
-                            width: 23rem;
-                            right: calc(100% + ${theme.spacing["4"]});
-                          `}
-                        >
-                          <VoterCard fragmentRef={hoveredVoter} />
-                        </div>
-                      )}
+                    {hoveredVoter && vote.voter === hoveredVoter && (
+                      <div
+                        className={css`
+                          position: absolute;
+                          top: 50%;
+                          margin-top: -50%;
+                          width: 23rem;
+                          right: calc(100% + ${theme.spacing["4"]});
+                        `}
+                      >
+                        <VoterCard fragmentRef={hoveredVoter} />
+                      </div>
+                    )}
 
                     <HStack
                       justifyContent="space-between"
@@ -135,13 +135,9 @@ export function VotesCastPanel({
                       `}
                     >
                       <HStack>
-                        <div
-                          onMouseEnter={() =>
-                            setHoveredVoter(vote.voter.address.wrappedDelegate)
-                          }
-                        >
+                        <div onMouseEnter={() => setHoveredVoter(vote.voter)}>
                           <NounResolvedLink
-                            resolvedName={vote.voter.resolvedName!}
+                            resolvedName={vote.voter.address.resolvedName}
                           />
                         </div>
 
@@ -156,7 +152,7 @@ export function VotesCastPanel({
                           font-size: ${theme.fontSize.xs};
                         `}
                       >
-                        <div>{vote.votes}</div>
+                        <TokenAmountDisplay fragment={vote.votes.amount} />
 
                         <div
                           className={css`
