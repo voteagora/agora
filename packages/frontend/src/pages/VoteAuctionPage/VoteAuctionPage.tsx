@@ -3,6 +3,7 @@ import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
 import { useNFT } from "@zoralabs/nft-hooks";
 import { formatDistanceToNow, parseISO } from "date-fns";
+import { shortAddress } from "../../utils/address";
 
 export function VoteAuctionPage() {
   const { data } = useNFT("0xd8e6b954f7d3F42570D3B0adB516f2868729eC4D", "1598");
@@ -16,14 +17,15 @@ export function VoteAuctionPage() {
   const name = data?.metadata?.name;
   const ipfsLink = data?.metadata?.imageUri;
   const imgLink = (ipfsLink as any).replace("ipfs://", "https://ipfs.io/ipfs/");
-
+  const allEvents = data.events as any;
+  const bidEvents = allEvents.filter((item : any) => item.event === "AuctionBid");
   const currentBid = market?.currentBid?.amount?.eth?.value;
   const auctionEnds = parseISO(market?.endsAt?.timestamp);
   const timeRemaining = formatDistanceToNow(auctionEnds);
 
   console.log(data);
-  console.log(imgLink);
-  console.log(timeRemaining);
+  console.log(allEvents);
+  console.log(bidEvents);
   const allBids = [
     {
       bidder: "test1.eth",
@@ -41,9 +43,11 @@ export function VoteAuctionPage() {
       link: "etherscan.io",
     },
   ];
-  const bidItems = allBids.map((bid) =>
-    bidItem(bid.bidder, bid.amount, bid.link)
+
+  const bidItems = bidEvents.map((bid : any) =>
+    bidItem(bid.sender, bid.price.amount, bid.at.transactionHash)
   );
+  
 
   return (
     <VStack alignItems="center">
@@ -262,14 +266,14 @@ export function VoteAuctionPage() {
 
 function bidItem(bidder: string, amount: number, link: string) {
   return (
-    <a href={link}>
+    <a href={`https://etherscan.io/tx/` + link}>
       <HStack
         justifyContent="space-between"
         className={css`
           color: ${theme.colors.gray[700]};
         `}
       >
-        <div>{bidder}</div>
+        <>{shortAddress(bidder)}</>
         <div>{amount + " ETH"}</div>
       </HStack>
     </a>
