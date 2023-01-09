@@ -4,6 +4,11 @@ import { HStack, VStack } from "../../components/VStack";
 import { useNFT } from "@zoralabs/nft-hooks";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { shortAddress } from "../../utils/address";
+import {
+  usePrepareContractWrite,
+  useContractWrite,
+  useWaitForTransaction,
+} from "wagmi";
 
 export function VoteAuctionPage() {
   const { data } = useNFT("0xd8e6b954f7d3F42570D3B0adB516f2868729eC4D", "1598");
@@ -18,36 +23,16 @@ export function VoteAuctionPage() {
   const ipfsLink = data?.metadata?.imageUri;
   const imgLink = (ipfsLink as any).replace("ipfs://", "https://ipfs.io/ipfs/");
   const allEvents = data.events as any;
-  const bidEvents = allEvents.filter((item : any) => item.event === "AuctionBid");
+  const bidEvents = allEvents.filter(
+    (item: any) => item.event === "AuctionBid"
+  );
   const currentBid = market?.currentBid?.amount?.eth?.value;
   const auctionEnds = parseISO(market?.endsAt?.timestamp);
   const timeRemaining = formatDistanceToNow(auctionEnds);
 
-  console.log(data);
-  console.log(allEvents);
-  console.log(bidEvents);
-  const allBids = [
-    {
-      bidder: "test1.eth",
-      amount: 0.2,
-      link: "etherscan.io",
-    },
-    {
-      bidder: "test2.eth",
-      amount: 0.2,
-      link: "etherscan.io",
-    },
-    {
-      bidder: "test3.eth",
-      amount: 0.2,
-      link: "etherscan.io",
-    },
-  ];
-
-  const bidItems = bidEvents.map((bid : any) =>
-    bidItem(bid.sender, bid.price.amount, bid.at.transactionHash)
+  const BidItems = bidEvents.map((bid: any) =>
+    BidItem(bid.sender, bid.price.amount, bid.at.transactionHash)
   );
-  
 
   return (
     <VStack alignItems="center">
@@ -187,34 +172,8 @@ export function VoteAuctionPage() {
               </div>
             </VStack>
           </HStack>
-          <HStack justifyContent="space-between">
-            <input
-              className={css`
-                padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
-                border-radius: ${theme.spacing["2"]};
-                border: 1px solid ${theme.colors.gray["300"]};
-                flex-grow: 2;
-                margin-right: ${theme.spacing["4"]};
-                &:focus {
-                  outline: none;
-                }
-              `}
-              type="text"
-              placeholder={(currentBid * 1.1).toFixed(2) + " ETH"}
-            />
-            <button
-              className={css`
-                padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
-                color: ${theme.colors.white};
-                background-color: ${theme.colors.black};
-                border-radius: ${theme.spacing["2"]};
-                flex-grow: 1;
-              `}
-            >
-              Place Bid
-            </button>
-          </HStack>
-          <VStack gap="2">{bidItems}</VStack>
+          <PlaceBid currentBid={2} />
+          <VStack gap="2">{BidItems}</VStack>
         </VStack>
       </HStack>
       <VStack
@@ -264,7 +223,7 @@ export function VoteAuctionPage() {
   );
 }
 
-function bidItem(bidder: string, amount: number, link: string) {
+function BidItem(bidder: string, amount: number, link: string) {
   return (
     <a href={`https://etherscan.io/tx/` + link}>
       <HStack
@@ -277,5 +236,69 @@ function bidItem(bidder: string, amount: number, link: string) {
         <div>{amount + " ETH"}</div>
       </HStack>
     </a>
+  );
+}
+
+function PlaceBid({ currentBid }: { currentBid: number }) {
+  const { config } = usePrepareContractWrite({
+    addressOrName: "0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2",
+    contractInterface: [
+      {
+        name: "mint",
+        type: "function",
+        stateMutability: "nonpayable",
+        inputs: [],
+        outputs: [],
+      },
+    ],
+    functionName: "mint",
+  });
+
+  const { write } = useContractWrite(config);
+
+  let inputvalue;
+
+  return (
+    <HStack justifyContent="space-between">
+      <div className={css`position:relative;`}>
+        <input
+          className={css`
+            padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+            border-radius: ${theme.spacing["2"]};
+            border: 1px solid ${theme.colors.gray["300"]};
+            flex-grow: 2;
+            margin-right: ${theme.spacing["4"]};
+            &:focus {
+              outline: none;
+            }
+          `}
+          type="text"
+          placeholder={(currentBid * 1.1).toFixed(2)}
+          onChange={(evt) => {
+            inputvalue = evt.target.value;
+            console.log(inputvalue);
+          }}
+        />
+        <div className={css`
+          position: absolute;
+          right: 28px;
+          top: 8px;
+          z-index: 10;
+        `}>ETH</div>
+      </div>
+      <button
+        disabled={!write}
+        onClick={() => write?.()}
+        className={css`
+          padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+          color: ${theme.colors.white};
+          background-color: ${theme.colors.black};
+          border-radius: ${theme.spacing["2"]};
+          flex-grow: 1;
+        `}
+      >
+        Place Bid
+      </button>
+    </HStack>
   );
 }
