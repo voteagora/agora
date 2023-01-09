@@ -1,23 +1,24 @@
-import * as Sentry from "@sentry/react";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
 import { NounGridChildren } from "../../components/NounGrid";
-import { useAccount, useContractWrite, usePrepareContractWrite } from "wagmi";
+import { useAccount } from "wagmi";
 import { UserIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
 import { motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
 import { NounGridFragment$data } from "../../components/__generated__/NounGridFragment.graphql";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
-import { NounsDaoLogicV1__factory } from "../../contracts/generated";
+import { NounsDAOLogicV2 } from "../../contracts/generated";
 import { ReactNode } from "react";
 import {
   colorForSupportType,
   SupportTextProps,
 } from "../DelegatePage/VoteDetailsContainer";
 import { CastVoteDialogQuery } from "./__generated__/CastVoteDialogQuery.graphql";
+import { useContractWrite } from "../../hooks/useContractWrite";
+import { nounsDao } from "../../contracts/contracts";
 
 type Props = {
   proposalId: number;
@@ -99,27 +100,15 @@ function CastVoteDialogContents({
     }
   );
 
-  const { config } = usePrepareContractWrite({
-    addressOrName: "0x6f3E6272A167e8AcCb32072d08E0957F9c79223d",
-    contractInterface: NounsDaoLogicV1__factory.createInterface(),
-    functionName: "castVoteRefundableWithReason",
-    args: [
-      proposalId,
-      ["AGAINST", "FOR", "ABSTAIN"].indexOf(supportType),
-      reason,
-    ],
-    onError(e) {
-      // TODO: How much do I have to handle exceptions?
-      Sentry.captureException(e);
-    },
-  });
-
-  const { write } = useContractWrite({
-    ...config,
-    onSuccess() {
-      closeDialog();
-    },
-  });
+  const write = useContractWrite<
+    NounsDAOLogicV2,
+    "castRefundableVoteWithReason"
+  >(
+    nounsDao,
+    "castRefundableVoteWithReason",
+    [proposalId, ["AGAINST", "FOR", "ABSTAIN"].indexOf(supportType), reason],
+    () => closeDialog()
+  );
 
   return (
     <VStack

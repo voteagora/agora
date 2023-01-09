@@ -3159,27 +3159,27 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@nouns/assets@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@nouns/assets/-/assets-0.4.0.tgz#9cbd46ce089e280602a711c981135478567fb187"
-  integrity sha512-Ze8Odtq5vqU2Xyge6x7evjpEs9q36V97eKFWu6d6mn9JZb0nqopffcwT1uYdhbmzkbtDpiCrghYeL+QlZxAD5Q==
+"@nouns/assets@^0.4.2":
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/@nouns/assets/-/assets-0.4.2.tgz#bec72becebee256b97cf1b5bfcfc03d3ab336259"
+  integrity sha512-pPiPU6Ifbldjx2WpIZOEet/h2hV32rpZd6GCBlCHmuJfW4p7qqCsD2glwQ8YRqVEr+JQ0Z3WIFKa5iumQxtM3Q==
   dependencies:
     "@ethersproject/bignumber" "^5.5.0"
     "@ethersproject/solidity" "^5.5.0"
 
-"@nouns/contracts@^0.1.3":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@nouns/contracts/-/contracts-0.1.3.tgz#9321e854a018cd4eb2e50201f69746760655c262"
-  integrity sha512-OrsgbXhFdoQqVXjscG4Y7e11i6RgvZb1fTd9O5RVr1MUR/1V9iqbCf3rMuZeLdHEqkh96309OnMCFq7V3vjq0g==
+"@nouns/contracts@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@nouns/contracts/-/contracts-0.3.0.tgz#d5c29ab6e9d07065d51faadab18e6b7730efd94c"
+  integrity sha512-l619EP77QqX0gPGw3gPfh9tgBlz5lFwK8EzB+orLJx3JrfHSUqfjjYCfZih+I++bhJuK78ro2FgFx6U0kZnXEw==
   dependencies:
-    ethers "^5.4.7"
+    ethers "^5.6.8"
 
-"@nouns/sdk@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@nouns/sdk/-/sdk-0.2.0.tgz#47d7f8511fc8b47d657f03a1a78373f313522a3b"
-  integrity sha512-gRXRUVjJsie/3cJSQRxRwuY3iH5ekxACPJDcrH4NTuT5I+anyCW082+20uAq3Tx9t1CYLHBk02tDZFFPm7S51w==
+"@nouns/sdk@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@nouns/sdk/-/sdk-0.4.0.tgz#0c98721e819339c6812e3b8e604510bdadace37c"
+  integrity sha512-PLRDUad/TXCsGmP2ITXkYBrwlzQfO9DaoB0xwikvNPF/Vul+rAVnsXgMf8gm5KQ8CKVlxImoEnxsL8Dcx5elAw==
   dependencies:
-    "@nouns/contracts" "^0.1.3"
+    "@nouns/contracts" "^0.3.0"
     ethers "^5.6.8"
 
 "@peculiar/asn1-schema@^2.1.6":
@@ -7941,7 +7941,7 @@ ethereumjs-util@^6.0.0:
     ethjs-util "0.1.6"
     rlp "^2.2.3"
 
-ethers@^5.4.7, ethers@^5.6.8, ethers@^5.7.0:
+ethers@^5.6.8, ethers@^5.7.0:
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.7.0.tgz#0055da174b9e076b242b8282638bc94e04b39835"
   integrity sha512-5Xhzp2ZQRi0Em+0OkOcRHxPzCfoBfgtOQA+RUylSkuHbhTEaQklnYi2hsWbRgs3ztJsXVXd9VKBcO1ScWL8YfA==

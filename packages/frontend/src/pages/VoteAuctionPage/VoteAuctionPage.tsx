@@ -1,14 +1,13 @@
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
+import React from "react";
 import { HStack, VStack } from "../../components/VStack";
 import { useNFT } from "@zoralabs/nft-hooks";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { shortAddress } from "../../utils/address";
-import {
-  usePrepareContractWrite,
-  useContractWrite,
-  useWaitForTransaction,
-} from "wagmi";
+import { useEffect, useState } from "react";
+import { BigNumber } from "ethers";
+import { useContractWrite } from '../../hooks/useContractWrite';
 
 export function VoteAuctionPage() {
   const { data } = useNFT("0xd8e6b954f7d3F42570D3B0adB516f2868729eC4D", "1598");
@@ -240,27 +239,37 @@ function BidItem(bidder: string, amount: number, link: string) {
 }
 
 function PlaceBid({ currentBid }: { currentBid: number }) {
+  const [bidAmount, setBidAmount] = React.useState("");
+  const debouncedbidAmount = bidAmount; //useDebounce(bidAmount, 500);
+  
   const { config } = usePrepareContractWrite({
-    addressOrName: "0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2",
+    addressOrName: "0xE468cE99444174Bd3bBBEd09209577d25D1ad673",
     contractInterface: [
       {
-        name: "mint",
+        name: "createBid",
         type: "function",
         stateMutability: "nonpayable",
-        inputs: [],
+        inputs: [
+          { "internalType": "uint256", "name": "auctionId", "type": "uint256" },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" }
+        ],
         outputs: [],
       },
     ],
-    functionName: "mint",
+    functionName: "createBid",
+    args: [0,7623,BigNumber.from("11025000000000000")],
+    enabled: Boolean(debouncedbidAmount),
   });
 
   const { write } = useContractWrite(config);
 
-  let inputvalue;
-
   return (
     <HStack justifyContent="space-between">
-      <div className={css`position:relative;`}>
+      <div
+        className={css`
+          position: relative;
+        `}
+      >
         <input
           className={css`
             padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
@@ -274,17 +283,18 @@ function PlaceBid({ currentBid }: { currentBid: number }) {
           `}
           type="text"
           placeholder={(currentBid * 1.1).toFixed(2)}
-          onChange={(evt) => {
-            inputvalue = evt.target.value;
-            console.log(inputvalue);
-          }}
+          onChange={(e) => setBidAmount(e.target.value)}
         />
-        <div className={css`
-          position: absolute;
-          right: 28px;
-          top: 8px;
-          z-index: 10;
-        `}>ETH</div>
+        <div
+          className={css`
+            position: absolute;
+            right: 28px;
+            top: 8px;
+            z-index: 10;
+          `}
+        >
+          ETH
+        </div>
       </div>
       <button
         disabled={!write}
@@ -302,3 +312,17 @@ function PlaceBid({ currentBid }: { currentBid: number }) {
     </HStack>
   );
 }
+
+// function useDebounce<T>(value: T, delay?: number): T {
+//   const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+//   useEffect(() => {
+//     const timer = setTimeout(() => setDebouncedValue(value), delay || 500)
+
+//     return () => {
+//       clearTimeout(timer)
+//     }
+//   }, [value, delay])
+
+//   return debouncedValue
+// }
