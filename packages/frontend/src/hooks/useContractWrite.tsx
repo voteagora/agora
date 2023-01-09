@@ -5,6 +5,7 @@ import {
   usePrepareContractWrite as usePrepareContractWriteUNSAFE,
   useContractWrite as useContractWriteUNSAFE,
 } from "wagmi";
+import { CallOverrides } from 'ethers';
 
 export interface Contract<InterfaceType extends TypedInterface>
   extends ethers.BaseContract {
@@ -37,7 +38,8 @@ export function useContractWrite<
   instance: ContractInstance<ContractInterfaceType<ContractType>>,
   name: Function,
   args: Parameters<ContractType["functions"][Function]>,
-  onSuccess: () => void
+  onSuccess: () => void,
+  overrides?: CallOverrides,
 ) {
   const { config } = usePrepareContractWriteUNSAFE({
     addressOrName: instance.address,
@@ -49,6 +51,7 @@ export function useContractWrite<
       console.error(e);
       toast(`an error occurred when preparing transaction ${id}`);
     },
+    overrides
   });
 
   const { write } = useContractWriteUNSAFE({
@@ -61,6 +64,7 @@ export function useContractWrite<
       console.error(e);
       toast(`an error occurred when preparing transaction ${id}`);
     },
+    overrides,
   });
 
   return write;

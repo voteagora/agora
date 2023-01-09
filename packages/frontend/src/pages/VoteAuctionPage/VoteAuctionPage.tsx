@@ -8,6 +8,9 @@ import { shortAddress } from "../../utils/address";
 import { useEffect, useState } from "react";
 import { BigNumber } from "ethers";
 import { useContractWrite } from '../../hooks/useContractWrite';
+import { ZoraAuctionHouse } from "../../contracts/generated";
+import { zoraAuctionHouse  } from "../../contracts/contracts";
+import { ethers } from 'ethers';
 
 export function VoteAuctionPage() {
   const { data } = useNFT("0xd8e6b954f7d3F42570D3B0adB516f2868729eC4D", "1598");
@@ -242,26 +245,31 @@ function PlaceBid({ currentBid }: { currentBid: number }) {
   const [bidAmount, setBidAmount] = React.useState("");
   const debouncedbidAmount = bidAmount; //useDebounce(bidAmount, 500);
   
-  const { config } = usePrepareContractWrite({
-    addressOrName: "0xE468cE99444174Bd3bBBEd09209577d25D1ad673",
-    contractInterface: [
-      {
-        name: "createBid",
-        type: "function",
-        stateMutability: "nonpayable",
-        inputs: [
-          { "internalType": "uint256", "name": "auctionId", "type": "uint256" },
-          { "internalType": "uint256", "name": "amount", "type": "uint256" }
-        ],
-        outputs: [],
-      },
-    ],
-    functionName: "createBid",
-    args: [0,7623,BigNumber.from("11025000000000000")],
-    enabled: Boolean(debouncedbidAmount),
-  });
+  const value = (() => {
+    try {
 
-  const { write } = useContractWrite(config);
+    return ethers.utils.parseEther(bidAmount);
+    } catch {
+      return ethers.BigNumber.from('0');
+    }
+  })()
+
+  const write = useContractWrite<ZoraAuctionHouse, 'createBid'>(
+    zoraAuctionHouse,
+    'createBid',
+    [
+      7623,
+      value,
+    ],
+    () => {
+
+    },
+    {
+      value,
+    }
+  );
+
+  console.log({ write });
 
   return (
     <HStack justifyContent="space-between">
@@ -293,7 +301,7 @@ function PlaceBid({ currentBid }: { currentBid: number }) {
             z-index: 10;
           `}
         >
-          ETH
+          {value.toString()} ETH
         </div>
       </div>
       <button
