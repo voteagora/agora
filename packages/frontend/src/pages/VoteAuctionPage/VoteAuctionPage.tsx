@@ -247,7 +247,6 @@ function PlaceBid({ currentBid }: { currentBid: number }) {
   
   const value = (() => {
     try {
-
     return ethers.utils.parseEther(bidAmount);
     } catch {
       return ethers.BigNumber.from('0');
@@ -268,8 +267,6 @@ function PlaceBid({ currentBid }: { currentBid: number }) {
       value,
     }
   );
-
-  console.log({ write });
 
   return (
     <HStack justifyContent="space-between">
