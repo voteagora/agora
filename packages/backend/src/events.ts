@@ -23,7 +23,7 @@ export async function* getAllLogs(
   }
 }
 
-const maxBlocksPerPage = 2_000_000;
+const maxBlocksPerPage = 10_000;
 
 async function getLogPage(
   provider: ethers.providers.Provider,
@@ -72,6 +72,7 @@ async function getLogPage(
       }
 
       pageSize = Math.floor(pageSize / 2);
+      console.log({ pageSize });
     }
   }
 }
