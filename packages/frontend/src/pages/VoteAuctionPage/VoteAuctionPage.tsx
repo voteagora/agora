@@ -6,11 +6,10 @@ import { useNFT } from "@zoralabs/nft-hooks";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { shortAddress } from "../../utils/address";
 import { useEffect, useState } from "react";
-import { BigNumber } from "ethers";
-import { useContractWrite } from '../../hooks/useContractWrite';
+import { useContractWrite } from "../../hooks/useContractWrite";
 import { ZoraAuctionHouse } from "../../contracts/generated";
-import { zoraAuctionHouse  } from "../../contracts/contracts";
-import { ethers } from 'ethers';
+import { zoraAuctionHouse } from "../../contracts/contracts";
+import { ethers } from "ethers";
 
 export function VoteAuctionPage() {
   const { data } = useNFT("0xd8e6b954f7d3F42570D3B0adB516f2868729eC4D", "1598");
@@ -37,12 +36,12 @@ export function VoteAuctionPage() {
   );
 
   return (
-    <VStack alignItems="center">
+    <VStack alignItems="center" gap="12">
       <HStack
         alignItems="center"
         justifyContent="space-between"
         className={css`
-          margin-top: ${theme.spacing[16]};
+          margin-top: ${theme.spacing[4]};
           width: ${theme.maxWidth["3xl"]};
         `}
       >
@@ -174,15 +173,15 @@ export function VoteAuctionPage() {
               </div>
             </VStack>
           </HStack>
-          <PlaceBid currentBid={2} />
+          <PlaceBid currentBid={currentBid} />
           <VStack gap="2">{BidItems}</VStack>
         </VStack>
       </HStack>
+
       <VStack
         gap="2"
         className={css`
           max-width: ${theme.maxWidth["3xl"]};
-          margin-top: ${theme.spacing["8"]};
         `}
       >
         <div
@@ -221,6 +220,50 @@ export function VoteAuctionPage() {
           culpa qui officia deserunt mollit anim id est laborum
         </div>
       </VStack>
+
+      <HStack
+        alignItems="center"
+        justifyContent="space-between"
+        className={css`
+          padding: ${theme.spacing["4"]};
+          background-color: ${theme.colors.gray["fa"]};
+          border-radius: ${theme.spacing["3"]};
+          border: 1px solid ${theme.colors.gray["300"]};
+          width: 100%;
+          margin-bottom: ${theme.spacing["16"]};
+        `}
+      >
+        <VStack>
+          <div
+            className={css`
+              font-size: ${theme.fontSize["xs"]};
+              color: ${theme.colors.gray["700"]};
+              font-weight: ${theme.fontWeight.medium};
+            `}
+          >
+            Hey Nouner!
+          </div>
+          <div>Interested in auctioning your vote? Send us a DM!</div>
+        </VStack>
+        <a href="https://twitter.com/nounsagora" target="_blank">
+          <button
+            className={css`
+              padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+              color: ${theme.colors.black};
+              background-color: ${theme.colors.white};
+              border-radius: ${theme.spacing["2"]};
+              border: 1px solid ${theme.colors.gray["300"]};
+              box-shadow: ${theme.boxShadow.newDefault};
+              font-weight: ${theme.fontWeight.medium};
+              :hover {
+                box-shadow: ${theme.boxShadow.none};
+              }
+            `}
+          >
+            Auction my vote
+          </button>
+        </a>
+      </HStack>
     </VStack>
   );
 }
@@ -243,26 +286,28 @@ function BidItem(bidder: string, amount: number, link: string) {
 
 function PlaceBid({ currentBid }: { currentBid: number }) {
   const [bidAmount, setBidAmount] = React.useState("");
-  const debouncedbidAmount = bidAmount; //useDebounce(bidAmount, 500);
-  
+  const debouncedbidAmount = useDebounce(bidAmount, 1500);
+  console.log(currentBid);
+  console.log(debouncedbidAmount);
+  if(+debouncedbidAmount > currentBid){
+    console.log('yes')
+  }else{
+    console.log('no')
+  }
+
   const value = (() => {
     try {
-    return ethers.utils.parseEther(bidAmount);
+      return ethers.utils.parseEther(debouncedbidAmount);
     } catch {
-      return ethers.BigNumber.from('0');
+      return ethers.BigNumber.from("0");
     }
-  })()
+  })();
 
-  const write = useContractWrite<ZoraAuctionHouse, 'createBid'>(
+  const write = useContractWrite<ZoraAuctionHouse, "createBid">(
     zoraAuctionHouse,
-    'createBid',
-    [
-      7623,
-      value,
-    ],
-    () => {
-
-    },
+    "createBid",
+    [7623, value],
+    () => {},
     {
       value,
     }
@@ -287,7 +332,7 @@ function PlaceBid({ currentBid }: { currentBid: number }) {
             }
           `}
           type="text"
-          placeholder={(currentBid * 1.1).toFixed(2)}
+          placeholder={(currentBid * 1.2).toFixed(4)}
           onChange={(e) => setBidAmount(e.target.value)}
         />
         <div
@@ -298,18 +343,23 @@ function PlaceBid({ currentBid }: { currentBid: number }) {
             z-index: 10;
           `}
         >
-          {value.toString()} ETH
+          ETH
         </div>
       </div>
       <button
-        disabled={!write}
+        disabled={!write || +bidAmount < currentBid}
         onClick={() => write?.()}
         className={css`
           padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
           color: ${theme.colors.white};
           background-color: ${theme.colors.black};
           border-radius: ${theme.spacing["2"]};
+          font-weight: ${theme.fontWeight.medium};
           flex-grow: 1;
+          transition: background-color 0.1s ease-in-out;
+          :disabled{
+            background-color: ${theme.colors.gray["af"]};
+          }
         `}
       >
         Place Bid
@@ -318,16 +368,16 @@ function PlaceBid({ currentBid }: { currentBid: number }) {
   );
 }
 
-// function useDebounce<T>(value: T, delay?: number): T {
-//   const [debouncedValue, setDebouncedValue] = useState<T>(value)
+function useDebounce<T>(value: T, delay?: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
-//   useEffect(() => {
-//     const timer = setTimeout(() => setDebouncedValue(value), delay || 500)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay || 500);
 
-//     return () => {
-//       clearTimeout(timer)
-//     }
-//   }, [value, delay])
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [value, delay]);
 
-//   return debouncedValue
-// }
+  return debouncedValue;
+}

@@ -2183,7 +2183,7 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@nouns/assets@^0.4.0":
+"@nouns/assets@^0.4.2":
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/@nouns/assets/-/assets-0.4.2.tgz#bec72becebee256b97cf1b5bfcfc03d3ab336259"
   integrity sha512-pPiPU6Ifbldjx2WpIZOEet/h2hV32rpZd6GCBlCHmuJfW4p7qqCsD2glwQ8YRqVEr+JQ0Z3WIFKa5iumQxtM3Q==
@@ -2191,19 +2191,19 @@
     "@ethersproject/bignumber" "^5.5.0"
     "@ethersproject/solidity" "^5.5.0"
 
-"@nouns/contracts@^0.1.3":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@nouns/contracts/-/contracts-0.1.3.tgz#9321e854a018cd4eb2e50201f69746760655c262"
-  integrity sha512-OrsgbXhFdoQqVXjscG4Y7e11i6RgvZb1fTd9O5RVr1MUR/1V9iqbCf3rMuZeLdHEqkh96309OnMCFq7V3vjq0g==
+"@nouns/contracts@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@nouns/contracts/-/contracts-0.3.0.tgz#d5c29ab6e9d07065d51faadab18e6b7730efd94c"
+  integrity sha512-l619EP77QqX0gPGw3gPfh9tgBlz5lFwK8EzB+orLJx3JrfHSUqfjjYCfZih+I++bhJuK78ro2FgFx6U0kZnXEw==
   dependencies:
-    ethers "^5.4.7"
+    ethers "^5.6.8"
 
-"@nouns/sdk@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@nouns/sdk/-/sdk-0.2.0.tgz#47d7f8511fc8b47d657f03a1a78373f313522a3b"
-  integrity sha512-gRXRUVjJsie/3cJSQRxRwuY3iH5ekxACPJDcrH4NTuT5I+anyCW082+20uAq3Tx9t1CYLHBk02tDZFFPm7S51w==
+"@nouns/sdk@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@nouns/sdk/-/sdk-0.4.0.tgz#0c98721e819339c6812e3b8e604510bdadace37c"
+  integrity sha512-PLRDUad/TXCsGmP2ITXkYBrwlzQfO9DaoB0xwikvNPF/Vul+rAVnsXgMf8gm5KQ8CKVlxImoEnxsL8Dcx5elAw==
   dependencies:
-    "@nouns/contracts" "^0.1.3"
+    "@nouns/contracts" "^0.3.0"
     ethers "^5.6.8"
 
 "@pedrouid/environment@^1.0.1":
@@ -3524,10 +3524,10 @@
   resolved "https://registry.yarnpkg.com/@xtuc/long/-/long-4.2.2.tgz#d291c6a4e97989b5c61d9acf396ae4fe133a718d"
   integrity sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==
 
-"@zoralabs/nft-hooks@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@zoralabs/nft-hooks/-/nft-hooks-1.2.0.tgz#183f3aaa4db1fd5e00c1f29b53306b5875a1d155"
-  integrity sha512-bqnll5kNwAOGnLKHfORFMgfVYJtHKxBmFDpY0bf6bNsBXHn2AU8hlXxBtxcualfUaEcaPZO6tbDcqYT2RdHH5w==
+"@zoralabs/nft-hooks@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@zoralabs/nft-hooks/-/nft-hooks-1.2.1.tgz#9e34ca0f736282e475e11c1a04b5f3f0fddde7e2"
+  integrity sha512-QOrw9HiGeJKncRBF0zm2mvtgqTonRowpHVvM14Oet/8JLGH8VPWvHFKN1jKQu7DP6XZciqbVi6F4UtOax6kEWg==
   dependencies:
     "@ethersproject/address" "^5.6.0"
     "@ethersproject/bytes" "^5.6.1"
@@ -6115,7 +6115,7 @@ ethereumjs-util@^6.0.0:
     ethjs-util "0.1.6"
     rlp "^2.2.3"
 
-ethers@^5.4.7, ethers@^5.6.8, ethers@^5.7.0:
+ethers@^5.6.8, ethers@^5.7.0:
   version "5.7.2"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.7.2.tgz#3a7deeabbb8c030d4126b24f84e525466145872e"
   integrity sha512-wswUsmWo1aOK8rR7DIKiWSw9DbLWe6x98Jrn8wcTflTVvaXhAMaB5zGAXy0GYQEQp9iO1iSHWVyARQm11zUtyg==
@@ -12718,8 +12718,8 @@ yocto-queue@^0.1.0:
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
 
 zustand@^4.0.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/zustand/-/zustand-4.2.0.tgz#f6ef9e63794eda9b296979578538a6df6be3e1b0"
-  integrity sha512-eNwaDoD2FYVnMgtNxiMUhTJO780wonZUzJrPQTLYI0erSIMZF8cniWFW22kGQUECd8rdHRJ/ZJL2XO54c9Ttuw==
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-4.3.1.tgz#76c47ef713c43763953f7a9e518f89efd898e3bb"
+  integrity sha512-EVyo/eLlOTcJm/X5M00rwtbYFXwRVTaRteSvhtbTZUCQFJkNfIyHPiJ6Ke68MSWzcKHpPzvqNH4gC2ZS/sbNqw==
   dependencies:
     use-sync-external-store "1.2.0"

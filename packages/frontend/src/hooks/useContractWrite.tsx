@@ -49,7 +49,7 @@ export function useContractWrite<
     onError(e) {
       const id = Sentry.captureException(e);
       console.error(e);
-      toast(`an error occurred when preparing transaction ${id}`);
+      // toast(`an error occurred when preparing transaction ${id}`);
     },
     overrides
   });
@@ -62,7 +62,7 @@ export function useContractWrite<
     onError(e) {
       const id = Sentry.captureException(e);
       console.error(e);
-      toast(`an error occurred when preparing transaction ${id}`);
+      // toast(`an error occurred when preparing transaction ${id}`);
     },
     overrides,
   });
