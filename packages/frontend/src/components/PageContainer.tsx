@@ -18,7 +18,7 @@ export function PageContainer({ children }: Props) {
       `}
     >
       <RouteTransitionLoadingIndicator />
-      <DottedBackground />
+      {/* <DottedBackground /> */}
 
       <div
         className={css`

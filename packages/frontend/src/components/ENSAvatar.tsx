@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay";
 import { ENSAvatarFragment$key } from "./__generated__/ENSAvatarFragment.graphql";
-import { SuspenseImage } from "./SuspenseImage";
+import { SuspenseImage } from "./SuspenseImage/SuspenseImage";
 import { useEnsAvatar, useProvider } from "wagmi";
 import { AvatarResolver } from "@ensdomains/ens-avatar";
 
@@ -21,7 +21,6 @@ export function ENSAvatar({ fragment, className }: Props) {
     `,
     fragment
   );
-
   const provider = useProvider();
 
   const url = useQuery(
@@ -41,5 +40,5 @@ export function ENSAvatar({ fragment, className }: Props) {
     }
   );
 
-  return <SuspenseImage src={url.data ?? null} className={className} />;
+  return <SuspenseImage src={url.data ?? null} className={className} name={name} />;
 }
