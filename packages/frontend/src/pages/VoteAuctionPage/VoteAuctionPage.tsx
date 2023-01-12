@@ -94,7 +94,7 @@ export function VoteAuctionPage() {
               >
                 View on
               </div>
-              <a href={zoraLink} target="_BLANK">
+              <a href={zoraLink} target="_BLANK" rel="noreferrer">
                 <div>Zora</div>
               </a>
             </VStack>
@@ -257,7 +257,7 @@ export function VoteAuctionPage() {
           </div>
           <div>Interested in auctioning your vote? Send us a DM!</div>
         </VStack>
-        <a href="https://twitter.com/nounsagora" target="_blank">
+        <a href="https://twitter.com/nounsagora" target="_blank" rel="noreferrer">
           <button
             className={css`
               padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
@@ -282,7 +282,7 @@ export function VoteAuctionPage() {
 
 function BidItem(bidder: string, amount: number, link: string) {
   return (
-    <a href={`https://etherscan.io/tx/` + link} target="_BLANK">
+    <a href={`https://etherscan.io/tx/` + link} target="_BLANK" rel="noreferrer">
       <HStack
         justifyContent="space-between"
         className={css`
