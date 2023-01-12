@@ -5,13 +5,10 @@
       "totalSupply": "4294967296000000000000000000",
       "delegatedSupply": "23904248598606069919202864"
     },
-    "blockNumber": 0
+    "block": 0
   },
-  "Governor": {
-    "state": {
-      "proposals": [],
-      "votes": [],
-      "quorumNumerator": "10"
-    }
+  "OptimismGovernorV1": {
+    "state": { "proposals": [], "votes": [], "quorumNumerator": "0" },
+    "block": 0
   }
 }
