@@ -1,10 +1,10 @@
 import * as Sentry from "@sentry/react";
 import { ethers } from "ethers";
-import toast from "react-hot-toast";
 import {
   usePrepareContractWrite as usePrepareContractWriteUNSAFE,
   useContractWrite as useContractWriteUNSAFE,
 } from "wagmi";
+import { CallOverrides } from "ethers";
 
 export interface Contract<InterfaceType extends TypedInterface>
   extends ethers.BaseContract {
@@ -37,7 +37,8 @@ export function useContractWrite<
   instance: ContractInstance<ContractInterfaceType<ContractType>>,
   name: Function,
   args: Parameters<ContractType["functions"][Function]>,
-  onSuccess: () => void
+  onSuccess: () => void,
+  overrides?: CallOverrides
 ) {
   const { config } = usePrepareContractWriteUNSAFE({
     addressOrName: instance.address,
@@ -46,9 +47,10 @@ export function useContractWrite<
     args,
     onError(e) {
       const id = Sentry.captureException(e);
-      console.error(e);
-      toast(`an error occurred when preparing transaction ${id}`);
+      console.error(e, { id });
+      // toast(`an error occurred when preparing transaction ${id}`);
     },
+    overrides,
   });
 
   const { write } = useContractWriteUNSAFE({
@@ -58,9 +60,10 @@ export function useContractWrite<
     },
     onError(e) {
       const id = Sentry.captureException(e);
-      console.error(e);
-      toast(`an error occurred when preparing transaction ${id}`);
+      console.error(e, { id });
+      // toast(`an error occurred when preparing transaction ${id}`);
     },
+    overrides,
   });
 
   return write;

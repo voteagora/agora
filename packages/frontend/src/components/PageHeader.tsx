@@ -17,6 +17,7 @@ import { PROPOSALS_ENABLED, useLocation } from "./HammockRouter/HammockRouter";
 
 export function PageHeader() {
   const isProposalsPageActive = useLocation().pathname.startsWith("/proposals");
+  const isVotePageActive = useLocation().pathname.startsWith("/voteauction");
 
   return (
     <HStack
@@ -84,7 +85,7 @@ export function PageHeader() {
                   padding: ${theme.spacing[1]} ${theme.spacing[4]};
                   border-radius: ${theme.borderRadius.full};
                   color: ${theme.colors.gray[700]};
-                  ${!isProposalsPageActive &&
+                  ${!isProposalsPageActive && !isVotePageActive &&
                   css`
                     background-color: ${theme.colors.gray.fa};
                     color: inherit;
@@ -108,6 +109,22 @@ export function PageHeader() {
                 `}
               >
                 Proposals
+              </div>
+            </Link>
+            <Link to="/voteauction">
+              <div
+                className={css`
+                  padding: ${theme.spacing[1]} ${theme.spacing[4]};
+                  border-radius: ${theme.borderRadius.full};
+                  color: ${theme.colors.gray[700]};
+                  ${isVotePageActive &&
+                  css`
+                    background-color: ${theme.colors.gray.fa};
+                    color: inherit;
+                  `};
+                `}
+              >
+                Get Votes
               </div>
             </Link>
           </HStack>
