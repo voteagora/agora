@@ -219,7 +219,7 @@ export const governorStorage: StorageDefinition<
   GovernorState,
   GovernorStateRaw
 > = {
-  name: "Governor",
+  name: "OptimismGovernorV1",
 
   initialState() {
     return {
@@ -293,7 +293,7 @@ const storages = [governanceTokenStorage, governorStorage];
 
 export type Snapshot = {
   GovernanceToken: GovernanceTokenState;
-  Governor: GovernorState;
+  OptimismGovernorV1: GovernorState;
 };
 
 export function parseStorage(rawValue: Record<string, any>): Snapshot {
@@ -310,9 +310,10 @@ export function parseStorage(rawValue: Record<string, any>): Snapshot {
   };
 }
 
-export async function initialSnapshot() {
+export async function initialSnapshot(): Promise<Snapshot> {
   return {
     GovernanceToken: governanceTokenStorage.initialState(),
+    Governor: governorStorage.initialState(),
   };
 }
 
@@ -481,8 +482,6 @@ const governorReducer: ReducerDefinition<
 > = {
   ...governorContract,
   ...governorStorage,
-
-  name: "OptimismGovernorV1",
 
   eventHandlers: [
     {
