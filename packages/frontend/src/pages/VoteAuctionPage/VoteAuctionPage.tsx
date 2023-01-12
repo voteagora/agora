@@ -1,15 +1,15 @@
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { HStack, VStack } from "../../components/VStack";
 import { useNFT } from "@zoralabs/nft-hooks";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { shortAddress } from "../../utils/address";
-import { useEffect, useState } from "react";
 import { useContractWrite } from "../../hooks/useContractWrite";
 import { ZoraAuctionHouse } from "../../contracts/generated";
 import { zoraAuctionHouse } from "../../contracts/contracts";
 import { ethers } from "ethers";
+
 export function VoteAuctionPage() {
   const collection = "0x1CFb7e79f406C2a58Cc62A0956238f980F9098Ee";
   const tokenId = "1";
@@ -20,23 +20,21 @@ export function VoteAuctionPage() {
     return null;
   }
 
-  const market = data.markets[0] as any;
-  const name = data?.metadata?.name;
-  const ipfsLink = data?.metadata?.imageUri;
-  const imgLink = (ipfsLink as any).replace("ipfs://", "https://ipfs.io/ipfs/");
-  const allEvents = data.events as any;
-  const bidEvents = allEvents.filter(
-    (item: any) => item.event === "AuctionBid"
-  );
-  const currentBid = market?.currentBid?.amount?.eth?.value;
-  const auctionEnds = parseISO(market?.endsAt?.timestamp);
+  const market = data.markets[0];
+  if (market.type !== "Auction") {
+    return null;
+  }
+
+  const name = data.metadata?.name;
+  const ipfsLink = data.metadata?.imageUri;
+  const imgLink = ipfsLink?.replace("ipfs://", "https://ipfs.io/ipfs/");
+  const bidEvents =
+    data.events?.filter((item: any) => item.event === "AuctionBid") ?? [];
+
+  const currentBid = market.currentBid?.amount?.eth?.value!;
+  const auctionEnds = parseISO(market.endsAt?.timestamp!);
   const timeRemaining = formatDistanceToNow(auctionEnds);
 
-  const BidItems = bidEvents.map((bid: any) =>
-    BidItem(bid.sender, bid.price.amount, bid.at.transactionHash)
-  );
-
-  console.log(data);
   return (
     <VStack alignItems="center" gap="12">
       <HStack
@@ -178,7 +176,11 @@ export function VoteAuctionPage() {
             </VStack>
           </HStack>
           <PlaceBid currentBid={currentBid} />
-          <VStack gap="2">{BidItems}</VStack>
+          <VStack gap="2">
+            {bidEvents.map((bid: any) =>
+              BidItem(bid.sender, bid.price.amount, bid.at.transactionHash)
+            )}
+          </VStack>
         </VStack>
       </HStack>
 
