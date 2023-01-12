@@ -249,6 +249,7 @@ export const maxWidth = {
 
 export const fontFamily = {
   sans: makeFontString([
+    "Rubik",
     "system-ui",
     "-apple-system",
     "BlinkMacSystemFont",
