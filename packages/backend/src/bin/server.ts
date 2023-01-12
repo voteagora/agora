@@ -20,20 +20,18 @@ async function main() {
   const schema = makeGatewaySchema();
   const baseProvider = new ethers.providers.CloudflareProvider();
 
-  const snapshot = parseStorage(
-    JSON.parse(await fs.readFile("snapshot.json", { encoding: "utf-8" }))
-  );
-
   const dynamoDb = new DynamoDB({});
 
   const server = createServer({
     schema,
-    context(): AgoraContextType {
+    async context(): Promise<AgoraContextType> {
       const provider = new TransparentMultiCallProvider(baseProvider);
 
       return {
         provider,
-        snapshot,
+        snapshot: parseStorage(
+          JSON.parse(await fs.readFile("snapshot.json", { encoding: "utf-8" }))
+        ),
         snapshotVoteStorage: makeSnapshotVoteStorage(dynamoDb),
         delegateStorage: makeDynamoDelegateStore(dynamoDb),
         statementStorage: makeDynamoStatementStorage(dynamoDb),
