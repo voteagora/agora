@@ -3,8 +3,9 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
 import { DelegatesContainer } from "./DelegatesContainer";
-import { VStack } from "../../components/VStack";
+import { VStack, HStack } from "../../components/VStack";
 import { orgName } from "../../components/PageHeader";
+import partnerBackground from "./partnerBackground.png";
 import { query } from "./HomePageRoute";
 import { RouteProps } from "../../components/HammockRouter/HammockRouter";
 import { HomePageRouteQuery } from "./__generated__/HomePageRouteQuery.graphql";
@@ -27,36 +28,73 @@ export function HomePage({
 
 function Hero() {
   return (
-    <VStack
+    <HStack
+      justifyContent="space-between"
       className={css`
-        max-width: ${theme.maxWidth["xl"]};
-        text-align: center;
+        margin-bottom: -44px;
+        width: ${theme.maxWidth["6xl"]};
         padding: 0 ${theme.spacing["4"]};
-
-        margin: ${theme.spacing["16"]} 0;
+        @media (max-width: ${theme.maxWidth.md}) {
+          flex-direction: column;
+          text-align: center;
+          max-width: 100%;
+          margin-bottom: 0;
+        }
       `}
     >
-      <h1
+      <VStack
         className={css`
-          font-weight: ${theme.fontWeight.extrabold};
-          font-size: ${theme.fontSize["2xl"]};
+          max-width: ${theme.maxWidth["xl"]};
+          margin-top: ${theme.spacing["12"]};
+          @media (max-width: ${theme.maxWidth.md}) {
+            margin-top: 0;
+            margin-bottom: ${theme.spacing["8"]};
+          }
         `}
       >
-        Agora is the home of {orgName} voters
-      </h1>
+        <h1
+          className={css`
+            font-weight: ${theme.fontWeight.extrabold};
+            font-size: ${theme.fontSize["2xl"]};
+            margin-bottom: ${theme.spacing["2"]};
+          `}
+        >
+          Agora is the home of{" "}
+          <span
+            className={css`
+              font-size: ${theme.fontSize["lg"]};
+              padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
+              background-color: ${theme.colors.partner};
+              color: ${theme.colors.white};
+              border-radius: ${theme.borderRadius.full};
+              font-family: ${theme.fontFamily.partner};
+              text-transform: uppercase;
+              font-style: italic;
+              letter-spacing: 0.075em;
+            `}
+          >
+            {orgName}
+          </span>{" "}
+          voters
+        </h1>
 
-      <p
+        <p
+          className={css`
+            color: ${theme.colors.gray["700"]};
+            font-size: ${theme.fontSize.base};
+          `}
+        >
+          OP Delegates are the stewards of the Optimism Token House
+        </p>
+      </VStack>
+      <img
         className={css`
-          color: ${theme.colors.gray["700"]};
-          font-size: ${theme.fontSize.base};
+          max-width: ${theme.maxWidth["md"]};
         `}
-      >
-        Tokenholders of $OP delegate votes to Delegates, who participate in the
-        governance of the Optimism protocol by voting on DAO proposals. You can
-        see all of the Delegates below, delegate your votes to them, or contact
-        them about your ideas.
-      </p>
-    </VStack>
+        src={partnerBackground}
+        alt="Optimism background image"
+      />
+    </HStack>
   );
 }
 

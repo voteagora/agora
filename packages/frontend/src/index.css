@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,400;0,500;0,700;1,700&display=swap");
 
 html {
   position: relative;
@@ -10,4 +11,9 @@ html {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+@font-face {
+  font-family: 'Rubik';
+  src: local('Rubik'), url(./fonts/Rubik-BoldItalic.ttf) format('ttf');
 }

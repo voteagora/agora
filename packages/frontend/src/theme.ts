@@ -63,6 +63,7 @@ export const colors = {
 
   black: "#000",
   white: "#fff",
+  partner: "#FF0420",
 
   gray: {
     eb: "#ebebeb",
@@ -277,6 +278,7 @@ export const fontFamily = {
     '"Courier New"',
     "monospace",
   ]),
+  partner: makeFontString(["Rubik"]),
 };
 
 function makeFontString(fonts: string[]): string {
