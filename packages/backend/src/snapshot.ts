@@ -313,7 +313,7 @@ export function parseStorage(rawValue: Record<string, any>): Snapshot {
 export async function initialSnapshot(): Promise<Snapshot> {
   return {
     GovernanceToken: governanceTokenStorage.initialState(),
-    Governor: governorStorage.initialState(),
+    OptimismGovernorV1: governorStorage.initialState(),
   };
 }
 
