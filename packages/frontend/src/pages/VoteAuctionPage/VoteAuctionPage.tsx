@@ -11,8 +11,8 @@ import { ZoraAuctionHouse } from "../../contracts/generated";
 import { zoraAuctionHouse } from "../../contracts/contracts";
 import { ethers } from "ethers";
 export function VoteAuctionPage() {
-  const collection = "0xd8e6b954f7d3F42570D3B0adB516f2868729eC4D";
-  const tokenId = "1598";
+  const collection = "0x1CFb7e79f406C2a58Cc62A0956238f980F9098Ee";
+  const tokenId = "1";
   const zoraLink = `https://market.zora.co/collections/${collection}/${tokenId}`;
   const { data } = useNFT(collection, tokenId);
 
@@ -114,7 +114,7 @@ export function VoteAuctionPage() {
                 font-weight: ${theme.fontWeight.medium};
               `}
             >
-              Auction for 3 months as
+              Vote auction for
             </div>
             <div
               className={css`
