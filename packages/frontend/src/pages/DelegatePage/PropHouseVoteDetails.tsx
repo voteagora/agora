@@ -42,6 +42,7 @@ export function PropHouseVoteDetails({ voteFragment }: Props) {
   );
 
   const roundSlug = vote.round.title.split(" ").join("-").toLowerCase();
+
   return (
     <VoteDetailsContainer>
       <div
