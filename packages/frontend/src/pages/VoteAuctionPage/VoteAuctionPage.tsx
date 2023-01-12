@@ -10,16 +10,17 @@ import { useContractWrite } from "../../hooks/useContractWrite";
 import { ZoraAuctionHouse } from "../../contracts/generated";
 import { zoraAuctionHouse } from "../../contracts/contracts";
 import { ethers } from "ethers";
-
 export function VoteAuctionPage() {
-  const { data } = useNFT("0xd8e6b954f7d3F42570D3B0adB516f2868729eC4D", "1598");
+  const collection = "0xd8e6b954f7d3F42570D3B0adB516f2868729eC4D";
+  const tokenId = "1598";
+  const zoraLink = `https://market.zora.co/collections/${collection}/${tokenId}`;
+  const { data } = useNFT(collection, tokenId);
 
   if (!data || !data.markets || !data.markets.length) {
     return null;
   }
 
   const market = data.markets[0] as any;
-
   const name = data?.metadata?.name;
   const ipfsLink = data?.metadata?.imageUri;
   const imgLink = (ipfsLink as any).replace("ipfs://", "https://ipfs.io/ipfs/");
@@ -35,6 +36,7 @@ export function VoteAuctionPage() {
     BidItem(bid.sender, bid.price.amount, bid.at.transactionHash)
   );
 
+  console.log(data);
   return (
     <VStack alignItems="center" gap="12">
       <HStack
@@ -90,14 +92,16 @@ export function VoteAuctionPage() {
                   font-weight: ${theme.fontWeight.medium};
                 `}
               >
-                Current delegate
+                View on
               </div>
-              <div>jacob.eth</div>
+              <a href={zoraLink} target="_BLANK">
+                <div>Zora</div>
+              </a>
             </VStack>
           </HStack>
         </VStack>
         <VStack
-          gap="6"
+          gap="4"
           className={css`
             max-width: ${theme.maxWidth["sm"]};
           `}
@@ -125,7 +129,7 @@ export function VoteAuctionPage() {
                 color: ${theme.colors.gray["700"]};
               `}
             >
-              The winner of this NFT will be delegated Noun 325&apos; vote for
+              The winner of this NFT will be delegated Noun 174&apos;s vote for
               three months, starting from 02/01/23 and ending on 05/01/23.
             </div>
           </VStack>
@@ -190,34 +194,42 @@ export function VoteAuctionPage() {
             font-weight: ${theme.fontWeight.extrabold};
           `}
         >
-          WTF?
+          WTF is a vote auction?
         </div>
         <div>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum
+          Agora is auctioning off Noun 174&apos;s vote. On its face, this might
+          seem like it's opening the door to minorities buying control of the
+          DAO. However, given the level of capital at stake and the
+          permissionless nature of Nouns governance, the incentives and means
+          already exist for this to play out.
         </div>
         <div>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum
+          On the flip side, this exact same mechanism, properly managed, can
+          create a transparent, accessible, and permissionless market to form
+          around delegated votes.
         </div>
         <div>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum
+          By creating a market for these votes, we might see an increase in vote
+          utilization—given that passive holders could sell their votes for a
+          period of time, and potentially even a positive impact on the value of
+          a Noun, given the creation of a separate and direct mechanism to
+          capture the value of the vote at any given period of time without
+          having to sell the Noun.
+        </div>
+        <div>
+          This is why we're excited to pioneer a first vote Auction in
+          collaboration with Jacob from Zora. Wanna learn more? Read the full{" "}
+          <a
+            href="https://jacob.energy/delegation-markets.html"
+            className={css`
+              border-bottom: 1px solid ${theme.colors.gray["300"]};
+              :hover {
+                border-bottom: 1px solid ${theme.colors.gray["700"]};
+              }
+            `}
+          >
+            full blog post here.
+          </a>
         </div>
       </VStack>
 
@@ -270,7 +282,7 @@ export function VoteAuctionPage() {
 
 function BidItem(bidder: string, amount: number, link: string) {
   return (
-    <a href={`https://etherscan.io/tx/` + link}>
+    <a href={`https://etherscan.io/tx/` + link} target="_BLANK">
       <HStack
         justifyContent="space-between"
         className={css`
@@ -287,13 +299,6 @@ function BidItem(bidder: string, amount: number, link: string) {
 function PlaceBid({ currentBid }: { currentBid: number }) {
   const [bidAmount, setBidAmount] = React.useState("");
   const debouncedbidAmount = useDebounce(bidAmount, 1500);
-  console.log(currentBid);
-  console.log(debouncedbidAmount);
-  if(+debouncedbidAmount > currentBid){
-    console.log('yes')
-  }else{
-    console.log('no')
-  }
 
   const value = (() => {
     try {
@@ -357,7 +362,7 @@ function PlaceBid({ currentBid }: { currentBid: number }) {
           font-weight: ${theme.fontWeight.medium};
           flex-grow: 1;
           transition: background-color 0.1s ease-in-out;
-          :disabled{
+          :disabled {
             background-color: ${theme.colors.gray["af"]};
           }
         `}
