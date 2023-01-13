@@ -43,6 +43,12 @@ export function VoteAuctionPage() {
         className={css`
           margin-top: ${theme.spacing[4]};
           width: ${theme.maxWidth["3xl"]};
+          @media (max-width: ${theme.maxWidth["2xl"]}) {
+            margin-top: ${theme.spacing[0]};
+            flex-direction: column;
+            width: 100%;
+            padding: 0 ${theme.spacing[4]};
+          }
         `}
       >
         <VStack
@@ -52,6 +58,9 @@ export function VoteAuctionPage() {
             padding: ${theme.spacing["4"]};
             border: 1px solid ${theme.colors.gray["300"]};
             box-shadow: ${theme.boxShadow.newDefault};
+            @media (max-width: ${theme.maxWidth["2xl"]}) {
+                margin-bottom: ${theme.spacing["8"]};
+            }
           `}
         >
           <img
@@ -188,6 +197,9 @@ export function VoteAuctionPage() {
         gap="2"
         className={css`
           max-width: ${theme.maxWidth["3xl"]};
+          @media (max-width: ${theme.maxWidth["2xl"]}) {
+            padding: 0 ${theme.spacing[4]};
+          }
         `}
       >
         <div
@@ -243,7 +255,7 @@ export function VoteAuctionPage() {
           background-color: ${theme.colors.gray["fa"]};
           border-radius: ${theme.spacing["3"]};
           border: 1px solid ${theme.colors.gray["300"]};
-          width: 100%;
+          width: calc(100% - ${theme.spacing["8"]});
           margin-bottom: ${theme.spacing["16"]};
         `}
       >
@@ -259,7 +271,11 @@ export function VoteAuctionPage() {
           </div>
           <div>Interested in auctioning your vote? Send us a DM!</div>
         </VStack>
-        <a href="https://twitter.com/nounsagora" target="_blank" rel="noreferrer">
+        <a
+          href="https://twitter.com/nounsagora"
+          target="_blank"
+          rel="noreferrer"
+        >
           <button
             className={css`
               padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
@@ -274,7 +290,7 @@ export function VoteAuctionPage() {
               }
             `}
           >
-            Auction my vote
+            Auction&nbsp;my&nbsp;vote
           </button>
         </a>
       </HStack>
@@ -284,7 +300,11 @@ export function VoteAuctionPage() {
 
 function BidItem(bidder: string, amount: number, link: string) {
   return (
-    <a href={`https://etherscan.io/tx/` + link} target="_BLANK" rel="noreferrer">
+    <a
+      href={`https://etherscan.io/tx/` + link}
+      target="_BLANK"
+      rel="noreferrer"
+    >
       <HStack
         justifyContent="space-between"
         className={css`
