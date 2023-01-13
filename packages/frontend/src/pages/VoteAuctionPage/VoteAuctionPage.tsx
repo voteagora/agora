@@ -333,7 +333,7 @@ function PlaceBid({ currentBid }: { currentBid: number }) {
   const write = useContractWrite<ZoraAuctionHouse, "createBid">(
     zoraAuctionHouse,
     "createBid",
-    [7623, value],
+    [7647, value],
     () => {},
     {
       value,
