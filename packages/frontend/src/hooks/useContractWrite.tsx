@@ -15,8 +15,13 @@ export interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
 }
 
+export interface TypedInterfaceFactory<InterfaceType extends TypedInterface> {
+  abi: any;
+  createInterface(): InterfaceType;
+}
+
 export type ContractInstance<InterfaceType extends TypedInterface> = {
-  iface: InterfaceType;
+  factory: TypedInterfaceFactory<InterfaceType>;
   address: string;
   startingBlock: number;
 };
@@ -41,8 +46,8 @@ export function useContractWrite<
   overrides?: CallOverrides
 ) {
   const { config } = usePrepareContractWriteUNSAFE({
-    addressOrName: instance.address,
-    contractInterface: instance.iface,
+    address: instance.address as any,
+    abi: instance.factory.abi,
     functionName: name,
     args,
     onError(e) {
@@ -63,7 +68,6 @@ export function useContractWrite<
       console.error(e, { id });
       // toast(`an error occurred when preparing transaction ${id}`);
     },
-    overrides,
   });
 
   return write;

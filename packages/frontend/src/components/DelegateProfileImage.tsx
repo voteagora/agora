@@ -35,7 +35,7 @@ export function DelegateProfileImage({ fragment, dense }: Props) {
   );
 
   const avatar = useEnsAvatar({
-    addressOrName: delegate.address.resolvedName.address,
+    address: delegate.address.resolvedName.address as any,
   });
 
   return !delegate.delegate ? (
