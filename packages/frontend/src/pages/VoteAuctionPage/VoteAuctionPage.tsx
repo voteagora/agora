@@ -324,9 +324,10 @@ function BidItem(bidder: string, amount: number, link: string) {
 }
 
 function PlaceBid({ market }: { market: any }) {
-  const currentBid = market.currentBid?.amount?.eth?.value!;
+  // const currentBid = market.currentBid?.amount?.eth?.value!;
   const marketStatus = market.status.toString() as string;
-  const [bidAmount, setBidAmount] = React.useState("");
+  // const [bidAmount, setBidAmount] = React.useState("");
+  const [bidAmount] = React.useState("");
   const debouncedbidAmount = useDebounce(bidAmount, 1500);
   console.log(marketStatus);
 
@@ -338,15 +339,15 @@ function PlaceBid({ market }: { market: any }) {
     }
   })();
 
-  const write = useContractWrite<ZoraAuctionHouse, "createBid">(
-    zoraAuctionHouse,
-    "createBid",
-    [7647, value],
-    () => {},
-    {
-      value,
-    }
-  );
+  // const write = useContractWrite<ZoraAuctionHouse, "createBid">(
+  //   zoraAuctionHouse,
+  //   "createBid",
+  //   [7647, value],
+  //   () => {},
+  //   {
+  //     value,
+  //   }
+  // );
 
   return (
     <HStack justifyContent="space-between">
