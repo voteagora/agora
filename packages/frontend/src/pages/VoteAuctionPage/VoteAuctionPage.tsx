@@ -59,7 +59,7 @@ export function VoteAuctionPage() {
             border: 1px solid ${theme.colors.gray["300"]};
             box-shadow: ${theme.boxShadow.newDefault};
             @media (max-width: ${theme.maxWidth["2xl"]}) {
-                margin-bottom: ${theme.spacing["8"]};
+              margin-bottom: ${theme.spacing["8"]};
             }
           `}
         >
@@ -149,14 +149,16 @@ export function VoteAuctionPage() {
                   font-weight: ${theme.fontWeight.medium};
                 `}
               >
-                Current bid
+                Winning bid
               </div>
               <div
                 className={css`
                   font-weight: ${theme.fontWeight.semibold};
                 `}
               >
-                {currentBid + " ETH"}
+                <a href="https://etherscan.io/tx/0xfaff0fe89a48573e9a10d436794bb713f87a5737ab61807b5d86ca624b268f13">
+                  {currentBid + " ETH"} by necfas.eth
+                </a>
               </div>
             </VStack>
             <div
@@ -173,18 +175,18 @@ export function VoteAuctionPage() {
                   font-weight: ${theme.fontWeight.medium};
                 `}
               >
-                Auction ends on
+                Auction ended
               </div>
               <div
                 className={css`
                   font-weight: ${theme.fontWeight.semibold};
                 `}
               >
-                {timeRemaining}
+                {timeRemaining} ago
               </div>
             </VStack>
           </HStack>
-          <PlaceBid currentBid={currentBid} />
+          {/* <PlaceBid market={market} /> */}
           <VStack gap="2">
             {bidEvents.map((bid: any) =>
               BidItem(bid.sender, bid.price.amount, bid.at.transactionHash)
@@ -255,8 +257,11 @@ export function VoteAuctionPage() {
           background-color: ${theme.colors.gray["fa"]};
           border-radius: ${theme.spacing["3"]};
           border: 1px solid ${theme.colors.gray["300"]};
-          width: calc(100% - ${theme.spacing["8"]});
+          width: 100%;
           margin-bottom: ${theme.spacing["16"]};
+          @media (max-width: ${theme.maxWidth["2xl"]}) {
+            width: calc(100% - ${theme.spacing["8"]});
+          }
         `}
       >
         <VStack>
@@ -318,9 +323,12 @@ function BidItem(bidder: string, amount: number, link: string) {
   );
 }
 
-function PlaceBid({ currentBid }: { currentBid: number }) {
+function PlaceBid({ market }: { market: any }) {
+  const currentBid = market.currentBid?.amount?.eth?.value!;
+  const marketStatus = market.status.toString() as string;
   const [bidAmount, setBidAmount] = React.useState("");
   const debouncedbidAmount = useDebounce(bidAmount, 1500);
+  console.log(marketStatus);
 
   const value = (() => {
     try {
