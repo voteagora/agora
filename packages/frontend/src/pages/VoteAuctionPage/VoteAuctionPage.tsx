@@ -5,10 +5,10 @@ import { HStack, VStack } from "../../components/VStack";
 import { useNFT } from "@zoralabs/nft-hooks";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { shortAddress } from "../../utils/address";
-import { useContractWrite } from "../../hooks/useContractWrite";
-import { ZoraAuctionHouse } from "../../contracts/generated";
-import { zoraAuctionHouse } from "../../contracts/contracts";
-import { ethers } from "ethers";
+// import { useContractWrite } from "../../hooks/useContractWrite";
+// import { ZoraAuctionHouse } from "../../contracts/generated";
+// import { zoraAuctionHouse } from "../../contracts/contracts";
+// import { ethers } from "ethers";
 
 export function VoteAuctionPage() {
   const collection = "0x1CFb7e79f406C2a58Cc62A0956238f980F9098Ee";
@@ -325,19 +325,18 @@ function BidItem(bidder: string, amount: number, link: string) {
 
 function PlaceBid({ market }: { market: any }) {
   // const currentBid = market.currentBid?.amount?.eth?.value!;
-  const marketStatus = market.status.toString() as string;
+  // const marketStatus = market.status.toString() as string;
   // const [bidAmount, setBidAmount] = React.useState("");
-  const [bidAmount] = React.useState("");
-  const debouncedbidAmount = useDebounce(bidAmount, 1500);
-  console.log(marketStatus);
+  // const [bidAmount] = React.useState("");
+  // const debouncedbidAmount = useDebounce(bidAmount, 1500);
 
-  const value = (() => {
-    try {
-      return ethers.utils.parseEther(debouncedbidAmount);
-    } catch {
-      return ethers.BigNumber.from("0");
-    }
-  })();
+  // const value = (() => {
+  //   try {
+  //     return ethers.utils.parseEther(debouncedbidAmount);
+  //   } catch {
+  //     return ethers.BigNumber.from("0");
+  //   }
+  // })();
 
   // const write = useContractWrite<ZoraAuctionHouse, "createBid">(
   //   zoraAuctionHouse,
@@ -404,16 +403,16 @@ function PlaceBid({ market }: { market: any }) {
   );
 }
 
-function useDebounce<T>(value: T, delay?: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+// function useDebounce<T>(value: T, delay?: number): T {
+//   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), delay || 500);
+//   useEffect(() => {
+//     const timer = setTimeout(() => setDebouncedValue(value), delay || 500);
 
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [value, delay]);
+//     return () => {
+//       clearTimeout(timer);
+//     };
+//   }, [value, delay]);
 
-  return debouncedValue;
-}
+//   return debouncedValue;
+// }
