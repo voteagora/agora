@@ -1,10 +1,10 @@
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import React, { useEffect, useState } from "react";
 import { HStack, VStack } from "../../components/VStack";
 import { useNFT } from "@zoralabs/nft-hooks";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { shortAddress } from "../../utils/address";
+// import React, { useEffect, useState } from "react";
 // import { useContractWrite } from "../../hooks/useContractWrite";
 // import { ZoraAuctionHouse } from "../../contracts/generated";
 // import { zoraAuctionHouse } from "../../contracts/contracts";
