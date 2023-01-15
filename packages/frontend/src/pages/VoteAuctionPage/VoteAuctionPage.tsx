@@ -186,7 +186,7 @@ export function VoteAuctionPage() {
               </div>
             </VStack>
           </HStack>
-          {/* <PlaceBid market={market} /> */}
+          <PlaceBid market={market} />
           <VStack gap="2">
             {bidEvents.map((bid: any) =>
               BidItem(bid.sender, bid.price.amount, bid.at.transactionHash)
@@ -350,7 +350,7 @@ function PlaceBid({ market }: { market: any }) {
 
   return (
     <HStack justifyContent="space-between">
-      <div
+      {/* <div
         className={css`
           position: relative;
         `}
@@ -398,7 +398,7 @@ function PlaceBid({ market }: { market: any }) {
         `}
       >
         Place Bid
-      </button>
+      </button> */}
     </HStack>
   );
 }
