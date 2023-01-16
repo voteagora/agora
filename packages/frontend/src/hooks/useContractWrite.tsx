@@ -60,6 +60,10 @@ export function useContractWrite<
 
   const { write } = useContractWriteUNSAFE({
     ...config,
+    request: {
+      ...config.request,
+      gasLimit: config.request.gasLimit.mul(2),
+    },
     onSuccess() {
       onSuccess();
     },
