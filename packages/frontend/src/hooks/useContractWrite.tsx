@@ -5,6 +5,7 @@ import {
   useContractWrite as useContractWriteUNSAFE,
 } from "wagmi";
 import { CallOverrides } from "ethers";
+import { useCallback } from "react";
 
 export interface Contract<InterfaceType extends TypedInterface>
   extends ethers.BaseContract {
@@ -80,5 +81,7 @@ export function useContractWrite<
     },
   });
 
-  return write;
+  return useCallback(() => {
+    write?.();
+  }, [write]);
 }

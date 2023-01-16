@@ -195,7 +195,7 @@ function CastVoteDialogContents({
         the user already voted if write is unavailable */}
         {/* TODO: Make it obvious that the user already voted. Right now the button is just disabled
         Haven't done-so yet because the text "Already Voted" makes the button look ugly*/}
-        <VoteButton onClick={() => write?.()}>Vote</VoteButton>
+        <VoteButton onClick={write}>Vote</VoteButton>
       </HStack>
     </VStack>
   );

@@ -275,7 +275,7 @@ function DelegateDialogContents({
         }
 
         return (
-          <DelegateButton onClick={() => write?.()}>
+          <DelegateButton onClick={write}>
             {address ? (
               <>Delegate {address?.account?.nouns?.length} votes</>
             ) : (
