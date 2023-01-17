@@ -13,6 +13,7 @@
     "prettier": "prettier --write . --ignore-path .gitignore"
   },
   "devDependencies": {
+    "@graphprotocol/graph-cli": "0.37.2",
     "patch-package": "^6.4.7",
     "prettier": "^2.7.1"
   }
