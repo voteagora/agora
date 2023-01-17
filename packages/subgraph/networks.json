@@ -1,10 +1,10 @@
 {
-  "mainnet": {
-    "ENSToken": {
-      "address": "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72"
+  "optimism": {
+    "GovernanceToken": {
+      "address": "0x4200000000000000000000000000000000000042"
     },
-    "ENSGovernor": {
-      "address": "0x323A76393544d5ecca80cd6ef2A560C6a395b7E3"
+    "OptimismGovernorV1": {
+      "address": "0x4200dfa134da52d9c96f523af1fcb507199b1042"
     }
   }
 }
