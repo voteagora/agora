@@ -6,9 +6,9 @@ export function withIndexFields(
   values: Map<string, any>,
   indexer: IndexerDefinition<any, any>
 ): Map<string, any> {
-  return new Map(
-    ...values,
-    Array.from(values.entries()).flatMap(([key, value]) => {
+  return new Map([
+    ...values.entries(),
+    ...Array.from(values.entries()).flatMap(([key, value]) => {
       const entity = parseEntityKey(key);
       if (!entity) {
         throw new Error(`failed to parse entity key ${key}`);
@@ -18,8 +18,8 @@ export function withIndexFields(
         { id: entity.id, entity: entity.entity, value: value },
         indexer
       );
-    })
-  );
+    }),
+  ]);
 }
 
 export function makeIndexEntries(
