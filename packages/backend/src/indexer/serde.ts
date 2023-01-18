@@ -51,6 +51,19 @@ export function object<ObjectSpec extends { [key: string]: SerDe<any, any> }>(
   };
 }
 
+export function array<Item extends SerDe<any, any>>(
+  item: Item
+): SerDe<RuntimeType<Item>[], SerializedType<Item>[]> {
+  return {
+    serialize(value) {
+      return value.map((it) => item.serialize(it));
+    },
+    deserialize(serialized) {
+      return serialized.map((it) => item.deserialize(it));
+    },
+  };
+}
+
 export function passthrough<T>(): SerDe<T, T> {
   return {
     serialize(item) {
