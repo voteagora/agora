@@ -5,6 +5,7 @@ export type ContractInstance<InterfaceType extends TypedInterface> = {
   address: string;
   startingBlock: number;
 };
+
 export interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
 }

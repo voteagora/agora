@@ -1,7 +1,7 @@
 import { EntityWithMetadata, ReadOnlyEntityStore } from "./entityStore";
 import { BlockProviderBlock } from "./blockProvider";
 import { getOrInsert } from "./utils/mapUtils";
-import { isBlockDepthFinalized } from "./process";
+import { IndexerDefinition, isBlockDepthFinalized } from "./process";
 import { makeEntityKey } from "./keys";
 
 export type ReadableStorageHandle<Entities> = {
@@ -49,7 +49,8 @@ export function makeStorageHandleForShallowBlocks(
   parents: ReadonlyMap<string, BlockIdentifier>,
   block: BlockProviderBlock,
   latestBlockHeight: number,
-  store: ReadOnlyEntityStore
+  store: ReadOnlyEntityStore,
+  indexer: IndexerDefinition
 ): StorageHandle<any> {
   return {
     saveEntity(entity: string, id: string, value: any): void {
@@ -84,7 +85,12 @@ export function makeStorageHandleForShallowBlocks(
 
         const parentBlockDepth = latestBlockHeight - parentBlock.blockNumber;
         if (isBlockDepthFinalized(parentBlockDepth)) {
-          return await store.getEntity(entity, id);
+          const fromStore = await store.getEntity(entity, id);
+          if (!fromStore) {
+            return fromStore;
+          }
+
+          return indexer.entities[entity].serde.deserialize(fromStore);
         }
 
         blockHash = parentBlock.hash;
@@ -100,6 +106,7 @@ export function makeStorageHandleForShallowBlocks(
 export function makeStorageHandleWithStagingArea(
   stagingArea: Map<string, any>,
   store: ReadOnlyEntityStore,
+  indexer: IndexerDefinition,
   loadedEntities?: EntityWithMetadata[]
 ): StorageHandle<any> {
   return {
@@ -113,7 +120,12 @@ export function makeStorageHandleWithStagingArea(
           return stagingArea.get(key);
         }
 
-        return await store.getEntity(entity, id);
+        const fromStore = await store.getEntity(entity, id);
+        if (!fromStore) {
+          return fromStore;
+        }
+
+        return indexer.entities[entity].serde.deserialize(fromStore);
       })();
 
       if (loadedEntities) {

@@ -11,7 +11,11 @@ import {
   makeStorageHandleWithStagingArea,
 } from "../storageHandle";
 import { Level } from "level";
-import { EntityStore, LevelEntityStore } from "../entityStore";
+import {
+  EntityStore,
+  LevelEntityStore,
+  serializeEntities,
+} from "../entityStore";
 import { loadLastLogIndex, loadReducerLogs } from "../logStorage";
 import { isTopicInBloom } from "web3-utils";
 import { BlockProviderBlock, BlockProviderImpl } from "../blockProvider";
@@ -26,7 +30,7 @@ import { filterForEventHandlers, topicsForSignatures } from "../../contracts";
  */
 async function processStoredLogs(
   store: EntityStore,
-  reducer: IndexerDefinition<any, any>
+  reducer: IndexerDefinition
 ) {
   const entityStoreFinalizedBlock = await store.getFinalizedBlock();
 
@@ -79,6 +83,7 @@ async function processStoredLogs(
             makeStorageHandleWithStagingArea(
               entityBlockStagingArea,
               store,
+              reducer,
               loadedEntities
             ),
             event as any,
@@ -98,7 +103,7 @@ async function processStoredLogs(
           hash: firstLog.blockHash,
           blockNumber: firstLog.blockNumber,
         },
-        entityBlockStagingArea
+        serializeEntities(reducer, entityBlockStagingArea)
       );
     }
   }
@@ -109,7 +114,18 @@ async function processStoredLogs(
   // overwriting the index but makes the reducers accessing values through the
   // index not possible.
   for await (const entity of store.getEntities()) {
-    const entries = makeIndexEntries(entity, reducer);
+    const value = reducer.entities[entity.entity].serde.deserialize(
+      entity.value
+    );
+
+    const entries = makeIndexEntries(
+      {
+        id: entity.id,
+        entity: entity.entity,
+        value,
+      },
+      reducer
+    );
     concatMaps(totalEntries, new Map(entries));
   }
 
@@ -143,7 +159,7 @@ async function main() {
   async function ensureParentsAvailable(
     hash: string,
     latestBlockHeight: number,
-    reducer: IndexerDefinition<any, any>,
+    reducer: IndexerDefinition,
     depth: number
   ) {
     if (isBlockDepthFinalized(depth)) {
@@ -209,7 +225,8 @@ async function main() {
             return {
               storageHandle: makeStorageHandleWithStagingArea(
                 stagingArea,
-                store
+                store,
+                reducer
               ),
               finalize: () =>
                 store.updateFinalizedBlock(
@@ -217,7 +234,10 @@ async function main() {
                     hash: block.hash,
                     blockNumber: block.number,
                   },
-                  withIndexFields(stagingArea, reducer)
+                  serializeEntities(
+                    reducer,
+                    withIndexFields(stagingArea, reducer)
+                  )
                 ),
             };
           } else {
@@ -227,7 +247,8 @@ async function main() {
                 parents,
                 block,
                 latestBlockHeight,
-                store
+                store,
+                reducer
               ),
               finalize: async () => {
                 // nop, finalization for these blocks is handled during promotion
@@ -267,7 +288,7 @@ async function main() {
         hash: blockIdentifier.hash,
         blockNumber: blockIdentifier.blockNumber,
       },
-      withIndexFields(storageArea, reducer)
+      serializeEntities(reducer, withIndexFields(storageArea, reducer))
     );
   }
 
