@@ -5,28 +5,23 @@ import {
 } from "./contracts/generated";
 import { BigNumber } from "ethers";
 import { ToucanInterface, withSentryScope } from "./sentry";
-import { getAllLogs } from "./events";
+import { getAllLogsGenerator } from "./events";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { GovernanceTokenInterface } from "./contracts/generated/GovernanceToken";
 import { OptimismGovernorV1Interface } from "./contracts/generated/OptimismGovernorV1";
 import { chunk, isEqual } from "lodash";
 import { makeUpdateForAccount } from "./store/dynamo/delegates";
+import {
+  ContractInstance,
+  filterForEventHandlers,
+  makeContractInstance,
+  Signatures,
+} from "./contracts";
 
 export interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
 }
 
-export function makeContractInstance<InterfaceType extends TypedInterface>(
-  t: ContractInstance<InterfaceType>
-): ContractInstance<InterfaceType> {
-  return t;
-}
-
-type ContractInstance<InterfaceType extends TypedInterface> = {
-  iface: InterfaceType;
-  address: string;
-  startingBlock: number;
-};
 type ReducerDefinition<
   InterfaceType extends TypedInterface,
   Accumulator,
@@ -228,7 +223,6 @@ export const governorStorage: StorageDefinition<
       quorumNumerator: BigNumber.from(10),
     };
   },
-
   encodeState(state) {
     return {
       proposals: Array.from(state.proposals.entries()).map(
@@ -556,10 +550,6 @@ export function makeReducers(): ReducerDefinition<any, any, any>[] {
   return [governanceTokenReducer, governorReducer];
 }
 
-type Signatures<InterfaceType extends TypedInterface> = {
-  [K in keyof InterfaceType["events"] & string]: K;
-}[keyof InterfaceType["events"] & string][];
-
 type TypedEventFilter<
   InterfaceType extends TypedInterface,
   SignaturesType extends Signatures<InterfaceType>
@@ -612,7 +602,7 @@ export async function getTypedLogs<
 ): Promise<TypedLogEvent<InterfaceType, SignaturesType>[]> {
   let allLogs = [];
 
-  for await (const logs of getAllLogs(
+  for await (const logs of getAllLogsGenerator(
     provider,
     eventFilter.filter,
     latestBlockNumber,
@@ -625,21 +615,6 @@ export async function getTypedLogs<
     log,
     event: eventFilter.instance.iface.parseLog(log) as any,
   }));
-}
-
-export function filterForEventHandlers<InterfaceType extends TypedInterface>(
-  instance: ContractInstance<InterfaceType>,
-  signatures: Signatures<InterfaceType>
-): ethers.EventFilter {
-  return {
-    address: instance.address,
-    topics: [
-      signatures.flatMap((signature) => {
-        const fragment = ethers.utils.EventFragment.fromString(signature);
-        return ethers.utils.Interface.getEventTopic(fragment);
-      }),
-    ],
-  };
 }
 
 async function updateSnapshotForIndexers<Snapshot extends any>(
@@ -666,7 +641,7 @@ async function updateSnapshotForIndexers<Snapshot extends any>(
     })();
 
     let idx = 0;
-    for await (const logs of getAllLogs(
+    for await (const logs of getAllLogsGenerator(
       provider,
       filter,
       latestBlockNumber,
