@@ -1,7 +1,8 @@
 import { ethers } from "ethers";
-import { filterForEventHandlers, makeReducers } from "../snapshot";
-import { getAllLogs } from "../events";
+import { makeReducers } from "../snapshot";
+import { getAllLogsGenerator } from "../events";
 import { promises as fs } from "fs";
+import { filterForEventHandlers } from "../contracts";
 
 async function main() {
   const provider = new ethers.providers.AlchemyProvider(
@@ -23,7 +24,7 @@ async function main() {
 
     // todo: incrementally update this file
 
-    for await (const logs of getAllLogs(
+    for await (const logs of getAllLogsGenerator(
       provider,
       filter,
       latestBlockNumber,

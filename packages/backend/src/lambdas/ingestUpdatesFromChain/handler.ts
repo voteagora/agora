@@ -12,14 +12,11 @@ import {
   StoredSnapshot,
   storeSnapshotInS3,
 } from "./storedSnapshot";
-import {
-  filterForEventHandlers,
-  makeReducers,
-  governanceTokenReducer,
-} from "../../snapshot";
-import { getAllLogs } from "../../events";
+import { makeReducers, governanceTokenReducer } from "../../snapshot";
+import { getAllLogsGenerator } from "../../events";
 import SecretsManager from "aws-sdk/clients/secretsmanager";
 import "isomorphic-fetch";
+import { filterForEventHandlers } from "../../contracts";
 
 export async function run() {
   const executionId = uuidv4();
@@ -103,7 +100,7 @@ async function update(
 
     const initialState = reducer.decodeState(reducer.encodeState(state));
 
-    for await (const logs of getAllLogs(
+    for await (const logs of getAllLogsGenerator(
       provider,
       filter,
       startingBlock,
