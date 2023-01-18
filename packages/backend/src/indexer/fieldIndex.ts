@@ -2,6 +2,8 @@ import { IndexerDefinition } from "./process";
 import { EntityWithMetadata } from "./entityStore";
 import { parseEntityKey } from "./keys";
 
+// todo: indexes on mutable fields are not implemented correctly when fields mutate
+
 export function withIndexFields(
   values: Map<string, any>,
   indexer: IndexerDefinition
