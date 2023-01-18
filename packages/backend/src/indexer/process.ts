@@ -2,6 +2,7 @@ import { ContractInstance, TypedInterface } from "../contracts";
 import { ethers } from "ethers";
 import { StorageHandle } from "./storageHandle";
 import { governanceTokenIndexer } from "./contracts/GovernanceToken";
+import { RuntimeType, SerDe } from "./serde";
 
 // The latest block is at depth zero with the block depth of each block below
 // latest defined as LATEST.blockNumber - OTHER.blockNumber.
@@ -15,28 +16,51 @@ export function isBlockDepthFinalized(depth: number) {
   return depth > maxReorgBlocksDepth;
 }
 
+export type EntitiesType = {
+  [key: string]: EntityDefinition<SerDe<any, any>>;
+};
+
 export type IndexerDefinition<
+  InterfaceType extends TypedInterface = TypedInterface,
+  Entities extends EntitiesType = EntitiesType
+> = ContractInstance<InterfaceType> &
+  IndexerDefinitionArgs<InterfaceType, Entities>;
+
+type IndexerDefinitionArgs<
   InterfaceType extends TypedInterface,
-  Entities
-> = ContractInstance<InterfaceType> & {
+  Entities extends EntitiesType
+> = {
   /**
    * Name, used for logging and storing prefetched logs.
    */
   name: string;
-  indexes?: {
-    [EntityKey in keyof Entities]?: {
-      indexName: string;
-      indexKey: (entity: Entities[EntityKey]) => string;
-    }[];
-  };
+  entities: Entities;
   eventHandlers: EventHandler<InterfaceType, Entities>[];
 };
 
-type EventHandler<InterfaceType extends TypedInterface, Entities> = {
+type StorageHandleEntities<Entities extends EntitiesType> = {
+  [K in keyof Entities]: RuntimeType<Entities[K]["serde"]>;
+};
+
+type EntityDefinition<Type extends SerDe<any, any>> = {
+  serde: Type;
+  indexes?: {
+    indexName: string;
+    indexKey: (entity: RuntimeType<Type>) => string;
+  }[];
+};
+
+export type StorageHandleForIndexer<T extends IndexerDefinition> =
+  StorageHandle<StorageHandleEntities<T["entities"]>>;
+
+type EventHandler<
+  InterfaceType extends TypedInterface,
+  Entities extends EntitiesType
+> = {
   [K in keyof InterfaceType["events"] & string]: {
     signature: K;
     handle: (
-      handle: StorageHandle<Entities>,
+      handle: StorageHandle<StorageHandleEntities<Entities>>,
       event: ethers.utils.LogDescription<
         K,
         EventFragmentArg<InterfaceType["events"][K]>
@@ -53,3 +77,22 @@ type EventFragmentArg<T> = T extends ethers.utils.EventFragment<infer Args>
 // todo: some mechanism for versioning this
 
 export const optimismReducer = governanceTokenIndexer;
+
+export function makeEntityDefinition<T extends SerDe<any, any>>(
+  def: EntityDefinition<T>
+): EntityDefinition<T> {
+  return def;
+}
+
+export function makeIndexerDefinition<
+  InterfaceType extends TypedInterface,
+  Entities extends EntitiesType
+>(
+  contractInstance: ContractInstance<InterfaceType>,
+  args: IndexerDefinitionArgs<InterfaceType, Entities>
+): IndexerDefinition<InterfaceType, Entities> {
+  return {
+    ...contractInstance,
+    ...args,
+  };
+}

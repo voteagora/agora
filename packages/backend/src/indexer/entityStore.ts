@@ -1,6 +1,7 @@
 import { Level } from "level";
 import { BlockIdentifier, coerceLevelDbNotfoundError } from "./storageHandle";
 import { entityKeyPrefix, makeEntityKey, parseEntityKey } from "./keys";
+import { IndexerDefinition } from "./process";
 
 export interface EntityStore extends ReadOnlyEntityStore {
   // todo: the strings in entities are a bit leaky
@@ -8,6 +9,24 @@ export interface EntityStore extends ReadOnlyEntityStore {
     block: BlockIdentifier,
     entities: Map<string, any>
   ): Promise<void>;
+}
+
+export function serializeEntities<StorageType>(
+  indexer: IndexerDefinition,
+  entities: Map<string, any>
+): Map<string, StorageType> {
+  return new Map([
+    ...Array.from(entities.entries()).map(
+      ([key, value]): [string, StorageType] => {
+        const parsedKey = parseEntityKey(key);
+        if (!parsedKey) {
+          return [key, value];
+        }
+
+        return [key, indexer.entities[parsedKey.entity].serde.serialize(value)];
+      }
+    ),
+  ]);
 }
 
 export type EntityWithMetadata = {

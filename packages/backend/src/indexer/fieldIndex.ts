@@ -4,7 +4,7 @@ import { parseEntityKey } from "./keys";
 
 export function withIndexFields(
   values: Map<string, any>,
-  indexer: IndexerDefinition<any, any>
+  indexer: IndexerDefinition
 ): Map<string, any> {
   return new Map([
     ...values.entries(),
@@ -24,9 +24,9 @@ export function withIndexFields(
 
 export function makeIndexEntries(
   { id, value, entity }: EntityWithMetadata,
-  indexer: IndexerDefinition<any, any>
+  indexer: IndexerDefinition
 ): [string, string][] {
-  const entityIndexes = indexer.indexes[entity] ?? [];
+  const entityIndexes = indexer.entities[entity].indexes ?? [];
   return entityIndexes.map((indexDefinition) => {
     const indexKey = indexDefinition.indexKey(value);
 
