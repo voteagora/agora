@@ -18,9 +18,7 @@ export type BlockSpec =
       blockHash: string;
     };
 
-export function topicFilterForIndexers(
-  indexers: IndexerDefinition[]
-): TopicFilter {
+export function topicFilterForIndexers(indexers: IndexerDefinition[]) {
   return {
     address: indexers.map((it) => it.address),
     topics: [

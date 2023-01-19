@@ -1,13 +1,14 @@
-import { IndexerDefinition } from "./process";
-import { EntityWithMetadata } from "./entityStore";
+import { EntityDefinition, IndexerDefinition } from "./process";
+import { combineEntities, EntityWithMetadata } from "./entityStore";
 import { parseEntityKey } from "./keys";
 
 // todo: indexes on mutable fields are not implemented correctly when fields mutate
 
 export function withIndexFields(
   values: Map<string, any>,
-  indexer: IndexerDefinition
+  indexer: IndexerDefinition[]
 ): Map<string, any> {
+  const combinedEntities = combineEntities(indexer);
   return new Map([
     ...values.entries(),
     ...Array.from(values.entries()).flatMap(([key, value]) => {
@@ -18,7 +19,7 @@ export function withIndexFields(
 
       return makeIndexEntries(
         { id: entity.id, entity: entity.entity, value: value },
-        indexer
+        (combinedEntities as any)[entity.entity]
       );
     }),
   ]);
@@ -26,10 +27,9 @@ export function withIndexFields(
 
 export function makeIndexEntries(
   { id, value, entity }: EntityWithMetadata,
-  indexer: IndexerDefinition
+  entityDefinition: EntityDefinition
 ): [string, string][] {
-  const entityIndexes = indexer.entities[entity].indexes ?? [];
-  return entityIndexes.map((indexDefinition) => {
+  return (entityDefinition.indexes ?? []).map((indexDefinition) => {
     const indexKey = indexDefinition.indexKey(value);
 
     return [makeIndexKey(indexDefinition.indexName, entity, indexKey), id];

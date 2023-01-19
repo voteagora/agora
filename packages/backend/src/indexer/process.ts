@@ -42,7 +42,7 @@ type StorageHandleEntities<Entities extends EntitiesType> = {
   [K in keyof Entities]: RuntimeType<Entities[K]["serde"]>;
 };
 
-type EntityDefinition<Type extends SerDe<any, any>> = {
+export type EntityDefinition<Type extends SerDe<any, any> = SerDe<any, any>> = {
   serde: Type;
   indexes?: {
     indexName: string;
@@ -74,9 +74,7 @@ type EventFragmentArg<T> = T extends ethers.utils.EventFragment<infer Args>
   ? Args
   : never;
 
-// todo: some mechanism for versioning this
-
-export const optimismReducer = governanceTokenIndexer;
+// todo: some mechanism for versioning
 
 export function makeEntityDefinition<T extends SerDe<any, any>>(
   def: EntityDefinition<T>
