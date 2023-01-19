@@ -4,7 +4,7 @@ const LENGTH_MARKER = ";";
 
 export function efficientLengthEncodingNaturalPositiveNumbers(
   num: ethers.BigNumber
-) {
+): string {
   const encoded = num.toString();
 
   return [

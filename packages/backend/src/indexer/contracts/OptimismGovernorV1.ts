@@ -95,10 +95,10 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
     {
       signature: "ProposalDeadlineUpdated(uint256,uint64)",
       async handle(handle, event) {
-        const proposal = await handle.loadEntity(
+        const proposal = (await handle.loadEntity(
           "Proposal",
           event.args.proposalId.toString()
-        );
+        ))!;
 
         proposal.endBlock = event.args.deadline;
 
@@ -112,10 +112,10 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
     {
       signature: "ProposalCanceled(uint256)",
       async handle(handle, event) {
-        const proposal = await handle.loadEntity(
+        const proposal = (await handle.loadEntity(
           "Proposal",
           event.args.proposalId.toString()
-        );
+        ))!;
 
         proposal.status = "CANCELLED";
 
@@ -129,10 +129,10 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
     {
       signature: "ProposalExecuted(uint256)",
       async handle(handle, event) {
-        const proposal = await handle.loadEntity(
+        const proposal = (await handle.loadEntity(
           "Proposal",
           event.args.proposalId.toString()
-        );
+        ))!;
 
         proposal.status = "EXECUTED";
 
@@ -230,6 +230,7 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
 const aggregateKey = "AGGREGATE";
 
 async function loadAggregate(
+  // @ts-expect-error
   handle: StorageHandleForIndexer<typeof governorIndexer>
 ) {
   const aggregates = await handle.loadEntity(
@@ -248,6 +249,7 @@ async function loadAggregate(
 }
 
 function saveAggregate(
+  // @ts-expect-error
   handle: StorageHandleForIndexer<typeof governorIndexer>,
   entity: RuntimeType<
     typeof governorIndexer["entities"]["GovernorAggregates"]["serde"]
