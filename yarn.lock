@@ -6131,6 +6131,11 @@
   dependencies:
     "@types/unist" "*"
 
+"@types/heap@^0.2.31":
+  version "0.2.31"
+  resolved "https://registry.yarnpkg.com/@types/heap/-/heap-0.2.31.tgz#aaae2b2f7a915810fb783b1bbbf1c0748e399ba9"
+  integrity sha512-cKL2veQoMEQGGSib6GTq7Of6mAX1e6gH/7F9ddE4+qsga/RRK/ThAkZcKF/i1yVc30ZxlY2r6vZ74NZNtAA0Yw==
+
 "@types/html-minifier-terser@^6.0.0":
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/@types/html-minifier-terser/-/html-minifier-terser-6.1.0.tgz#4fc33a00c1d0c16987b1a20cf92d20614c55ac35"
@@ -12678,6 +12683,11 @@ header-case@^2.0.4:
   dependencies:
     capital-case "^1.0.4"
     tslib "^2.0.3"
+
+heap@^0.2.7:
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/heap/-/heap-0.2.7.tgz#1e6adf711d3f27ce35a81fe3b7bd576c2260a8fc"
+  integrity sha512-2bsegYkkHO+h/9MGbn6KWcE45cHZgPANo5LXF7EvWdT0yT2EguSVO1nDgU5c8+ZOPwp2vMNa7YFsJhVcDR9Sdg==
 
 hexoid@1.0.0:
   version "1.0.0"

@@ -11,8 +11,15 @@ export interface EntityStore extends ReadOnlyEntityStore {
   ): Promise<void>;
 }
 
+export function combineEntities(indexers: IndexerDefinition[]) {
+  return indexers.reduce(
+    (acc, indexer) => ({ ...acc, ...indexer.entities }),
+    {}
+  );
+}
+
 export function serializeEntities<StorageType>(
-  indexer: IndexerDefinition,
+  entityDefinitions: ReturnType<typeof combineEntities>,
   entities: Map<string, any>
 ): Map<string, StorageType> {
   return new Map([
@@ -23,7 +30,8 @@ export function serializeEntities<StorageType>(
           return [key, value];
         }
 
-        return [key, indexer.entities[parsedKey.entity].serde.serialize(value)];
+        const serde = (entityDefinitions as any)[parsedKey.entity]!.serde;
+        return [key, serde.serialize(value)];
       }
     ),
   ]);
@@ -48,7 +56,7 @@ export class MemoryEntityStore implements EntityStore {
     return this.values.get(makeEntityKey(entity, id));
   }
 
-  private finalizedBlock: BlockIdentifier | null;
+  private finalizedBlock: BlockIdentifier | null = null;
   async getFinalizedBlock(): Promise<BlockIdentifier | null> {
     return this.finalizedBlock;
   }
