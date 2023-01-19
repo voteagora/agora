@@ -17,7 +17,7 @@ export function isBlockDepthFinalized(depth: number) {
 }
 
 export type EntitiesType = {
-  [key: string]: EntityDefinition<SerDe<any, any>>;
+  [key: string]: EntityDefinition;
 };
 
 export type IndexerDefinition<
