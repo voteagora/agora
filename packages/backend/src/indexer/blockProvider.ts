@@ -37,7 +37,7 @@ export class BlockProviderImpl implements BlockProvider {
     fromBlockInclusive: number,
     toBlockInclusive: number
   ): Promise<BlockProviderBlock[]> {
-    const blocks = await this.provider.send("eth_getBlockRange", [
+    const blocks: any[] = await this.provider.send("eth_getBlockRange", [
       toHexNumber(fromBlockInclusive),
       toHexNumber(toBlockInclusive),
       false,

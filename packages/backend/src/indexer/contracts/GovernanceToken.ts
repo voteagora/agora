@@ -171,6 +171,7 @@ export const governanceTokenIndexer = makeIndexerDefinition(
 );
 
 async function loadAccount(
+  // @ts-expect-error
   handle: StorageHandleForIndexer<typeof governanceTokenIndexer>,
   from: string
 ) {
@@ -186,6 +187,7 @@ async function loadAccount(
 }
 
 function saveAccount(
+  // @ts-expect-error
   handle: StorageHandleForIndexer<typeof governanceTokenIndexer>,
   entity: RuntimeType<
     typeof governanceTokenIndexer["entities"]["Address"]["serde"]
@@ -197,6 +199,7 @@ function saveAccount(
 const aggregateCumulativeId = "CUMULATIVE";
 
 async function loadAggregate(
+  // @ts-expect-error
   handle: StorageHandleForIndexer<typeof governanceTokenIndexer>
 ) {
   const cumulativeAggregate = await handle.loadEntity(
@@ -207,11 +210,12 @@ async function loadAggregate(
   return {
     delegatedSupply:
       cumulativeAggregate?.delegatedSupply ?? ethers.BigNumber.from(0),
-    totalSupply: cumulativeAggregate.totalSupply ?? ethers.BigNumber.from(0),
+    totalSupply: cumulativeAggregate?.totalSupply ?? ethers.BigNumber.from(0),
   };
 }
 
 function saveAggregate(
+  // @ts-expect-error
   handle: StorageHandleForIndexer<typeof governanceTokenIndexer>,
   entity: RuntimeType<
     typeof governanceTokenIndexer["entities"]["Aggregates"]["serde"]
