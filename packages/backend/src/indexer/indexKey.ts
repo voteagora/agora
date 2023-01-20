@@ -4,13 +4,17 @@ import { RuntimeType, SerDe } from "./serde";
 
 export function makeIndexKey<Type extends SerDe<any, any>>(
   indexDefinition: IndexDefinition<Type>,
-  { id, entity, value }: EntityWithMetadata<RuntimeType<Type>>
+  { id: entityId, entity, value }: EntityWithMetadata<RuntimeType<Type>>
 ) {
   return [
     "indexes",
     entity,
     indexDefinition.indexName,
     indexDefinition.indexKey(value),
-    id,
+    entityId,
   ].join("|");
+}
+
+export function makeIndexPrefix(entity: string, indexName: string) {
+  return ["indexes", entity, indexName].join("|");
 }

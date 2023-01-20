@@ -12,7 +12,12 @@ export interface EntityStore extends ReadOnlyEntityStore {
   ): Promise<void>;
 }
 
-export function combineEntities(indexers: IndexerDefinition[]) {
+export type EntityDefinitions<Indexers extends IndexerDefinition[]> =
+  Indexers[number]["entities"];
+
+export function combineEntities<Indexers extends IndexerDefinition[]>(
+  indexers: IndexerDefinition[]
+): EntityDefinitions<Indexers> {
   return indexers.reduce(
     (acc, indexer) => ({ ...acc, ...indexer.entities }),
     {}
