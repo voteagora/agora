@@ -27,6 +27,7 @@ export const governanceTokenIndexer = makeIndexerDefinition(
           totalSupply: serde.bigNumber,
           delegatedSupply: serde.bigNumber,
         }),
+        indexes: [],
       }),
       Address: makeEntityDefinition({
         serde: serde.object({

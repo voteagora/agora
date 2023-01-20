@@ -8,6 +8,7 @@ import {
 } from "../process";
 import * as serde from "../serde";
 import { RuntimeType } from "../serde";
+import { efficientLengthEncodingNaturalPositiveNumbers } from "../utils/efficientLengthEncoding";
 
 export const governorTokenContract = makeContractInstance({
   iface: OptimismGovernorV1__factory.createInterface(),
@@ -28,6 +29,7 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
         votingPeriod: serde.bigNumber,
         proposalThreshold: serde.bigNumber,
       }),
+      indexes: [],
     }),
     Vote: makeEntityDefinition({
       serde: serde.object({
@@ -68,6 +70,22 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
         endBlock: serde.bigNumber,
         description: serde.string,
       }),
+      indexes: [
+        {
+          indexName: "byEndBlock",
+          indexKey(entity) {
+            return efficientLengthEncodingNaturalPositiveNumbers(
+              entity.endBlock
+            );
+          },
+        },
+        {
+          indexName: "byProposer",
+          indexKey(entity) {
+            return entity.proposer;
+          },
+        },
+      ],
     }),
   },
   eventHandlers: [
