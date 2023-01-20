@@ -1,13 +1,14 @@
-import { Level } from "level";
+import { BatchOperation, Level } from "level";
 import { BlockIdentifier, coerceLevelDbNotfoundError } from "./storageHandle";
 import { entityKeyPrefix, makeEntityKey, parseEntityKey } from "./keys";
-import { IndexerDefinition } from "./process";
+import { EntityDefinition, IndexerDefinition } from "./process";
+import { makeIndexKey } from "./fieldIndex";
 
 export interface EntityStore extends ReadOnlyEntityStore {
-  // todo: the strings in entities are a bit leaky
-  updateFinalizedBlock(
-    block: BlockIdentifier,
-    entities: Map<string, any>
+  flushUpdates(
+    blockIdentifier: BlockIdentifier,
+    indexers: IndexerDefinition[],
+    entities: Map<string, EntityWithMetadata>
   ): Promise<void>;
 }
 
@@ -37,10 +38,10 @@ export function serializeEntities<StorageType>(
   ]);
 }
 
-export type EntityWithMetadata = {
+export type EntityWithMetadata<T = any> = {
   entity: string;
   id: string;
-  value: any;
+  value: T;
 };
 
 export interface ReadOnlyEntityStore {
@@ -49,49 +50,36 @@ export interface ReadOnlyEntityStore {
   getEntities(): AsyncGenerator<EntityWithMetadata>;
 }
 
-export class MemoryEntityStore implements EntityStore {
-  private values: Map<string, any> = new Map();
+type LevelKeyType<LevelType extends Level> = LevelType extends Level<
+  infer KeyType
+>
+  ? KeyType
+  : never;
 
-  async getEntity(entity: string, id: string): Promise<any> {
-    return this.values.get(makeEntityKey(entity, id));
-  }
+type LevelValueType<LevelType extends Level> = LevelType extends Level<
+  any,
+  infer ValueType
+>
+  ? ValueType
+  : never;
 
-  private finalizedBlock: BlockIdentifier | null = null;
-  async getFinalizedBlock(): Promise<BlockIdentifier | null> {
-    return this.finalizedBlock;
-  }
-
-  async updateFinalizedBlock(
-    block: BlockIdentifier,
-    entities: Map<string, any>
-  ): Promise<void> {
-    this.finalizedBlock = block;
-
-    for (const [key, value] of entities.entries()) {
-      entities.set(key, value);
-    }
-  }
-
-  getEntities(): AsyncGenerator<EntityWithMetadata> {
-    const values = this.values;
-    return (async function* () {
-      for (const [key, value] of values) {
-        const entityKey = parseEntityKey(key);
-        if (!entityKey) {
-          continue;
-        }
-
-        yield {
-          ...entityKey,
-          value,
-        };
-      }
-    })();
-  }
-}
+type LevelBatchOperation<LevelType extends Level> = BatchOperation<
+  LevelType,
+  LevelKeyType<LevelType>,
+  LevelValueType<LevelType>
+>;
 
 export class LevelEntityStore implements EntityStore {
   private readonly level: Level<string, any>;
+
+  static async open() {
+    const level = new Level<string, any>("./data/state", {
+      valueEncoding: "json",
+    });
+    await level.open();
+
+    return new LevelEntityStore(level);
+  }
 
   constructor(level: Level<string, any>) {
     this.level = level;
@@ -117,19 +105,80 @@ export class LevelEntityStore implements EntityStore {
     })();
   }
 
-  async updateFinalizedBlock(
+  /**
+   * Writes entities, updating indexes and latest entity tracking.
+   */
+  async flushUpdates(
     block: BlockIdentifier,
-    entities: Map<string, any>
+    indexers: IndexerDefinition[],
+    entities: Map<string, EntityWithMetadata>
   ): Promise<void> {
-    const batch = this.level.batch();
+    const values = Array.from(entities.values());
+    const entityDefinitions = combineEntities(indexers);
 
-    batch.put("latest", block);
+    // todo: only fetch for ones with indexes
+    const oldValues = await this.level.getMany(
+      values.map((it) => makeEntityKey(it.entity, it.id))
+    );
 
-    for (const [key, value] of entities.entries()) {
-      batch.put(key, value);
-    }
+    const entries = oldValues.map((oldValue, idx) => {
+      return {
+        entity: values[idx].entity,
+        id: values[idx].id,
+        newValue: values[idx].value,
+        oldValue,
+      };
+    });
 
-    await batch.write();
+    type BatchOperation = LevelBatchOperation<typeof this.level>;
+
+    const operations: BatchOperation[] = entries.flatMap<BatchOperation>(
+      (entry) => {
+        const entityDefinition: EntityDefinition = (entityDefinitions as any)[
+          entry.entity
+        ]!;
+
+        return [
+          {
+            type: "put",
+            key: makeEntityKey(entry.entity, entry.id),
+            value: entityDefinition.serde.serialize(entry.newValue),
+          },
+          ...(entityDefinition.indexes ?? []).flatMap<BatchOperation>(
+            (indexDefinition): BatchOperation[] => {
+              return [
+                {
+                  type: "del",
+                  key: makeIndexKey(indexDefinition, {
+                    entity: entry.entity,
+                    id: entry.id,
+                    value: entry.oldValue,
+                  }),
+                },
+                {
+                  type: "put",
+                  key: makeIndexKey(indexDefinition, {
+                    entity: entry.entity,
+                    id: entry.id,
+                    value: entry.newValue,
+                  }),
+                  value: entry.id,
+                },
+              ];
+            }
+          ),
+        ];
+      }
+    );
+
+    await this.level.batch([
+      ...operations,
+      {
+        type: "put",
+        key: "latest",
+        value: block,
+      },
+    ]);
   }
 
   async getEntity(entity: string, id: string): Promise<any | null> {

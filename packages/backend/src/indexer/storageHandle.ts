@@ -45,7 +45,7 @@ export function coerceLevelDbNotfoundError<T>(
  * area. After maxReorgBlocksDepth blocks, reads from ReadOnlyEntityStore.
  */
 export function makeStorageHandleForShallowBlocks(
-  stagedEntitiesStorage: Map<string, Map<string, any>>,
+  stagedEntitiesStorage: Map<string, Map<string, EntityWithMetadata>>,
   parents: ReadonlyMap<string, BlockIdentifier>,
   block: BlockProviderBlock,
   latestBlockHeight: number,
@@ -60,7 +60,11 @@ export function makeStorageHandleForShallowBlocks(
         () => new Map()
       );
 
-      blockStagingArea.set(makeEntityKey(entity, id), value);
+      blockStagingArea.set(makeEntityKey(entity, id), {
+        id,
+        entity,
+        value,
+      });
     },
 
     async loadEntity(entity: string, id: string): Promise<any | null> {
@@ -72,7 +76,8 @@ export function makeStorageHandleForShallowBlocks(
           const key = makeEntityKey(entity, id);
           const hasValue = stagingArea.has(key);
           if (hasValue) {
-            return stagingArea.get(key);
+            const fromStaging = stagingArea.get(key)!;
+            return fromStaging.value;
           }
         }
 
@@ -104,7 +109,7 @@ export function makeStorageHandleForShallowBlocks(
  * check the staging area before checking the ReadOnlyEntityStore.
  */
 export function makeStorageHandleWithStagingArea(
-  stagingArea: Map<string, any>,
+  stagingArea: Map<string, EntityWithMetadata>,
   store: ReadOnlyEntityStore,
   indexer: IndexerDefinition,
   loadedEntities?: EntityWithMetadata[]
@@ -117,7 +122,8 @@ export function makeStorageHandleWithStagingArea(
       const value = await (async () => {
         const key = makeEntityKey(entity, id);
         if (stagingArea.has(key)) {
-          return stagingArea.get(key);
+          const fromStagingArea = stagingArea.get(key)!;
+          return fromStagingArea.value;
         }
 
         const fromStore = await store.getEntity(entity, id);
