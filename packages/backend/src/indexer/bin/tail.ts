@@ -1,176 +1,23 @@
 import { ethers } from "ethers";
-import {
-  EntityDefinition,
-  IndexerDefinition,
-  isBlockDepthFinalized,
-  maxReorgBlocksDepth,
-} from "../process";
+import { isBlockDepthFinalized, maxReorgBlocksDepth } from "../process";
 import {
   BlockIdentifier,
   makeStorageHandleForShallowBlocks,
   makeStorageHandleWithStagingArea,
 } from "../storageHandle";
-import { Level } from "level";
-import {
-  combineEntities,
-  EntityStore,
-  EntityWithMetadata,
-  LevelEntityStore,
-  serializeEntities,
-} from "../entityStore";
-import { loadLastLogIndex, loadMergedLogs } from "../logStorage";
+import { EntityWithMetadata, LevelEntityStore } from "../entityStore";
 import { isTopicInBloom } from "web3-utils";
 import { BlockProviderBlock, BlockProviderImpl } from "../blockProvider";
 import { collectGenerator, groupBy } from "../utils/generatorUtils";
 import { timeout } from "../utils/asyncUtils";
-import { makeIndexEntries, withIndexFields } from "../fieldIndex";
-import { concatMaps } from "../utils/mapUtils";
 import { indexers } from "../contracts";
 import { EthersLogProvider, topicFilterForIndexers } from "../logProvider";
 
 /**
  * Processes and writes updates for finalized blocks from stored logs.
  */
-async function processStoredLogs(
-  store: EntityStore,
-  indexers: IndexerDefinition[]
-) {
-  const entityStoreFinalizedBlock = await store.getFinalizedBlock();
-
-  const highestCommonBlock = await calculateHighestCommonBlock(indexers);
-  if (!highestCommonBlock) {
-    return;
-  }
-
-  if (
-    entityStoreFinalizedBlock &&
-    entityStoreFinalizedBlock.blockNumber >= highestCommonBlock.blockNumber
-  ) {
-    return;
-  }
-
-  let idx = 0;
-  const blockLogGenerator = groupBy(loadMergedLogs(indexers), (log) =>
-    log.blockNumber.toString()
-  );
-
-  const entityDefinitions = combineEntities(indexers);
-
-  for await (const blockLogs of blockLogGenerator) {
-    const [firstLog] = blockLogs;
-    if (
-      entityStoreFinalizedBlock &&
-      firstLog.blockNumber <= entityStoreFinalizedBlock.blockNumber
-    ) {
-      continue;
-    }
-
-    if (firstLog.blockNumber > highestCommonBlock.blockNumber) {
-      break;
-    }
-
-    const entityBlockStagingArea = new Map<string, any>();
-
-    for (const log of blockLogs) {
-      // 10k / s for memory
-      // 5k / s for disk
-      console.log({
-        idx,
-        block: log.blockNumber,
-      });
-
-      const indexer = indexers.find(
-        (it) => it.address.toLowerCase() === log.address.toLowerCase()
-      )!;
-
-      const event = indexer.iface.parseLog(log);
-      const eventHandler = indexer.eventHandlers.find(
-        (e) => e.signature === event.signature
-      )!;
-
-      const loadedEntities: EntityWithMetadata[] = [];
-      try {
-        await eventHandler.handle(
-          makeStorageHandleWithStagingArea(
-            entityBlockStagingArea,
-            store,
-            indexer,
-            loadedEntities
-          ),
-          event as any,
-          log
-        );
-      } catch (e) {
-        // todo: merge these somehow
-        console.log(JSON.stringify({ log, event, loaded: loadedEntities }));
-        throw e;
-      }
-
-      idx++;
-    }
-
-    await store.updateFinalizedBlock(
-      {
-        hash: firstLog.blockHash,
-        blockNumber: firstLog.blockNumber,
-      },
-      serializeEntities(entityDefinitions, entityBlockStagingArea)
-    );
-  }
-
-  const totalEntries = new Map<string, any>();
-
-  // for backfilling, process all entities at the end. this avoids writing and
-  // overwriting the index but makes the reducers accessing values through the
-  // index not possible.
-  for await (const entity of store.getEntities()) {
-    const entityDefinition: EntityDefinition = (entityDefinitions as any)[
-      entity.entity
-    ];
-    const value = entityDefinition.serde.deserialize(entity.value);
-
-    const entries = makeIndexEntries(
-      {
-        id: entity.id,
-        entity: entity.entity,
-        value,
-      },
-      entityDefinition
-    );
-    concatMaps(totalEntries, new Map(entries));
-  }
-
-  await store.updateFinalizedBlock(highestCommonBlock, totalEntries);
-}
-
-async function calculateHighestCommonBlock(
-  indexers: IndexerDefinition[]
-): Promise<BlockIdentifier | null> {
-  const latestBlockPerIndex = await Promise.all(
-    indexers.map((indexer) => loadLastLogIndex(indexer))
-  );
-
-  let lowestBlock: BlockIdentifier | null = null;
-  for (const latestBlock of latestBlockPerIndex) {
-    if (!latestBlock) {
-      return null;
-    }
-
-    if (!lowestBlock || latestBlock.blockNumber < lowestBlock.blockNumber) {
-      lowestBlock = latestBlock;
-    }
-  }
-
-  return lowestBlock;
-}
-
 async function main() {
-  const level = new Level<string, any>("./data/state", {
-    valueEncoding: "json",
-  });
-  const store = new LevelEntityStore(level);
-
-  await processStoredLogs(store, indexers);
+  const store = await LevelEntityStore.open();
 
   const provider = new ethers.providers.AlchemyProvider(
     "optimism",
@@ -249,7 +96,7 @@ async function main() {
 
         const { storageHandle, finalize } = (() => {
           if (isBlockDepthFinalized(nextBlockDepth)) {
-            const stagingArea = new Map<string, any>();
+            const stagingArea = new Map<string, EntityWithMetadata>();
 
             return {
               storageHandle: makeStorageHandleWithStagingArea(
@@ -257,16 +104,14 @@ async function main() {
                 store,
                 indexer
               ),
-              finalize: () =>
-                store.updateFinalizedBlock(
+              finalize: async () =>
+                await store.flushUpdates(
                   {
                     hash: block.hash,
                     blockNumber: block.number,
                   },
-                  serializeEntities(
-                    indexer.entities,
-                    withIndexFields(stagingArea, [indexer])
-                  )
+                  indexers,
+                  stagingArea
                 ),
             };
           } else {
@@ -310,20 +155,10 @@ async function main() {
     }
 
     const storageArea =
-      stagedEntitiesStorage.get(blockIdentifier.hash) ?? new Map<string, any>();
+      stagedEntitiesStorage.get(blockIdentifier.hash) ??
+      new Map<string, EntityWithMetadata>();
 
-    const entityDefinitions = combineEntities(indexers);
-
-    store.updateFinalizedBlock(
-      {
-        hash: blockIdentifier.hash,
-        blockNumber: blockIdentifier.blockNumber,
-      },
-      serializeEntities(
-        entityDefinitions,
-        withIndexFields(storageArea, indexers)
-      )
-    );
+    store.flushUpdates(blockIdentifier, indexers, storageArea);
   }
 
   const entityStoreFinalizedBlock = await store.getFinalizedBlock();

@@ -1,7 +1,6 @@
 import { ContractInstance, TypedInterface } from "../contracts";
 import { ethers } from "ethers";
 import { StorageHandle } from "./storageHandle";
-import { governanceTokenIndexer } from "./contracts/GovernanceToken";
 import { RuntimeType, SerDe } from "./serde";
 
 // The latest block is at depth zero with the block depth of each block below
@@ -38,16 +37,18 @@ type IndexerDefinitionArgs<
   eventHandlers: EventHandler<InterfaceType, Entities>[];
 };
 
-type StorageHandleEntities<Entities extends EntitiesType> = {
+export type StorageHandleEntities<Entities extends EntitiesType> = {
   [K in keyof Entities]: RuntimeType<Entities[K]["serde"]>;
 };
 
 export type EntityDefinition<Type extends SerDe<any, any> = SerDe<any, any>> = {
   serde: Type;
-  indexes?: {
-    indexName: string;
-    indexKey: (entity: RuntimeType<Type>) => string;
-  }[];
+  indexes?: IndexDefinition<Type>[];
+};
+
+export type IndexDefinition<Type extends SerDe<any, any>> = {
+  indexName: string;
+  indexKey: (entity: RuntimeType<Type>) => string;
 };
 
 export type StorageHandleForIndexer<T extends IndexerDefinition> =
