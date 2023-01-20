@@ -1,8 +1,8 @@
 import { BatchOperation, Level } from "level";
 import { BlockIdentifier, coerceLevelDbNotfoundError } from "./storageHandle";
-import { entityKeyPrefix, makeEntityKey, parseEntityKey } from "./keys";
+import { entityKeyPrefix, makeEntityKey, parseEntityKey } from "./entityKey";
 import { EntityDefinition, IndexerDefinition } from "./process";
-import { makeIndexKey } from "./fieldIndex";
+import { makeIndexKey } from "./indexKey";
 
 export interface EntityStore extends ReadOnlyEntityStore {
   flushUpdates(
