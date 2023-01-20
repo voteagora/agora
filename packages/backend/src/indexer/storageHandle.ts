@@ -2,7 +2,7 @@ import { EntityWithMetadata, ReadOnlyEntityStore } from "./entityStore";
 import { BlockProviderBlock } from "./blockProvider";
 import { getOrInsert } from "./utils/mapUtils";
 import { IndexerDefinition, isBlockDepthFinalized } from "./process";
-import { makeEntityKey } from "./keys";
+import { makeEntityKey } from "./entityKey";
 
 export type ReadableStorageHandle<Entities> = {
   loadEntity<Entity extends keyof Entities & string>(
