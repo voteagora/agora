@@ -35,9 +35,7 @@ type Delegate {
 
   votes: [Vote!]!
   snapshotVotes: [SnapshotVote!]!
-
 }
-
 
 type Address {
   resolvedName: ResolvedName!
@@ -128,7 +126,7 @@ type SnapshotVote {
 }
 
 union SnapshotVoteChoice =
-  SnapshotVoteChoiceApproval
+    SnapshotVoteChoiceApproval
   | SnapshotVoteChoiceRanked
   | SnapshotVoteChoiceSingle
   | SnapshotVoteChoiceQuadratic
@@ -246,9 +244,7 @@ enum ProposalStatus {
 }
 
 type Mutation {
-  createNewDelegateStatement(
-    data: CreateNewDelegateStatementData
-  ): Delegate!
+  createNewDelegateStatement(data: CreateNewDelegateStatementData): Delegate!
 }
 
 input CreateNewDelegateStatementData {
@@ -263,4 +259,3 @@ input ValueWithSignature {
   value: String!
   signature: String!
 }
-
