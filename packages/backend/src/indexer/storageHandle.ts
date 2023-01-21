@@ -45,7 +45,7 @@ export function coerceLevelDbNotfoundError<T>(
  * area. After maxReorgBlocksDepth blocks, reads from ReadOnlyEntityStore.
  */
 export function makeStorageHandleForShallowBlocks(
-  stagedEntitiesStorage: Map<string, Map<string, EntityWithMetadata>>,
+  stagedEntitiesStorage: StorageArea["blockStorageAreas"],
   parents: ReadonlyMap<string, BlockIdentifier>,
   block: BlockProviderBlock,
   latestBlockHeight: number,
@@ -57,10 +57,12 @@ export function makeStorageHandleForShallowBlocks(
       const blockStagingArea = getOrInsert(
         stagedEntitiesStorage,
         block.hash,
-        () => new Map()
+        () => ({
+          entities: new Map(),
+        })
       );
 
-      blockStagingArea.set(makeEntityKey(entity, id), {
+      blockStagingArea.entities.set(makeEntityKey(entity, id), {
         id,
         entity,
         value,
@@ -74,9 +76,9 @@ export function makeStorageHandleForShallowBlocks(
         const stagingArea = stagedEntitiesStorage.get(blockHash);
         if (stagingArea) {
           const key = makeEntityKey(entity, id);
-          const hasValue = stagingArea.has(key);
+          const hasValue = stagingArea.entities.has(key);
           if (hasValue) {
-            const fromStaging = stagingArea.get(key)!;
+            const fromStaging = stagingArea.entities.get(key)!;
             return fromStaging.value;
           }
         }
@@ -146,3 +148,27 @@ export function makeStorageHandleWithStagingArea(
     },
   };
 }
+
+export type StorageArea = {
+  /**
+   * Block considered to be the canonical chain tip. This is what queries will
+   * be resolved against.
+   */
+  tipBlock: BlockIdentifier | null;
+
+  /**
+   * Mapping from current block hash to parent block information. Used to
+   * maintain lineage in the face of reorgs.
+   */
+  parents: Map<string, BlockIdentifier>;
+
+  /**
+   * A storage area associated with each block. Saved entities are made
+   * available here.
+   */
+  blockStorageAreas: Map<string, BlockStorageArea>;
+};
+
+export type BlockStorageArea = {
+  entities: Map<string, EntityWithMetadata>;
+};
