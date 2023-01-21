@@ -49,7 +49,7 @@ type LineageNode =
       type: "FINALIZED";
     };
 
-function* generateLineagePath(
+export function* generateLineagePath(
   startingBlock: BlockIdentifier,
   parents: ReadonlyMap<string, BlockIdentifier>,
   latestBlockHeight: number
@@ -144,6 +144,8 @@ export function makeStorageHandleForShallowBlocks(
           }
         }
       }
+
+      return null;
     },
   };
 }
