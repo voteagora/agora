@@ -1,5 +1,5 @@
 import { EntityWithMetadata, ReadOnlyEntityStore } from "./entityStore";
-import { BlockProviderBlock } from "./blockProvider";
+import { blockIdentifierFromBlock, BlockProviderBlock } from "./blockProvider";
 import { getOrInsert } from "./utils/mapUtils";
 import { IndexerDefinition, isBlockDepthFinalized } from "./process";
 import { makeEntityKey } from "./entityKey";
@@ -40,6 +40,47 @@ export function coerceLevelDbNotfoundError<T>(
   });
 }
 
+type LineageNode =
+  | {
+      type: "BLOCK";
+      blockIdentifier: BlockIdentifier;
+    }
+  | {
+      type: "FINALIZED";
+    };
+
+function* generateLineagePath(
+  startingBlock: BlockIdentifier,
+  parents: ReadonlyMap<string, BlockIdentifier>,
+  latestBlockHeight: number
+): Generator<LineageNode> {
+  let blockHash = startingBlock.hash;
+
+  yield {
+    type: "BLOCK",
+    blockIdentifier: startingBlock,
+  };
+
+  while (true) {
+    const parentBlock = parents.get(blockHash);
+    if (!parentBlock) {
+      throw new Error(
+        `cannot establish lineage from ${startingBlock.hash} to finalized region. failed to find parent of ${blockHash}`
+      );
+    }
+
+    const parentBlockDepth = latestBlockHeight - parentBlock.blockNumber;
+    if (isBlockDepthFinalized(parentBlockDepth)) {
+      yield {
+        type: "FINALIZED",
+      };
+      return;
+    }
+
+    blockHash = parentBlock.hash;
+  }
+}
+
 /**
  * A storage handle where writes are tracked on a per-block staging area. Reads
  * walk up the parent graph looking for the entity in each block's staging
@@ -71,37 +112,37 @@ export function makeStorageHandleForShallowBlocks(
     },
 
     async loadEntity(entity: string, id: string): Promise<any | null> {
-      let blockHash = block.hash;
+      for (const node of generateLineagePath(
+        blockIdentifierFromBlock(block),
+        parents,
+        latestBlockHeight
+      )) {
+        switch (node.type) {
+          case "BLOCK": {
+            const stagingArea = stagedEntitiesStorage.get(
+              node.blockIdentifier.hash
+            );
+            if (stagingArea) {
+              const key = makeEntityKey(entity, id);
+              const hasValue = stagingArea.entities.has(key);
+              if (hasValue) {
+                const fromStaging = stagingArea.entities.get(key)!;
+                return fromStaging.value;
+              }
+            }
 
-      while (true) {
-        const stagingArea = stagedEntitiesStorage.get(blockHash);
-        if (stagingArea) {
-          const key = makeEntityKey(entity, id);
-          const hasValue = stagingArea.entities.has(key);
-          if (hasValue) {
-            const fromStaging = stagingArea.entities.get(key)!;
-            return fromStaging.value;
-          }
-        }
-
-        const parentBlock = parents.get(blockHash);
-        if (!parentBlock) {
-          throw new Error(
-            `cannot establish lineage from ${block.hash} to finalized region. failed to find parent of ${blockHash}`
-          );
-        }
-
-        const parentBlockDepth = latestBlockHeight - parentBlock.blockNumber;
-        if (isBlockDepthFinalized(parentBlockDepth)) {
-          const fromStore = await store.getEntity(entity, id);
-          if (!fromStore) {
-            return fromStore;
+            break;
           }
 
-          return indexer.entities[entity].serde.deserialize(fromStore);
-        }
+          case "FINALIZED": {
+            const fromStore = await store.getEntity(entity, id);
+            if (!fromStore) {
+              return fromStore;
+            }
 
-        blockHash = parentBlock.hash;
+            return indexer.entities[entity].serde.deserialize(fromStore);
+          }
+        }
       }
     },
   };
