@@ -3,6 +3,7 @@ import { BlockProviderBlock } from "./blockProvider";
 import { getOrInsert } from "./utils/mapUtils";
 import { IndexerDefinition, isBlockDepthFinalized } from "./process";
 import { makeEntityKey } from "./entityKey";
+import { StorageArea } from "./followChain";
 
 export type ReadableStorageHandle<Entities> = {
   loadEntity<Entity extends keyof Entities & string>(
@@ -148,27 +149,3 @@ export function makeStorageHandleWithStagingArea(
     },
   };
 }
-
-export type StorageArea = {
-  /**
-   * Block considered to be the canonical chain tip. This is what queries will
-   * be resolved against.
-   */
-  tipBlock: BlockIdentifier | null;
-
-  /**
-   * Mapping from current block hash to parent block information. Used to
-   * maintain lineage in the face of reorgs.
-   */
-  parents: Map<string, BlockIdentifier>;
-
-  /**
-   * A storage area associated with each block. Saved entities are made
-   * available here.
-   */
-  blockStorageAreas: Map<string, BlockStorageArea>;
-};
-
-export type BlockStorageArea = {
-  entities: Map<string, EntityWithMetadata>;
-};
