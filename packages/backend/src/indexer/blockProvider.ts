@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { BlockIdentifier } from "./storageHandle";
 
 export type BlockProviderBlock = {
   number: number;
@@ -16,6 +17,8 @@ export interface BlockProvider {
     toBlockInclusive: number
   ): Promise<BlockProviderBlock[]>;
 }
+
+export const maxBlockRange = 1000;
 
 export class BlockProviderImpl implements BlockProvider {
   private provider: ethers.providers.AlchemyProvider;
@@ -63,6 +66,22 @@ export class BlockProviderImpl implements BlockProvider {
     ]);
     return transformResponse(raw);
   }
+}
+
+export function blockIdentifierFromParentBlock(
+  block: BlockProviderBlock
+): BlockIdentifier {
+  return {
+    hash: block.parentHash,
+    blockNumber: block.number - 1,
+  };
+}
+
+export function blockIdentifierFromBlock(block: BlockProviderBlock) {
+  return {
+    hash: block.hash,
+    blockNumber: block.number,
+  };
 }
 
 function transformResponse(raw: any): BlockProviderBlock {

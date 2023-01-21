@@ -24,25 +24,6 @@ export function combineEntities<Indexers extends IndexerDefinition[]>(
   );
 }
 
-export function serializeEntities<StorageType>(
-  entityDefinitions: ReturnType<typeof combineEntities>,
-  entities: Map<string, any>
-): Map<string, StorageType> {
-  return new Map([
-    ...Array.from(entities.entries()).map(
-      ([key, value]): [string, StorageType] => {
-        const parsedKey = parseEntityKey(key);
-        if (!parsedKey) {
-          return [key, value];
-        }
-
-        const serde = (entityDefinitions as any)[parsedKey.entity]!.serde;
-        return [key, serde.serialize(value)];
-      }
-    ),
-  ]);
-}
-
 export type EntityWithMetadata<T = any> = {
   entity: string;
   id: string;

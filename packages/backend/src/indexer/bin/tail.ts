@@ -1,70 +1,48 @@
 import { ethers } from "ethers";
-import { isBlockDepthFinalized, maxReorgBlocksDepth } from "../process";
 import {
-  BlockIdentifier,
+  IndexerDefinition,
+  isBlockDepthFinalized,
+  maxReorgBlocksDepth,
+} from "../process";
+import {
   makeStorageHandleForShallowBlocks,
   makeStorageHandleWithStagingArea,
+  StorageArea,
 } from "../storageHandle";
-import { EntityWithMetadata, LevelEntityStore } from "../entityStore";
+import {
+  EntityStore,
+  EntityWithMetadata,
+  LevelEntityStore,
+} from "../entityStore";
 import { isTopicInBloom } from "web3-utils";
-import { BlockProviderBlock, BlockProviderImpl } from "../blockProvider";
+import {
+  BlockProviderBlock,
+  BlockProviderImpl,
+  maxBlockRange,
+  blockIdentifierFromParentBlock,
+  blockIdentifierFromBlock,
+} from "../blockProvider";
 import { collectGenerator, groupBy } from "../utils/generatorUtils";
 import { timeout } from "../utils/asyncUtils";
 import { indexers } from "../contracts";
 import { EthersLogProvider, topicFilterForIndexers } from "../logProvider";
 
-/**
- * Processes and writes updates for finalized blocks from stored logs.
- */
-async function main() {
-  const store = await LevelEntityStore.open();
-
-  const provider = new ethers.providers.AlchemyProvider(
-    "optimism",
-    process.env.ALCHEMY_API_KEY
-  );
-
+function followChain(
+  store: EntityStore,
+  indexers: IndexerDefinition[],
+  provider: ethers.providers.AlchemyProvider
+) {
   const blockProvider = new BlockProviderImpl(provider);
-  const logsProvider = new EthersLogProvider(provider);
+  const logProvider = new EthersLogProvider(provider);
 
-  const parents = new Map<string, BlockIdentifier>();
-  const stagedEntitiesStorage = new Map<string, Map<string, any>>();
+  const storageArea: StorageArea = {
+    tipBlock: null,
+    blockStorageAreas: new Map(),
+    parents: new Map(),
+  };
+
   const filter = topicFilterForIndexers(indexers);
   const topics = filter.topics[0];
-
-  async function ensureParentsAvailable(
-    hash: string,
-    latestBlockHeight: number,
-    depth: number
-  ): Promise<void> {
-    if (isBlockDepthFinalized(depth)) {
-      return;
-    }
-
-    const parentBlock = parents.get(hash);
-    if (parentBlock) {
-      return await ensureParentsAvailable(
-        parentBlock.hash,
-        latestBlockHeight,
-        depth + 1
-      );
-    }
-
-    const block = await blockProvider.getBlockByHash(hash);
-
-    await ensureParentsAvailable(
-      block.parentHash,
-      latestBlockHeight,
-      depth + 1
-    );
-
-    await processBlock(block, latestBlockHeight);
-
-    parents.set(block.hash, {
-      hash: block.parentHash,
-      blockNumber: block.number - 1,
-    });
-  }
 
   async function processBlock(
     block: BlockProviderBlock,
@@ -79,7 +57,7 @@ async function main() {
     if (shouldCheckBlock) {
       const logs =
         logsCache?.get(block.hash) ??
-        (await logsProvider.getLogs({
+        (await logProvider.getLogs({
           blockHash: block.hash,
           ...filter,
         }));
@@ -106,10 +84,7 @@ async function main() {
               ),
               finalize: async () =>
                 await store.flushUpdates(
-                  {
-                    hash: block.hash,
-                    blockNumber: block.number,
-                  },
+                  blockIdentifierFromBlock(block),
                   indexers,
                   stagingArea
                 ),
@@ -117,8 +92,8 @@ async function main() {
           } else {
             return {
               storageHandle: makeStorageHandleForShallowBlocks(
-                stagedEntitiesStorage,
-                parents,
+                storageArea.blockStorageAreas,
+                storageArea.parents,
                 block,
                 latestBlockHeight,
                 store,
@@ -138,115 +113,179 @@ async function main() {
     }
   }
 
-  function promoteFinalizedBlocks(
+  async function ensureParentsAvailable(
+    hash: string,
+    latestBlockHeight: number,
+    depth: number
+  ): Promise<void> {
+    if (isBlockDepthFinalized(depth)) {
+      return;
+    }
+
+    const parentBlock = storageArea.parents.get(hash);
+    if (parentBlock) {
+      return await ensureParentsAvailable(
+        parentBlock.hash,
+        latestBlockHeight,
+        depth + 1
+      );
+    }
+
+    const block = await blockProvider.getBlockByHash(hash);
+
+    await ensureParentsAvailable(
+      block.parentHash,
+      latestBlockHeight,
+      depth + 1
+    );
+
+    await processBlock(block, latestBlockHeight);
+
+    storageArea.parents.set(block.hash, blockIdentifierFromParentBlock(block));
+  }
+
+  async function promoteFinalizedBlocks(
     latestBlockNumber: number,
     blockHash: string
   ) {
-    const blockIdentifier = parents.get(blockHash);
-    if (!blockIdentifier) {
+    const parentBlockIdentifier = storageArea.parents.get(blockHash);
+    if (!parentBlockIdentifier) {
       // todo: parents will grow indefinitely
       throw new Error("cannot find parent block");
     }
 
-    const depth = latestBlockNumber - blockIdentifier.blockNumber;
+    const depth = latestBlockNumber - parentBlockIdentifier.blockNumber;
     if (!isBlockDepthFinalized(depth)) {
-      promoteFinalizedBlocks(latestBlockNumber, blockIdentifier.hash);
+      await promoteFinalizedBlocks(
+        latestBlockNumber,
+        parentBlockIdentifier.hash
+      );
       return;
     }
 
-    const storageArea =
-      stagedEntitiesStorage.get(blockIdentifier.hash) ??
+    const entities =
+      storageArea.blockStorageAreas.get(parentBlockIdentifier.hash)?.entities ??
       new Map<string, EntityWithMetadata>();
 
-    store.flushUpdates(blockIdentifier, indexers, storageArea);
+    await store.flushUpdates(parentBlockIdentifier, indexers, entities);
   }
 
-  const entityStoreFinalizedBlock = await store.getFinalizedBlock();
-  let nextBlockNumber = entityStoreFinalizedBlock
-    ? entityStoreFinalizedBlock.blockNumber + 1
-    : indexers.reduce(
-        (acc, it) => Math.min(it.startingBlock, acc),
-        indexers[0].startingBlock
+  (async () => {
+    const entityStoreFinalizedBlock = await store.getFinalizedBlock();
+    let nextBlockNumber = entityStoreFinalizedBlock
+      ? entityStoreFinalizedBlock.blockNumber + 1
+      : indexers.reduce(
+          (acc, it) => Math.min(it.startingBlock, acc),
+          indexers[0].startingBlock
+        );
+
+    while (true) {
+      const latestBlock = await blockProvider.getLatestBlock();
+      if (latestBlock.number <= nextBlockNumber) {
+        console.log("at tip!");
+        // we're ahead of the tip, continue
+        await timeout(1000);
+        continue;
+      }
+
+      const fetchTill = Math.min(
+        latestBlock.number,
+        nextBlockNumber + maxBlockRange
       );
 
-  while (true) {
-    const latestBlock = await blockProvider.getLatestBlock();
-    if (latestBlock.number <= nextBlockNumber) {
-      console.log("at tip!");
-      // we're ahead of the tip, continue
-      await timeout(1000);
-      continue;
-    }
+      const blocks = await blockProvider.getBlockRange(
+        nextBlockNumber,
+        fetchTill
+      );
 
-    const fetchTill = Math.min(latestBlock.number, nextBlockNumber + 1000);
-
-    const blocks = await blockProvider.getBlockRange(
-      nextBlockNumber,
-      fetchTill
-    );
-
-    const fetchLogsCacheTill = Math.max(
-      Math.min(
-        latestBlock.number - maxReorgBlocksDepth - 1,
-        nextBlockNumber + 1000
-      ),
-      nextBlockNumber
-    );
-    const logs = await logsProvider.getLogs({
-      ...filter,
-      fromBlock: nextBlockNumber,
-      toBlock: fetchLogsCacheTill,
-    });
-
-    const groupedLogs = await collectGenerator(
-      groupBy(
-        (async function* () {
-          for (const log of logs) {
-            yield log;
-          }
-        })(),
-        (log) => log.blockNumber.toString()
-      )
-    );
-
-    const logsCache = new Map([
-      ...blocks.flatMap<[string, ethers.providers.Log[]]>((block) => {
-        if (!isBlockDepthFinalized(block.number)) {
-          return [];
-        }
-
-        return [[block.hash, []]];
-      }),
-      ...groupedLogs.map<[string, ethers.providers.Log[]]>((it) => [
-        it[0].blockHash,
-        it,
-      ]),
-    ]);
-
-    console.log({
-      blocks: blocks.length,
-      depth: latestBlock.number - nextBlockNumber,
-    });
-
-    for (const nextBlock of blocks) {
-      parents.set(nextBlock.hash, {
-        blockNumber: nextBlock.number - 1,
-        hash: nextBlock.parentHash,
+      const fetchLogsCacheTill = Math.max(
+        Math.min(
+          latestBlock.number - maxReorgBlocksDepth - 1,
+          nextBlockNumber + 1000
+        ),
+        nextBlockNumber
+      );
+      const logs = await logProvider.getLogs({
+        ...filter,
+        fromBlock: nextBlockNumber,
+        toBlock: fetchLogsCacheTill,
       });
 
-      await ensureParentsAvailable(
-        nextBlock.hash,
-        latestBlock.number,
-        latestBlock.number - nextBlock.number
+      const groupedLogs = await collectGenerator(
+        groupBy(
+          (async function* () {
+            for (const log of logs) {
+              yield log;
+            }
+          })(),
+          (log) => log.blockNumber.toString()
+        )
       );
 
-      await processBlock(nextBlock, latestBlock.number, logsCache);
+      const logsCache = new Map([
+        ...blocks.flatMap<[string, ethers.providers.Log[]]>((block) => {
+          if (!isBlockDepthFinalized(block.number)) {
+            return [];
+          }
 
-      promoteFinalizedBlocks(latestBlock.number, nextBlock.hash);
+          return [[block.hash, []]];
+        }),
+        ...groupedLogs.map<[string, ethers.providers.Log[]]>((it) => [
+          it[0].blockHash,
+          it,
+        ]),
+      ]);
 
-      nextBlockNumber = nextBlock.number + 1;
+      console.log({
+        blocks: blocks.length,
+        depth: latestBlock.number - nextBlockNumber,
+      });
+
+      for (const nextBlock of blocks) {
+        // update storageArea.tipBlock
+        if (
+          !storageArea.tipBlock ||
+          nextBlock.number > storageArea.tipBlock.blockNumber
+        ) {
+          storageArea.tipBlock = blockIdentifierFromBlock(nextBlock);
+        }
+
+        storageArea.parents.set(
+          nextBlock.hash,
+          blockIdentifierFromParentBlock(nextBlock)
+        );
+
+        await ensureParentsAvailable(
+          nextBlock.hash,
+          latestBlock.number,
+          latestBlock.number - nextBlock.number
+        );
+
+        await processBlock(nextBlock, latestBlock.number, logsCache);
+
+        await promoteFinalizedBlocks(latestBlock.number, nextBlock.hash);
+
+        nextBlockNumber = nextBlock.number + 1;
+      }
     }
-  }
+  })();
+
+  return storageArea;
+}
+
+/**
+ * Processes and writes updates for finalized blocks from stored logs.
+ */
+async function main() {
+  const store = await LevelEntityStore.open();
+
+  const provider = new ethers.providers.AlchemyProvider(
+    "optimism",
+    process.env.ALCHEMY_API_KEY
+  );
+
+  const storageArea = followChain(store, indexers, provider);
+  console.log({ storageArea });
 }
 
 main();
