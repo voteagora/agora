@@ -31,6 +31,7 @@ export function followChain(
   const logProvider = new EthersLogProvider(provider);
 
   const storageArea: StorageArea = {
+    latestBlockNumber: null,
     tipBlock: null,
     blockStorageAreas: new Map(),
     parents: new Map(),
@@ -176,6 +177,8 @@ export function followChain(
 
     while (true) {
       const latestBlock = await blockProvider.getLatestBlock();
+      storageArea.latestBlockNumber = latestBlock.number;
+
       if (latestBlock.number <= nextBlockNumber) {
         console.log("at tip!");
         // we're ahead of the tip, continue
@@ -274,6 +277,12 @@ export type StorageArea = {
    * be resolved against.
    */
   tipBlock: BlockIdentifier | null;
+
+  /**
+   * Highest block known to be mined. Used to determine whether a block number
+   * is finalized or not.
+   */
+  latestBlockNumber: number | null;
 
   /**
    * Mapping from current block hash to parent block information. Used to
