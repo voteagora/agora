@@ -619,10 +619,6 @@ export function makeGatewaySchema() {
   );
 }
 
-function bigNumberDescendingComparator<T>(fn: (item: T) => BigNumber) {
-  return (a: T, b: T) => (fn(b).lt(fn(a)) ? -1 : 1);
-}
-
 const proposal: Proposal = {
   id: BigNumber.from(1),
   proposer: "0x5e349eca2dc61abcd9dd99ce94d04136151a09ee",
