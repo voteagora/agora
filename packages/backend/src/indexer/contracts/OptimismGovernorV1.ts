@@ -8,7 +8,7 @@ import {
 } from "../process";
 import * as serde from "../serde";
 import { RuntimeType } from "../serde";
-import { efficientLengthEncodingNaturalPositiveNumbers } from "../utils/efficientLengthEncoding";
+import { efficientLengthEncodingNaturalNumbers } from "../utils/efficientLengthEncoding";
 
 export const governorTokenContract = makeContractInstance({
   iface: OptimismGovernorV1__factory.createInterface(),
@@ -28,11 +28,13 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
         votingDelay: serde.bigNumber,
         votingPeriod: serde.bigNumber,
         proposalThreshold: serde.bigNumber,
+        totalProposals: serde.passthrough<number>(),
       }),
       indexes: [],
     }),
     Vote: makeEntityDefinition({
       serde: serde.object({
+        id: serde.string,
         voterAddress: serde.string,
         proposalId: serde.bigNumber,
         support: serde.number,
@@ -74,8 +76,8 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
         {
           indexName: "byEndBlock",
           indexKey(entity) {
-            return efficientLengthEncodingNaturalPositiveNumbers(
-              entity.endBlock
+            return efficientLengthEncodingNaturalNumbers(
+              entity.endBlock.mul(-1)
             );
           },
         },
@@ -108,6 +110,10 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
           endBlock: event.args.endBlock,
           description: event.args.description,
         });
+
+        const agg = await loadAggregate(handle);
+        agg.totalProposals++;
+        saveAggregate(handle, agg);
       },
     },
     {
@@ -164,34 +170,30 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
     {
       signature: "VoteCast(address,uint256,uint8,uint256,string)",
       async handle(handle, event, log) {
-        handle.saveEntity(
-          "Vote",
-          [log.transactionHash, log.logIndex].join("|"),
-          {
-            voterAddress: event.args.voter,
-            proposalId: event.args.proposalId,
-            support: event.args.support,
-            weight: event.args.weight,
-            reason: event.args.reason,
-          }
-        );
+        const id = [log.transactionHash, log.logIndex].join("|");
+        handle.saveEntity("Vote", id, {
+          id,
+          voterAddress: event.args.voter,
+          proposalId: event.args.proposalId,
+          support: event.args.support,
+          weight: event.args.weight,
+          reason: event.args.reason,
+        });
       },
     },
     {
       signature:
         "VoteCastWithParams(address,uint256,uint8,uint256,string,bytes)",
       async handle(handle, event, log) {
-        handle.saveEntity(
-          "Vote",
-          [log.transactionHash, log.logIndex].join("|"),
-          {
-            voterAddress: event.args.voter,
-            proposalId: event.args.proposalId,
-            support: event.args.support,
-            weight: event.args.weight,
-            reason: event.args.reason,
-          }
-        );
+        const id = [log.transactionHash, log.logIndex].join("|");
+        handle.saveEntity("Vote", id, {
+          id,
+          voterAddress: event.args.voter,
+          proposalId: event.args.proposalId,
+          support: event.args.support,
+          weight: event.args.weight,
+          reason: event.args.reason,
+        });
       },
     },
     {
@@ -245,7 +247,7 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
   ],
 });
 
-const aggregateKey = "AGGREGATE";
+export const governanceAggregatesKey = "AGGREGATE";
 
 async function loadAggregate(
   // @ts-expect-error
@@ -253,7 +255,7 @@ async function loadAggregate(
 ) {
   const aggregates = await handle.loadEntity(
     "GovernorAggregates",
-    aggregateKey
+    governanceAggregatesKey
   );
 
   return (
@@ -262,6 +264,7 @@ async function loadAggregate(
       quorumNumerator: ethers.BigNumber.from(0),
       votingDelay: ethers.BigNumber.from(0),
       votingPeriod: ethers.BigNumber.from(0),
+      totalProposals: 0,
     }
   );
 }
@@ -273,5 +276,5 @@ function saveAggregate(
     typeof governorIndexer["entities"]["GovernorAggregates"]["serde"]
   >
 ) {
-  handle.saveEntity("GovernorAggregates", aggregateKey, entity);
+  handle.saveEntity("GovernorAggregates", governanceAggregatesKey, entity);
 }

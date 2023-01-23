@@ -1,4 +1,4 @@
-import { efficientLengthEncodingNaturalPositiveNumbers } from "../utils/efficientLengthEncoding";
+import { efficientLengthEncodingNaturalNumbers } from "../utils/efficientLengthEncoding";
 import {
   makeEntityDefinition,
   makeIndexerDefinition,
@@ -39,26 +39,26 @@ export const governanceTokenIndexer = makeIndexerDefinition(
         }),
         indexes: [
           {
-            indexName: "byTokenOwned",
+            indexName: "byTokensOwned",
             indexKey(entity) {
-              return efficientLengthEncodingNaturalPositiveNumbers(
-                entity.tokensOwned
+              return efficientLengthEncodingNaturalNumbers(
+                entity.tokensOwned.mul(-1)
               );
             },
           },
           {
             indexName: "byTokensRepresented",
             indexKey(entity) {
-              return efficientLengthEncodingNaturalPositiveNumbers(
-                entity.tokensRepresented
+              return efficientLengthEncodingNaturalNumbers(
+                entity.tokensRepresented.mul(-1)
               );
             },
           },
           {
             indexName: "byTokenHoldersRepresented",
             indexKey(entity) {
-              return efficientLengthEncodingNaturalPositiveNumbers(
-                ethers.BigNumber.from(entity.accountsRepresented.length)
+              return efficientLengthEncodingNaturalNumbers(
+                ethers.BigNumber.from(entity.accountsRepresented.length).mul(-1)
               );
             },
           },
@@ -197,7 +197,7 @@ function saveAccount(
   return handle.saveEntity("Address", entity.address, entity);
 }
 
-const aggregateCumulativeId = "CUMULATIVE";
+export const aggregateCumulativeId = "CUMULATIVE";
 
 async function loadAggregate(
   // @ts-expect-error
