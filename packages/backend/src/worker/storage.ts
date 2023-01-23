@@ -1,4 +1,4 @@
-import { EmailStorage } from "../model";
+import { EmailStorage } from "../schema/model";
 import { ValidatedMessage } from "../utils/signing";
 
 export function makeEmailStorage(kvNamespace: KVNamespace): EmailStorage {

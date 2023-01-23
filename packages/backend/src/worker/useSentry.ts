@@ -6,13 +6,13 @@ import {
   print,
   responsePathAsArray,
 } from "graphql";
-import { AgoraContextType } from "../model";
 import {
   EnvelopError,
   handleStreamOrSingleExecutionResult,
   Plugin,
 } from "@graphql-yoga/common";
 import { withSentryScope } from "../sentry";
+import { AgoraContextType } from "../schema/context";
 
 export function useSentry(sentry: Toucan): Plugin<AgoraContextType> {
   return {

@@ -2,7 +2,7 @@ import "isomorphic-fetch";
 import { createServer } from "@graphql-yoga/node";
 import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
-import { AgoraContextType } from "../model";
+import { AgoraContextType } from "../schema/context";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { ValidatedMessage } from "../utils/signing";
 import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";

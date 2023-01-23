@@ -32,6 +32,21 @@ export async function* groupBy<T>(
   }
 }
 
+export async function* limitGenerator<T>(
+  asyncGenerator: AsyncGenerator<T>,
+  limit: number
+): AsyncGenerator<T> {
+  let i = 0;
+  for await (const item of asyncGenerator) {
+    if (i >= limit) {
+      return;
+    }
+
+    yield item;
+    i++;
+  }
+}
+
 export async function collectGenerator<T>(
   asyncGenerator: AsyncGenerator<T>
 ): Promise<T[]> {

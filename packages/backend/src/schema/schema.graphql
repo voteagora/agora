@@ -244,7 +244,7 @@ enum ProposalStatus {
 }
 
 type Mutation {
-  createNewDelegateStatement(data: CreateNewDelegateStatementData): Delegate!
+  createNewDelegateStatement(data: CreateNewDelegateStatementData!): Delegate!
 }
 
 input CreateNewDelegateStatementData {

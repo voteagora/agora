@@ -1,6 +1,6 @@
 import { Env } from "./env";
 import { makeGatewaySchema } from "../schema";
-import { AgoraContextType } from "../model";
+import { AgoraContextType } from "../schema/context";
 import { makeEmailStorage } from "./storage";
 import { getOrInitializeLatestSnapshot } from "./snapshot";
 import { makeDynamoDelegateStore } from "../store/dynamo/delegates";

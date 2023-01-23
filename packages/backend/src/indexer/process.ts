@@ -43,11 +43,14 @@ export type StorageHandleEntities<Entities extends EntitiesType> = {
 
 export type EntityDefinition<Type extends SerDe<any, any> = SerDe<any, any>> = {
   serde: Type;
-  indexes: IndexDefinition<Type>[];
+  indexes: IndexDefinition<Type, string>[];
 };
 
-export type IndexDefinition<Type extends SerDe<any, any>> = {
-  indexName: string;
+export type IndexDefinition<
+  Type extends SerDe<any, any>,
+  IndexName extends string
+> = {
+  indexName: IndexName;
   indexKey: (entity: RuntimeType<Type>) => string;
 };
 

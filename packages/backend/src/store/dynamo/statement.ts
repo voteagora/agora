@@ -5,7 +5,7 @@ import {
   ExpressionAttributes,
 } from "@aws/dynamodb-expressions";
 
-import { StatementStorage, StoredStatement } from "../../model";
+import { StatementStorage, StoredStatement } from "../../schema/model";
 import {
   makeKey,
   marshaller,
