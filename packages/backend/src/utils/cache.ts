@@ -28,7 +28,7 @@ export function makeFakeSpan() {
 
 export function makeEmptyTracingContext(): TracingContext {
   return {
-    rootSpan: makeFakeSpan(),
+    rootSpan: makeFakeSpan() as any,
     spanMap: makeNopSpanMap(),
   };
 }

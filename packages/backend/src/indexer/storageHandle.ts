@@ -161,8 +161,12 @@ export function makeStorageHandleWithStagingArea(
   loadedEntities?: EntityWithMetadata[]
 ): StorageHandle<any> {
   return {
-    saveEntity(entity: string, id: string, value: any): void {
-      stagingArea.set(makeEntityKey(entity, id), value);
+    saveEntity(entity: string, id: string, value: unknown): void {
+      stagingArea.set(makeEntityKey(entity, id), {
+        entity,
+        id,
+        value,
+      });
     },
     async loadEntity(entity: string, id: string): Promise<any | null> {
       const value = await (async () => {

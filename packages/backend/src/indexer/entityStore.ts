@@ -24,7 +24,7 @@ export function combineEntities<Indexers extends IndexerDefinition[]>(
   );
 }
 
-export type EntityWithMetadata<T = any> = {
+export type EntityWithMetadata<T = unknown> = {
   entity: string;
   id: string;
   value: T;
@@ -133,14 +133,24 @@ export class LevelEntityStore implements EntityStore {
           ...(entityDefinition.indexes ?? []).flatMap<BatchOperation>(
             (indexDefinition): BatchOperation[] => {
               return [
-                {
-                  type: "del",
-                  key: makeIndexKey(indexDefinition, {
-                    entity: entry.entity,
-                    id: entry.id,
-                    value: entry.oldValue,
-                  }),
-                },
+                ...(() => {
+                  if (!entry.oldValue) {
+                    return [];
+                  }
+
+                  return [
+                    {
+                      type: "del" as const,
+                      key: makeIndexKey(indexDefinition, {
+                        entity: entry.entity,
+                        id: entry.id,
+                        value: entityDefinition.serde.deserialize(
+                          entry.oldValue
+                        ),
+                      }),
+                    },
+                  ];
+                })(),
                 {
                   type: "put",
                   key: makeIndexKey(indexDefinition, {
