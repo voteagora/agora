@@ -224,8 +224,7 @@ export function VoteAuctionPage() {
                 color: ${theme.colors.gray["700"]};
               `}
             >
-              The winner of this NFT will be delegated Noun 174&apos;s vote for
-              three months, starting from 02/01/23 and ending on 05/01/23.
+              {currentAuction?.metadata?.description}
             </div>
           </VStack>
           <HStack
