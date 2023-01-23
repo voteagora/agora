@@ -1,10 +1,3 @@
-import {
-  DelegateOverview,
-  DelegatesPage,
-  DelegateStorage,
-  GetDelegatesParams,
-  StoredStatement,
-} from "../../model";
 import { DynamoDB, Update } from "@aws-sdk/client-dynamodb";
 import {
   ConditionExpression,

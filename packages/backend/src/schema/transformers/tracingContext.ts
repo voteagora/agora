@@ -4,8 +4,8 @@ import {
   GraphQLSchema,
   responsePathAsArray,
 } from "graphql";
-import { AgoraContextType, TracingContext } from "../model";
 import { Span } from "@cloudflare/workers-honeycomb-logger";
+import { AgoraContextType } from "../context";
 
 export function attachTracingContextInjection(
   schema: GraphQLSchema
@@ -76,4 +76,24 @@ export function attachTracingContextInjection(
       };
     },
   });
+}
+
+export type SpanMap = {
+  get(key: string): Span | undefined;
+  set(key: string, span: Span): void;
+};
+
+export type TracingContext = {
+  spanMap: SpanMap;
+  rootSpan: Span;
+};
+
+export function makeNopSpanMap() {
+  return {
+    get(key: string): Span | undefined {
+      return undefined;
+    },
+
+    set(key: string, span: Span) {},
+  };
 }
