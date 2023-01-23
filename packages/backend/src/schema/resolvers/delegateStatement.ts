@@ -11,6 +11,7 @@ import { formSchema } from "../../formSchema";
 import { z } from "zod";
 import { validateSigned } from "../../utils/signing";
 import { StoredStatement } from "../model";
+import { ethers } from "ethers";
 
 export type DelegateStatementModel = {
   address: string;
@@ -78,7 +79,7 @@ export const Mutation: MutationResolvers = {
   async createNewDelegateStatement(
     parent,
     args,
-    { statementStorage, emailStorage, delegateStorage, provider },
+    { statementStorage, emailStorage, provider, reader },
     info
   ) {
     const updatedAt = Date.now();
@@ -92,7 +93,10 @@ export const Mutation: MutationResolvers = {
       updatedAt,
     };
 
-    const delegate = await delegateStorage.getDelegate(validated.address);
+    const delegate = (await reader.getEntity(
+      "Address",
+      ethers.utils.getAddress(validated.address)
+    ))!;
 
     await statementStorage.addStatement(nextStatement);
 
