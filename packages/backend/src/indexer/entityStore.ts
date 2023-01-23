@@ -56,7 +56,7 @@ type LevelBatchOperation<LevelType extends Level> = BatchOperation<
 >;
 
 export class LevelEntityStore implements EntityStore {
-  private readonly level: Level<string, any>;
+  readonly level: Level<string, any>;
 
   static async open() {
     const level = new Level<string, any>("./data/state", {

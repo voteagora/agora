@@ -1,58 +1,59 @@
-import { IndexerDefinition } from "./process";
+import { EntityDefinition } from "./process";
 import { RuntimeType } from "./serde";
 import { makeEntityKey } from "./entityKey";
 import { Level } from "level";
-import { combineEntities, EntityDefinitions } from "./entityStore";
 import { makeIndexKey, makeIndexPrefix } from "./indexKey";
 import { StorageArea } from "./followChain";
 import { generateLineagePath } from "./storageHandle";
 import Heap from "heap";
 import { compareBy } from "./utils/sortUtils";
 
-interface Reader<Indexers extends IndexerDefinition[]> {
-  getEntity<Entity extends keyof EntityDefinitions<Indexers> & string>(
+type EntityDefinitions = {
+  [key: string]: EntityDefinition;
+};
+
+interface Reader<EntityDefinitionsType extends EntityDefinitions> {
+  getEntity<Entity extends keyof EntityDefinitionsType & string>(
     entity: Entity,
     id: string
-  ): Promise<RuntimeType<EntityDefinitions<Indexers>[Entity]["serde"]> | null>;
+  ): Promise<RuntimeType<EntityDefinitionsType[Entity]["serde"]> | null>;
 
   getEntitiesByIndex<
-    Entity extends keyof EntityDefinitions<Indexers> & string,
-    IndexName extends EntityDefinitions<Indexers>[Entity]["indexes"][number]["indexName"]
+    Entity extends keyof EntityDefinitionsType & string,
+    IndexName extends EntityDefinitionsType[Entity]["indexes"][number]["indexName"]
   >(
     entity: Entity,
     indexName: IndexName,
     startingIndexKey: string
-  ): AsyncGenerator<RuntimeType<EntityDefinitions<Indexers>[Entity]["serde"]>>;
+  ): AsyncGenerator<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>;
 }
 
-// todo: intermediate reads
-
-class LevelReader<Indexers extends IndexerDefinition[]>
-  implements Reader<Indexers>
+export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
+  implements Reader<EntityDefinitionsType>
 {
-  private readonly indexers: IndexerDefinition[];
+  private readonly entityDefinitions: EntityDefinitionsType;
 
   private readonly level: Level;
 
   private readonly storageArea: StorageArea;
 
   constructor(
-    indexers: IndexerDefinition[],
+    entityDefinitions: EntityDefinitionsType,
     level: Level,
     storageArea: StorageArea
   ) {
-    this.indexers = indexers;
+    this.entityDefinitions = entityDefinitions;
     this.level = level;
     this.storageArea = storageArea;
   }
 
   async *getEntitiesByIndex<
-    Entity extends keyof EntityDefinitions<Indexers> & string,
-    IndexName extends EntityDefinitions<Indexers>[Entity]["indexes"][number]["indexName"]
+    Entity extends keyof EntityDefinitionsType & string,
+    IndexName extends EntityDefinitionsType[Entity]["indexes"][number]["indexName"]
   >(
     entity: Entity,
     indexName: IndexName
-  ): AsyncGenerator<RuntimeType<EntityDefinitions<Indexers>[Entity]["serde"]>> {
+  ): AsyncGenerator<RuntimeType<EntityDefinitionsType[Entity]["serde"]>> {
     if (!this.storageArea.tipBlock) {
       return null;
     }
@@ -61,8 +62,7 @@ class LevelReader<Indexers extends IndexerDefinition[]>
       return null;
     }
 
-    const entityDefinitions = combineEntities(this.indexers);
-    const entityDefinition = entityDefinitions[entity];
+    const entityDefinition = this.entityDefinitions[entity];
     const indexDefinition = entityDefinition.indexes.find(
       (indexDefinition) => indexDefinition.indexName === indexName
     )!;
@@ -191,10 +191,10 @@ class LevelReader<Indexers extends IndexerDefinition[]>
     }
   }
 
-  async getEntity<Entity extends keyof EntityDefinitions<Indexers> & string>(
+  async getEntity<Entity extends keyof EntityDefinitionsType & string>(
     entity: Entity,
     id: string
-  ): Promise<RuntimeType<EntityDefinitions<Indexers>[Entity]["serde"]> | null> {
+  ): Promise<RuntimeType<EntityDefinitionsType[Entity]["serde"]> | null> {
     if (!this.storageArea.tipBlock) {
       return null;
     }
@@ -235,8 +235,7 @@ class LevelReader<Indexers extends IndexerDefinition[]>
             return null;
           }
 
-          const combinedEntities = combineEntities(this.indexers);
-          const entityDefinition = combinedEntities[entity];
+          const entityDefinition = this.entityDefinitions[entity];
 
           return entityDefinition.serde.deserialize(fromLevel);
         }

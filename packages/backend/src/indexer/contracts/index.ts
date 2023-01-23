@@ -8,3 +8,8 @@ export const indexers: IndexerDefinition[] = [
   // @ts-expect-error
   governorIndexer,
 ];
+
+export const entityDefinitions = {
+  ...governanceTokenIndexer.entities,
+  ...governorIndexer.entities,
+};

@@ -15,10 +15,22 @@ import { TransparentMultiCallProvider } from "../multicall";
 import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
 import { promises as fs } from "fs";
 import { useErrorInspection } from "../useErrorInspection";
+import { followChain } from "../indexer/followChain";
+import { LevelEntityStore } from "../indexer/entityStore";
+import { entityDefinitions, indexers } from "../indexer/contracts";
+import { LevelReader } from "../indexer/reader";
 
 async function main() {
   const schema = makeGatewaySchema();
-  const baseProvider = new ethers.providers.CloudflareProvider();
+  const store = await LevelEntityStore.open();
+
+  const baseProvider = new ethers.providers.AlchemyProvider(
+    "optimism",
+    process.env.ALCHEMY_API_KEY
+  );
+
+  const storageArea = followChain(store, indexers, baseProvider);
+  const reader = new LevelReader(entityDefinitions, store.level, storageArea);
 
   const dynamoDb = new DynamoDB({});
 
