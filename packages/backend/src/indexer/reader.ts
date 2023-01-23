@@ -2,17 +2,29 @@ import { EntityDefinition } from "./process";
 import { RuntimeType } from "./serde";
 import { makeEntityKey } from "./entityKey";
 import { Level } from "level";
-import { makeIndexKey, makeIndexPrefix } from "./indexKey";
+import { makeIndexKey, makeIndexKeyRaw, makeIndexPrefix } from "./indexKey";
 import { StorageArea } from "./followChain";
 import { generateLineagePath } from "./storageHandle";
 import Heap from "heap";
 import { compareBy } from "./utils/sortUtils";
 
-type EntityDefinitions = {
+export type EntityDefinitions = {
   [key: string]: EntityDefinition;
 };
 
-interface Reader<EntityDefinitionsType extends EntityDefinitions> {
+type IndexQueryArgs =
+  | {
+      type: "EXACT_MATCH";
+      indexKey: string;
+    }
+  | {
+      type: "RANGE";
+      startingIndexKey?: string;
+    };
+
+export interface Reader<EntityDefinitionsType extends EntityDefinitions> {
+  readonly entityDefinitions: EntityDefinitionsType;
+
   getEntity<Entity extends keyof EntityDefinitionsType & string>(
     entity: Entity,
     id: string
@@ -20,18 +32,18 @@ interface Reader<EntityDefinitionsType extends EntityDefinitions> {
 
   getEntitiesByIndex<
     Entity extends keyof EntityDefinitionsType & string,
-    IndexName extends EntityDefinitionsType[Entity]["indexes"][number]["indexName"]
+    IndexName extends EntityDefinitionsType[Entity]["indexes"][0]["indexName"]
   >(
     entity: Entity,
     indexName: IndexName,
-    startingIndexKey: string
+    args: IndexQueryArgs
   ): AsyncGenerator<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>;
 }
 
 export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
   implements Reader<EntityDefinitionsType>
 {
-  private readonly entityDefinitions: EntityDefinitionsType;
+  readonly entityDefinitions: EntityDefinitionsType;
 
   private readonly level: Level;
 
@@ -52,7 +64,8 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
     IndexName extends EntityDefinitionsType[Entity]["indexes"][number]["indexName"]
   >(
     entity: Entity,
-    indexName: IndexName
+    indexName: IndexName,
+    args: IndexQueryArgs
   ): AsyncGenerator<RuntimeType<EntityDefinitionsType[Entity]["serde"]>> {
     if (!this.storageArea.tipBlock) {
       return null;
@@ -66,7 +79,44 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
     const indexDefinition = entityDefinition.indexes.find(
       (indexDefinition) => indexDefinition.indexName === indexName
     )!;
-    const indexPrefix = makeIndexPrefix(entity, indexName);
+
+    const { startingKey, indexPrefix } = (() => {
+      switch (args.type) {
+        case "EXACT_MATCH": {
+          const indexPrefix = makeIndexKeyRaw(
+            entity,
+            indexName,
+            args.indexKey,
+            ""
+          );
+          return {
+            indexPrefix,
+            startingKey: indexPrefix,
+          };
+        }
+
+        case "RANGE": {
+          const indexPrefix = makeIndexPrefix(entity, indexName);
+
+          if (args.startingIndexKey) {
+            return {
+              indexPrefix,
+              startingKey: makeIndexKeyRaw(
+                entity,
+                indexName,
+                args.startingIndexKey,
+                ""
+              ),
+            };
+          } else {
+            return {
+              indexPrefix: indexPrefix,
+              startingKey: indexPrefix,
+            };
+          }
+        }
+      }
+    })();
 
     const lineagePath = generateLineagePath(
       this.storageArea.tipBlock,
@@ -109,6 +159,10 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
           }));
 
           for (const { indexKey, value } of entitiesWithIndexValue) {
+            if (indexKey < startingKey) {
+              continue;
+            }
+
             heap.push({
               type: "VALUE",
               indexKey,
@@ -123,7 +177,7 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
           const level = this.level;
           const generator = (async function* () {
             for await (const [key, entityId] of level.iterator({
-              gte: indexPrefix,
+              gte: startingKey,
             })) {
               if (!key.startsWith(indexPrefix)) {
                 break;
@@ -169,6 +223,10 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
 
       switch (item.type) {
         case "VALUE": {
+          if (!item.indexKey.startsWith(indexPrefix)) {
+            break;
+          }
+
           yield item.value;
           break;
         }
