@@ -10,7 +10,6 @@
     "download-discourse-thread": "ts-node src/bin/downloadDiscourseThread.ts",
     "build-generate-schema": "esbuild --bundle --sourcemap src/bin/generateSchema.ts --outfile=dist/generateSchema.js --loader:.graphql=text",
     "generate-schema": "node dist/generateSchema.js > ../frontend/schema.graphql",
-    "generate-snapshot": "ts-node --transpileOnly src/bin/generateSnapshot.ts",
     "build-dump": "esbuild --bundle --platform=node src/bin/dumpNamespace.ts --outfile=dist/dump.js",
     "dump": "node dist/dump.js",
     "check": "tsc --noEmit",
