@@ -1,6 +1,6 @@
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { css, cx } from "@emotion/css";
+import { css, cx, keyframes } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql";
 import { NounResolvedName } from "../../components/NounResolvedName";
@@ -8,7 +8,7 @@ import { DelegateProfileImage } from "../../components/DelegateProfileImage";
 import { HStack, VStack } from "../../components/VStack";
 import { VoterPanelActions } from "../DelegatePage/VoterPanel";
 import { Link } from "../../components/HammockRouter/Link";
-import { UserIcon, PencilIcon } from "@heroicons/react/20/solid";
+import { UserIcon, ChatBubbleOvalLeftIcon, FireIcon } from "@heroicons/react/20/solid";
 import { ReactNode } from "react";
 import { BigNumber } from "ethers";
 import { pluralizeNoun, pluralizeVote } from "../../words";
@@ -45,7 +45,14 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           nounsRepresented {
             __typename
           }
+          votes {
+            id
 
+            proposal {
+              id
+              number
+            }
+          }
           voteSummary {
             totalVotes
           }
@@ -62,6 +69,28 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
   const votesCast = BigNumber.from(
     delegate.delegate?.voteSummary?.totalVotes ?? 0
   );
+
+  const allVotesCast =
+    delegate.delegate?.votes
+      .map((vote) => +vote.proposal.number)
+      .sort((a, b) => b - a) ?? [];
+  // console.log(allVotesCast)
+  let votingStreak = 0;
+
+  for (let i = 0; i < allVotesCast.length; i++) {
+    if (i === 0) {
+      votingStreak++;
+    }
+    if (allVotesCast[i] === allVotesCast[i + 1] + 1) {
+      votingStreak++;
+    } else {
+      break;
+    }
+  }
+  console.log(allVotesCast);
+  console.log(delegate.address.resolvedName.name);
+  console.log(votingStreak);
+  console.log("----");
 
   return (
     <Link
@@ -124,10 +153,18 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
             />
 
             <TitleDetail
-              icon={<PencilIcon />}
+              icon={<ChatBubbleOvalLeftIcon />}
               detail={`${pluralizeVote(votesCast)} cast`}
               value={votesCast.toString()}
             />
+            {votingStreak > 2 && (
+              <TitleDetail
+                icon={<FireIcon />}
+                detail={`Casted ` + votingStreak + ` votes consecutively`}
+                value={votingStreak.toString()}
+                streak={votingStreak}
+              />
+            )}
           </HStack>
         </HStack>
 
@@ -160,9 +197,34 @@ type TitleDetailProps = {
   icon: ReactNode;
   detail: string;
   value: string;
+  streak?: number;
 };
 
-function TitleDetail({ detail, value, icon }: TitleDetailProps) {
+function TitleDetail({ detail, value, icon, streak = 0 }: TitleDetailProps) {
+  const fire = keyframes`
+  from {
+    color: #eb442b;
+  }
+  50%{
+    color: #f19a18;
+  }
+  to {
+    color: #eb442b;
+  }
+`;
+  const normal = css`
+    width: ${theme.spacing["4"]};
+    height: ${theme.spacing["4"]};
+  `;
+  const unstoppable = css`
+    color: #a79875;
+  `;
+  const wickedSick = css`
+    color: #c86640;
+    animation: ${fire} 2s ease-in-out infinite;
+    transform-origin: center bottom;
+  `;
+
   return (
     <HStack
       gap="1"
@@ -176,15 +238,23 @@ function TitleDetail({ detail, value, icon }: TitleDetailProps) {
       `}
     >
       <div
-        className={css`
-          width: ${theme.spacing["4"]};
-          height: ${theme.spacing["4"]};
-        `}
+        className={cx(
+          normal,
+          { [unstoppable]: streak > 9 },
+          { [wickedSick]: streak > 19 }
+        )}
       >
         {icon}
       </div>
 
-      <div>{value}</div>
+      <div
+        className={cx(
+          { [unstoppable]: streak > 9 },
+          { [wickedSick]: streak > 19 }
+        )}
+      >
+        {value}
+      </div>
 
       <div
         className={cx(
