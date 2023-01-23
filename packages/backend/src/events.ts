@@ -62,6 +62,10 @@ async function getLogPage(
         toBlock,
       };
     } catch (e) {
+      if (!(e instanceof Error)) {
+        throw e;
+      }
+
       if (!e.message.includes("response size exceeded")) {
         throw e;
       }

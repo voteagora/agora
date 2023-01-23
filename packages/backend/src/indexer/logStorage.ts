@@ -47,7 +47,9 @@ export function pathForLogsIndex(reducer: IndexerDefinition) {
   return `data/logs/${reducer.name}.index.json`;
 }
 
-async function* loadReducerLogsRaw(reducer: IndexerDefinition) {
+async function* loadReducerLogsRaw(
+  reducer: IndexerDefinition
+): AsyncGenerator<string> {
   const file = createReadStream(pathForLogs(reducer));
   const generator = readline.createInterface({
     input: file,
@@ -56,7 +58,7 @@ async function* loadReducerLogsRaw(reducer: IndexerDefinition) {
 
   try {
     for await (const line of generator) {
-      yield* line;
+      yield line;
     }
   } catch (e) {
     if ((e as any).code === "ENOENT") {
