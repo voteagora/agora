@@ -48,7 +48,7 @@ export function VoteAuctionPage() {
       !auction.data.markets ||
       !auction.data.markets.length
     ) {
-      return;
+      return null;
     }
 
     let marketStatus = auction.data.markets[0].status;
