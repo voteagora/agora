@@ -11,7 +11,12 @@ type Props = {
 export function YesNoSelector({ onSelectionChanged, selection }: Props) {
   return (
     <VStack>
-      <h4 className={inputLabelStyle}>Open to sponsoring proposals</h4>
+      <h4 className={inputLabelStyle}>
+        Agree with{" "}
+        <a href="https://gov.optimism.io/t/delegate-code-of-conduct/3943">
+          Delegate Code of Conduct
+        </a>
+      </h4>
 
       <HStack
         className={css`
