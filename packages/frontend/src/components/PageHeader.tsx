@@ -168,6 +168,27 @@ function PageHeaderContents() {
 
   return (
     <HStack gap="2" justifyContent="center">
+      {delegate && (
+        <Link
+          to="/create"
+          className={css`
+            border-radius: ${theme.borderRadius.lg};
+            border-width: ${theme.spacing.px};
+            padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
+            color: ${theme.colors.gray["200"]};
+            background: ${theme.colors.black};
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            :hover {
+              background: ${theme.colors.gray["800"]};
+            }
+          `}
+        >
+          <div>{!!delegate.statement ? "Edit" : "Create"}</div>
+        </Link>
+      )}
+
       {delegate && <OwnedValuePanel fragment={delegate} />}
     </HStack>
   );
