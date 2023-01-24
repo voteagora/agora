@@ -2,7 +2,7 @@ scalar BigInt
 scalar Timestamp
 
 type Query {
-  delegate(addressOrEnsName: String!): Delegate
+  delegate(addressOrEnsName: String!): Delegate!
 
   delegates(
     where: DelegatesWhere
