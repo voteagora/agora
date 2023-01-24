@@ -35,9 +35,15 @@ export function ProposalDetailPanel({
   );
   const { title, description, proposer } = result;
 
+  // todo: remove hardcoded width
   return (
     <>
-      <VStack gap="4">
+      <VStack
+        gap="4"
+        className={css`
+          width: ${theme.maxWidth["3xl"]};
+        `}
+      >
         <HStack justifyContent="space-between" alignItems="center">
           <h2
             className={css`
