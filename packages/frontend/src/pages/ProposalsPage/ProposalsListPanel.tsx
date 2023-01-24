@@ -16,6 +16,7 @@ import {
   ProposalStatus,
 } from "./__generated__/ProposalsListPanelStatusFragment.graphql";
 import { ProposalsListPanelSingleProposalFragment$key } from "./__generated__/ProposalsListPanelSingleProposalFragment.graphql";
+import { shortenId } from "../DelegatePage/VoteDetails";
 
 export type Filter =
   | "PENDING"
@@ -301,8 +302,8 @@ function SingleProposal({
             line-height: ${theme.lineHeight.none};
           `}
         >
-          Prop {proposal.number} for {utils.formatEther(proposal.totalValue)}{" "}
-          ETH
+          Prop {shortenId(proposal.number)} for{" "}
+          {utils.formatEther(proposal.totalValue)} ETH
         </div>
         <div
           className={css`
