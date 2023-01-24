@@ -13,7 +13,10 @@ import {
   governanceAggregatesKey,
   makeEmptyAggregate,
 } from "../../indexer/contracts/OptimismGovernorV1";
-import { aggregateCumulativeId } from "../../indexer/contracts/GovernanceToken";
+import {
+  aggregateCumulativeId,
+  defaultAccount,
+} from "../../indexer/contracts/GovernanceToken";
 import { Reader } from "../../indexer/reader";
 import { entityDefinitions } from "../../indexer/contracts";
 import { RuntimeType } from "../../indexer/serde";
@@ -81,18 +84,15 @@ export const Metrics: MetricsResolvers = {
 };
 
 export const Query: QueryResolvers = {
-  async delegate(_, { addressOrEnsName }, { provider, reader }) {
-    const address = await provider.resolveName(addressOrEnsName);
+  async delegate(_, { addressOrEnsName }, { ethProvider, reader }) {
+    const address = await ethProvider.resolveName(addressOrEnsName);
     if (!address) {
       return null;
     }
 
-    const addressEntity = await reader.getEntity("Address", address);
-    if (!addressEntity) {
-      return null;
-    }
-
-    return addressEntity;
+    return (
+      (await reader.getEntity("Address", address)) ?? defaultAccount(address)
+    );
   },
 
   metrics() {

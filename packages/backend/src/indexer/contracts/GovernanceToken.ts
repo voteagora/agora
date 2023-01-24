@@ -171,20 +171,22 @@ export const governanceTokenIndexer = makeIndexerDefinition(
   }
 );
 
+export function defaultAccount(from: string) {
+  return {
+    address: from,
+    tokensOwned: ethers.BigNumber.from(0),
+    tokensRepresented: ethers.BigNumber.from(0),
+    accountsRepresented: [from],
+    delegatingTo: ethers.constants.AddressZero,
+  };
+}
+
 async function loadAccount(
   // @ts-ignore
   handle: StorageHandleForIndexer<typeof governanceTokenIndexer>,
   from: string
 ) {
-  return (
-    (await handle.loadEntity("Address", from)) ?? {
-      address: from,
-      tokensOwned: ethers.BigNumber.from(0),
-      tokensRepresented: ethers.BigNumber.from(0),
-      accountsRepresented: [from],
-      delegatingTo: ethers.constants.AddressZero,
-    }
-  );
+  return (await handle.loadEntity("Address", from)) ?? defaultAccount(from);
 }
 
 function saveAccount(
