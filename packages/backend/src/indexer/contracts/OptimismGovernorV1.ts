@@ -98,7 +98,7 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
           transactions: event.args.targets.map((target, idx) => {
             return {
               target,
-              value: event.args.values[idx],
+              value: event.args[3][idx],
               calldata: event.args.calldatas[idx],
             };
           }),
