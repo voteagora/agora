@@ -21,6 +21,7 @@ import {
 import { timeout } from "./utils/asyncUtils";
 import { collectGenerator, groupBy } from "./utils/generatorUtils";
 import { ethers } from "ethers";
+import { StructuredError } from "./utils/errorUtils";
 
 export function followChain(
   store: EntityStore,
@@ -102,7 +103,17 @@ export function followChain(
           }
         })();
 
-        await eventHandler.handle(storageHandle, event as any, log);
+        try {
+          await eventHandler.handle(storageHandle, event as any, log);
+        } catch (e) {
+          throw new StructuredError(
+            {
+              log,
+              event,
+            },
+            e
+          );
+        }
 
         await finalize();
       }
@@ -140,29 +151,49 @@ export function followChain(
     storageArea.parents.set(block.hash, blockIdentifierFromParentBlock(block));
   }
 
-  async function promoteFinalizedBlocks(
-    latestBlockNumber: number,
-    blockHash: string
-  ) {
-    const parentBlockIdentifier = storageArea.parents.get(blockHash);
+  function* pathBetween(
+    fromBlockHash: string,
+    endBlockIdentifier: BlockIdentifier
+  ): Generator<BlockIdentifier> {
+    if (fromBlockHash === endBlockIdentifier.hash) {
+      return;
+    }
+
+    const parentBlockIdentifier = storageArea.parents.get(fromBlockHash);
     if (!parentBlockIdentifier) {
       throw new Error("cannot find parent block");
     }
 
-    const depth = latestBlockNumber - parentBlockIdentifier.blockNumber;
-    if (!isBlockDepthFinalized(depth)) {
-      await promoteFinalizedBlocks(
-        latestBlockNumber,
-        parentBlockIdentifier.hash
-      );
-      return;
+    yield parentBlockIdentifier;
+
+    yield* pathBetween(parentBlockIdentifier.hash, endBlockIdentifier);
+  }
+
+  async function promoteFinalizedBlocks(
+    latestBlockNumber: number,
+    blockHash: string,
+    finalizedBlock: BlockIdentifier | null
+  ) {
+    if (!finalizedBlock) {
+      throw new Error("finalizedBlock does not exist");
     }
 
-    const entities =
-      storageArea.blockStorageAreas.get(parentBlockIdentifier.hash)?.entities ??
-      new Map<string, EntityWithMetadata>();
+    const chainToLastFinalizedBlock = Array.from(
+      pathBetween(blockHash, finalizedBlock)
+    )
+      .reverse()
+      .filter((it) => {
+        const depth = latestBlockNumber - it.blockNumber;
+        return isBlockDepthFinalized(depth);
+      });
 
-    await store.flushUpdates(parentBlockIdentifier, indexers, entities);
+    for (const block of chainToLastFinalizedBlock) {
+      const entities =
+        storageArea.blockStorageAreas.get(block.hash)?.entities ??
+        new Map<string, EntityWithMetadata>();
+
+      await store.flushUpdates(block, indexers, entities);
+    }
   }
 
   (async () => {
@@ -252,8 +283,6 @@ export function followChain(
           blockIdentifierFromParentBlock(nextBlock)
         );
 
-        return;
-
         await ensureParentsAvailable(
           nextBlock.hash,
           latestBlock.number,
@@ -262,7 +291,12 @@ export function followChain(
 
         await processBlock(nextBlock, latestBlock.number, logsCache);
 
-        await promoteFinalizedBlocks(latestBlock.number, nextBlock.hash);
+        const finalizedBlock = await store.getFinalizedBlock();
+        await promoteFinalizedBlocks(
+          latestBlock.number,
+          nextBlock.hash,
+          finalizedBlock
+        );
 
         nextBlockNumber = nextBlock.number + 1;
       }
