@@ -418,14 +418,8 @@ async function proposedByAddress(
 async function getQuorum(
   reader: Reader<typeof entityDefinitions>
 ): Promise<BigNumber> {
-  const governorAggregates =
-    (await reader.getEntity("GovernorAggregates", governanceAggregatesKey)) ??
-    makeEmptyAggregate();
-
-  const aggregate = (await reader.getEntity(
-    "Aggregates",
-    aggregateCumulativeId
-  ))!;
+  const governorAggregates = await getGovernanceAggregate(reader);
+  const aggregate = await getAggregate(reader);
 
   return aggregate.totalSupply
     .mul(governorAggregates.quorumNumerator)
