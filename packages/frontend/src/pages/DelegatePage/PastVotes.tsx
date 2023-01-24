@@ -16,7 +16,7 @@ type Props = {
 
 type Filter = "ALL" | "SNAPSHOT" | "ONCHAIN";
 
-type Sort = "MOST_RECENT" | "LEAST_RECENT" | "MOST_ETH" | "LEAST_ETH";
+type Sort = "MOST_RECENT" | "LEAST_RECENT";
 
 export function PastVotes({ fragment }: Props) {
   const { votes, snapshotVotes } = useFragment(
@@ -99,22 +99,6 @@ export function PastVotes({ fragment }: Props) {
         return filteredVotes
           .sort(descendingValueComparator((it) => it.createdAt.valueOf()))
           .reverse();
-
-      case "MOST_ETH":
-        return filteredVotes
-          .sort((a, b) =>
-            a.amountEth.eq(b.amountEth)
-              ? 0
-              : a.amountEth.lt(b.amountEth)
-              ? -1
-              : 1
-          )
-          .reverse();
-
-      case "LEAST_ETH":
-        return filteredVotes.sort((a, b) =>
-          a.amountEth.eq(b.amountEth) ? 0 : a.amountEth.lt(b.amountEth) ? -1 : 1
-        );
     }
   }, [filteredVotes, sort]);
 
@@ -161,14 +145,6 @@ export function PastVotes({ fragment }: Props) {
               {
                 title: "Oldest",
                 value: "LEAST_RECENT" as const,
-              },
-              {
-                title: "Most ETH",
-                value: "MOST_ETH" as const,
-              },
-              {
-                title: "Least ETH",
-                value: "LEAST_ETH" as const,
               },
             ]}
             value={sort}
