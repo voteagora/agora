@@ -83,6 +83,7 @@ function CodeChanges({
     `,
     fragmentRef
   );
+
   return (
     <VStack
       gap="1"
@@ -109,7 +110,7 @@ function CodeChanges({
               <CodeChange
                 key={idx}
                 target={target}
-                signature={signatures![idx]}
+                signature={signatures?.[idx]}
                 calldata={calldatas?.[idx]}
                 value={values?.[idx]!}
               />
@@ -127,13 +128,12 @@ function CodeChange({
   value,
 }: {
   target: string;
-  signature: string;
+  signature?: string;
   calldata: string;
   value: string;
 }) {
-  const [name, types] = signature
-    .substring(0, signature.length - 1)
-    ?.split("(");
+  const [name, types] =
+    signature?.substring(0, signature.length - 1)?.split("(") ?? [];
 
   let functionSig: string, callData: Result, valueAmount: string | undefined;
   if (!name || !types) {
