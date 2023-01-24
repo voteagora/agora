@@ -8,6 +8,7 @@ import { SnapshotVoteModel } from "./resolvers/snapshot";
 
 export type AgoraContextType = {
   reader: Reader<typeof entityDefinitions>;
+  ethProvider: ethers.providers.BaseProvider;
   provider: ethers.providers.BaseProvider;
   snapshotVoteStorage: SnapshotVoteStorage;
   tracingContext: TracingContext;
