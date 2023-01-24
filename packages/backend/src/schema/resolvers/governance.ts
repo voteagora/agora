@@ -255,12 +255,14 @@ export const Proposal: ProposalResolvers = {
       .reduce((acc, value) => acc.add(value.weight), BigNumber.from(0));
   },
 
-  voteStartsAt({ startBlock }) {
-    return startBlock.toNumber();
+  async voteStartsAt({ startBlock }, _args, { provider }) {
+    const block = await provider.getBlock(startBlock.toNumber());
+    return block.timestamp;
   },
 
-  voteEndsAt({ endBlock }) {
-    return endBlock.toNumber();
+  async voteEndsAt({ endBlock }, _args, { provider }) {
+    const block = await provider.getBlock(endBlock.toNumber());
+    return block.timestamp;
   },
 
   async quorumVotes({}, _args, { reader }) {
