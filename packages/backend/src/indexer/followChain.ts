@@ -252,6 +252,8 @@ export function followChain(
           blockIdentifierFromParentBlock(nextBlock)
         );
 
+        return;
+
         await ensureParentsAvailable(
           nextBlock.hash,
           latestBlock.number,
