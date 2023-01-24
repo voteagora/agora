@@ -20,7 +20,7 @@ import { DelegateDialogQuery } from "./__generated__/DelegateDialogQuery.graphql
 import { NounResolvedLink } from "./NounResolvedLink";
 import { ReactNode } from "react";
 import { TokenAmountDisplay } from "./TokenAmountDisplay";
-import ensIcon from "../icons/ens.png";
+import tokenIcon from "../icons/tokenIcon.svg";
 import { TokenAmountDisplayFragment$key } from "./__generated__/TokenAmountDisplayFragment.graphql";
 import { delegateUsingRelay } from "./ensDelegateRelay";
 
@@ -86,7 +86,7 @@ function OPAmountDisplay({
           width: ${theme.spacing["8"]};
           height: ${theme.spacing["8"]};
         `}
-        src={ensIcon}
+        src={tokenIcon}
         alt="ens-token"
       />
 
