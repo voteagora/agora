@@ -246,8 +246,17 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
 
 export const governanceAggregatesKey = "AGGREGATE";
 
+export function makeEmptyAggregate() {
+  return {
+    proposalThreshold: ethers.BigNumber.from(0),
+    quorumNumerator: ethers.BigNumber.from(0),
+    votingDelay: ethers.BigNumber.from(0),
+    votingPeriod: ethers.BigNumber.from(0),
+    totalProposals: 0,
+  };
+}
+
 async function loadAggregate(
-  // @ts-expect-error
   handle: StorageHandleForIndexer<typeof governorIndexer>
 ) {
   const aggregates = await handle.loadEntity(
@@ -255,19 +264,10 @@ async function loadAggregate(
     governanceAggregatesKey
   );
 
-  return (
-    aggregates ?? {
-      proposalThreshold: ethers.BigNumber.from(0),
-      quorumNumerator: ethers.BigNumber.from(0),
-      votingDelay: ethers.BigNumber.from(0),
-      votingPeriod: ethers.BigNumber.from(0),
-      totalProposals: 0,
-    }
-  );
+  return aggregates ?? makeEmptyAggregate();
 }
 
 function saveAggregate(
-  // @ts-expect-error
   handle: StorageHandleForIndexer<typeof governorIndexer>,
   entity: RuntimeType<
     typeof governorIndexer["entities"]["GovernorAggregates"]["serde"]
