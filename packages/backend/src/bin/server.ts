@@ -7,18 +7,26 @@ import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { ValidatedMessage } from "../utils/signing";
 import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
 import { useApolloTracing } from "@envelop/apollo-tracing";
-import { parseStorage } from "../snapshot";
 import { makeDynamoStatementStorage } from "../store/dynamo/statement";
-import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
 import { ethers } from "ethers";
 import { TransparentMultiCallProvider } from "../multicall";
 import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
-import { promises as fs } from "fs";
 import { useErrorInspection } from "../useErrorInspection";
 import { followChain } from "../indexer/followChain";
 import { LevelEntityStore } from "../indexer/entityStore";
 import { entityDefinitions, indexers } from "../indexer/contracts";
 import { LevelReader } from "../indexer/reader";
+
+// p0
+// todo: where are delegate statements going to be stored?
+// todo: replicate and deploy
+
+// p1
+// todo: derived state
+// todo: joins
+// todo: parents will grow indefinitely
+// todo: types
+// todo: some cleanup in the governance folder
 
 async function main() {
   const schema = makeGatewaySchema();
@@ -41,11 +49,8 @@ async function main() {
 
       return {
         provider,
-        snapshot: parseStorage(
-          JSON.parse(await fs.readFile("snapshot.json", { encoding: "utf-8" }))
-        ),
+        reader,
         snapshotVoteStorage: makeSnapshotVoteStorage(dynamoDb),
-        delegateStorage: makeDynamoDelegateStore(dynamoDb),
         statementStorage: makeDynamoStatementStorage(dynamoDb),
 
         cache: {

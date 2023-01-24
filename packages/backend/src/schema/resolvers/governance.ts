@@ -390,7 +390,6 @@ async function proposedByAddress(
   address: string
 ) {
   const normalizedAddress = ethers.utils.getAddress(address);
-  // todo: simplify this
   return await collectGenerator(
     (async function* () {
       for await (const value of reader.getEntitiesByIndex(
@@ -459,5 +458,3 @@ export async function proposalVotes(
     })
   );
 }
-
-// todo: early materializing joins?

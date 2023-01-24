@@ -146,7 +146,6 @@ export function followChain(
   ) {
     const parentBlockIdentifier = storageArea.parents.get(blockHash);
     if (!parentBlockIdentifier) {
-      // todo: parents will grow indefinitely
       throw new Error("cannot find parent block");
     }
 

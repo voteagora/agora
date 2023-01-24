@@ -16,9 +16,6 @@ export const governorTokenContract = makeContractInstance({
   startingBlock: 60786205,
 });
 
-// todo: entity name collisions (should scope these to avoid)
-// todo: derived state computation and change detection (like proposal status)
-
 export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
   name: "OptimismGovernorV1",
   entities: {
