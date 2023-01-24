@@ -57,7 +57,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
         max-width: ${theme.maxWidth["6xl"]};
         width: 100%;
         flex-wrap: wrap;
-        z-index:10;
+        z-index: 1;
 
         padding-left: ${theme.spacing["4"]};
         padding-right: ${theme.spacing["4"]};
