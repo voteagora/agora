@@ -13,12 +13,16 @@ import { HStack } from "./VStack";
 import { Suspense, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
 import { TokenAmountDisplay } from "./TokenAmountDisplay";
+import { useLocation } from "./HammockRouter/HammockRouter";
 
 export const orgName = "Optimism";
 
 export function PageHeader() {
+  const isProposalsPageActive = useLocation().pathname.startsWith("/proposals");
+
   return (
     <HStack
+      alignItems="center"
       className={css`
         width: 100%;
         max-width: ${theme.maxWidth["6xl"]};
@@ -42,7 +46,7 @@ export function PageHeader() {
         `}
         to="/"
       >
-        <HStack gap="3">
+        <HStack gap="3" alignItems="center">
           <img alt="logo" src={logo} />
 
           <span
@@ -57,6 +61,58 @@ export function PageHeader() {
           </span>
         </HStack>
       </Link>
+
+      <>
+        <HStack
+          className={css`
+            background-color: ${theme.colors.white};
+            border-radius: ${theme.borderRadius.full};
+            border: 1px solid ${theme.colors.gray.eb};
+            padding: ${theme.spacing[1]};
+            font-weight: ${theme.fontWeight.medium};
+            box-shadow: ${theme.boxShadow.newDefault};
+          `}
+        >
+          <Link to="/">
+            <div
+              className={css`
+                padding: ${theme.spacing[1]} ${theme.spacing[4]};
+                border-radius: ${theme.borderRadius.full};
+                color: ${theme.colors.gray[700]};
+                @media (max-width: ${theme.maxWidth.md}) {
+                  font-size: ${theme.fontSize.sm};
+                }
+                ${!isProposalsPageActive &&
+                css`
+                  background-color: ${theme.colors.gray.fa};
+                  color: inherit;
+                `};
+              `}
+            >
+              Voters
+            </div>
+          </Link>
+          <Link to="/proposals">
+            <div
+              className={css`
+                padding: ${theme.spacing[1]} ${theme.spacing[4]};
+                border-radius: ${theme.borderRadius.full};
+                color: ${theme.colors.gray[700]};
+                @media (max-width: ${theme.maxWidth.md}) {
+                  font-size: ${theme.fontSize.sm};
+                }
+                ${isProposalsPageActive &&
+                css`
+                  background-color: ${theme.colors.gray.fa};
+                  color: inherit;
+                `};
+              `}
+            >
+              Proposals
+            </div>
+          </Link>
+        </HStack>
+      </>
 
       <HStack
         alignItems="center"
