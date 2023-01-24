@@ -200,7 +200,9 @@ export const Proposal: ProposalResolvers = {
   },
 
   async proposer({ proposer }, _args, { reader }) {
-    return (await reader.getEntity("Address", proposer))!;
+    return (
+      (await reader.getEntity("Address", proposer)) ?? defaultAccount(proposer)
+    );
   },
 
   number({ proposalId }) {
