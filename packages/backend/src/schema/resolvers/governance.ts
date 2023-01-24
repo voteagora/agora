@@ -8,13 +8,12 @@ import {
   VoteResolvers,
   VotingPowerResolvers,
 } from "./generated/types";
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { governanceAggregatesKey } from "../../indexer/contracts/OptimismGovernorV1";
 import { aggregateCumulativeId } from "../../indexer/contracts/GovernanceToken";
 import { Reader } from "../../indexer/reader";
 import { entityDefinitions } from "../../indexer/contracts";
 import { RuntimeType } from "../../indexer/serde";
-import { ethers } from "ethers";
 import { collectGenerator } from "../../indexer/utils/generatorUtils";
 import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { driveReaderByIndex } from "../pagination";
@@ -224,27 +223,29 @@ export const Proposal: ProposalResolvers = {
   },
 
   async votes({ proposalId }, _args, { reader }) {
-    return await collectGenerator(
-      reader.getEntitiesByIndex("Vote", "byProposal", {
-        type: "EXACT_MATCH",
-        indexKey: proposalId.toString(),
-      })
-    );
+    return await proposalVotes(proposalId, reader);
   },
 
-  forVotes() {
-    // todo: implement
-    return BigNumber.from(0);
+  // todo: avoid re-querying these
+  async forVotes({ proposalId }, _args, { reader }) {
+    const votes = await proposalVotes(proposalId, reader);
+    return votes
+      .filter((it) => it.support === 1)
+      .reduce((acc, value) => acc.add(value.weight), BigNumber.from(0));
   },
 
-  againstVotes() {
-    // todo: implement
-    return BigNumber.from(0);
+  async againstVotes({ proposalId }, _args, { reader }) {
+    const votes = await proposalVotes(proposalId, reader);
+    return votes
+      .filter((it) => it.support === 0)
+      .reduce((acc, value) => acc.add(value.weight), BigNumber.from(0));
   },
 
-  abstainVotes() {
-    // todo: implement
-    return BigNumber.from(0);
+  async abstainVotes({ proposalId }, _args, { reader }) {
+    const votes = await proposalVotes(proposalId, reader);
+    return votes
+      .filter((it) => it.support === 2)
+      .reduce((acc, value) => acc.add(value.weight), BigNumber.from(0));
   },
 
   voteStartsAt({ startBlock }) {
@@ -255,9 +256,8 @@ export const Proposal: ProposalResolvers = {
     return endBlock.toNumber();
   },
 
-  quorumVotes() {
-    // todo: quorum for proposal
-    return BigNumber.from(0);
+  async quorumVotes({}, _args, { reader }) {
+    return await getQuorum(reader);
   },
 
   totalValue({ transactions }) {
@@ -271,14 +271,64 @@ export const Proposal: ProposalResolvers = {
     return getTitleFromProposalDescription(description);
   },
 
-  totalVotes() {
-    // todo: implement
-    return BigNumber.from(0);
+  async totalVotes({ proposalId }, _args, { reader }) {
+    const votes = await proposalVotes(proposalId, reader);
+    return BigNumber.from(votes.length);
   },
 
-  status({ status }) {
-    // todo: implement
-    return ProposalStatus.Pending;
+  async status(
+    { proposalId, status, startBlock, endBlock },
+    _args,
+    { provider, reader }
+  ) {
+    const latestBlock = await provider.getBlock("latest");
+
+    switch (status) {
+      case "CANCELLED": {
+        return ProposalStatus.Cancelled;
+      }
+
+      case "EXECUTED": {
+        return ProposalStatus.Executed;
+      }
+
+      case "PROPOSED": {
+        if (startBlock.toNumber() >= latestBlock.number) {
+          return ProposalStatus.Pending;
+        }
+
+        if (endBlock.toNumber() >= latestBlock.number) {
+          return ProposalStatus.Active;
+        }
+
+        // todo: constants for vote type
+        const quorum = await getQuorum(reader);
+        const votes = await proposalVotes(proposalId, reader);
+        const forVotes = votes
+          .filter((vote) => vote.support === 1 || vote.support === 1)
+          .reduce((acc, value) => value.weight.add(acc), BigNumber.from(0));
+
+        const abstainVotes = votes
+          .filter((vote) => vote.support === 1 || vote.support === 2)
+          .reduce((acc, value) => value.weight.add(acc), BigNumber.from(0));
+
+        const againstVotes = votes
+          .filter((vote) => vote.support === 1 || vote.support === 0)
+          .reduce((acc, value) => value.weight.add(acc), BigNumber.from(0));
+
+        const proposalQuorumVotes = forVotes.add(abstainVotes);
+
+        if (proposalQuorumVotes.lt(quorum)) {
+          return ProposalStatus.Defeated;
+        }
+
+        if (forVotes.gt(againstVotes)) {
+          return ProposalStatus.Defeated;
+        }
+
+        return ProposalStatus.Queued;
+      }
+    }
   },
 };
 
@@ -395,6 +445,18 @@ function bpsOf(top: BigNumber, bottom: BigNumber) {
       .mul(100 * 100)
       .div(bottom)
       .toNumber()
+  );
+}
+
+export async function proposalVotes(
+  id: BigNumber,
+  reader: Reader<typeof entityDefinitions>
+) {
+  return await collectGenerator(
+    reader.getEntitiesByIndex("Vote", "byProposal", {
+      type: "EXACT_MATCH",
+      indexKey: id.toString(),
+    })
   );
 }
 
