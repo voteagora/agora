@@ -31,16 +31,6 @@ export const issueDefinitions: IssueTypeDefinition[] = [
     key: "publicGoods",
     icon: "ballot",
   },
-  {
-    title: "Fees",
-    key: "fees",
-    icon: "ballot",
-  },
-  {
-    title: "Name ownership",
-    key: "nameOwnership",
-    icon: "community",
-  },
 ];
 
 export type IssueState = {

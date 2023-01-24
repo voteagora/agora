@@ -50,6 +50,7 @@ type FormValues = {
   twitter: string;
   discord: string;
   email: string;
+  // todo: change this field name
   openToSponsoringProposals: "yes" | "no" | undefined;
 };
 
