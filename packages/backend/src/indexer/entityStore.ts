@@ -102,7 +102,6 @@ export class LevelEntityStore implements EntityStore {
     const values = Array.from(entities.values());
     const entityDefinitions = combineEntities(indexers);
 
-    // todo: only fetch for ones with indexes
     const oldValues = await this.level.getMany(
       values.map((it) => makeEntityKey(it.entity, it.id))
     );
