@@ -48,6 +48,9 @@ async function main() {
       const provider = new TransparentMultiCallProvider(baseProvider);
 
       return {
+        ethProvider: new TransparentMultiCallProvider(
+          new ethers.providers.CloudflareProvider()
+        ),
         provider,
         reader,
         snapshotVoteStorage: makeSnapshotVoteStorage(dynamoDb),

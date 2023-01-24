@@ -68,12 +68,12 @@ export type ResolvedNameModel = {
 };
 
 export const ResolvedName: ResolvedNameResolvers = {
-  async name({ address, resolvedName }, _args, { provider }) {
+  async name({ address, resolvedName }, _args, { ethProvider }) {
     if (typeof resolvedName !== "undefined") {
       return resolvedName;
     }
 
-    return await resolveNameFromAddress(address, provider);
+    return await resolveNameFromAddress(address, ethProvider);
   },
 
   address({ address }) {
