@@ -4,7 +4,10 @@ import { makeEntityKey } from "./entityKey";
 import { Level } from "level";
 import { makeIndexKey, makeIndexKeyRaw, makeIndexPrefix } from "./indexKey";
 import { StorageArea } from "./followChain";
-import { generateLineagePath } from "./storageHandle";
+import {
+  coerceLevelDbNotfoundError,
+  generateLineagePath,
+} from "./storageHandle";
 import Heap from "heap";
 import { compareBy } from "./utils/sortUtils";
 
@@ -288,7 +291,9 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
 
         case "FINALIZED": {
           const key = makeEntityKey(entity, id);
-          const fromLevel = this.level.get(key);
+          const fromLevel = await coerceLevelDbNotfoundError(
+            this.level.get(key)
+          );
           if (!fromLevel) {
             return null;
           }

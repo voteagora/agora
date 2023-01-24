@@ -43,6 +43,10 @@ export async function resolveNameFromAddress(
   }
 
   const resolvedAddress = await resolveEnsName(resolvedName, provider);
+  if (!resolvedAddress) {
+    return null;
+  }
+
   if (resolvedAddress.toLowerCase() !== address.toLowerCase()) {
     return null;
   }

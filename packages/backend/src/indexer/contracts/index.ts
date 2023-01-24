@@ -3,9 +3,9 @@ import { governorIndexer } from "./OptimismGovernorV1";
 import { IndexerDefinition } from "../process";
 
 export const indexers: IndexerDefinition[] = [
-  // @ts-expect-error
+  // @ts-ignore
   governanceTokenIndexer,
-  // @ts-expect-error
+  // @ts-ignore
   governorIndexer,
 ];
 

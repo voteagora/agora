@@ -9,7 +9,10 @@ import {
   VotingPowerResolvers,
 } from "./generated/types";
 import { BigNumber, ethers } from "ethers";
-import { governanceAggregatesKey } from "../../indexer/contracts/OptimismGovernorV1";
+import {
+  governanceAggregatesKey,
+  makeEmptyAggregate,
+} from "../../indexer/contracts/OptimismGovernorV1";
 import { aggregateCumulativeId } from "../../indexer/contracts/GovernanceToken";
 import { Reader } from "../../indexer/reader";
 import { entityDefinitions } from "../../indexer/contracts";
@@ -167,7 +170,9 @@ export const Delegate: DelegateResolvers = {
       abstainVotes: votes.filter((vote) => vote.support === 2).length,
       // todo: implement ofLastTenProps
       ofLastTenProps: 0,
-      ofTotalProps: Math.floor((votes.length / totalProposals) * 100),
+      ofTotalProps: totalProposals
+        ? Math.floor((votes.length / totalProposals) * 100)
+        : 0,
       proposalsCreated: proposed.length,
     };
   },
@@ -352,6 +357,7 @@ export const Vote: VoteResolvers = {
   },
 
   // todo: missing fields
+  // @ts-ignore
   transaction({ blockHash, transactionHash }) {
     return { blockHash, transactionHash };
   },
@@ -410,10 +416,9 @@ async function proposedByAddress(
 async function getQuorum(
   reader: Reader<typeof entityDefinitions>
 ): Promise<BigNumber> {
-  const governorAggregates = (await reader.getEntity(
-    "GovernorAggregates",
-    governanceAggregatesKey
-  ))!;
+  const governorAggregates =
+    (await reader.getEntity("GovernorAggregates", governanceAggregatesKey)) ??
+    makeEmptyAggregate();
 
   const aggregate = (await reader.getEntity(
     "Aggregates",
@@ -432,13 +437,17 @@ async function getAggregate(reader: Reader<typeof entityDefinitions>) {
 async function getGovernanceAggregate(
   reader: Reader<typeof entityDefinitions>
 ) {
-  return (await reader.getEntity(
-    "GovernorAggregates",
-    governanceAggregatesKey
-  ))!;
+  return (
+    (await reader.getEntity("GovernorAggregates", governanceAggregatesKey)) ??
+    makeEmptyAggregate()
+  );
 }
 
-function bpsOf(top: BigNumber, bottom: BigNumber) {
+function bpsOf(top: BigNumber, bottom: BigNumber): number {
+  if (bottom.eq(BigNumber.from(0))) {
+    return 0;
+  }
+
   return Math.round(
     top
       .mul(100 * 100)
@@ -447,7 +456,7 @@ function bpsOf(top: BigNumber, bottom: BigNumber) {
   );
 }
 
-export async function proposalVotes(
+async function proposalVotes(
   id: BigNumber,
   reader: Reader<typeof entityDefinitions>
 ) {
