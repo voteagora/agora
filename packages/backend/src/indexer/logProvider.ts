@@ -37,9 +37,9 @@ export interface LogProvider {
 }
 
 export class EthersLogProvider implements LogProvider {
-  private readonly provider: ethers.providers.AlchemyProvider;
+  private readonly provider: ethers.providers.JsonRpcProvider;
 
-  constructor(provider: ethers.providers.AlchemyProvider) {
+  constructor(provider: ethers.providers.JsonRpcProvider) {
     this.provider = provider;
   }
 
@@ -54,8 +54,12 @@ export class EthersLogProvider implements LogProvider {
           }
 
           return {
-            fromBlock: ethers.BigNumber.from(filter.fromBlock).toHexString(),
-            toBlock: ethers.BigNumber.from(filter.toBlock).toHexString(),
+            fromBlock: ethers.utils.hexValue(
+              ethers.BigNumber.from(filter.fromBlock)
+            ),
+            toBlock: ethers.utils.hexValue(
+              ethers.BigNumber.from(filter.toBlock)
+            ),
           };
         })(),
         address: filter.address,
