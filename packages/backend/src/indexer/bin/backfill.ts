@@ -74,7 +74,7 @@ async function main() {
           makeStorageHandleWithStagingArea(
             entityBlockStagingArea,
             store,
-            indexer,
+            indexer.entities,
             loadedEntities
           ),
           event as any,
