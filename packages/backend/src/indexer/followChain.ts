@@ -209,13 +209,16 @@ export function followChain(
   }
 
   (async () => {
-    const entityStoreFinalizedBlock = await store.getFinalizedBlock();
-    let nextBlockNumber = entityStoreFinalizedBlock
-      ? entityStoreFinalizedBlock.blockNumber + 1
-      : indexers.reduce(
-          (acc, it) => Math.min(it.startingBlock, acc),
-          indexers[0].startingBlock
-        );
+    let nextBlockNumber = await (async () => {
+      const initialFinalizedBlock = await store.getFinalizedBlock();
+
+      return initialFinalizedBlock
+        ? initialFinalizedBlock.blockNumber + 1
+        : indexers.reduce(
+            (acc, it) => Math.min(it.startingBlock, acc),
+            indexers[0].startingBlock
+          );
+    })();
 
     while (true) {
       const latestBlock = await blockProvider.getLatestBlock();
@@ -241,7 +244,7 @@ export function followChain(
       const fetchLogsCacheTill = Math.max(
         Math.min(
           latestBlock.number - maxReorgBlocksDepth - 1,
-          nextBlockNumber + 1000
+          nextBlockNumber + maxBlockRange
         ),
         nextBlockNumber
       );
@@ -295,6 +298,8 @@ export function followChain(
           blockIdentifierFromParentBlock(nextBlock)
         );
 
+        return;
+
         await ensureParentsAvailable(
           nextBlock.hash,
           latestBlock.number,
@@ -303,12 +308,12 @@ export function followChain(
 
         await processBlock(nextBlock, latestBlock.number, logsCache);
 
-        const finalizedBlock = await store.getFinalizedBlock();
-        await promoteFinalizedBlocks(
-          latestBlock.number,
-          blockIdentifierFromBlock(nextBlock),
-          finalizedBlock
-        );
+        // const finalizedBlock = await store.getFinalizedBlock();
+        // await promoteFinalizedBlocks(
+        //   latestBlock.number,
+        //   blockIdentifierFromBlock(nextBlock),
+        //   finalizedBlock
+        // );
 
         nextBlockNumber = nextBlock.number + 1;
       }
