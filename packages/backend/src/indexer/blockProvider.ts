@@ -21,9 +21,9 @@ export interface BlockProvider {
 export const maxBlockRange = 1000;
 
 export class BlockProviderImpl implements BlockProvider {
-  private provider: ethers.providers.AlchemyProvider;
+  private provider: ethers.providers.JsonRpcProvider;
 
-  constructor(provider: ethers.providers.AlchemyProvider) {
+  constructor(provider: ethers.providers.JsonRpcProvider) {
     this.provider = provider;
   }
 
