@@ -79,7 +79,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
           <>
             <TokenAmountDisplay
               fragment={metrics.delegatedSupply}
-              maximumSignificantDigits={1}
+              maximumSignificantDigits={3}
             />{" "}
             / <TokenAmountDisplay fragment={metrics.totalSupply} /> (
             {BigNumber.from(metrics.delegatedSupply.amount)
