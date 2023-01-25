@@ -9,9 +9,8 @@ import { followChain } from "../followChain";
 async function main() {
   const store = await LevelEntityStore.open();
 
-  const provider = new ethers.providers.AlchemyProvider(
-    "optimism",
-    process.env.ALCHEMY_API_KEY
+  const provider = new ethers.providers.JsonRpcProvider(
+    "https://rpc.ankr.com/optimism"
   );
 
   const storageArea = followChain(store, indexers, provider);
