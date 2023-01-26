@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { IndexerDefinition } from "./process";
 import { topicsForSignatures } from "../contracts";
+import { compareByTuple } from "./utils/sortUtils";
 
 export type LogFilter = BlockSpec & TopicFilter;
 
@@ -44,27 +45,34 @@ export class EthersLogProvider implements LogProvider {
   }
 
   async getLogs(filter: LogFilter): Promise<ethers.providers.Log[]> {
-    return await this.provider.send("eth_getLogs", [
-      {
-        ...(() => {
-          if (!("fromBlock" in filter)) {
-            return {
-              blockHash: filter.blockHash,
-            };
-          }
+    const logs: ethers.providers.Log[] = await this.provider.send(
+      "eth_getLogs",
+      [
+        {
+          ...(() => {
+            if (!("fromBlock" in filter)) {
+              return {
+                blockHash: filter.blockHash,
+              };
+            }
 
-          return {
-            fromBlock: ethers.utils.hexValue(
-              ethers.BigNumber.from(filter.fromBlock)
-            ),
-            toBlock: ethers.utils.hexValue(
-              ethers.BigNumber.from(filter.toBlock)
-            ),
-          };
-        })(),
-        address: filter.address,
-        topics: filter.topics,
-      },
-    ]);
+            return {
+              fromBlock: ethers.utils.hexValue(
+                ethers.BigNumber.from(filter.fromBlock)
+              ),
+              toBlock: ethers.utils.hexValue(
+                ethers.BigNumber.from(filter.toBlock)
+              ),
+            };
+          })(),
+          address: filter.address,
+          topics: filter.topics,
+        },
+      ]
+    );
+
+    return logs.sort(
+      compareByTuple((it) => [it.blockNumber, it.transactionIndex, it.logIndex])
+    );
   }
 }
