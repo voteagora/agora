@@ -9,7 +9,7 @@ import { useContractWrite } from "../../hooks/useContractWrite";
 import { ZoraAuctionHouse } from "../../contracts/generated";
 import { zoraAuctionHouse } from "../../contracts/contracts";
 import { ethers } from "ethers";
-import { constSelector } from "recoil";
+// import { constSelector } from "recoil";
 
 // To do:
 // - Store auction IDs and dates in an array
