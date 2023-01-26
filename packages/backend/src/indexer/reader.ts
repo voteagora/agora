@@ -142,6 +142,8 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
 
     const heap = new Heap<HeapValue>(compareBy((it) => it.indexKey));
 
+    const visitedValues = new Set();
+
     for (const node of lineagePath) {
       switch (node.type) {
         case "BLOCK": {
@@ -152,19 +154,22 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
             continue;
           }
 
-          const entities = Array.from(
-            blockStorageArea.entities.values()
-          ).filter((it) => it.entity === entity);
+          const entities = Array.from(blockStorageArea.entities.values())
+            .filter((it) => it.entity === entity)
+            .filter((it) => !visitedValues.has(it.id));
 
           const entitiesWithIndexValue = entities.map((entity) => ({
+            id: entity.id,
             value: entity.value,
             indexKey: makeIndexKey(indexDefinition, entity),
           }));
 
-          for (const { indexKey, value } of entitiesWithIndexValue) {
+          for (const { indexKey, id, value } of entitiesWithIndexValue) {
             if (indexKey < startingKey) {
               continue;
             }
+
+            visitedValues.add(id);
 
             heap.push({
               type: "VALUE",
@@ -184,6 +189,10 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
             })) {
               if (!key.startsWith(indexPrefix)) {
                 break;
+              }
+
+              if (visitedValues.has(entityId)) {
+                continue;
               }
 
               // todo: there is a consistency bug here which can't be fixed because
