@@ -9,6 +9,7 @@ import { useContractWrite } from "../../hooks/useContractWrite";
 import { ZoraAuctionHouse } from "../../contracts/generated";
 import { zoraAuctionHouse } from "../../contracts/contracts";
 import { ethers } from "ethers";
+import { constSelector } from "recoil";
 
 // To do:
 // - Store auction IDs and dates in an array
@@ -41,19 +42,19 @@ export function VoteAuctionPage() {
     useNFT(auctionListRaw[2].collection, auctionListRaw[2].tokenId),
     useNFT(auctionListRaw[3].collection, auctionListRaw[3].tokenId),
   ];
+  const currentAuction = useNFT('0xed620248618e2952952826d062A5E2798B472219','1')?.data || null;
+  // const currentAuction = auctionList.find((auction) => {
+  //   if (
+  //     !auction.data ||
+  //     !auction.data.markets ||
+  //     !auction.data.markets.length
+  //   ) {
+  //     return null;
+  //   }
 
-  const currentAuction = auctionList.find((auction) => {
-    if (
-      !auction.data ||
-      !auction.data.markets ||
-      !auction.data.markets.length
-    ) {
-      return null;
-    }
-
-    let marketStatus = auction.data.markets[0].status;
-    return marketStatus !== "complete";
-  })?.data;
+  //   let marketStatus = auction.data.markets[0].status;
+  //   return marketStatus !== "complete";
+  // })?.data;
 
   if (
     !currentAuction ||
@@ -63,7 +64,7 @@ export function VoteAuctionPage() {
   ) {
     return null;
   }
-
+  
   const zoraLink = `https://market.zora.co/collections/${currentAuction.nft.contract.address}/${currentAuction.nft.tokenId}`;
 
   const market = currentAuction.markets[0];
@@ -71,7 +72,6 @@ export function VoteAuctionPage() {
     return null;
   }
   const auctionState = market.status;
-
   const name = currentAuction.metadata?.name;
   const imgLink = currentAuction.metadata?.imageUri?.replace(
     "ipfs://",
@@ -585,7 +585,6 @@ function useDebounce<T>(value: T, delay?: number): T {
 }
 
 function AuctionListBox({ auctionList }: any) {
-  console.log(auctionList);
   return (
     <VStack gap="2">
       <h2
@@ -622,7 +621,6 @@ function AuctionListBox({ auctionList }: any) {
 }
 
 function AuctionItem(name: string, imageURL: string, status: string) {
-  console.log(status);
   return (
     <HStack
       gap="4"
