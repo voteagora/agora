@@ -3,7 +3,6 @@ import {
   EntityStore,
   EntityWithMetadata,
 } from "./entityStore";
-import { isTopicInBloom } from "web3-utils";
 import {
   IndexerDefinition,
   isBlockDepthFinalized,
@@ -25,6 +24,7 @@ import { timeout } from "./utils/asyncUtils";
 import { collectGenerator, groupBy } from "./utils/generatorUtils";
 import { ethers } from "ethers";
 import { StructuredError } from "./utils/errorUtils";
+import * as serde from "./serde";
 
 export async function followChain(
   store: EntityStore,
@@ -57,13 +57,6 @@ export async function followChain(
     block: BlockProviderBlock,
     logsCache?: Map<string, Log[]>
   ) {
-    const shouldCheckBlock = !!topics.find((topic) =>
-      isTopicInBloom(block.logsBloom, topic)
-    );
-    if (!shouldCheckBlock) {
-      return;
-    }
-
     const storageHandle = await makeStorageHandleForStorageArea(
       storageArea,
       block,
@@ -87,7 +80,11 @@ export async function followChain(
       )!;
 
       try {
-        await eventHandler.handle(storageHandle, event as any, log);
+        await eventHandler.handle(
+          storageHandle,
+          event as any,
+          logsSerde.deserialize(log)
+        );
       } catch (e) {
         throw new StructuredError(
           {
@@ -314,3 +311,15 @@ export type StorageArea = {
 export type BlockStorageArea = {
   entities: Map<string, EntityWithMetadata>;
 };
+
+const logsSerde: serde.De<ethers.providers.Log, Log> = serde.objectDe({
+  blockNumber: serde.bigNumberParseNumber,
+  blockHash: serde.string,
+  transactionIndex: serde.bigNumberParseNumber,
+  removed: serde.constantDe(false),
+  address: serde.string,
+  data: serde.string,
+  topics: serde.array(serde.string),
+  transactionHash: serde.string,
+  logIndex: serde.bigNumberParseNumber,
+});

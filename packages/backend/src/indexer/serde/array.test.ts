@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
-import * as serde from "./serde";
+import * as serde from "./index";
 
-describe("serde", () => {
-  it("works for arrays", () => {
+describe("array", () => {
+  it("works", () => {
     const entity = serde.object({
       items: serde.array(
         serde.object({
