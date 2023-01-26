@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { cloneDeep } from "lodash";
 
 interface Ser<T, TSerialized> {
   serialize(item: T): TSerialized;
@@ -100,3 +101,10 @@ export type JsonRawType =
   | null
   | JsonRawType[]
   | { [key: string]: JsonRawType };
+
+export function cloneSerdeValue<T, TSerialized>(
+  serde: SerDe<T, TSerialized>,
+  value: T
+): T {
+  return serde.deserialize(cloneDeep(serde.serialize(value)));
+}
