@@ -258,11 +258,11 @@ export async function followChain(
 
         await processBlock(nextBlock, logsCache);
 
-        // await promoteFinalizedBlocks(
-        //   latestBlock.number,
-        //   blockIdentifierFromBlock(nextBlock),
-        //   storageArea.finalizedBlock
-        // );
+        await promoteFinalizedBlocks(
+          latestBlock.number,
+          blockIdentifierFromBlock(nextBlock),
+          storageArea.finalizedBlock
+        );
 
         // update storageArea.tipBlock
         if (
