@@ -37,24 +37,24 @@ export function VoteAuctionPage() {
     },
   ];
   const auctionList = [
-    useNFT(auctionListRaw[0].collection, auctionListRaw[0].tokenId),
-    useNFT(auctionListRaw[1].collection, auctionListRaw[1].tokenId),
-    useNFT(auctionListRaw[2].collection, auctionListRaw[2].tokenId),
-    useNFT(auctionListRaw[3].collection, auctionListRaw[3].tokenId),
+    useNFT(auctionListRaw[0].collection, auctionListRaw[0].tokenId) || null,
+    useNFT(auctionListRaw[1].collection, auctionListRaw[1].tokenId) || null,
+    useNFT(auctionListRaw[2].collection, auctionListRaw[2].tokenId) || null,
+    useNFT(auctionListRaw[3].collection, auctionListRaw[3].tokenId) || null,
   ];
-  const currentAuction = useNFT('0xed620248618e2952952826d062A5E2798B472219','1')?.data || null;
-  // const currentAuction = auctionList.find((auction) => {
-  //   if (
-  //     !auction.data ||
-  //     !auction.data.markets ||
-  //     !auction.data.markets.length
-  //   ) {
-  //     return null;
-  //   }
-
-  //   let marketStatus = auction.data.markets[0].status;
-  //   return marketStatus !== "complete";
-  // })?.data;
+  
+  // @ts-ignore
+  const currentAuction = auctionList.findLast((auction:any) => {
+    if (
+      !auction.data ||
+      !auction.data.markets ||
+      !auction.data.markets.length
+    ) {
+      return null;
+    }
+    let marketStatus = auction.data.markets[0];
+    return marketStatus!;
+  })?.data;
 
   if (
     !currentAuction ||
@@ -71,7 +71,9 @@ export function VoteAuctionPage() {
   if (market.type !== "Auction") {
     return null;
   }
-  const auctionState = market.status;
+  const marketEnd = market?.endsAt?.timestamp || '0';
+  const auctionEnded = Date.parse(marketEnd)< Date.now();
+
   const name = currentAuction.metadata?.name;
   const imgLink = currentAuction.metadata?.imageUri?.replace(
     "ipfs://",
@@ -251,7 +253,7 @@ export function VoteAuctionPage() {
                   font-weight: ${theme.fontWeight.medium};
                 `}
               >
-                {auctionState === "complete" ? (
+                {auctionEnded ? (
                   <span>Winning bid</span>
                 ) : (
                   <span>Current bid</span>
@@ -287,7 +289,7 @@ export function VoteAuctionPage() {
                   font-weight: ${theme.fontWeight.medium};
                 `}
               >
-                {auctionState === "complete" ? (
+                {auctionEnded ? (
                   <span>Auction ended</span>
                 ) : (
                   <span>Auction ends in</span>
@@ -299,7 +301,7 @@ export function VoteAuctionPage() {
                 `}
               >
                 {timeRemaining}{" "}
-                {auctionState === "complete" && <span>ago</span>}
+                {auctionEnded && <span>ago</span>}
               </div>
             </VStack>
           </HStack>
