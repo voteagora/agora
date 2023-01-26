@@ -24,7 +24,7 @@
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "@types/react-window-infinite-loader": "^1.0.6",
-    "connectkit": "^1.0.0",
+    "connectkit": "^1.1.2",
     "date-fns": "^2.29.2",
     "ethers": "^5.7.2",
     "framer-motion": "^7.2.1",
@@ -47,7 +47,7 @@
     "remark-breaks": "^3.0.2",
     "source-map-explorer": "^2.5.2",
     "typescript": "^4.4.2",
-    "wagmi": "^0.7.13",
+    "wagmi": "^0.10.15",
     "web-vitals": "^2.1.0"
   },
   "relay": {

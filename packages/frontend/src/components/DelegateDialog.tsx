@@ -1,17 +1,10 @@
 import * as Sentry from "@sentry/react";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
-import { useMutation } from "@tanstack/react-query";
 import { inset0, shadow } from "../theme";
 import * as theme from "../theme";
 import { HStack, VStack } from "./VStack";
-import {
-  useAccount,
-  useContractWrite,
-  usePrepareContractWrite,
-  useProvider,
-  useSigner,
-} from "wagmi";
+import { useAccount, usePrepareContractWrite } from "wagmi";
 import { ArrowDownIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
 import { motion } from "framer-motion";
@@ -22,7 +15,9 @@ import { ReactNode } from "react";
 import { TokenAmountDisplay } from "./TokenAmountDisplay";
 import tokenIcon from "../icons/tokenIcon.svg";
 import { TokenAmountDisplayFragment$key } from "./__generated__/TokenAmountDisplayFragment.graphql";
-import { delegateUsingRelay } from "./ensDelegateRelay";
+import { useContractWrite } from "../hooks/useContractWrite";
+import { governanceTokenContract } from "../contracts/contracts";
+import { GovernanceToken } from "../contracts/generated";
 
 export function DelegateDialog({
   target,
@@ -142,51 +137,14 @@ function DelegateDialogContents({
     }
   );
 
-  // todo: share contract address configuration
-  const { config } = usePrepareContractWrite({
-    address: "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72",
-    abi: [
-      {
-        inputs: [
-          {
-            internalType: "address",
-            name: "delegatee",
-            type: "address",
-          },
-        ],
-        name: "delegate",
-        outputs: [],
-        stateMutability: "nonpayable",
-        type: "function",
-      },
-    ],
-    functionName: "delegate",
-    args: [delegate?.address?.resolvedName?.address as any],
-    onError(e) {
-      Sentry.captureException(e);
-    },
-  });
-
-  const { writeAsync: delegateUsingTransaction } = useContractWrite(
-    config as any
-  );
-  const provider = useProvider();
-  const signer = useSigner();
-
-  const { mutate: delegateVotes, isLoading } = useMutation({
-    async mutationFn(delegate: string) {
-      if (!signer.data) {
-        return;
-      }
-
-      const result = await delegateUsingRelay(provider, signer.data, delegate);
-      if (!result) {
-        await delegateUsingTransaction?.();
-      }
-
+  const delegateVotes = useContractWrite<GovernanceToken, "delegate">(
+    governanceTokenContract,
+    "delegate",
+    [delegate?.address?.resolvedName?.address as any],
+    () => {
       completeDelegation();
-    },
-  });
+    }
+  );
 
   if (!delegate) {
     return null;
@@ -296,15 +254,12 @@ function DelegateDialogContents({
       {(() => {
         if (!currentAccount) {
           return (
-            <DelegateButton disabled={isLoading}>Connect Wallet</DelegateButton>
+            <DelegateButton disabled={false}>Connect Wallet</DelegateButton>
           );
         }
 
         return (
-          <DelegateButton
-            disabled={isLoading}
-            onClick={() => delegateVotes(delegate.address.resolvedName.address)}
-          >
+          <DelegateButton disabled={false} onClick={() => delegateVotes()}>
             Delegate
           </DelegateButton>
         );
