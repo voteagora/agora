@@ -34,8 +34,19 @@ export function topicFilterForIndexers(indexers: IndexerDefinition[]) {
 }
 
 export interface LogProvider {
-  getLogs(filter: LogFilter): Promise<ethers.providers.Log[]>;
+  getLogs(filter: LogFilter): Promise<Log[]>;
 }
+
+export type Log = {
+  address: string;
+  blockHash: string;
+  blockNumber: string;
+  data: string;
+  topics: string[];
+  logIndex: string;
+  transactionHash: string;
+  transactionIndex: string;
+};
 
 export class EthersLogProvider implements LogProvider {
   private readonly provider: ethers.providers.JsonRpcProvider;
@@ -44,35 +55,36 @@ export class EthersLogProvider implements LogProvider {
     this.provider = provider;
   }
 
-  async getLogs(filter: LogFilter): Promise<ethers.providers.Log[]> {
-    const logs: ethers.providers.Log[] = await this.provider.send(
-      "eth_getLogs",
-      [
-        {
-          ...(() => {
-            if (!("fromBlock" in filter)) {
-              return {
-                blockHash: filter.blockHash,
-              };
-            }
-
+  async getLogs(filter: LogFilter): Promise<Log[]> {
+    const logs: Log[] = await this.provider.send("eth_getLogs", [
+      {
+        ...(() => {
+          if (!("fromBlock" in filter)) {
             return {
-              fromBlock: ethers.utils.hexValue(
-                ethers.BigNumber.from(filter.fromBlock)
-              ),
-              toBlock: ethers.utils.hexValue(
-                ethers.BigNumber.from(filter.toBlock)
-              ),
+              blockHash: filter.blockHash,
             };
-          })(),
-          address: filter.address,
-          topics: filter.topics,
-        },
-      ]
-    );
+          }
+
+          return {
+            fromBlock: ethers.utils.hexValue(
+              ethers.BigNumber.from(filter.fromBlock)
+            ),
+            toBlock: ethers.utils.hexValue(
+              ethers.BigNumber.from(filter.toBlock)
+            ),
+          };
+        })(),
+        address: filter.address,
+        topics: filter.topics,
+      },
+    ]);
 
     return logs.sort(
-      compareByTuple((it) => [it.blockNumber, it.transactionIndex, it.logIndex])
+      compareByTuple((it) => [
+        parseInt(it.blockNumber, 16),
+        parseInt(it.transactionIndex, 16),
+        parseInt(it.logIndex, 16),
+      ])
     );
   }
 }

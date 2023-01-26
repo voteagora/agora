@@ -2,6 +2,7 @@ import { ContractInstance, TypedInterface } from "../contracts";
 import { ethers } from "ethers";
 import { StorageHandle } from "./storageHandle";
 import { RuntimeType, SerDe } from "./serde";
+import { Log } from "./logProvider";
 
 // The latest block is at depth zero with the block depth of each block below
 // latest defined as LATEST.blockNumber - OTHER.blockNumber.
@@ -69,7 +70,7 @@ type EventHandler<
         K,
         EventFragmentArg<InterfaceType["events"][K]>
       >,
-      log: ethers.providers.Log
+      log: Log
     ) => Promise<void> | void;
   };
 }[keyof InterfaceType["events"] & string];
