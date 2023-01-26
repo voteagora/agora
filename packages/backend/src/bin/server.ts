@@ -37,7 +37,7 @@ async function main() {
     process.env.ALCHEMY_API_KEY
   );
 
-  const storageArea = followChain(store, indexers, baseProvider);
+  const storageArea = await followChain(store, indexers, baseProvider);
   const reader = new LevelReader(entityDefinitions, store.level, storageArea);
 
   const dynamoDb = new DynamoDB({});
