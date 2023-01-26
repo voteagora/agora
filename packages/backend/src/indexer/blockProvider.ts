@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import { BlockIdentifier } from "./storageHandle";
+import { compareBy } from "./utils/sortUtils";
 
 export type BlockProviderBlock = {
   number: number;
@@ -48,7 +49,7 @@ export class BlockProviderImpl implements BlockProvider {
 
     return blocks
       .map((block) => transformResponse(block))
-      .sort((a, b) => a.number - b.number);
+      .sort(compareBy((it) => it.number));
   }
 
   async getBlockByNumber(number: number): Promise<BlockProviderBlock> {
