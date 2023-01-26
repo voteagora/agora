@@ -176,6 +176,7 @@ export async function followChain(
       storageArea.finalizedBlock = block;
       await store.flushUpdates(block, indexers, entities);
 
+      storageArea.parents.delete(block.hash);
       storageArea.blockStorageAreas.delete(block.hash);
     }
   }
