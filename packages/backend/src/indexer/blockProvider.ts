@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { BlockIdentifier } from "./storageHandle";
 import { compareBy } from "./utils/sortUtils";
+import { executeWithRetries } from "./utils/asyncUtils";
 
 export type BlockProviderBlock = {
   number: number;
@@ -29,7 +30,9 @@ export class BlockProviderImpl implements BlockProvider {
   }
 
   async getBlockByHash(hash: string): Promise<BlockProviderBlock> {
-    const raw = await this.provider.send("eth_getBlockByHash", [hash, false]);
+    const raw = await executeWithRetries(() =>
+      this.provider.send("eth_getBlockByHash", [hash, false])
+    );
     if (!raw) {
       throw new Error(`unknown block hash ${hash}`);
     }
@@ -41,11 +44,13 @@ export class BlockProviderImpl implements BlockProvider {
     fromBlockInclusive: number,
     toBlockInclusive: number
   ): Promise<BlockProviderBlock[]> {
-    const blocks: any[] = await this.provider.send("eth_getBlockRange", [
-      toHexNumber(fromBlockInclusive),
-      toHexNumber(toBlockInclusive),
-      false,
-    ]);
+    const blocks: any[] = await executeWithRetries(() =>
+      this.provider.send("eth_getBlockRange", [
+        toHexNumber(fromBlockInclusive),
+        toHexNumber(toBlockInclusive),
+        false,
+      ])
+    );
 
     return blocks
       .map((block) => transformResponse(block))
@@ -53,18 +58,19 @@ export class BlockProviderImpl implements BlockProvider {
   }
 
   async getBlockByNumber(number: number): Promise<BlockProviderBlock> {
-    const raw = await this.provider.send("eth_getBlockByNumber", [
-      ethers.BigNumber.from(number).toHexString(),
-      false,
-    ]);
+    const raw = await executeWithRetries(() =>
+      this.provider.send("eth_getBlockByNumber", [
+        ethers.BigNumber.from(number).toHexString(),
+        false,
+      ])
+    );
     return transformResponse(raw);
   }
 
   async getLatestBlock(): Promise<BlockProviderBlock> {
-    const raw = await this.provider.send("eth_getBlockByNumber", [
-      "latest",
-      false,
-    ]);
+    const raw = await executeWithRetries(() =>
+      this.provider.send("eth_getBlockByNumber", ["latest", false])
+    );
     return transformResponse(raw);
   }
 }

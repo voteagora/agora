@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { IndexerDefinition } from "./process";
 import { topicsForSignatures } from "../contracts";
 import { compareByTuple } from "./utils/sortUtils";
+import { executeWithRetries } from "./utils/asyncUtils";
 
 export type LogFilter = BlockSpec & TopicFilter;
 
@@ -48,6 +49,9 @@ export type Log = {
   transactionIndex: string;
 };
 
+// todo: use this in fetch too
+// todo: move serialization / validation here
+
 export class EthersLogProvider implements LogProvider {
   private readonly provider: ethers.providers.JsonRpcProvider;
 
@@ -56,28 +60,30 @@ export class EthersLogProvider implements LogProvider {
   }
 
   async getLogs(filter: LogFilter): Promise<Log[]> {
-    const logs: Log[] = await this.provider.send("eth_getLogs", [
-      {
-        ...(() => {
-          if (!("fromBlock" in filter)) {
-            return {
-              blockHash: filter.blockHash,
-            };
-          }
+    const logs: Log[] = await executeWithRetries(() =>
+      this.provider.send("eth_getLogs", [
+        {
+          ...(() => {
+            if (!("fromBlock" in filter)) {
+              return {
+                blockHash: filter.blockHash,
+              };
+            }
 
-          return {
-            fromBlock: ethers.utils.hexValue(
-              ethers.BigNumber.from(filter.fromBlock)
-            ),
-            toBlock: ethers.utils.hexValue(
-              ethers.BigNumber.from(filter.toBlock)
-            ),
-          };
-        })(),
-        address: filter.address,
-        topics: filter.topics,
-      },
-    ]);
+            return {
+              fromBlock: ethers.utils.hexValue(
+                ethers.BigNumber.from(filter.fromBlock)
+              ),
+              toBlock: ethers.utils.hexValue(
+                ethers.BigNumber.from(filter.toBlock)
+              ),
+            };
+          })(),
+          address: filter.address,
+          topics: filter.topics,
+        },
+      ])
+    );
 
     return logs.sort(
       compareByTuple((it) => [
