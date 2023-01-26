@@ -123,8 +123,8 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
 
     const lineagePath = generateLineagePath(
       this.storageArea.tipBlock,
-      this.storageArea.parents,
-      this.storageArea.latestBlockNumber
+      this.storageArea.finalizedBlock,
+      this.storageArea.parents
     );
 
     type HeapValue =
@@ -267,8 +267,8 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
     // todo: this is quite similar to the storage handle implementation
     const lineagePath = generateLineagePath(
       this.storageArea.tipBlock,
-      this.storageArea.parents,
-      this.storageArea.latestBlockNumber
+      this.storageArea.finalizedBlock,
+      this.storageArea.parents
     );
     for (const node of lineagePath) {
       switch (node.type) {

@@ -1,10 +1,10 @@
 import { EntityWithMetadata, ReadOnlyEntityStore } from "./entityStore";
 import { blockIdentifierFromBlock, BlockProviderBlock } from "./blockProvider";
 import { getOrInsert } from "./utils/mapUtils";
-import { isBlockDepthFinalized } from "./process";
 import { makeEntityKey } from "./entityKey";
 import { StorageArea } from "./followChain";
 import { EntityDefinitions } from "./reader";
+import { cloneSerdeValue } from "./serde";
 
 export type ReadableStorageHandle<Entities> = {
   loadEntity<Entity extends keyof Entities & string>(
@@ -52,33 +52,37 @@ type LineageNode =
 
 export function* generateLineagePath(
   startingBlock: BlockIdentifier,
-  parents: ReadonlyMap<string, BlockIdentifier>,
-  latestBlockHeight: number
+  finalizedBlock: BlockIdentifier,
+  parents: ReadonlyMap<string, BlockIdentifier>
 ): Generator<LineageNode> {
-  let blockHash = startingBlock.hash;
-
-  yield {
-    type: "BLOCK",
-    blockIdentifier: startingBlock,
-  };
+  let block = startingBlock;
 
   while (true) {
-    const parentBlock = parents.get(blockHash);
-    if (!parentBlock) {
-      throw new Error(
-        `cannot establish lineage from ${startingBlock.hash} to finalized region. failed to find parent of ${blockHash}`
-      );
-    }
+    if (block.blockNumber === finalizedBlock.blockNumber) {
+      if (block.hash !== finalizedBlock.hash) {
+        throw new Error("unable to track lineage");
+      }
 
-    const parentBlockDepth = latestBlockHeight - parentBlock.blockNumber;
-    if (isBlockDepthFinalized(parentBlockDepth)) {
       yield {
         type: "FINALIZED",
       };
+
       return;
     }
 
-    blockHash = parentBlock.hash;
+    yield {
+      type: "BLOCK",
+      blockIdentifier: block,
+    };
+
+    const parentBlock = parents.get(block.hash);
+    if (!parentBlock) {
+      throw new Error(
+        `cannot establish lineage from ${block.hash} to finalized region. failed to find parent of ${block.hash}`
+      );
+    }
+
+    block = parentBlock;
   }
 }
 
@@ -87,52 +91,57 @@ export function* generateLineagePath(
  * walk up the parent graph looking for the entity in each block's staging
  * area. After maxReorgBlocksDepth blocks, reads from ReadOnlyEntityStore.
  */
-export function makeStorageHandleForShallowBlocks(
-  stagedEntitiesStorage: StorageArea["blockStorageAreas"],
-  parents: ReadonlyMap<string, BlockIdentifier>,
+export async function makeStorageHandleForStorageArea(
+  storageArea: StorageArea,
   block: BlockProviderBlock,
-  latestBlockHeight: number,
   store: ReadOnlyEntityStore,
   entityDefinitions: EntityDefinitions
-): StorageHandle<any> {
+): Promise<StorageHandle<any>> {
   return {
     saveEntity(entity: string, id: string, value: any): void {
       const blockStagingArea = getOrInsert(
-        stagedEntitiesStorage,
+        storageArea.blockStorageAreas,
         block.hash,
         () => ({
           entities: new Map(),
         })
       );
 
-      blockStagingArea.entities.set(makeEntityKey(entity, id), {
-        id,
-        entity,
-        value,
-      });
+      blockStagingArea.entities.set(
+        makeEntityKey(entity, id),
+        Object.freeze({
+          id,
+          entity,
+          value,
+        })
+      );
     },
 
     async loadEntity(entity: string, id: string): Promise<any | null> {
+      const entityDefinition = entityDefinitions[entity];
       for (const node of generateLineagePath(
         blockIdentifierFromBlock(block),
-        parents,
-        latestBlockHeight
+        storageArea.finalizedBlock,
+        storageArea.parents
       )) {
         switch (node.type) {
           case "BLOCK": {
-            const stagingArea = stagedEntitiesStorage.get(
+            const stagingArea = storageArea.blockStorageAreas.get(
               node.blockIdentifier.hash
             );
-            if (stagingArea) {
-              const key = makeEntityKey(entity, id);
-              const hasValue = stagingArea.entities.has(key);
-              if (hasValue) {
-                const fromStaging = stagingArea.entities.get(key)!;
-                return fromStaging.value;
-              }
+            if (!stagingArea) {
+              continue;
             }
 
-            break;
+            const key = makeEntityKey(entity, id);
+            const hasValue = stagingArea.entities.has(key);
+            if (!hasValue) {
+              continue;
+            }
+
+            const fromStaging = stagingArea.entities.get(key)!;
+
+            return cloneSerdeValue(entityDefinition.serde, fromStaging.value);
           }
 
           case "FINALIZED": {
@@ -141,7 +150,7 @@ export function makeStorageHandleForShallowBlocks(
               return fromStore;
             }
 
-            return entityDefinitions[entity].serde.deserialize(fromStore);
+            return entityDefinition.serde.deserialize(fromStore);
           }
         }
       }
