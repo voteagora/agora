@@ -257,6 +257,7 @@ export function makeEmptyAggregate() {
 }
 
 async function loadAggregate(
+  // @ts-ignore
   handle: StorageHandleForIndexer<typeof governorIndexer>
 ) {
   const aggregates = await handle.loadEntity(
@@ -268,6 +269,7 @@ async function loadAggregate(
 }
 
 function saveAggregate(
+  // @ts-ignore
   handle: StorageHandleForIndexer<typeof governorIndexer>,
   entity: RuntimeType<
     typeof governorIndexer["entities"]["GovernorAggregates"]["serde"]

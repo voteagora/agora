@@ -10,6 +10,7 @@ import {
 } from "./storageHandle";
 import Heap from "heap";
 import { compareBy } from "./utils/sortUtils";
+import * as serde from "./serde";
 
 export type EntityDefinitions = {
   [key: string]: EntityDefinition;
@@ -279,6 +280,7 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
       this.storageArea.finalizedBlock,
       this.storageArea.parents
     );
+    const entityDefinition = this.entityDefinitions[entity];
     for (const node of lineagePath) {
       switch (node.type) {
         case "BLOCK": {
@@ -292,7 +294,7 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
 
           if (blockStorageArea.entities.has(key)) {
             const fromStorage = blockStorageArea.entities.get(key)!;
-            return fromStorage.value;
+            return serde.cloneSerdeValue(entityDefinition.serde, fromStorage);
           }
 
           break;
@@ -306,8 +308,6 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
           if (!fromLevel) {
             return null;
           }
-
-          const entityDefinition = this.entityDefinitions[entity];
 
           return entityDefinition.serde.deserialize(fromLevel);
         }
