@@ -9,6 +9,7 @@ import {
 import { indexers } from "../contracts";
 import { StructuredError } from "../utils/errorUtils";
 import { ethers } from "ethers";
+import ProgressBar from "progress";
 
 /**
  * Backfills updates from fetched logs starting from the last finalized block
@@ -31,6 +32,13 @@ async function main() {
     return;
   }
 
+  const progressBar = new ProgressBar(
+    ":elapseds [:current/:total] :bar :percent @ :rate/s :etas remaining",
+    {
+      total: highestCommonBlock.blockNumber,
+    }
+  );
+
   let idx = 0;
   const blockLogGenerator = groupBy(loadMergedLogs(indexers), (log) =>
     log.blockNumber.toString()
@@ -38,6 +46,8 @@ async function main() {
 
   for await (const blockLogs of blockLogGenerator) {
     const [firstLog] = blockLogs;
+    progressBar.tick(Math.max(firstLog.blockNumber - progressBar.curr, 0));
+
     if (
       entityStoreFinalizedBlock &&
       firstLog.blockNumber <= entityStoreFinalizedBlock.blockNumber
@@ -52,13 +62,6 @@ async function main() {
     const entityBlockStagingArea = new Map<string, EntityWithMetadata>();
 
     for (const log of blockLogs) {
-      // 10k / s for memory
-      // 5k / s for disk
-      console.log({
-        idx,
-        block: log.blockNumber,
-      });
-
       const indexer = indexers.find(
         (it) => it.address.toLowerCase() === log.address.toLowerCase()
       )!;
