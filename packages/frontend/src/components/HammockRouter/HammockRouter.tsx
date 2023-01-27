@@ -23,7 +23,7 @@ import {
 import { History } from "history";
 import { isEqual } from "lodash";
 import { ProposalsPage } from "../../pages/ProposalsPage/ProposalsPage";
-import { ProposalsRedirectPage } from "../../pages/ProposalsPage/ProposalsRedirectPage";
+import { ProposalsRootPage } from "../../pages/ProposalsPage/ProposalsRootPage";
 
 export const browserHistory = createBrowserHistory();
 // TODO: Set this to false before merging
@@ -57,7 +57,7 @@ const routes: Route[] = [
     ? [
         {
           path: "/proposals",
-          element: ProposalsRedirectPage,
+          element: ProposalsRootPage,
         },
       ]
     : []),
