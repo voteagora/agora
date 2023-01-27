@@ -56,89 +56,109 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
     .div(100 * 100)
     .add(1);
 
-  const recentlyCompletedProposals = recentProposals.filter((proposal) => {
-    return (
-      proposal.actualStatus !== "ACTIVE" && proposal.actualStatus !== "PENDING"
-    );
-  }).slice(0, 10);
+  const recentlyCompletedProposals = recentProposals
+    .filter((proposal) => {
+      return (
+        proposal.actualStatus !== "ACTIVE" &&
+        proposal.actualStatus !== "PENDING"
+      );
+    })
+    .slice(0, 10);
 
   return (
-    <HStack
-      justifyContent="space-between"
-      gap="4"
+    <div
       className={css`
-        max-width: ${theme.maxWidth["6xl"]};
-        width: 100%;
-        flex-wrap: wrap;
-
-        padding-left: ${theme.spacing["4"]};
-        padding-right: ${theme.spacing["4"]};
-
-        @media (max-width: ${theme.maxWidth["6xl"]}) {
-          justify-content: center;
-        }
-
         @media (max-width: ${theme.maxWidth.lg}) {
-          flex-direction: column;
-          align-items: stretch;
+          padding: ${theme.spacing["4"]};
+          width: 100%;
         }
       `}
     >
-      {currentGovernance && (
-        <MetricContainer
-          icon="community"
-          title="Voters / Noun Holders"
-          body={`${currentGovernance.currentDelegates} / ${
-            currentGovernance.currentTokenHolders
-          } (${(
-            (1 -
-              Number(currentGovernance.currentDelegates) /
-                Number(currentGovernance.currentTokenHolders)) *
-            100
-          ).toPrecision(2)}% delegation)`}
-        />
-      )}
+      <HStack
+        justifyContent="space-between"
+        gap="4"
+        className={css`
+          max-width: ${theme.maxWidth["6xl"]};
+          width: 100%;
+          flex-wrap: wrap;
 
-      {/* todo: source this from the actual quorum floor value */}
-      <MetricContainer
-        icon="ballot"
-        title="Quorum floor"
-        body={`${pluralizeNoun(quorumCount)} (${quorumBps
-          .div(100)
-          .toNumber()
-          .toFixed(0)}% of supply)`}
-      />
+          padding-left: ${theme.spacing["4"]};
+          padding-right: ${theme.spacing["4"]};
 
-      <MetricContainer
-        icon="measure"
-        title="Proposal threshold"
-        body={`${pluralizeNoun(proposalThreshold)}`}
-      />
-
-      <MetricContainer
-        icon="pedestrian"
-        title="Avg voter turnout"
-        body={(() => {
-          if (!recentlyCompletedProposals.length) {
-            return "N/A";
+          @media (max-width: ${theme.maxWidth["6xl"]}) {
+            justify-content: center;
           }
 
-          const total = recentlyCompletedProposals.reduce<number>(
-            (acc, value) => {
-              return (
-                acc +
-                value.totalVotes / value.createdBlockGovernance.delegatedVotes
-              );
-            },
-            0
-          );
-          return (
-            ((total / recentlyCompletedProposals.length) * 100).toPrecision(2) +
-            "%"
-          );
-        })()}
-      />
-    </HStack>
+          @media (max-width: ${theme.maxWidth.lg}) {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0px;
+            background: ${theme.colors.white};
+            border-radius: ${theme.spacing["3"]};
+            padding: ${theme.spacing["3"]};
+            border-width: ${theme.spacing.px};
+            border-color: ${theme.colors.gray["300"]};
+            box-shadow: ${theme.boxShadow.newDefault};
+          }
+        `}
+      >
+        {currentGovernance && (
+          <MetricContainer
+            icon="community"
+            title="Voters / Noun Holders"
+            body={`${currentGovernance.currentDelegates} / ${
+              currentGovernance.currentTokenHolders
+            } (${(
+              (1 -
+                Number(currentGovernance.currentDelegates) /
+                  Number(currentGovernance.currentTokenHolders)) *
+              100
+            ).toPrecision(2)}% delegation)`}
+          />
+        )}
+
+        {/* todo: source this from the actual quorum floor value */}
+        <MetricContainer
+          icon="ballot"
+          title="Quorum floor"
+          body={`${pluralizeNoun(quorumCount)} (${quorumBps
+            .div(100)
+            .toNumber()
+            .toFixed(0)}% of supply)`}
+        />
+
+        <MetricContainer
+          icon="measure"
+          title="Proposal threshold"
+          body={`${pluralizeNoun(proposalThreshold)}`}
+        />
+
+        <MetricContainer
+          icon="pedestrian"
+          title="Avg voter turnout"
+          body={(() => {
+            if (!recentlyCompletedProposals.length) {
+              return "N/A";
+            }
+
+            const total = recentlyCompletedProposals.reduce<number>(
+              (acc, value) => {
+                return (
+                  acc +
+                  value.totalVotes / value.createdBlockGovernance.delegatedVotes
+                );
+              },
+              0
+            );
+            return (
+              ((total / recentlyCompletedProposals.length) * 100).toPrecision(
+                2
+              ) + "%"
+            );
+          })()}
+        />
+      </HStack>
+    </div>
   );
 }
 
@@ -161,6 +181,11 @@ function MetricContainer({ icon, title, body }: MetricContainerProps) {
         border-width: ${theme.spacing.px};
         border-color: ${theme.colors.gray["300"]};
         box-shadow: ${theme.boxShadow.newDefault};
+        @media (max-width: ${theme.maxWidth.lg}) {
+          padding: ${theme.spacing["2"]} 0;
+          border: 0px;
+          box-shadow: ${theme.boxShadow.none};
+        }
       `}
     >
       <div

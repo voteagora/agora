@@ -99,10 +99,14 @@ export function ProposalsPage() {
             margin-bottom: ${theme.spacing["8"]};
 
             @media (max-width: ${theme.maxWidth["2xl"]}) {
+              position: fixed;
+              left: 16px;
+              top: calc(100% - 124px);
+              max-height: 108px;
+              height: 108px;
               align-items: stretch;
               justify-content: flex-end;
-              width: 100%;
-
+              width: calc(100% - 32px);
               height: auto;
             }
           `}

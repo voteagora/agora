@@ -85,6 +85,9 @@ export function ProposalsListPanel({
       className={css`
         display: flex;
         flex-direction: column;
+        @media (max-width: ${theme.maxWidth["2xl"]}) {
+          display: none;
+        }
       `}
       initial={{ opacity: 1 }}
       animate={{ opacity: isPending ? 0.3 : 1 }}
@@ -179,7 +182,9 @@ export function ProposalsListPanel({
 
         <VStack
           className={css`
-            max-height: calc(100vh - 317px); //martin, this is kind of a hack, but it achieves the desired result lol, please don't remove this unless there's a better way
+            max-height: calc(
+              100vh - 317px
+            ); //martin, this is kind of a hack, but it achieves the desired result lol, please don't remove this unless there's a better way
             overflow-y: scroll;
             flex-shrink: 1;
             padding-left: ${theme.spacing["4"]};
@@ -270,7 +275,7 @@ function SingleProposal({
         gap="2"
         className={css`
           cursor: pointer;
-          transition:200ms all;
+          transition: 200ms all;
           border-radius: ${theme.borderRadius.lg};
           ${selected &&
           css`
