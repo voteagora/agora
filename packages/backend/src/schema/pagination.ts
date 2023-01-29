@@ -1,4 +1,4 @@
-import { EntityDefinitions, Reader } from "../indexer/reader";
+import { EntityDefinitions, Reader } from "../indexer/storage/reader";
 import { RuntimeType } from "../indexer/serde";
 import {
   collectGenerator,

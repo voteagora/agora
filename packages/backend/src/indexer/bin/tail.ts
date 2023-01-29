@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
-import { LevelEntityStore } from "../entityStore";
 import { indexers } from "../contracts";
 import { followChain } from "../followChain";
+import { LevelEntityStore } from "../storage/level/levelEntityStore";
 
 /**
  * Processes and writes updates for finalized blocks from stored logs.

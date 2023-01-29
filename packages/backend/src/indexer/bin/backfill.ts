@@ -1,4 +1,4 @@
-import { EntityWithMetadata, LevelEntityStore } from "../entityStore";
+import { EntityWithMetadata } from "../storage/entityStore";
 import { IndexerDefinition } from "../process";
 import { groupBy } from "../utils/generatorUtils";
 import { loadLastLogIndex, loadMergedLogs } from "../logStorage";
@@ -10,6 +10,7 @@ import { indexers } from "../contracts";
 import { StructuredError } from "../utils/errorUtils";
 import { ethers } from "ethers";
 import ProgressBar from "progress";
+import { LevelEntityStore } from "../storage/level/levelEntityStore";
 
 /**
  * Backfills updates from fetched logs starting from the last finalized block

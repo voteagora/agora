@@ -17,7 +17,7 @@ import {
   aggregateCumulativeId,
   defaultAccount,
 } from "../../indexer/contracts/GovernanceToken";
-import { Reader } from "../../indexer/reader";
+import { Reader } from "../../indexer/storage/reader";
 import { entityDefinitions } from "../../indexer/contracts";
 import { RuntimeType } from "../../indexer/serde";
 import { collectGenerator } from "../../indexer/utils/generatorUtils";

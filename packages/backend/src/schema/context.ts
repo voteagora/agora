@@ -1,4 +1,4 @@
-import { Reader } from "../indexer/reader";
+import { Reader } from "../indexer/storage/reader";
 import { entityDefinitions } from "../indexer/contracts";
 import { CacheDependencies } from "../utils/cache";
 import { EmailStorage, StatementStorage } from "./model";

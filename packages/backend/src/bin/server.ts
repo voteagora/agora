@@ -13,19 +13,20 @@ import { TransparentMultiCallProvider } from "../multicall";
 import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
 import { useErrorInspection } from "../useErrorInspection";
 import { followChain } from "../indexer/followChain";
-import { LevelEntityStore } from "../indexer/entityStore";
 import { entityDefinitions, indexers } from "../indexer/contracts";
-import { LevelReader } from "../indexer/reader";
+import { LevelEntityStore } from "../indexer/storage/level/levelEntityStore";
+import { LevelReader } from "../indexer/storage/level/levelReader";
 
 // p0
 // todo: where are delegate statements going to be stored?
 // todo: replicate and deploy
+// todo: snapshot votes, delegate statements, cached ens name lookups
+
+// todo: to load up a replica, have the durable object pull from an initial file from r2 using streams
 
 // p1
 // todo: derived state
 // todo: joins
-// todo: parents will grow indefinitely
-// todo: types
 // todo: some cleanup in the governance folder
 
 async function main() {

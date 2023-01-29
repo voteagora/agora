@@ -2,7 +2,7 @@ import {
   combineEntities,
   EntityStore,
   EntityWithMetadata,
-} from "./entityStore";
+} from "./storage/entityStore";
 import {
   IndexerDefinition,
   isBlockDepthFinalized,
@@ -19,6 +19,7 @@ import { EthersLogProvider, Log, topicFilterForIndexers } from "./logProvider";
 import {
   BlockIdentifier,
   makeStorageHandleForStorageArea,
+  pathBetween,
 } from "./storageHandle";
 import { timeout } from "./utils/asyncUtils";
 import { collectGenerator, groupBy } from "./utils/generatorUtils";
@@ -124,34 +125,6 @@ export async function followChain(
     await processBlock(parentBlock);
   }
 
-  function* pathBetween(
-    nextBlock: BlockIdentifier,
-    endBlockIdentifier: BlockIdentifier
-  ): Generator<BlockIdentifier> {
-    let block = nextBlock;
-
-    while (true) {
-      if (block.blockNumber === endBlockIdentifier.blockNumber) {
-        if (block.hash !== endBlockIdentifier.hash) {
-          throw new Error(
-            "found path to blockNumber of endBlockIdentifier but hash mismatch"
-          );
-        }
-
-        return;
-      }
-
-      yield block;
-
-      const parentBlockIdentifier = storageArea.parents.get(block.hash);
-      if (!parentBlockIdentifier) {
-        throw new Error("cannot find parent block");
-      }
-
-      block = parentBlockIdentifier;
-    }
-  }
-
   async function promoteFinalizedBlocks(
     latestBlockNumber: number,
     nextBlock: BlockIdentifier,
@@ -161,7 +134,9 @@ export async function followChain(
       throw new Error("finalizedBlock does not exist");
     }
 
-    const path = Array.from(pathBetween(nextBlock, finalizedBlock));
+    const path = Array.from(
+      pathBetween(nextBlock, finalizedBlock, storageArea.parents)
+    );
 
     const chainToLastFinalizedBlock = path.reverse().filter((it) => {
       const depth = latestBlockNumber - it.blockNumber;
