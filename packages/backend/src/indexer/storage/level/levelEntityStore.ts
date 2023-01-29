@@ -1,40 +1,18 @@
+import { BlockIdentifier } from "../../storageHandle";
+import {
+  entityKeyPrefix,
+  makeEntityKey,
+  parseEntityKey,
+} from "../../entityKey";
+import { EntityDefinition, IndexerDefinition } from "../../process";
+import { makeIndexKey } from "../../indexKey";
+import {
+  combineEntities,
+  EntityStore,
+  EntityWithMetadata,
+} from "../entityStore";
 import { BatchOperation, Level } from "level";
-import { BlockIdentifier, coerceLevelDbNotfoundError } from "./storageHandle";
-import { entityKeyPrefix, makeEntityKey, parseEntityKey } from "./entityKey";
-import { EntityDefinition, IndexerDefinition } from "./process";
-import { makeIndexKey } from "./indexKey";
-
-export interface EntityStore extends ReadOnlyEntityStore {
-  flushUpdates(
-    blockIdentifier: BlockIdentifier,
-    indexers: IndexerDefinition[],
-    entities: Map<string, EntityWithMetadata>
-  ): Promise<void>;
-}
-
-export type EntityDefinitions<Indexers extends IndexerDefinition[]> =
-  Indexers[number]["entities"];
-
-export function combineEntities<Indexers extends IndexerDefinition[]>(
-  indexers: IndexerDefinition[]
-): EntityDefinitions<Indexers> {
-  return indexers.reduce(
-    (acc, indexer) => ({ ...acc, ...indexer.entities }),
-    {}
-  );
-}
-
-export type EntityWithMetadata<T = unknown> = {
-  entity: string;
-  id: string;
-  value: T;
-};
-
-export interface ReadOnlyEntityStore {
-  getFinalizedBlock(): Promise<BlockIdentifier | null>;
-  getEntity(entity: string, id: string): Promise<any>;
-  getEntities(): AsyncGenerator<EntityWithMetadata>;
-}
+import { coerceLevelDbNotfoundError } from "./utils";
 
 type LevelKeyType<LevelType extends Level> = LevelType extends Level<
   infer KeyType
@@ -71,7 +49,7 @@ export class LevelEntityStore implements EntityStore {
     this.level = level;
   }
   async getFinalizedBlock(): Promise<BlockIdentifier | null> {
-    return await coerceLevelDbNotfoundError(this.level.get("latest"));
+    return await coerceLevelDbNotfoundError(this.level.get(blockIdentifierKey));
   }
 
   getEntities(): AsyncGenerator<EntityWithMetadata> {
@@ -170,7 +148,7 @@ export class LevelEntityStore implements EntityStore {
       ...operations,
       {
         type: "put",
-        key: "latest",
+        key: blockIdentifierKey,
         value: block,
       },
     ]);
@@ -182,3 +160,5 @@ export class LevelEntityStore implements EntityStore {
     );
   }
 }
+
+export const blockIdentifierKey = "latest";

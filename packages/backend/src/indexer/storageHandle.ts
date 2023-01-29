@@ -1,9 +1,9 @@
-import { EntityWithMetadata, ReadOnlyEntityStore } from "./entityStore";
+import { EntityWithMetadata, ReadOnlyEntityStore } from "./storage/entityStore";
 import { blockIdentifierFromBlock, BlockProviderBlock } from "./blockProvider";
 import { getOrInsert } from "./utils/mapUtils";
 import { makeEntityKey } from "./entityKey";
 import { StorageArea } from "./followChain";
-import { EntityDefinitions } from "./reader";
+import { EntityDefinitions } from "./storage/reader";
 import { cloneSerdeValue } from "./serde";
 
 export type ReadableStorageHandle<Entities> = {
@@ -29,60 +29,32 @@ export type BlockIdentifier = {
   hash: string;
 };
 
-export function coerceLevelDbNotfoundError<T>(
-  promise: Promise<T>
-): Promise<T | null> {
-  return promise.catch((err) => {
-    if (err.code === "LEVEL_NOT_FOUND") {
-      return null;
-    } else {
-      throw err;
-    }
-  });
-}
-
-type LineageNode =
-  | {
-      type: "BLOCK";
-      blockIdentifier: BlockIdentifier;
-    }
-  | {
-      type: "FINALIZED";
-    };
-
-export function* generateLineagePath(
-  startingBlock: BlockIdentifier,
-  finalizedBlock: BlockIdentifier,
+export function* pathBetween(
+  nextBlock: BlockIdentifier,
+  endBlockIdentifier: BlockIdentifier,
   parents: ReadonlyMap<string, BlockIdentifier>
-): Generator<LineageNode> {
-  let block = startingBlock;
+): Generator<BlockIdentifier> {
+  let block = nextBlock;
 
   while (true) {
-    if (block.blockNumber === finalizedBlock.blockNumber) {
-      if (block.hash !== finalizedBlock.hash) {
-        throw new Error("unable to track lineage");
+    if (block.blockNumber === endBlockIdentifier.blockNumber) {
+      if (block.hash !== endBlockIdentifier.hash) {
+        throw new Error(
+          "found path to blockNumber of endBlockIdentifier but hash mismatch"
+        );
       }
-
-      yield {
-        type: "FINALIZED",
-      };
 
       return;
     }
 
-    yield {
-      type: "BLOCK",
-      blockIdentifier: block,
-    };
+    yield block;
 
-    const parentBlock = parents.get(block.hash);
-    if (!parentBlock) {
-      throw new Error(
-        `cannot establish lineage from ${block.hash} to finalized region. failed to find parent of ${block.hash}`
-      );
+    const parentBlockIdentifier = parents.get(block.hash);
+    if (!parentBlockIdentifier) {
+      throw new Error("cannot find parent block");
     }
 
-    block = parentBlock;
+    block = parentBlockIdentifier;
   }
 }
 
@@ -119,43 +91,35 @@ export async function makeStorageHandleForStorageArea(
 
     async loadEntity(entity: string, id: string): Promise<any | null> {
       const entityDefinition = entityDefinitions[entity];
-      for (const node of generateLineagePath(
+      for (const blockIdentifier of pathBetween(
         blockIdentifierFromBlock(block),
         storageArea.finalizedBlock,
         storageArea.parents
       )) {
-        switch (node.type) {
-          case "BLOCK": {
-            const stagingArea = storageArea.blockStorageAreas.get(
-              node.blockIdentifier.hash
-            );
-            if (!stagingArea) {
-              continue;
-            }
-
-            const key = makeEntityKey(entity, id);
-            const hasValue = stagingArea.entities.has(key);
-            if (!hasValue) {
-              continue;
-            }
-
-            const fromStaging = stagingArea.entities.get(key)!;
-
-            return cloneSerdeValue(entityDefinition.serde, fromStaging.value);
-          }
-
-          case "FINALIZED": {
-            const fromStore = await store.getEntity(entity, id);
-            if (!fromStore) {
-              return fromStore;
-            }
-
-            return entityDefinition.serde.deserialize(fromStore);
-          }
+        const stagingArea = storageArea.blockStorageAreas.get(
+          blockIdentifier.hash
+        );
+        if (!stagingArea) {
+          continue;
         }
+
+        const key = makeEntityKey(entity, id);
+        const hasValue = stagingArea.entities.has(key);
+        if (!hasValue) {
+          continue;
+        }
+
+        const fromStaging = stagingArea.entities.get(key)!;
+
+        return cloneSerdeValue(entityDefinition.serde, fromStaging.value);
       }
 
-      return null;
+      const fromStore = await store.getEntity(entity, id);
+      if (!fromStore) {
+        return fromStore;
+      }
+
+      return entityDefinition.serde.deserialize(fromStore);
     },
   };
 }
