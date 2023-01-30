@@ -192,7 +192,9 @@ export async function postDiscordMessagesSinceLastUpdate(
 
     if (response.status >= 400) {
       throw new Error(
-        `bad response: ${response.status} ${await response.text()}`
+        `bad response: ${
+          response.status
+        } ${await response.text()} ${JSON.stringify(message)}`
       );
     }
   }
