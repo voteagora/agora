@@ -191,6 +191,7 @@ export async function postDiscordMessagesSinceLastUpdate(
     });
 
     if (response.status >= 400) {
+      // todo: make this a structured error
       throw new Error(
         `bad response: ${
           response.status
