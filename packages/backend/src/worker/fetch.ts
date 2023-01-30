@@ -1,38 +1,21 @@
-import { createServer } from "@graphql-yoga/common";
-import Toucan from "toucan-js";
 import { Env } from "./env";
-import { useSentry } from "./useSentry";
-import { getGraphQLCallingContext } from "./graphql";
 import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
 
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
-import { useErrorInspection } from "../useErrorInspection";
 const assetManifest = JSON.parse(manifestJSON);
 
-export async function fetch(
-  request: Request,
-  env: Env,
-  ctx: ExecutionContext,
-  sentry: Toucan
-) {
-  const isProduction = env.ENVIRONMENT === "prod";
+export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
   const url = new URL(request.url);
-  if (url.pathname === "/graphql") {
-    const { schema, context } = await getGraphQLCallingContext(
-      request,
-      env,
-      ctx
+  if (
+    url.pathname === "/graphql" ||
+    url.pathname === "/load" ||
+    url.pathname === "/dump"
+  ) {
+    const object = env.STORAGE_OBJECT.get(
+      env.STORAGE_OBJECT.idFromName("stable")
     );
 
-    const server = createServer({
-      schema,
-      context,
-      maskedErrors: isProduction,
-      graphiql: !isProduction,
-      plugins: [useSentry(sentry), useErrorInspection()],
-    });
-
-    return server.handleRequest(request, { env, ctx });
+    return await object.fetch(request);
   }
 
   if (isStaticFile(request)) {

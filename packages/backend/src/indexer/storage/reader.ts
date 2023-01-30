@@ -104,14 +104,6 @@ export async function* getEntitiesByIndexFromStorageArea<
     visitedValues: Set<string>
   ) => AsyncGenerator<{ indexKey: string; value: any }>
 ): AsyncGenerator<RuntimeType<EntityDefinitionsType[Entity]["serde"]>> {
-  if (!storageArea.tipBlock) {
-    return null;
-  }
-
-  if (!storageArea.latestBlockNumber) {
-    return null;
-  }
-
   const indexDefinition = entityDefinition.indexes.find(
     (indexDefinition) => indexDefinition.indexName === indexName
   )!;
@@ -171,55 +163,57 @@ export async function* getEntitiesByIndexFromStorageArea<
 
   const visitedValues = new Set<string>();
 
-  for (const blockIdentifier of pathBetween(
-    storageArea.tipBlock,
-    storageArea.finalizedBlock,
-    storageArea.parents
-  )) {
-    const blockStorageArea = storageArea.blockStorageAreas.get(
-      blockIdentifier.hash
-    );
-    if (!blockStorageArea) {
-      continue;
-    }
-
-    const entities = Array.from(blockStorageArea.entities.values())
-      .filter((it) => it.entity === entity)
-      .filter((it) => !visitedValues.has(it.id));
-
-    const entitiesWithIndexValue = entities.map((entity) => ({
-      id: entity.id,
-      value: entity.value,
-      indexKey: makeIndexKey(indexDefinition, entity),
-    }));
-
-    for (const { indexKey, id, value } of entitiesWithIndexValue) {
-      if (indexKey < startingKey) {
+  if (storageArea.tipBlock) {
+    for (const blockIdentifier of pathBetween(
+      storageArea.tipBlock,
+      storageArea.finalizedBlock,
+      storageArea.parents
+    )) {
+      const blockStorageArea = storageArea.blockStorageAreas.get(
+        blockIdentifier.hash
+      );
+      if (!blockStorageArea) {
         continue;
       }
 
-      visitedValues.add(id);
+      const entities = Array.from(blockStorageArea.entities.values())
+        .filter((it) => it.entity === entity)
+        .filter((it) => !visitedValues.has(it.id));
+
+      const entitiesWithIndexValue = entities.map((entity) => ({
+        id: entity.id,
+        value: entity.value,
+        indexKey: makeIndexKey(indexDefinition, entity),
+      }));
+
+      for (const { indexKey, id, value } of entitiesWithIndexValue) {
+        if (indexKey < startingKey) {
+          continue;
+        }
+
+        visitedValues.add(id);
+
+        heap.push({
+          type: "VALUE",
+          indexKey,
+          value,
+        });
+      }
+
+      const generator = makeGenerator(indexPrefix, startingKey, visitedValues);
+
+      const nextValue = await generator.next();
+      if (nextValue.done) {
+        break;
+      }
 
       heap.push({
-        type: "VALUE",
-        indexKey,
-        value,
+        type: "GENERATOR",
+        indexKey: nextValue.value.indexKey,
+        value: nextValue.value.value,
+        generator: generator,
       });
     }
-
-    const generator = makeGenerator(indexPrefix, startingKey, visitedValues);
-
-    const nextValue = await generator.next();
-    if (nextValue.done) {
-      break;
-    }
-
-    heap.push({
-      type: "GENERATOR",
-      indexKey: nextValue.value.indexKey,
-      value: nextValue.value.value,
-      generator: generator,
-    });
   }
 
   while (true) {

@@ -8,7 +8,8 @@ export interface Env {
   EMAILS: KVNamespace;
   INDEXER: KVNamespace;
   __STATIC_CONTENT: KVNamespace;
-
+  INDEXER_DUMPS: R2Bucket;
+  STORAGE_OBJECT: DurableObjectNamespace;
   AWS_ACCESS_KEY_ID: string;
   AWS_SECRET_ACCESS_KEY: string;
 }

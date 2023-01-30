@@ -36,20 +36,7 @@ export async function followChain(
   const logProvider = new EthersLogProvider(provider);
   const entityDefinitions = combineEntities(indexers);
 
-  const storageArea: StorageArea = {
-    latestBlockNumber: null,
-    finalizedBlock: await (async () => {
-      const finalizedBlock = await store.getFinalizedBlock();
-      if (!finalizedBlock) {
-        throw new Error("run backfill first");
-      }
-
-      return finalizedBlock;
-    })(),
-    tipBlock: null,
-    blockStorageAreas: new Map(),
-    parents: new Map(),
-  };
+  const storageArea = await makeInitialStorageArea(store);
 
   const filter = topicFilterForIndexers(indexers);
   const topics = filter.topics[0];
@@ -161,7 +148,6 @@ export async function followChain(
 
     while (true) {
       const latestBlock = await blockProvider.getLatestBlock();
-      storageArea.latestBlockNumber = latestBlock.number;
 
       if (latestBlock.number <= nextBlockNumber) {
         console.log("at tip!");
@@ -255,6 +241,24 @@ export async function followChain(
   return storageArea;
 }
 
+export async function makeInitialStorageArea(
+  store: EntityStore
+): Promise<StorageArea> {
+  return {
+    finalizedBlock: await (async () => {
+      const finalizedBlock = await store.getFinalizedBlock();
+      if (!finalizedBlock) {
+        throw new Error("run backfill first");
+      }
+
+      return finalizedBlock;
+    })(),
+    tipBlock: null,
+    blockStorageAreas: new Map(),
+    parents: new Map(),
+  };
+}
+
 export type StorageArea = {
   /**
    * Highest block processed. Considered to be the canonical chain tip. This is
@@ -266,12 +270,6 @@ export type StorageArea = {
    * The highest finalized block saved to disk.
    */
   finalizedBlock: BlockIdentifier;
-
-  /**
-   * Highest block known to be mined. Used to determine whether a block number
-   * is finalized or not.
-   */
-  latestBlockNumber: number | null;
 
   /**
    * Mapping from current block hash to parent block information. Used to

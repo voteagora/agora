@@ -10,6 +10,9 @@ kv_namespaces = [
     { binding = "EMAILS", id = "23588c86ba844b2ab1e966da7e039f61" },
     { binding = "INDEXER", id = "4a42abaf595e433c9f2adea85d90116d" }
 ]
+r2_buckets  = [
+    { binding = "INDEXER_DUMPS", bucket_name = "optimism-agora-dev-indexer-dumps-0" }
+]
 
 [env.prod]
 name = "optimism-agora-prod"
@@ -18,6 +21,11 @@ account_id = "d0222542a05849995856d260759717d4"
 kv_namespaces = [
     { binding = "EMAILS", id = "7e78791e33d044f99fe92b52ced1f774" },
     { binding = "INDEXER", id = "a1d082ab39e045299ebc8d3f11f42d39" }
+]
+
+[durable_objects]
+bindings = [
+    { name = "STORAGE_OBJECT", class_name = "StorageDurableObjectV1" }
 ]
 
 [build]

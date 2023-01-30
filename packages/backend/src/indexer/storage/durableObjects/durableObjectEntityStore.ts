@@ -8,7 +8,7 @@ import { IndexerDefinition } from "../../process";
 import { makeEntityKey } from "../../entityKey";
 import { makeIndexKey } from "../../indexKey";
 
-class DurableObjectEntityStore implements EntityStore {
+export class DurableObjectEntityStore implements EntityStore {
   private readonly storage: DurableObjectStorage;
 
   constructor(storage: DurableObjectStorage) {

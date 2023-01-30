@@ -1,22 +1,40 @@
 import Toucan, { Options } from "toucan-js";
 import { Env } from "./env";
 
+export type MakeOptionsParams = {
+  env: Env;
+  ctx: {
+    waitUntil: (promise: Promise<any>) => void;
+  };
+};
+
+export function makeToucanOptions({ env, ctx }: MakeOptionsParams): Options {
+  return {
+    dsn: env.SENTRY_DSN,
+    environment: env.ENVIRONMENT,
+    release: env.GITHUB_SHA,
+    context: ctx,
+    rewriteFrames: {
+      root: "/",
+    },
+  };
+}
+
+export async function runReportingException<T>(
+  sentry: Toucan,
+  fn: () => Promise<T>
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    sentry.captureException(e);
+    throw e;
+  }
+}
 export function wrapModuleSentry(
-  makeOptions: (params: { env: Env; ctx: ExecutionContext }) => Options,
+  makeOptions: (params: MakeOptionsParams) => Options,
   generateHandlers: (sentry: Toucan) => ExportedHandler<Env>
 ): ExportedHandler<Env> {
-  async function runReportingException<T>(
-    sentry: Toucan,
-    fn: () => Promise<T>
-  ): Promise<T> {
-    try {
-      return await fn();
-    } catch (e) {
-      sentry.captureException(e);
-      throw e;
-    }
-  }
-
   return {
     async fetch(...args): Promise<Response> {
       const [request, env, ctx] = args;
