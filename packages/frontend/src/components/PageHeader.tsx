@@ -13,6 +13,7 @@ import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
 import { Suspense, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
+import { icons } from "../icons/icons";
 import { PROPOSALS_ENABLED, useLocation } from "./HammockRouter/HammockRouter";
 
 export function PageHeader() {
@@ -21,20 +22,14 @@ export function PageHeader() {
 
   return (
     <HStack
+      justifyContent="space-between"
       className={css`
         width: 100%;
         max-width: ${theme.maxWidth["6xl"]};
         margin: ${theme.spacing["8"]} auto;
         gap: ${theme.spacing["2"]};
-        justify-content: space-between;
         padding-left: ${theme.spacing["4"]};
         padding-right: ${theme.spacing["4"]};
-
-        @media (max-width: ${theme.maxWidth.md}) {
-          flex-direction: column;
-          text-align: center;
-          align-items:center;
-        }
       `}
     >
       <Link
@@ -45,12 +40,13 @@ export function PageHeader() {
         `}
         to="/"
       >
-        <HStack gap="2" alignItems="center">
+        <HStack gap="2" alignItems="center" className={css``}>
           <img
             alt="logo"
             src={logo}
             className={css`
               height: 16px;
+              width: 16px;
             `}
           />
 
@@ -60,6 +56,9 @@ export function PageHeader() {
               font-size: ${theme.fontSize.base};
               font-weight: ${theme.fontWeight.semibold};
               color: ${theme.colors.gray["800"]};
+              @media (max-width: ${theme.maxWidth.md}) {
+                display: none;
+              }
             `}
           >
             Nouns Agora
@@ -85,7 +84,11 @@ export function PageHeader() {
                   padding: ${theme.spacing[1]} ${theme.spacing[4]};
                   border-radius: ${theme.borderRadius.full};
                   color: ${theme.colors.gray[700]};
-                  ${!isProposalsPageActive && !isVotePageActive &&
+                  @media (max-width: ${theme.maxWidth.md}) {
+                    font-size: ${theme.fontSize.sm};
+                  }
+                  ${!isProposalsPageActive &&
+                  !isVotePageActive &&
                   css`
                     background-color: ${theme.colors.gray.fa};
                     color: inherit;
@@ -101,6 +104,9 @@ export function PageHeader() {
                   padding: ${theme.spacing[1]} ${theme.spacing[4]};
                   border-radius: ${theme.borderRadius.full};
                   color: ${theme.colors.gray[700]};
+                  @media (max-width: ${theme.maxWidth.md}) {
+                    font-size: ${theme.fontSize.sm};
+                  }
                   ${isProposalsPageActive &&
                   css`
                     background-color: ${theme.colors.gray.fa};
@@ -117,6 +123,9 @@ export function PageHeader() {
                   padding: ${theme.spacing[1]} ${theme.spacing[4]};
                   border-radius: ${theme.borderRadius.full};
                   color: ${theme.colors.gray[700]};
+                  @media (max-width: ${theme.maxWidth.md}) {
+                    font-size: ${theme.fontSize.sm};
+                  }
                   ${isVotePageActive &&
                   css`
                     background-color: ${theme.colors.gray.fa};
@@ -124,7 +133,7 @@ export function PageHeader() {
                   `};
                 `}
               >
-                Get Votes
+                Auction
               </div>
             </Link>
           </HStack>
@@ -136,25 +145,78 @@ export function PageHeader() {
         gap="3"
         className={css`
           height: ${theme.spacing["6"]};
-
-          @media (max-width: ${theme.maxWidth.md}) {
-            height: auto;
-            flex-direction: column;
-            align-items: stretch;
-          }
         `}
       >
-        <HStack justifyContent="center">
+        <HStack
+          justifyContent="center"
+          className={css`
+            @media (max-width: ${theme.maxWidth.md}) {
+              display: none;
+            }
+          `}
+        >
           <ConnectKitButton mode="light" />
         </HStack>
-
-        <Suspense fallback={null}>
-          <PageHeaderContents />
-        </Suspense>
+        <HStack
+          justifyContent="center"
+          className={css`
+            @media (min-width: ${theme.maxWidth.md}) {
+              display: none;
+            }
+          `}
+        >
+          <MobileButton />
+        </HStack>
+        <HStack
+          className={css`
+            @media (max-width: ${theme.maxWidth.md}) {
+              display: none;
+            }
+          `}
+        >
+          <Suspense fallback={null}>
+            <PageHeaderContents />
+          </Suspense>
+        </HStack>
       </HStack>
     </HStack>
   );
 }
+
+export const MobileButton = () => {
+  return (
+    <ConnectKitButton.Custom>
+      {({ isConnected, isConnecting, show, hide, address, ensName }) => {
+        return (
+          <div
+            className={css`
+              margin-top: 13px;
+            `}
+            onClick={show}
+          >
+            {isConnected ? (
+              <img
+                src={icons.walletConnected}
+                alt="connect wallet button"
+                className={css`
+                  opacity: 1;
+                `}
+              />
+            ) : (
+              <img
+                src={icons.wallet}
+                alt="connect wallet button"
+                className={css`
+                  opacity: 0.6;
+                `}
+              />
+            )}
+          </div>
+        );
+      }}
+    </ConnectKitButton.Custom>
+  );
+};
 
 function PageHeaderContents() {
   const { address: accountAddress } = useAccount();

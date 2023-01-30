@@ -10,6 +10,8 @@ import anonNoun from "./anonNoun.svg";
 import expand from "./expand.svg";
 import tableView from "./tableView.svg";
 import cardView from "./cardView.svg";
+import wallet from "./wallet.svg";
+import walletConnected from "./walletConnected.svg";
 
 export const icons = {
   expand,
@@ -23,5 +25,7 @@ export const icons = {
   measure,
   pedestrian,
   tableView,
-  cardView
+  cardView,
+  wallet,
+  walletConnected
 };
