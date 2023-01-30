@@ -9,8 +9,9 @@ import { StorageArea } from "../../followChain";
 import { RuntimeType } from "../../serde";
 import { makeEntityKey } from "../../entityKey";
 
-class DurableObjectReader<EntityDefinitionsType extends EntityDefinitions>
-  implements Reader<EntityDefinitionsType>
+export class DurableObjectReader<
+  EntityDefinitionsType extends EntityDefinitions
+> implements Reader<EntityDefinitionsType>
 {
   readonly entityDefinitions: EntityDefinitionsType;
 
@@ -45,13 +46,10 @@ class DurableObjectReader<EntityDefinitionsType extends EntityDefinitions>
       args,
       this.storageArea,
       async function* (indexPrefix, startingKey, visitedValues) {
-        const values = await storage.list({
+        for await (const [indexKey, rawEntityId] of listEntries(storage, {
           start: startingKey,
           prefix: indexPrefix,
-          allowConcurrency: true,
-        });
-
-        for (const [indexKey, rawEntityId] of values.entries()) {
+        })) {
           if (!indexKey.startsWith(indexPrefix)) {
             break;
           }
@@ -104,5 +102,38 @@ class DurableObjectReader<EntityDefinitionsType extends EntityDefinitions>
     }
 
     return entityDefinition.serde.deserialize(fromLevel);
+  }
+}
+
+export type ListEntriesArgs = {
+  start?: string;
+  prefix?: string;
+};
+
+export async function* listEntries(
+  storage: DurableObjectStorage,
+  args?: ListEntriesArgs
+) {
+  const limit = 1000;
+
+  let start = args?.start;
+
+  while (true) {
+    const values = await storage.list({
+      start,
+      prefix: args?.prefix,
+      limit,
+      allowConcurrency: true,
+    });
+
+    const entries = Array.from(values.entries());
+    if (!entries.length) {
+      return;
+    }
+
+    yield* entries;
+
+    const [lastEntryKey] = entries[entries.length - 1];
+    start = lastEntryKey;
   }
 }

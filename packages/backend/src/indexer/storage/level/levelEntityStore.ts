@@ -1,9 +1,5 @@
 import { BlockIdentifier } from "../../storageHandle";
-import {
-  entityKeyPrefix,
-  makeEntityKey,
-  parseEntityKey,
-} from "../../entityKey";
+import { makeEntityKey } from "../../entityKey";
 import { EntityDefinition, IndexerDefinition } from "../../process";
 import { makeIndexKey } from "../../indexKey";
 import {
@@ -13,6 +9,7 @@ import {
 } from "../entityStore";
 import { BatchOperation, Level } from "level";
 import { coerceLevelDbNotfoundError } from "./utils";
+import { StoredEntry } from "../dump";
 
 type LevelKeyType<LevelType extends Level> = LevelType extends Level<
   infer KeyType
@@ -52,19 +49,12 @@ export class LevelEntityStore implements EntityStore {
     return await coerceLevelDbNotfoundError(this.level.get(blockIdentifierKey));
   }
 
-  getEntities(): AsyncGenerator<EntityWithMetadata> {
+  getEntities(): AsyncGenerator<StoredEntry> {
     const level = this.level;
 
     return (async function* levelEntityStoreGetEntities() {
-      for await (const [key, value] of level.iterator({
-        gte: entityKeyPrefix,
-      })) {
-        const entityKey = parseEntityKey(key);
-        if (!entityKey) {
-          break;
-        }
-
-        yield { ...entityKey, value };
+      for await (const [key, value] of level.iterator()) {
+        yield { key, value };
       }
     })();
   }
