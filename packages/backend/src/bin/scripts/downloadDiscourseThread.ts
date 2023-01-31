@@ -1,6 +1,6 @@
 import "isomorphic-fetch";
 import { ethers } from "ethers";
-import { fetchPost, fetchThread } from "../discourse";
+import { fetchPost, fetchThread } from "../../discourse";
 import * as fs from "fs";
 
 const baseUrl = "https://gov.optimism.io";

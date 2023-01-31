@@ -5,12 +5,12 @@
   "scripts": {
     "cloud:build": "yarn codegen",
     "deploy-lambda": "serverless deploy",
-    "write-data": "ts-node --transpileOnly src/bin/writeData.ts",
-    "write-ens": "ts-node --transpileOnly src/bin/writeEns.ts",
-    "download-discourse-thread": "ts-node src/bin/downloadDiscourseThread.ts",
-    "build-generate-schema": "esbuild --bundle --sourcemap src/bin/generateSchema.ts --outfile=dist/generateSchema.js --loader:.graphql=text",
+    "write-data": "ts-node --transpileOnly src/bin/scripts/writeData.ts",
+    "write-ens": "ts-node --transpileOnly src/bin/scripts/writeEns.ts",
+    "download-discourse-thread": "ts-node src/bin/scripts/downloadDiscourseThread.ts",
+    "build-generate-schema": "esbuild --bundle --sourcemap src/bin/scripts/generateSchema.ts --outfile=dist/generateSchema.js --loader:.graphql=text",
     "generate-schema": "node dist/generateSchema.js > ../frontend/schema.graphql",
-    "build-dump-namespace": "esbuild --bundle --platform=node src/bin/dumpNamespace.ts --outfile=dist/dump.js",
+    "build-dump-namespace": "esbuild --bundle --platform=node src/bin/scripts/dumpNamespace.ts --outfile=dist/dump.js",
     "dump-namespace": "node dist/dump.js",
     "check": "tsc --noEmit",
     "fetch": "ts-node src/indexer/bin/fetch.ts",
@@ -27,8 +27,8 @@
     "build": "yarn build-generate-schema && yarn build-server",
     "start": "yarn build && yarn run generate && yarn run server",
     "test": "jest",
-    "fetchSnapshotVotes": "ts-node --transpileOnly src/bin/fetchSnapshotVotes.ts",
-    "loadSnapshotVotes": "ts-node --transpileOnly src/bin/loadSnapshotVotes.ts"
+    "fetchSnapshotVotes": "ts-node --transpileOnly src/bin/scripts/fetchSnapshotVotes.ts",
+    "loadSnapshotVotes": "ts-node --transpileOnly src/bin/scripts/loadSnapshotVotes.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.199.0",

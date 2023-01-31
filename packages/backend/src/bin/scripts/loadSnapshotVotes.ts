@@ -3,7 +3,7 @@ import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import {
   spaceId,
   writeVotesToDynamoDb,
-} from "../lambdas/loadSnapshotVotes/handler";
+} from "../../lambdas/loadSnapshotVotes/handler";
 import { promises as fs } from "fs";
 
 async function main() {

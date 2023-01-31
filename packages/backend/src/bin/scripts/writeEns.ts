@@ -1,16 +1,20 @@
 import { promises as fs } from "fs";
 import { z } from "zod";
-import { fetchPostResponse } from "../discourse";
+import { fetchPostResponse } from "../../discourse";
 import path from "path";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import {
   makeDynamoDelegateStore,
   makeMergedDelegateKey,
-} from "../store/dynamo/delegates";
-import { resolveNameFromAddress } from "../utils/resolveName";
+} from "../../store/dynamo/delegates";
+import { resolveNameFromAddress } from "../../utils/resolveName";
 import { ethers } from "ethers";
-import { setFields, TableName, updateExpression } from "../store/dynamo/utils";
-import { makeStoredStatement } from "../presetStatements";
+import {
+  setFields,
+  TableName,
+  updateExpression,
+} from "../../store/dynamo/utils";
+import { makeStoredStatement } from "../../presetStatements";
 
 async function discoursePostsByNumber() {
   const postsFolder = "./data/discourse/posts/";
