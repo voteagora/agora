@@ -4,6 +4,7 @@
   "name": "nouns-agora-backend",
   "scripts": {
     "cloud:build": "yarn codegen",
+    "downloadOptimismDelegateStatements": "ts-node --transpileOnly src/bin/scripts/downloadOptimismDelegateStatements/run.ts",
     "deploy-lambda": "serverless deploy",
     "write-data": "ts-node --transpileOnly src/bin/scripts/writeData.ts",
     "write-ens": "ts-node --transpileOnly src/bin/scripts/writeEns.ts",
