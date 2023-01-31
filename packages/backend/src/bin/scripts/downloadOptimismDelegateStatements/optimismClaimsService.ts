@@ -32,11 +32,13 @@ const delegateType = z.object({
   interests: z.array(z.string()),
 });
 
+export const delegatesType = z.array(delegateType);
+
 const delegatesResponseType = z.tuple([
   z.object({
     result: z.object({
       data: z.object({
-        json: z.array(delegateType),
+        json: delegatesType,
       }),
     }),
   }),
