@@ -191,6 +191,22 @@ export async function postDiscordMessagesSinceLastUpdate(
     });
 
     if (response.status >= 400) {
+      if (response.status === 429) {
+        type Body = {
+          global: boolean;
+          message: string;
+          retry_after: number;
+        };
+
+        const body: Body = await response.json();
+
+        if (body.global) {
+          throw new Error("hit global ratelimit");
+        }
+
+        await timeout(Math.floor(body.retry_after * 1000 * 1.2));
+      }
+
       // todo: make this a structured error
       throw new Error(
         `bad response: ${
@@ -199,6 +215,14 @@ export async function postDiscordMessagesSinceLastUpdate(
       );
     }
   }
+}
+
+function timeout(ms: number): Promise<void> {
+  return new Promise<void>((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, ms);
+  });
 }
 
 function groupLogs<
