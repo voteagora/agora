@@ -11,6 +11,7 @@ import { makeToucanOptions, runReportingException } from "./sentry";
 import { ethers } from "ethers";
 import { makeInitialStorageArea } from "../indexer/followChain";
 import { DurableObjectEntityStore } from "../indexer/storage/durableObjects/durableObjectEntityStore";
+import { batch, limitGenerator } from "../indexer/utils/generatorUtils";
 
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
@@ -99,18 +100,34 @@ async function loadEntries(
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new TextLineStream());
 
-  for await (const line of lines) {
-    if (!line.length) {
-      continue;
-    }
+  await storage.deleteAll({
+    allowConcurrency: true,
+    noCache: true,
+    allowUnconfirmed: true,
+  });
 
-    const object = JSON.parse(line) as StoredEntry;
+  for await (const entriesBatch of batch(
+    (async function* () {
+      for await (const line of limitGenerator(lines, 100_000)) {
+        if (!line.length) {
+          continue;
+        }
 
-    storage.put(object.key, object.value, {
-      allowConcurrency: true,
-      allowUnconfirmed: true,
-      noCache: true,
-    });
+        const object = JSON.parse(line) as StoredEntry;
+
+        yield object;
+      }
+    })(),
+    128
+  )) {
+    storage.put(
+      Object.fromEntries(entriesBatch.map((it) => [it.key, it.value])),
+      {
+        allowConcurrency: true,
+        allowUnconfirmed: true,
+        noCache: true,
+      }
+    );
   }
 }
 

@@ -8,6 +8,26 @@ export async function* indexed<T>(
   }
 }
 
+export async function* batch<T>(
+  iterator: AsyncIterable<T>,
+  batchSize: number
+): AsyncGenerator<T[]> {
+  let batch = [];
+
+  for await (const item of iterator) {
+    batch.push(item);
+
+    if (batch.length === batchSize) {
+      yield batch;
+      batch = [];
+    }
+  }
+
+  if (batch.length) {
+    yield batch;
+  }
+}
+
 export async function* groupBy<T>(
   generator: AsyncGenerator<T>,
   keyOf: (item: T) => string
@@ -33,7 +53,7 @@ export async function* groupBy<T>(
 }
 
 export async function* limitGenerator<T>(
-  asyncGenerator: AsyncGenerator<T>,
+  asyncGenerator: AsyncIterable<T>,
   limit: number
 ): AsyncGenerator<T> {
   let i = 0;
