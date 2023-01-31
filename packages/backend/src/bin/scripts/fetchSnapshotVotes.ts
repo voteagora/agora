@@ -1,4 +1,4 @@
-import { fetchEverything } from "../lambdas/loadSnapshotVotes/handler";
+import { fetchEverything } from "../../lambdas/loadSnapshotVotes/handler";
 import { promises as fs } from "fs";
 
 async function main() {

@@ -1,4 +1,4 @@
-import { makeGatewaySchema } from "../schema";
+import { makeGatewaySchema } from "../../schema";
 import { printSchema } from "graphql";
 
 async function main() {

@@ -1,8 +1,8 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { makeReducers, parseStorage } from "../snapshot";
+import { makeReducers, parseStorage } from "../../snapshot";
 import { promises as fs } from "fs";
-import { updateSnapshotUpdateStatus } from "../lambdas/ingestUpdatesFromChain/snapshotUpdateStatus";
-import { storeSnapshotInS3 } from "../lambdas/ingestUpdatesFromChain/storedSnapshot";
+import { updateSnapshotUpdateStatus } from "../../lambdas/ingestUpdatesFromChain/snapshotUpdateStatus";
+import { storeSnapshotInS3 } from "../../lambdas/ingestUpdatesFromChain/storedSnapshot";
 import { S3 } from "@aws-sdk/client-s3";
 
 async function main() {
