@@ -31,3 +31,5 @@ export interface ReadOnlyEntityStore {
   getFinalizedBlock(): Promise<BlockIdentifier | null>;
   getEntity(entity: string, id: string): Promise<any>;
 }
+
+export const blockIdentifierKey = "latest";

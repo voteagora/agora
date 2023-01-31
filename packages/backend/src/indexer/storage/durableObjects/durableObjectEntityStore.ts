@@ -1,4 +1,5 @@
 import {
+  blockIdentifierKey,
   combineEntities,
   EntityStore,
   EntityWithMetadata,
@@ -7,7 +8,6 @@ import { BlockIdentifier } from "../../storageHandle";
 import { IndexerDefinition } from "../../process";
 import { makeEntityKey } from "../../entityKey";
 import { makeIndexKey } from "../../indexKey";
-import { blockIdentifierKey } from "../level/levelEntityStore";
 
 export class DurableObjectEntityStore implements EntityStore {
   private readonly storage: DurableObjectStorage;

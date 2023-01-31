@@ -3,6 +3,7 @@ import { makeEntityKey } from "../../entityKey";
 import { EntityDefinition, IndexerDefinition } from "../../process";
 import { makeIndexKey } from "../../indexKey";
 import {
+  blockIdentifierKey,
   combineEntities,
   EntityStore,
   EntityWithMetadata,
@@ -150,5 +151,3 @@ export class LevelEntityStore implements EntityStore {
     );
   }
 }
-
-export const blockIdentifierKey = "latest";
