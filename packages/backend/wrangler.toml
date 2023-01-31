@@ -2,6 +2,7 @@ name = "nouns-agora"
 compatibility_date = "2022-09-04"
 main = "dist/worker.js"
 account_id = "86fdf8ef811b4d0aa8954fa036684ea3"
+logpush = true
 
 [env.dev]
 vars = { ENVIRONMENT = "dev", DEPLOYMENT = "nouns", HONEYCOMB_DATASET = "nouns-agora-dev" }

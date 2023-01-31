@@ -40,7 +40,7 @@
     "marked": "^4.1.0",
     "node-fetch": "^3.2.10",
     "toucan-js": "^2.6.1",
-    "wrangler": "^2.1.11",
+    "wrangler": "^2.9.0",
     "zod": "3.14.2"
   },
   "devDependencies": {
