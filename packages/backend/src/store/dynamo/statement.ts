@@ -9,11 +9,11 @@ import { StatementStorage, StoredStatement } from "../../schema/model";
 import {
   makeKey,
   marshaller,
-  PartitionKey__MergedDelegatesStatementHolders,
   setFields,
   TableName,
   withAttributes,
 } from "./utils";
+import DataLoader from "dataloader";
 
 export function makeDelegateStatementKey(address: string) {
   return makeKey({
@@ -23,14 +23,28 @@ export function makeDelegateStatementKey(address: string) {
 }
 
 export function makeDynamoStatementStorage(client: DynamoDB): StatementStorage {
-  return {
-    async getStatement(address: string): Promise<StoredStatement | null> {
-      const result = await client.getItem({
-        TableName,
-        Key: makeDelegateStatementKey(address.toLowerCase()),
+  const getStatementDataloader = new DataLoader<string, StoredStatement | null>(
+    async (keys) => {
+      const results = await client.batchGetItem({
+        RequestItems: {
+          [TableName]: {
+            Keys: keys.map((address) =>
+              makeDelegateStatementKey(address)
+            ) as any,
+          },
+        },
       });
 
-      return marshaller.unmarshallItem(result.Item) as any;
+      return Object.values(results.Responses![TableName]).map(
+        (value) => marshaller.unmarshallItem(value) as StoredStatement | null
+      );
+    },
+    { batch: true, maxBatchSize: 100 }
+  );
+
+  return {
+    async getStatement(address: string): Promise<StoredStatement | null> {
+      return await getStatementDataloader.load(address.toLowerCase());
     },
     async addStatement(statement: StoredStatement): Promise<void> {
       const marshalledStatement = marshaller.marshallItem({
@@ -45,7 +59,7 @@ export function makeDynamoStatementStorage(client: DynamoDB): StatementStorage {
               Item: {
                 ...makeDelegateStatementKey(statement.address.toLowerCase()),
                 ...marshalledStatement,
-              },
+              } as any,
             },
           },
           {
@@ -53,7 +67,7 @@ export function makeDynamoStatementStorage(client: DynamoDB): StatementStorage {
               Key: makeKey({
                 PartitionKey: `MergedDelegate`,
                 SortKey: statement.address.toLowerCase(),
-              }),
+              }) as any,
               TableName,
 
               ...(() => {
