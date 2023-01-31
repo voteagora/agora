@@ -1,18 +1,6 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import {
-  UpdateExpression,
-  AttributeValue,
-  ExpressionAttributes,
-} from "@aws/dynamodb-expressions";
-
 import { StatementStorage, StoredStatement } from "../../schema/model";
-import {
-  makeKey,
-  marshaller,
-  setFields,
-  TableName,
-  withAttributes,
-} from "./utils";
+import { makeKey, marshaller, TableName } from "./utils";
 import DataLoader from "dataloader";
 
 export function makeDelegateStatementKey(address: string) {
@@ -60,34 +48,6 @@ export function makeDynamoStatementStorage(client: DynamoDB): StatementStorage {
                 ...makeDelegateStatementKey(statement.address.toLowerCase()),
                 ...marshalledStatement,
               } as any,
-            },
-          },
-          {
-            Update: {
-              Key: makeKey({
-                PartitionKey: `MergedDelegate`,
-                SortKey: statement.address.toLowerCase(),
-              }) as any,
-              TableName,
-
-              ...(() => {
-                const attributes = new ExpressionAttributes();
-
-                const updateExpression = new UpdateExpression();
-                updateExpression.set(
-                  "statement",
-                  new AttributeValue(marshalledStatement)
-                );
-
-                setFields(updateExpression, {
-                  address: statement.address.toLowerCase(),
-                });
-
-                return {
-                  UpdateExpression: updateExpression.serialize(attributes),
-                  ...withAttributes(attributes),
-                };
-              })(),
             },
           },
         ],
