@@ -184,13 +184,13 @@ export async function postDiscordMessagesSinceLastUpdate(
   const blocks = groupLogs(tokenLogs, daoLogs);
 
   for await (const message of blocksToMessages(provider, resolver, blocks)) {
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(message),
-    });
+    while (true) {
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(message),
+      });
 
-    if (response.status >= 400) {
       if (response.status === 429) {
         type Body = {
           global: boolean;
@@ -205,14 +205,16 @@ export async function postDiscordMessagesSinceLastUpdate(
         }
 
         await timeout(Math.floor(body.retry_after * 1000 * 1.2));
+      } else if (response.status >= 400) {
+        // todo: make this a structured error
+        throw new Error(
+          `bad response: ${
+            response.status
+          } ${await response.text()} ${JSON.stringify(message)}`
+        );
+      } else {
+        break;
       }
-
-      // todo: make this a structured error
-      throw new Error(
-        `bad response: ${
-          response.status
-        } ${await response.text()} ${JSON.stringify(message)}`
-      );
     }
   }
 }
