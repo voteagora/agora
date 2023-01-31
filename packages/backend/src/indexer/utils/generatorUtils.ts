@@ -1,10 +1,23 @@
 export async function* indexed<T>(
-  asyncGenerator: AsyncGenerator<T>
+  asyncGenerator: AsyncIterable<T>
 ): AsyncGenerator<[number, T]> {
   let i = 0;
   for await (const item of asyncGenerator) {
     yield [i, item];
     i++;
+  }
+}
+
+export async function* skipFirst<T>(
+  iterator: AsyncIterable<T>,
+  n: number
+): AsyncGenerator<T> {
+  for await (const [idx, item] of indexed(iterator)) {
+    if (idx < n) {
+      continue;
+    }
+
+    yield item;
   }
 }
 
