@@ -201,6 +201,13 @@ function saveAccount(
 
 export const aggregateCumulativeId = "CUMULATIVE";
 
+export function makeDefaultAggregate() {
+  return {
+    delegatedSupply: ethers.BigNumber.from(0),
+    totalSupply: ethers.BigNumber.from(0),
+  };
+}
+
 async function loadAggregate(
   // @ts-ignore
   handle: StorageHandleForIndexer<typeof governanceTokenIndexer>
@@ -210,11 +217,7 @@ async function loadAggregate(
     aggregateCumulativeId
   );
 
-  return {
-    delegatedSupply:
-      cumulativeAggregate?.delegatedSupply ?? ethers.BigNumber.from(0),
-    totalSupply: cumulativeAggregate?.totalSupply ?? ethers.BigNumber.from(0),
-  };
+  return cumulativeAggregate ?? makeDefaultAggregate();
 }
 
 function saveAggregate(

@@ -11,11 +11,12 @@ import {
 import { BigNumber, ethers } from "ethers";
 import {
   governanceAggregatesKey,
-  makeEmptyAggregate,
+  makeDefaultGovernanceAggregate,
 } from "../../indexer/contracts/OptimismGovernorV1";
 import {
   aggregateCumulativeId,
   defaultAccount,
+  makeDefaultAggregate,
 } from "../../indexer/contracts/GovernanceToken";
 import { Reader } from "../../indexer/storage/reader";
 import { entityDefinitions } from "../../indexer/contracts";
@@ -42,10 +43,7 @@ export const VotingPower: VotingPowerResolvers = {
   },
 
   async bpsOfTotal(value, _args, { reader }) {
-    const aggregate = (await reader.getEntity(
-      "Aggregates",
-      aggregateCumulativeId
-    ))!;
+    const aggregate = await getAggregate(reader);
 
     return bpsOf(value, aggregate.totalSupply);
   },
@@ -429,7 +427,10 @@ async function getQuorum(
 }
 
 async function getAggregate(reader: Reader<typeof entityDefinitions>) {
-  return (await reader.getEntity("Aggregates", aggregateCumulativeId))!;
+  return (
+    (await reader.getEntity("Aggregates", aggregateCumulativeId)) ??
+    makeDefaultAggregate()
+  );
 }
 
 async function getGovernanceAggregate(
@@ -437,7 +438,7 @@ async function getGovernanceAggregate(
 ) {
   return (
     (await reader.getEntity("GovernorAggregates", governanceAggregatesKey)) ??
-    makeEmptyAggregate()
+    makeDefaultGovernanceAggregate()
   );
 }
 

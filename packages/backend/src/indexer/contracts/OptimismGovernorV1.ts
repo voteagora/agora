@@ -246,7 +246,7 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
 
 export const governanceAggregatesKey = "AGGREGATE";
 
-export function makeEmptyAggregate() {
+export function makeDefaultGovernanceAggregate() {
   return {
     proposalThreshold: ethers.BigNumber.from(0),
     quorumNumerator: ethers.BigNumber.from(0),
@@ -265,7 +265,7 @@ async function loadAggregate(
     governanceAggregatesKey
   );
 
-  return aggregates ?? makeEmptyAggregate();
+  return aggregates ?? makeDefaultGovernanceAggregate();
 }
 
 function saveAggregate(
