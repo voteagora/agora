@@ -2,6 +2,7 @@ name = "optimism-agora"
 compatibility_date = "2022-09-04"
 main = "dist/worker.js"
 account_id = "86fdf8ef811b4d0aa8954fa036684ea3"
+logpush = true
 
 [env.dev]
 name = "optimism-agora-dev"
@@ -10,9 +11,16 @@ kv_namespaces = [
     { binding = "EMAILS", id = "23588c86ba844b2ab1e966da7e039f61" },
     { binding = "INDEXER", id = "4a42abaf595e433c9f2adea85d90116d" }
 ]
-r2_buckets  = [
+r2_buckets = [
     { binding = "INDEXER_DUMPS", bucket_name = "optimism-agora-dev-indexer-dumps-0" }
 ]
+durable_objects.bindings = [
+    { name = "STORAGE_OBJECT", class_name = "StorageDurableObjectV1" }
+]
+
+[[migrations]]
+tag = "v1" # Should be unique for each entry
+new_classes = ["StorageDurableObjectV1"]
 
 [env.prod]
 name = "optimism-agora-prod"
@@ -23,10 +31,6 @@ kv_namespaces = [
     { binding = "INDEXER", id = "a1d082ab39e045299ebc8d3f11f42d39" }
 ]
 
-[durable_objects]
-bindings = [
-    { name = "STORAGE_OBJECT", class_name = "StorageDurableObjectV1" }
-]
 
 [build]
 command = "yarn build-worker"

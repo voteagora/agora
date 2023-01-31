@@ -99,21 +99,19 @@ async function loadEntries(
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new TextLineStream());
 
-  await storage.transaction(async (tx) => {
-    for await (const line of lines) {
-      if (!line.length) {
-        continue;
-      }
-
-      const object = JSON.parse(line) as StoredEntry;
-
-      tx.put(object.key, object.value, {
-        allowConcurrency: true,
-        allowUnconfirmed: true,
-        noCache: true,
-      });
+  for await (const line of lines) {
+    if (!line.length) {
+      continue;
     }
-  });
+
+    const object = JSON.parse(line) as StoredEntry;
+
+    storage.put(object.key, object.value, {
+      allowConcurrency: true,
+      allowUnconfirmed: true,
+      noCache: true,
+    });
+  }
 }
 
 function dumpEntries(
