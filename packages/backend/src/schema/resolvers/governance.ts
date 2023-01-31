@@ -24,6 +24,7 @@ import { RuntimeType } from "../../indexer/serde";
 import { collectGenerator } from "../../indexer/utils/generatorUtils";
 import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { driveReaderByIndex } from "../pagination";
+import { formSchema } from "../../formSchema";
 
 const amountSpec = {
   currency: "OP",
@@ -141,9 +142,16 @@ export const Delegate: DelegateResolvers = {
     return { address };
   },
 
-  statement({ address }, _args) {
-    // todo: implement
-    return null;
+  async statement({ address }, _args, { statementStorage }) {
+    const statement = await statementStorage.getStatement(address);
+    if (!statement) {
+      return null;
+    }
+
+    return {
+      address: address,
+      values: formSchema.parse(JSON.parse(statement.signedPayload)),
+    };
   },
 
   amountOwned({ tokensOwned }) {
