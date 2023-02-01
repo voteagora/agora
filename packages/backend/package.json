@@ -7,7 +7,6 @@
     "downloadOptimismDelegateStatements": "ts-node --transpileOnly src/bin/scripts/downloadOptimismDelegateStatements/run.ts",
     "loadOptimismDelegateStatements": "ts-node --transpileOnly src/bin/scripts/loadOptimismDelegateStatements.ts",
     "deploy-lambda": "serverless deploy",
-    "write-data": "ts-node --transpileOnly src/bin/scripts/writeData.ts",
     "download-discourse-thread": "ts-node src/bin/scripts/downloadDiscourseThread.ts",
     "build-generate-schema": "esbuild --bundle --sourcemap src/bin/scripts/generateSchema.ts --outfile=dist/generateSchema.js --loader:.graphql=text",
     "generate-schema": "node dist/generateSchema.js > ../frontend/schema.graphql",
