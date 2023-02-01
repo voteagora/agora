@@ -36,7 +36,9 @@ export class DurableObjectReader<
     entity: Entity,
     indexName: IndexName,
     args: IndexQueryArgs
-  ): AsyncGenerator<RuntimeType<EntityDefinitionsType[Entity]["serde"]>> {
+  ): AsyncGenerator<
+    Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>
+  > {
     const entityDefinition = this.entityDefinitions[entity];
     const storage = this.storage;
     return getEntitiesByIndexFromStorageArea(
@@ -68,6 +70,7 @@ export class DurableObjectReader<
 
           const value = entityDefinition.serde.deserialize(rawValue);
           yield {
+            entityId,
             indexKey,
             value,
           };
@@ -79,7 +82,9 @@ export class DurableObjectReader<
   async getEntity<Entity extends keyof EntityDefinitionsType & string>(
     entity: Entity,
     id: string
-  ): Promise<RuntimeType<EntityDefinitionsType[Entity]["serde"]> | null> {
+  ): Promise<Readonly<
+    RuntimeType<EntityDefinitionsType[Entity]["serde"]>
+  > | null> {
     const entityDefinition = this.entityDefinitions[entity];
 
     const fromStorageArea = getEntityFromStorageArea(

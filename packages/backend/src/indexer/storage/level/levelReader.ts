@@ -37,7 +37,9 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
     entity: Entity,
     indexName: IndexName,
     args: IndexQueryArgs
-  ): AsyncGenerator<RuntimeType<EntityDefinitionsType[Entity]["serde"]>> {
+  ): AsyncGenerator<
+    Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>
+  > {
     const level = this.level;
     const entityDefinition = this.entityDefinitions[entity];
 
@@ -80,7 +82,9 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
   async getEntity<Entity extends keyof EntityDefinitionsType & string>(
     entity: Entity,
     id: string
-  ): Promise<RuntimeType<EntityDefinitionsType[Entity]["serde"]> | null> {
+  ): Promise<Readonly<
+    RuntimeType<EntityDefinitionsType[Entity]["serde"]>
+  > | null> {
     const entityDefinition = this.entityDefinitions[entity];
     const fromStorage = getEntityFromStorageArea(
       this.storageArea,

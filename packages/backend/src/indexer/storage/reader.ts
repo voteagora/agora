@@ -28,7 +28,9 @@ export interface Reader<EntityDefinitionsType extends EntityDefinitions> {
   getEntity<Entity extends keyof EntityDefinitionsType & string>(
     entity: Entity,
     id: string
-  ): Promise<RuntimeType<EntityDefinitionsType[Entity]["serde"]> | null>;
+  ): Promise<Readonly<
+    RuntimeType<EntityDefinitionsType[Entity]["serde"]>
+  > | null>;
 
   getEntitiesByIndex<
     Entity extends keyof EntityDefinitionsType & string,
@@ -37,7 +39,9 @@ export interface Reader<EntityDefinitionsType extends EntityDefinitions> {
     entity: Entity,
     indexName: IndexName,
     args: IndexQueryArgs
-  ): AsyncGenerator<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>;
+  ): AsyncGenerator<
+    Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>
+  >;
 }
 
 export type LookupValue<T> = {
@@ -106,7 +110,9 @@ export async function* getEntitiesByIndexFromStorageArea<
     startingKey: string,
     visitedValues: Set<string>
   ) => AsyncGenerator<{ entityId: string; indexKey: string; value: any }>
-): AsyncGenerator<RuntimeType<EntityDefinitionsType[Entity]["serde"]>> {
+): AsyncGenerator<
+  Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>
+> {
   const indexDefinition = entityDefinition.indexes.find(
     (indexDefinition) => indexDefinition.indexName === indexName
   )!;
@@ -199,26 +205,22 @@ export async function* getEntitiesByIndexFromStorageArea<
         heap.push({
           type: "VALUE",
           indexKey,
-          value,
+          value: serde.cloneSerdeValue(entityDefinition.serde, value),
         });
       }
-
-      const generator = makeGenerator(indexPrefix, startingKey, visitedValues);
-
-      const nextValue = await generator.next();
-      if (nextValue.done) {
-        break;
-      }
-
-      visitedValues.add(nextValue.value.entityId);
-
-      heap.push({
-        type: "GENERATOR",
-        indexKey: nextValue.value.indexKey,
-        value: nextValue.value.value,
-        generator: generator,
-      });
     }
+  }
+
+  const generator = makeGenerator(indexPrefix, startingKey, visitedValues);
+
+  const nextValue = await generator.next();
+  if (!nextValue.done) {
+    heap.push({
+      type: "GENERATOR",
+      indexKey: nextValue.value.indexKey,
+      value: nextValue.value.value,
+      generator: generator,
+    });
   }
 
   while (true) {
