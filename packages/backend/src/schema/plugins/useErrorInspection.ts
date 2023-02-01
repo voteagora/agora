@@ -1,5 +1,5 @@
 import { Plugin } from "@graphql-yoga/common";
-import { AgoraContextType } from "./schema/context";
+import { AgoraContextType } from "../context";
 
 export function useErrorInspection(): Plugin<AgoraContextType> {
   return {
