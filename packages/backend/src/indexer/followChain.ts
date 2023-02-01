@@ -135,9 +135,10 @@ export async function followChain(
         storageArea.blockStorageAreas.get(block.hash)?.entities ??
         new Map<string, EntityWithMetadata>();
 
-      storageArea.finalizedBlock = block;
       await store.flushUpdates(block, indexers, entities);
 
+      // todo: there is likely some race condition leading to some correctness bug
+      storageArea.finalizedBlock = block;
       storageArea.parents.delete(block.hash);
       storageArea.blockStorageAreas.delete(block.hash);
     }
