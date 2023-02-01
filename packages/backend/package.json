@@ -23,6 +23,7 @@
     "fetch-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph > ./src/schemas/nouns-subgraph.graphql",
     "build": "yarn build-generate-schema && yarn build-server",
     "start": "yarn build && yarn run generate && yarn run server",
+    "consistency-test": "ts-node src/indexer/bin/consistencyTest.ts",
     "test": "jest",
     "fetchSnapshotVotes": "ts-node --transpileOnly src/bin/scripts/fetchSnapshotVotes.ts",
     "loadSnapshotVotes": "ts-node --transpileOnly src/bin/scripts/loadSnapshotVotes.ts"
