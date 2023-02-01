@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 
+// todo: use other logs endpoint for this stuff and delete this
 export async function* getAllLogsGenerator(
   provider: ethers.providers.Provider,
   filter: ethers.EventFilter,

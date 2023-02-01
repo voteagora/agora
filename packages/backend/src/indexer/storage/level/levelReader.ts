@@ -30,7 +30,7 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
     this.storageArea = storageArea;
   }
 
-  async *getEntitiesByIndex<
+  getEntitiesByIndex<
     Entity extends keyof EntityDefinitionsType & string,
     IndexName extends EntityDefinitionsType[Entity]["indexes"][number]["indexName"]
   >(
@@ -68,6 +68,7 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
 
           const value = entityDefinition.serde.deserialize(rawValue);
           yield {
+            entityId,
             indexKey: indexKey,
             value,
           };

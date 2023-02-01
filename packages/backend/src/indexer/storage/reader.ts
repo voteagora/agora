@@ -80,7 +80,10 @@ export function getEntityFromStorageArea<
     if (blockStorageArea.entities.has(key)) {
       const fromStorage = blockStorageArea.entities.get(key)!;
       return {
-        value: serde.cloneSerdeValue(entityDefinition.serde, fromStorage),
+        value: serde.cloneSerdeValue(
+          entityDefinition.serde,
+          fromStorage.value as any
+        ),
       };
     }
   }
@@ -102,7 +105,7 @@ export async function* getEntitiesByIndexFromStorageArea<
     indexPrefix: string,
     startingKey: string,
     visitedValues: Set<string>
-  ) => AsyncGenerator<{ indexKey: string; value: any }>
+  ) => AsyncGenerator<{ entityId: string; indexKey: string; value: any }>
 ): AsyncGenerator<RuntimeType<EntityDefinitionsType[Entity]["serde"]>> {
   const indexDefinition = entityDefinition.indexes.find(
     (indexDefinition) => indexDefinition.indexName === indexName
@@ -206,6 +209,8 @@ export async function* getEntitiesByIndexFromStorageArea<
       if (nextValue.done) {
         break;
       }
+
+      visitedValues.add(nextValue.value.entityId);
 
       heap.push({
         type: "GENERATOR",
