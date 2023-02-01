@@ -32,12 +32,6 @@ variable "environment" {
 }
 
 
-module "ingestUpdatesFromChain" {
-  source                     = "../packages/backend/src/lambdas/ingestUpdatesFromChain/cloud"
-  application_data_table_arn = aws_dynamodb_table.application_data_table.arn
-  environment                = var.environment
-}
-
 module "loadSnapshotVotes" {
   source                     = "../packages/backend/src/lambdas/loadSnapshotVotes/cloud"
   application_data_table_arn = aws_dynamodb_table.application_data_table.arn
