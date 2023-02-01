@@ -23,7 +23,7 @@ async function main() {
         ...makeDelegateStatementKey(address.toLowerCase()),
         ...marshaller.marshallItem(
           makeStoredStatement(address.toLowerCase(), {
-            delegateStatement: description,
+            delegateStatement: description.replaceAll("<br>", "\n"),
           })
         ),
       } as any,
