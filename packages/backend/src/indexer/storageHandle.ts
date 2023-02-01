@@ -29,11 +29,22 @@ export type BlockIdentifier = {
   hash: string;
 };
 
+/**
+ * Traverses parents emitting blocks from nextBlock inclusive to
+ * endBlockIdentifier exclusive.
+ */
 export function* pathBetween(
   nextBlock: BlockIdentifier,
   endBlockIdentifier: BlockIdentifier,
   parents: ReadonlyMap<string, BlockIdentifier>
 ): Generator<BlockIdentifier> {
+  if (!(endBlockIdentifier.blockNumber <= nextBlock.blockNumber)) {
+    throw new Error(
+      "pathBetween requires the endBlockIdentifier have a block number be less " +
+        "than or equal to nextBlock"
+    );
+  }
+
   let block = nextBlock;
 
   while (true) {
