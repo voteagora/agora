@@ -6,17 +6,24 @@ import {
 import { BigNumber } from "ethers";
 import { ToucanInterface, withSentryScope } from "./sentry";
 import { getAllLogsGenerator } from "./events";
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { DynamoDB, Update } from "@aws-sdk/client-dynamodb";
 import { GovernanceTokenInterface } from "./contracts/generated/GovernanceToken";
 import { OptimismGovernorV1Interface } from "./contracts/generated/OptimismGovernorV1";
 import { chunk, isEqual } from "lodash";
-import { makeUpdateForAccount } from "./store/dynamo/delegates";
 import {
   ContractInstance,
   filterForEventHandlers,
   makeContractInstance,
   Signatures,
 } from "./contracts";
+import {
+  makeKey,
+  PartitionKey__MergedDelegatesStatementHolders,
+  PartitionKey__MergedDelegatesVotingPower,
+  setFields,
+  TableName,
+  updateExpression,
+} from "./store/dynamo/utils";
 
 export interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
@@ -703,4 +710,39 @@ export async function updateSnapshot<Snapshot extends any>(
         };
     }
   }, {}) as Snapshot;
+}
+
+function makeUpdateForAccount(
+  account: GovernanceAccount & { address: string }
+): Update {
+  return {
+    TableName,
+    Key: makeMergedDelegateKey(account.address),
+
+    ...updateExpression((exp) =>
+      setFields(exp, {
+        PartitionKey__MergedDelegatesVotingPower,
+        SortKey__MergedDelegatesVotingPower: account.represented
+          .toHexString()
+          .replace("0x", "")
+          .toLowerCase()
+          .padStart(256 / 4, "0"),
+        PartitionKey__MergedDelegatesStatementHolders,
+        SortKey__MergedDelegatesStatementHolders: account.representing.length
+          .toString()
+          .padStart(10, "0"),
+        address: account.address.toLowerCase(),
+        tokensOwned: account.balance.toString(),
+        tokensRepresented: account.represented.toString(),
+        tokenHoldersRepresented: account.representing.length,
+      })
+    ),
+  };
+}
+
+function makeMergedDelegateKey(address: string) {
+  return makeKey({
+    PartitionKey: "MergedDelegate",
+    SortKey: address.toLowerCase(),
+  });
 }
