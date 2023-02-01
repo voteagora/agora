@@ -5,7 +5,7 @@ export interface EntityStore extends ReadOnlyEntityStore {
   flushUpdates(
     blockIdentifier: BlockIdentifier,
     indexers: IndexerDefinition[],
-    entities: Map<string, EntityWithMetadata>
+    updatedEntities: EntityWithMetadata[]
   ): Promise<void>;
 }
 
