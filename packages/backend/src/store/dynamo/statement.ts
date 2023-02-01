@@ -23,9 +23,15 @@ export function makeDynamoStatementStorage(client: DynamoDB): StatementStorage {
         },
       });
 
-      return Object.values(results.Responses![TableName]).map(
-        (value) => marshaller.unmarshallItem(value) as StoredStatement | null
+      const statements = new Map(
+        Object.values(results.Responses![TableName])
+          .map((value) => marshaller.unmarshallItem(value) as StoredStatement)
+          .map((statement) => {
+            return [statement.address, statement];
+          })
       );
+
+      return keys.map((key) => statements.get(key) ?? null);
     },
     { batch: true, maxBatchSize: 100 }
   );
