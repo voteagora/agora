@@ -69,70 +69,128 @@ export function* pathBetween(
   }
 }
 
+type LoadedEntity = {
+  entity: EntityWithMetadata;
+  source: EntitySource;
+};
+
+type EntitySource =
+  | {
+      type: "BLOCK";
+      resolvedBlock: BlockIdentifier;
+      tipBlock: BlockIdentifier;
+      finalizedBlock: BlockIdentifier;
+    }
+  | {
+      type: "STORE";
+      tipBlock: BlockIdentifier;
+      finalizedBlock: BlockIdentifier;
+    };
+
 /**
  * A storage handle where writes are tracked on a per-block staging area. Reads
  * walk up the parent graph looking for the entity in each block's staging
  * area. After maxReorgBlocksDepth blocks, reads from ReadOnlyEntityStore.
  */
-export async function makeStorageHandleForStorageArea(
+export function makeStorageHandleForStorageArea(
   storageArea: StorageArea,
   block: BlockProviderBlock,
   store: ReadOnlyEntityStore,
   entityDefinitions: EntityDefinitions
-): Promise<StorageHandle<any>> {
-  return {
-    saveEntity(entity: string, id: string, value: any): void {
-      const blockStagingArea = getOrInsert(
-        storageArea.blockStorageAreas,
-        block.hash,
-        () => ({
-          entities: new Map(),
-        })
-      );
+): [StorageHandle<any>, LoadedEntity[]] {
+  const loadedEntities: LoadedEntity[] = [];
 
-      blockStagingArea.entities.set(
-        makeEntityKey(entity, id),
-        Object.freeze({
-          id,
-          entity,
-          value,
-        })
-      );
-    },
-
-    async loadEntity(entity: string, id: string): Promise<any | null> {
-      const entityDefinition = entityDefinitions[entity];
-      for (const blockIdentifier of pathBetween(
-        blockIdentifierFromBlock(block),
-        storageArea.finalizedBlock,
-        storageArea.parents
-      )) {
-        const stagingArea = storageArea.blockStorageAreas.get(
-          blockIdentifier.hash
+  return [
+    {
+      saveEntity(entity: string, id: string, value: any): void {
+        const blockStagingArea = getOrInsert(
+          storageArea.blockStorageAreas,
+          block.hash,
+          () => ({
+            entities: new Map(),
+          })
         );
-        if (!stagingArea) {
-          continue;
+
+        console.log({
+          write: {
+            block,
+            entity,
+            id,
+            value,
+            t: (value as any)["tokensRepresented"]?.toString(),
+          },
+        });
+
+        blockStagingArea.entities.set(
+          makeEntityKey(entity, id),
+          Object.freeze({
+            id,
+            entity,
+            value,
+          })
+        );
+      },
+
+      async loadEntity(entity: string, id: string): Promise<any | null> {
+        const entityDefinition = entityDefinitions[entity];
+        const tipBlock = blockIdentifierFromBlock(block);
+        const finalizedBlock = storageArea.finalizedBlock;
+        for (const blockIdentifier of pathBetween(
+          tipBlock,
+          finalizedBlock,
+          storageArea.parents
+        )) {
+          const stagingArea = storageArea.blockStorageAreas.get(
+            blockIdentifier.hash
+          );
+          if (!stagingArea) {
+            continue;
+          }
+
+          const key = makeEntityKey(entity, id);
+          const hasValue = stagingArea.entities.has(key);
+          if (!hasValue) {
+            continue;
+          }
+
+          const fromStaging = stagingArea.entities.get(key)!;
+
+          loadedEntities.push({
+            entity: fromStaging,
+            source: {
+              type: "BLOCK",
+              tipBlock,
+              finalizedBlock,
+              resolvedBlock: blockIdentifier,
+            },
+          });
+
+          return cloneSerdeValue(entityDefinition.serde, fromStaging.value);
         }
 
-        const key = makeEntityKey(entity, id);
-        const hasValue = stagingArea.entities.has(key);
-        if (!hasValue) {
-          continue;
+        const fromStore = await store.getEntity(entity, id);
+        if (!fromStore) {
+          return fromStore;
         }
 
-        const fromStaging = stagingArea.entities.get(key)!;
+        loadedEntities.push({
+          entity: {
+            entity,
+            id,
+            value: fromStore,
+          },
+          source: {
+            type: "STORE",
+            tipBlock,
+            finalizedBlock,
+          },
+        });
 
-        return cloneSerdeValue(entityDefinition.serde, fromStaging.value);
-      }
-
-      const fromStore = await store.getEntity(entity, id);
-      if (!fromStore) {
-        return fromStore;
-      }
-
-      return entityDefinition.serde.deserialize(fromStore);
+        return entityDefinition.serde.deserialize(fromStore);
+      },
     },
-  };
+    loadedEntities,
+  ];
 }
 
 /**
@@ -142,42 +200,46 @@ export async function makeStorageHandleForStorageArea(
 export function makeStorageHandleWithStagingArea(
   stagingArea: Map<string, EntityWithMetadata>,
   store: ReadOnlyEntityStore,
-  entityDefinitions: EntityDefinitions,
-  loadedEntities?: EntityWithMetadata[]
-): StorageHandle<any> {
-  return {
-    saveEntity(entity: string, id: string, value: unknown): void {
-      stagingArea.set(makeEntityKey(entity, id), {
-        entity,
-        id,
-        value,
-      });
-    },
-    async loadEntity(entity: string, id: string): Promise<any | null> {
-      const value = await (async () => {
-        const key = makeEntityKey(entity, id);
-        if (stagingArea.has(key)) {
-          const fromStagingArea = stagingArea.get(key)!;
-          return fromStagingArea.value;
-        }
+  entityDefinitions: EntityDefinitions
+): [StorageHandle<any>, EntityWithMetadata[]] {
+  const loadedEntities: EntityWithMetadata[] = [];
 
-        const fromStore = await store.getEntity(entity, id);
-        if (!fromStore) {
-          return fromStore;
-        }
-
-        return entityDefinitions[entity].serde.deserialize(fromStore);
-      })();
-
-      if (loadedEntities) {
-        loadedEntities.push({
+  return [
+    {
+      saveEntity(entity: string, id: string, value: unknown): void {
+        stagingArea.set(makeEntityKey(entity, id), {
           entity,
           id,
           value,
         });
-      }
+      },
+      async loadEntity(entity: string, id: string): Promise<any | null> {
+        const value = await (async () => {
+          const key = makeEntityKey(entity, id);
+          if (stagingArea.has(key)) {
+            const fromStagingArea = stagingArea.get(key)!;
+            return fromStagingArea.value;
+          }
 
-      return value;
+          const fromStore = await store.getEntity(entity, id);
+          if (!fromStore) {
+            return fromStore;
+          }
+
+          return entityDefinitions[entity].serde.deserialize(fromStore);
+        })();
+
+        if (loadedEntities) {
+          loadedEntities.push({
+            entity,
+            id,
+            value,
+          });
+        }
+
+        return value;
+      },
     },
-  };
+    loadedEntities,
+  ];
 }

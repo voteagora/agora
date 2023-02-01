@@ -72,18 +72,14 @@ async function main() {
         (e) => e.signature === event.signature
       )!;
 
-      const loadedEntities: EntityWithMetadata[] = [];
+      const [storageHandle, loadedEntities] = makeStorageHandleWithStagingArea(
+        entityBlockStagingArea,
+        store,
+        indexer.entities
+      );
+
       try {
-        await eventHandler.handle(
-          makeStorageHandleWithStagingArea(
-            entityBlockStagingArea,
-            store,
-            indexer.entities,
-            loadedEntities
-          ),
-          event as any,
-          log
-        );
+        await eventHandler.handle(storageHandle, event as any, log);
       } catch (e) {
         throw new StructuredError(
           {
@@ -101,12 +97,11 @@ async function main() {
     await store.flushUpdates(
       blockIdentifierFromLog(firstLog),
       indexers,
-      entityBlockStagingArea
+      Array.from(entityBlockStagingArea.values())
     );
   }
 
-  const totalEntries = new Map<string, any>();
-  await store.flushUpdates(highestCommonBlock, indexers, totalEntries);
+  await store.flushUpdates(highestCommonBlock, indexers, []);
 }
 
 function blockIdentifierFromLog(log: ethers.providers.Log): BlockIdentifier {

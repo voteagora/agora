@@ -39,13 +39,12 @@ export async function followChain(
   const storageArea = await makeInitialStorageArea(store);
 
   const filter = topicFilterForIndexers(indexers);
-  const topics = filter.topics[0];
 
   async function processBlock(
     block: BlockProviderBlock,
     logsCache?: Map<string, Log[]>
   ) {
-    const storageHandle = await makeStorageHandleForStorageArea(
+    const [storageHandle, loadedEntities] = makeStorageHandleForStorageArea(
       storageArea,
       block,
       store,
@@ -74,11 +73,14 @@ export async function followChain(
           logsSerde.deserialize(log)
         );
       } catch (e) {
+        console.log(event.args.delegate);
+        console.log(loadedEntities);
         throw new StructuredError(
           {
             log,
             event,
             storageArea,
+            loadedEntities,
           },
           e
         );
@@ -131,11 +133,15 @@ export async function followChain(
     });
 
     for (const block of chainToLastFinalizedBlock) {
-      const entities =
-        storageArea.blockStorageAreas.get(block.hash)?.entities ??
-        new Map<string, EntityWithMetadata>();
-
-      await store.flushUpdates(block, indexers, entities);
+      console.log({ flush: block });
+      await store.flushUpdates(
+        block,
+        indexers,
+        Array.from(
+          storageArea.blockStorageAreas.get(block.hash)?.entities?.values() ??
+            []
+        )
+      );
 
       // todo: there is likely some race condition leading to some correctness bug
       storageArea.finalizedBlock = block;
