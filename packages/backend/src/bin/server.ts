@@ -11,7 +11,7 @@ import { makeDynamoStatementStorage } from "../store/dynamo/statement";
 import { ethers } from "ethers";
 import { TransparentMultiCallProvider } from "../multicall";
 import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
-import { useErrorInspection } from "../useErrorInspection";
+import { useErrorInspection } from "../schema/plugins/useErrorInspection";
 import { followChain } from "../indexer/followChain";
 import { entityDefinitions, indexers } from "../indexer/contracts";
 import { LevelEntityStore } from "../indexer/storage/level/levelEntityStore";
