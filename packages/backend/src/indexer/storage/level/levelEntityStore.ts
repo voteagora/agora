@@ -66,20 +66,19 @@ export class LevelEntityStore implements EntityStore {
   async flushUpdates(
     block: BlockIdentifier,
     indexers: IndexerDefinition[],
-    entities: Map<string, EntityWithMetadata>
+    updatedEntities: EntityWithMetadata[]
   ): Promise<void> {
-    const values = Array.from(entities.values());
     const entityDefinitions = combineEntities(indexers);
 
     const oldValues = await this.level.getMany(
-      values.map((it) => makeEntityKey(it.entity, it.id))
+      updatedEntities.map((it) => makeEntityKey(it.entity, it.id))
     );
 
     const entries = oldValues.map((oldValue, idx) => {
       return {
-        entity: values[idx].entity,
-        id: values[idx].id,
-        newValue: values[idx].value,
+        entity: updatedEntities[idx].entity,
+        id: updatedEntities[idx].id,
+        newValue: updatedEntities[idx].value,
         oldValue,
       };
     });

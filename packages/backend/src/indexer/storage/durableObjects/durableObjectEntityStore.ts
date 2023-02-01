@@ -19,10 +19,9 @@ export class DurableObjectEntityStore implements EntityStore {
   async flushUpdates(
     blockIdentifier: BlockIdentifier,
     indexers: IndexerDefinition[],
-    entities: Map<string, EntityWithMetadata>
+    updatedEntities: EntityWithMetadata[]
   ): Promise<void> {
     const entityDefinitions = combineEntities(indexers);
-    const values = Array.from(entities.values());
 
     await this.storage.transaction(async (txn) => {
       // All operations here should be:
@@ -33,7 +32,7 @@ export class DurableObjectEntityStore implements EntityStore {
       //   with updates. If they're dropped, we can recreate them from the
       //   chain.
 
-      for (const { entity, id, value } of values) {
+      for (const { entity, id, value } of updatedEntities) {
         const entityDefinition = entityDefinitions[entity];
 
         txn.put(
