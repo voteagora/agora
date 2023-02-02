@@ -1,35 +1,16 @@
 import { BlockIdentifier } from "../../storageHandle";
 import { makeEntityKey } from "../../entityKey";
-import { EntityDefinition, IndexerDefinition } from "../../process";
-import { makeIndexKey } from "../../indexKey";
+import { IndexerDefinition } from "../../process";
 import {
   blockIdentifierKey,
   combineEntities,
   EntityStore,
   EntityWithMetadata,
 } from "../entityStore";
-import { BatchOperation, Level } from "level";
+import { Level } from "level";
 import { coerceLevelDbNotfoundError } from "./utils";
 import { StoredEntry } from "../dump";
-
-type LevelKeyType<LevelType extends Level> = LevelType extends Level<
-  infer KeyType
->
-  ? KeyType
-  : never;
-
-type LevelValueType<LevelType extends Level> = LevelType extends Level<
-  any,
-  infer ValueType
->
-  ? ValueType
-  : never;
-
-type LevelBatchOperation<LevelType extends Level> = BatchOperation<
-  LevelType,
-  LevelKeyType<LevelType>,
-  LevelValueType<LevelType>
->;
+import { updatesForEntities } from "../updates";
 
 export class LevelEntityStore implements EntityStore {
   readonly level: Level<string, any>;
@@ -83,65 +64,26 @@ export class LevelEntityStore implements EntityStore {
       };
     });
 
-    type BatchOperation = LevelBatchOperation<typeof this.level>;
+    await this.level.batch(
+      updatesForEntities(block, entries, entityDefinitions).map((it) => {
+        switch (it.type) {
+          case "PUT": {
+            return {
+              type: "put",
+              key: it.key,
+              value: it.value,
+            };
+          }
 
-    const operations: BatchOperation[] = entries.flatMap<BatchOperation>(
-      (entry) => {
-        const entityDefinition: EntityDefinition = (entityDefinitions as any)[
-          entry.entity
-        ]!;
-
-        return [
-          {
-            type: "put",
-            key: makeEntityKey(entry.entity, entry.id),
-            value: entityDefinition.serde.serialize(entry.newValue),
-          },
-          ...(entityDefinition.indexes ?? []).flatMap<BatchOperation>(
-            (indexDefinition): BatchOperation[] => {
-              return [
-                ...(() => {
-                  if (!entry.oldValue) {
-                    return [];
-                  }
-
-                  return [
-                    {
-                      type: "del" as const,
-                      key: makeIndexKey(indexDefinition, {
-                        entity: entry.entity,
-                        id: entry.id,
-                        value: entityDefinition.serde.deserialize(
-                          entry.oldValue
-                        ),
-                      }),
-                    },
-                  ];
-                })(),
-                {
-                  type: "put",
-                  key: makeIndexKey(indexDefinition, {
-                    entity: entry.entity,
-                    id: entry.id,
-                    value: entry.newValue,
-                  }),
-                  value: entry.id,
-                },
-              ];
-            }
-          ),
-        ];
-      }
+          case "DELETE": {
+            return {
+              type: "del",
+              key: it.key,
+            };
+          }
+        }
+      })
     );
-
-    await this.level.batch([
-      ...operations,
-      {
-        type: "put",
-        key: blockIdentifierKey,
-        value: block,
-      },
-    ]);
   }
 
   async getEntity(entity: string, id: string): Promise<any | null> {

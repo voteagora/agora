@@ -7,7 +7,7 @@ import {
 import { BlockIdentifier } from "../../storageHandle";
 import { IndexerDefinition } from "../../process";
 import { makeEntityKey } from "../../entityKey";
-import { makeIndexKey } from "../../indexKey";
+import { updatesForEntities } from "../updates";
 
 export class DurableObjectEntityStore implements EntityStore {
   private readonly storage: DurableObjectStorage;
@@ -23,56 +23,50 @@ export class DurableObjectEntityStore implements EntityStore {
   ): Promise<void> {
     const entityDefinitions = combineEntities(indexers);
 
+    const oldValues = await this.storage.get(
+      updatedEntities.map((it) => makeEntityKey(it.entity, it.id))
+    );
+
+    const updates = updatesForEntities(
+      blockIdentifier,
+      updatedEntities.map((it) => {
+        return {
+          entity: it.entity,
+          id: it.id,
+          newValue: it.value,
+          oldValue: oldValues.get(makeEntityKey(it.entity, it.id)),
+        };
+      }),
+      entityDefinitions
+    );
+
+    // All operations here should be:
+    // * allowConcurrency: true because we are fine with other reads and
+    //   writes happening after all reads.
+    //
+    // * allowUnconfirmed: true because we do not care about write durability
+    //   with updates. If they're dropped, we can recreate them from the
+    //   chain.
     await this.storage.transaction(async (txn) => {
-      // All operations here should be:
-      // * allowConcurrency: true because we are fine with other reads and
-      //   writes happening after all reads.
-      //
-      // * allowUnconfirmed: true because we do not care about write durability
-      //   with updates. If they're dropped, we can recreate them from the
-      //   chain.
-
-      for (const { entity, id, value } of updatedEntities) {
-        const entityDefinition = entityDefinitions[entity];
-
-        txn.put(
-          makeEntityKey(entity, id),
-          entityDefinition.serde.serialize(value),
-          {
-            allowConcurrency: true,
-            allowUnconfirmed: true,
-          }
-        );
-
-        for (const indexDefinition of entityDefinition.indexes) {
-          const oldValueRaw =
-            (await txn.get(makeEntityKey(entity, id), {
+      for (const update of updates) {
+        switch (update.type) {
+          case "PUT": {
+            txn.put(update.key, update.value, {
               allowConcurrency: true,
-            })) ?? null;
-
-          if (oldValueRaw) {
-            const oldValue = entityDefinition.serde.deserialize(oldValueRaw);
-            txn.delete(
-              makeIndexKey(indexDefinition, {
-                entity,
-                id,
-                value: oldValue,
-              }),
-              {
-                allowConcurrency: true,
-                allowUnconfirmed: true,
-              }
-            );
+              allowUnconfirmed: true,
+            });
+            break;
           }
 
-          txn.put(makeIndexKey(indexDefinition, { entity, id, value }), id, {
-            allowConcurrency: true,
-            allowUnconfirmed: true,
-          });
+          case "DELETE": {
+            txn.delete(update.key, {
+              allowConcurrency: true,
+              allowUnconfirmed: true,
+            });
+            break;
+          }
         }
       }
-
-      txn.put(blockIdentifierKey, blockIdentifier);
     });
   }
 
