@@ -167,7 +167,7 @@ export function ProposalsRootPage() {
         className={css`
           border: 1px solid ${theme.colors.gray[300]};
           border-radius: ${theme.borderRadius["xl"]};
-          margin: ${theme.spacing["4"]} a ${theme.spacing["12"]} 0;
+          margin: ${theme.spacing["4"]} 0 ${theme.spacing["12"]} 0;
           background-color: ${theme.colors.white};
           @media (max-width: ${theme.maxWidth.lg}) {
             max-width: calc(100% - ${theme.spacing["8"]});
