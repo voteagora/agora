@@ -14,6 +14,7 @@
     "backfill": "ts-node src/indexer/bin/backfill.ts",
     "tail": "ts-node src/indexer/bin/tail.ts",
     "dump": "ts-node src/indexer/bin/dump.ts",
+    "load": "ts-node src/indexer/bin/load.ts",
     "server": "ts-node --transpileOnly src/bin/server.ts",
     "generate-typechain": "typechain --target ethers-v5 --out-dir src/contracts/generated src/contracts/abis/*.json",
     "generate-schema-types": "graphql-codegen",
