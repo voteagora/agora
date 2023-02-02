@@ -83,12 +83,8 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
         orderBy: { type: "DelegatesOrder", defaultValue: mostVotingPower }
       )
       @refetchable(queryName: "DelegatesContainerPaginationQuery") {
-        voters: delegates(
-          first: $first
-          after: $after
-          orderBy: $orderBy
-          where: $filterBy
-        ) @connection(key: "DelegatesContainerFragment_voters") {
+        voters: delegates(first: $first, after: $after, orderBy: $orderBy)
+          @connection(key: "DelegatesContainerFragment_voters") {
           edges {
             node {
               id

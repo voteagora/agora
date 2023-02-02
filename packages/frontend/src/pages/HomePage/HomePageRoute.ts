@@ -8,12 +8,8 @@ import { parseOrderName } from "./DelegatesContainer";
 import { HomePageRouteQuery } from "./__generated__/HomePageRouteQuery.graphql";
 
 export const query = graphql`
-  query HomePageRouteQuery(
-    $orderBy: DelegatesOrder!
-    $filterBy: DelegatesWhere
-  ) {
-    ...DelegatesContainerFragment
-      @arguments(orderBy: $orderBy, filterBy: $filterBy)
+  query HomePageRouteQuery($orderBy: DelegatesOrder!) {
+    ...DelegatesContainerFragment @arguments(orderBy: $orderBy)
 
     ...OverviewMetricsContainerFragment
   }
