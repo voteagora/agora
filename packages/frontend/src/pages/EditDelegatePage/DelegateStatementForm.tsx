@@ -243,6 +243,13 @@ export function DelegateStatementForm({
         discord: formState.discord,
         openToSponsoringProposals: formState.openToSponsoringProposals ?? null,
       };
+
+      if (formState.openToSponsoringProposals !== "yes") {
+        throw new UserVisibleError(
+          "agree with the delegate code of conduct required"
+        );
+      }
+
       const serializedBody = JSON.stringify(signingBody, undefined, "\t");
 
       const variables: VariablesOf<DelegateStatementFormMutation> = {
