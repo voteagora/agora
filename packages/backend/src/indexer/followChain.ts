@@ -73,8 +73,6 @@ export async function followChain(
           logsSerde.deserialize(log)
         );
       } catch (e) {
-        console.log(event.args.delegate);
-        console.log(loadedEntities);
         throw new StructuredError(
           {
             log,
@@ -133,7 +131,6 @@ export async function followChain(
     });
 
     for (const block of chainToLastFinalizedBlock) {
-      console.log({ flush: block });
       await store.flushUpdates(
         block,
         indexers,
