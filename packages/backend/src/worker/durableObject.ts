@@ -11,12 +11,24 @@ import { makeToucanOptions, runReportingException } from "./sentry";
 import { ethers } from "ethers";
 import { makeInitialStorageArea } from "../indexer/followChain";
 import { DurableObjectEntityStore } from "../indexer/storage/durableObjects/durableObjectEntityStore";
-import { batch, limitGenerator } from "../indexer/utils/generatorUtils";
+import {
+  batch,
+  limitGenerator,
+  skipFirst,
+} from "../indexer/utils/generatorUtils";
+import {
+  makeYieldingWorkloadExecutor,
+  YieldingWorkloadExecutor,
+} from "./yieldingWorkload";
 
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
   private readonly env: Env;
   private readonly provider: ethers.providers.JsonRpcProvider;
+
+  private readonly yieldingWorkload: YieldingWorkloadExecutor<{
+    startingLineNumber: number;
+  }>;
 
   constructor(state: DurableObjectState, env: Env) {
     this.state = state;
@@ -25,29 +37,85 @@ export class StorageDurableObjectV1 {
       "optimism",
       env.ALCHEMY_API_KEY
     );
+
+    this.yieldingWorkload = makeYieldingWorkloadExecutor<{
+      startingLineNumber: number;
+    }>(this.state.storage, async (nextValue) => {
+      const startingLineNumber = nextValue?.startingLineNumber ?? 0;
+      console.log({ startingLineNumber });
+      if (startingLineNumber === 0) {
+        await this.state.storage.deleteAll({
+          allowConcurrency: true,
+          noCache: true,
+          allowUnconfirmed: true,
+        });
+      }
+
+      const inputHandle = await this.env.INDEXER_DUMPS.get("input.jsonl");
+      if (!inputHandle) {
+        throw new Error("input.jsonl not found");
+      }
+
+      const lines = inputHandle.body
+        .pipeThrough(new TextDecoderStream())
+        .pipeThrough(new TextLineStream());
+
+      let nextStartingLineNumber = startingLineNumber;
+
+      const entriesBatchSize = 128;
+
+      for await (const entriesBatch of batch(
+        (async function* () {
+          for await (const line of limitGenerator(
+            skipFirst(lines, startingLineNumber),
+            entriesBatchSize * 1000
+          )) {
+            nextStartingLineNumber++;
+            if (!line.length) {
+              continue;
+            }
+
+            const object = JSON.parse(line) as StoredEntry;
+
+            yield object;
+          }
+        })(),
+        entriesBatchSize
+      )) {
+        this.state.storage.put(
+          Object.fromEntries(entriesBatch.map((it) => [it.key, it.value])),
+          {
+            allowConcurrency: true,
+            allowUnconfirmed: true,
+            noCache: true,
+          }
+        );
+
+        if (entriesBatchSize > entriesBatch.length) {
+          return {
+            type: "TERMINATE",
+          };
+        }
+      }
+
+      console.log({ nextStartingLineNumber });
+
+      return {
+        type: "REPEAT",
+        value: {
+          startingLineNumber: nextStartingLineNumber,
+        },
+      };
+    });
   }
 
   async fetchWithSentry(request: Request, sentry: Toucan): Promise<Response> {
     const url = new URL(request.url);
     switch (url.pathname) {
       case "/load": {
-        const inputHandle = await this.env.INDEXER_DUMPS.get("input.jsonl");
-        if (!inputHandle) {
-          throw new Error("input.jsonl not found");
-        }
-
-        await loadEntries(inputHandle, this.state.storage);
+        await this.yieldingWorkload.start();
 
         return new Response("loaded from input.jsonl");
-      }
-
-      case "/dump": {
-        await this.env.INDEXER_DUMPS.put(
-          "output.jsonl",
-          dumpEntries(this.state.storage)
-        );
-
-        return new Response("dumped to output.jsonl");
       }
 
       case "/graphql": {
@@ -89,45 +157,8 @@ export class StorageDurableObjectV1 {
     );
   }
 
-  async alarm() {}
-}
-
-async function loadEntries(
-  r2ObjectBody: R2ObjectBody,
-  storage: DurableObjectStorage
-) {
-  const lines = r2ObjectBody.body
-    .pipeThrough(new TextDecoderStream())
-    .pipeThrough(new TextLineStream());
-
-  await storage.deleteAll({
-    allowConcurrency: true,
-    noCache: true,
-    allowUnconfirmed: true,
-  });
-
-  for await (const entriesBatch of batch(
-    (async function* () {
-      for await (const line of limitGenerator(lines, 100_000)) {
-        if (!line.length) {
-          continue;
-        }
-
-        const object = JSON.parse(line) as StoredEntry;
-
-        yield object;
-      }
-    })(),
-    128
-  )) {
-    storage.put(
-      Object.fromEntries(entriesBatch.map((it) => [it.key, it.value])),
-      {
-        allowConcurrency: true,
-        allowUnconfirmed: true,
-        noCache: true,
-      }
-    );
+  async alarm() {
+    await this.yieldingWorkload.execute();
   }
 }
 
