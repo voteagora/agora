@@ -5,6 +5,7 @@ import { ethers } from "ethers";
 import { BlockIdentifier } from "./storageHandle";
 import { Comparator, compareByTuple } from "./utils/sortUtils";
 import Heap from "heap";
+import { takeLast } from "./utils/generatorUtils";
 
 export async function loadLastLogIndex(
   reducer: IndexerDefinition
@@ -28,15 +29,6 @@ export async function loadLastLog(
   }
 
   return JSON.parse(last);
-}
-
-async function takeLast<T>(gen: AsyncIterable<T>): Promise<T | null> {
-  let lastValue = null;
-  for await (const item of gen) {
-    lastValue = item;
-  }
-
-  return lastValue;
 }
 
 export function pathForLogs(reducer: IndexerDefinition) {

@@ -9,8 +9,8 @@ import {
 import { indexers } from "../contracts";
 import { StructuredError } from "../utils/errorUtils";
 import { ethers } from "ethers";
-import ProgressBar from "progress";
 import { LevelEntityStore } from "../storage/level/levelEntityStore";
+import { makeProgressBar } from "../utils/progressBarUtils";
 
 /**
  * Backfills updates from fetched logs starting from the last finalized block
@@ -33,12 +33,7 @@ async function main() {
     return;
   }
 
-  const progressBar = new ProgressBar(
-    ":elapseds [:current/:total] :bar :percent @ :rate/s :etas remaining",
-    {
-      total: highestCommonBlock.blockNumber,
-    }
-  );
+  const progressBar = makeProgressBar(highestCommonBlock.blockNumber);
 
   let idx = 0;
   const blockLogGenerator = groupBy(loadMergedLogs(indexers), (log) =>
