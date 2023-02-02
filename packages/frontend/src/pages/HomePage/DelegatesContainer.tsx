@@ -10,10 +10,7 @@ import {
 } from "./__generated__/DelegatesContainerFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { CSSProperties, useState, useTransition } from "react";
-import {
-  DelegatesOrder,
-  DelegatesWhere,
-} from "./__generated__/DelegatesContainerPaginationQuery.graphql";
+import { DelegatesOrder } from "./__generated__/DelegatesContainerPaginationQuery.graphql";
 import { Selector, SelectorItem } from "./Selector";
 import { motion } from "framer-motion";
 import { useNavigate } from "../../components/HammockRouter/HammockRouter";
@@ -51,7 +48,7 @@ const pulseAnimation = keyframes`
   0%   {opacity: 0.2;}
   50%  {opacity: 0.8;}
   100% {opacity: 0.2;}
-`
+`;
 
 export function parseOrderName(orderName: string): DelegatesOrder | null {
   if (orderName in orderNames) {
@@ -60,21 +57,10 @@ export function parseOrderName(orderName: string): DelegatesOrder | null {
 
   return null;
 }
-
-export function parseFilterName(filterName: string): DelegatesWhere | null {
-  return (
-    filterNames.find((filter) => filter.value === filterName)?.value ?? null
-  );
-}
-
 export function DelegatesContainer({ fragmentKey, variables }: Props) {
   const [isPending, startTransition] = useTransition();
   const [localOrderBy, setLocalOrderBy] = useState<DelegatesOrder>(
     variables.orderBy
-  );
-
-  const [localFilterBy, setLocalFilterBy] = useState<DelegatesWhere | null>(
-    variables.filterBy
   );
 
   const navigate = useNavigate();
@@ -95,7 +81,6 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
         first: { type: "Int", defaultValue: 30 }
         after: { type: "String" }
         orderBy: { type: "DelegatesOrder", defaultValue: mostVotingPower }
-        filterBy: { type: "DelegatesWhere" }
       )
       @refetchable(queryName: "DelegatesContainerPaginationQuery") {
         voters: delegates(
@@ -232,17 +217,6 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
             `}
           >
             <DelegatePageInput />
-
-            <Selector
-              items={filterNames as SelectorItem<DelegatesWhere | null>[]}
-              value={isPending ? localFilterBy : variables.filterBy}
-              onChange={(filterBy) => {
-                setLocalFilterBy(filterBy);
-                startTransition(() => {
-                  navigate({ search: { filterBy: filterBy ?? null } });
-                });
-              }}
-            />
 
             <Selector
               items={Object.entries(orderNames).map(
