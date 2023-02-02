@@ -111,16 +111,6 @@ export function makeStorageHandleForStorageArea(
           })
         );
 
-        console.log({
-          write: {
-            block,
-            entity,
-            id,
-            value,
-            t: (value as any)["tokensRepresented"]?.toString(),
-          },
-        });
-
         blockStagingArea.entities.set(
           makeEntityKey(entity, id),
           Object.freeze({
