@@ -90,3 +90,12 @@ export async function collectGenerator<T>(
 
   return items;
 }
+
+export async function takeLast<T>(gen: AsyncIterable<T>): Promise<T | null> {
+  let lastValue = null;
+  for await (const item of gen) {
+    lastValue = item;
+  }
+
+  return lastValue;
+}

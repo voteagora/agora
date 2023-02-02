@@ -9,7 +9,9 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
   if (
     url.pathname === "/graphql" ||
     url.pathname === "/load" ||
-    url.pathname === "/dump"
+    url.pathname === "/dump" ||
+    url.pathname === "/inspect" ||
+    url.pathname === "/admin/ws"
   ) {
     const object = env.STORAGE_OBJECT.get(
       env.STORAGE_OBJECT.idFromName("stable")

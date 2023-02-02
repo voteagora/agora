@@ -23,6 +23,7 @@
     "visualize-worker-bundle": "esbuild-visualizer ---metadata ./dist/meta.json",
     "fetch-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph > ./src/schemas/nouns-subgraph.graphql",
     "build": "yarn build-generate-schema && yarn build-server",
+    "stream": "ts-node src/indexer/bin/stream.ts",
     "start": "yarn build && yarn run generate && yarn run server",
     "consistency-test": "ts-node src/indexer/bin/consistencyTest.ts",
     "test": "jest",
@@ -61,6 +62,7 @@
     "toucan-js": "^2.6.1",
     "uuid": "^9.0.0",
     "web3": "^1.8.1",
+    "ws": "^8.12.0",
     "wrangler": "^2.9.0",
     "zod": "3.14.2"
   },
@@ -78,6 +80,7 @@
     "@types/node": "^18.7.18",
     "@types/progress": "^2.0.5",
     "@types/uuid": "^8.3.4",
+    "@types/ws": "^8.5.4",
     "dedent": "^0.7.0",
     "esbuild": "^0.15.7",
     "esbuild-plugin-copy": "^1.3.0",

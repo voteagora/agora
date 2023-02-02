@@ -17,9 +17,11 @@ import {
   skipFirst,
 } from "../indexer/utils/generatorUtils";
 import {
+  alarmValueKey,
   makeYieldingWorkloadExecutor,
   YieldingWorkloadExecutor,
 } from "./yieldingWorkload";
+import { AdminWebsocketMessage } from "../indexer/adminSocket/types";
 
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
@@ -115,7 +117,40 @@ export class StorageDurableObjectV1 {
       case "/load": {
         await this.yieldingWorkload.start();
 
-        return new Response("loaded from input.jsonl");
+        return new Response("loaded first chunk from input.jsonl");
+      }
+
+      case "/admin/ws": {
+        const upgradeHeader = request.headers.get("Upgrade");
+        if (!upgradeHeader || upgradeHeader !== "websocket") {
+          return new Response("Expected Upgrade: websocket", { status: 426 });
+        }
+
+        const webSocketPair = new WebSocketPair();
+        const [client, server] = Object.values(webSocketPair);
+
+        // @ts-ignore
+        server.accept();
+
+        server.addEventListener("message", (event) => {
+          const message: AdminWebsocketMessage = JSON.parse(event.data);
+
+          this.state.storage.put(
+            Object.fromEntries(message.items.map((it) => [it.key, it.value]))
+          );
+        });
+
+        return new Response(null, {
+          status: 101,
+          webSocket: client,
+        });
+      }
+
+      case "/inspect": {
+        const entityStore = new DurableObjectEntityStore(this.state.storage);
+        const value = await this.state.storage.get(alarmValueKey);
+        const finalizedBlock = await entityStore.getFinalizedBlock();
+        return new Response(JSON.stringify({ value, finalizedBlock }));
       }
 
       case "/graphql": {
