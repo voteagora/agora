@@ -14,8 +14,8 @@ import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
 import { useErrorInspection } from "../schema/plugins/useErrorInspection";
 import { followChain } from "../indexer/followChain";
 import { entityDefinitions, indexers } from "../indexer/contracts";
-import { LmdbEntityStore } from "../indexer/storage/lmdb/lmdbEntityStore";
-import { LmdbReader } from "../indexer/storage/lmdb/lmdbReader";
+import { LevelEntityStore } from "../indexer/storage/level/levelEntityStore";
+import { LevelReader } from "../indexer/storage/level/levelReader";
 
 // p0
 // todo: where are delegate statements going to be stored?
@@ -31,7 +31,7 @@ import { LmdbReader } from "../indexer/storage/lmdb/lmdbReader";
 
 async function main() {
   const schema = makeGatewaySchema();
-  const store = await LmdbEntityStore.open();
+  const store = await LevelEntityStore.open();
 
   const baseProvider = new ethers.providers.AlchemyProvider(
     "optimism",
@@ -39,7 +39,7 @@ async function main() {
   );
 
   const storageArea = await followChain(store, indexers, baseProvider);
-  const reader = new LmdbReader(entityDefinitions, store, storageArea);
+  const reader = new LevelReader(entityDefinitions, store.level, storageArea);
 
   const dynamoDb = new DynamoDB({});
 
