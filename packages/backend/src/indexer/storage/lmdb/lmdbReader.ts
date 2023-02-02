@@ -8,6 +8,7 @@ import {
 import { StorageArea } from "../../followChain";
 import { RuntimeType } from "../../serde";
 import { LmdbEntityStore } from "./lmdbEntityStore";
+import { makeEntityKey } from "../../entityKey";
 
 export class LmdbReader<EntityDefinitionsType extends EntityDefinitions>
   implements Reader<EntityDefinitionsType>
@@ -60,7 +61,7 @@ export class LmdbReader<EntityDefinitionsType extends EntityDefinitions>
             continue;
           }
 
-          const rawValue = lmdb.get(entityId);
+          const rawValue = lmdb.get(makeEntityKey(entity, entityId));
           if (!rawValue) {
             throw new Error("index value not found");
           }
