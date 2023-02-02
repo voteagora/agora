@@ -2,7 +2,7 @@
   "name": "nouns-agora",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://68.183.52.84:3000/",
+  "proxy": "http://68.183.52.84:4001/",
   "dependencies": {
     "@emotion/css": "^11.10.0",
     "@ensdomains/ens-avatar": "^0.1.8",
