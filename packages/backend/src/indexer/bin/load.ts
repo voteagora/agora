@@ -1,13 +1,12 @@
-import { LevelEntityStore } from "../storage/level/levelEntityStore";
 import { createReadStream } from "fs";
 import * as readline from "readline";
 import { StoredEntry } from "../storage/dump";
+import { LmdbEntityStore } from "../storage/lmdb/lmdbEntityStore";
 
 async function main() {
-  const entityStore = await LevelEntityStore.open();
-  const level = entityStore.level;
+  const entityStore = await LmdbEntityStore.open();
 
-  await level.clear();
+  await entityStore.lmdb.clearAsync();
 
   for await (const line of readline.createInterface({
     input: createReadStream("dump.jsonl"),
@@ -18,7 +17,7 @@ async function main() {
     }
 
     const item = JSON.parse(line) as StoredEntry;
-    await level.put(item.key, item.value);
+    entityStore.lmdb.put(item.key, item.value);
   }
 }
 
