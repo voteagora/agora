@@ -12,8 +12,8 @@ import { efficientLengthEncodingNaturalNumbers } from "../utils/efficientLengthE
 
 export const governorTokenContract = makeContractInstance({
   iface: OptimismGovernorV1__factory.createInterface(),
-  address: "0x4200dfa134da52d9c96f523af1fcb507199b1042",
-  startingBlock: 60786205,
+  address: "0xcDF27F107725988f2261Ce2256bDfCdE8B382B10",
+  startingBlock: 71801427,
 });
 
 export const governorIndexer = makeIndexerDefinition(governorTokenContract, {

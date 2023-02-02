@@ -1,5 +1,0 @@
-type Account @entity {
-  id: Bytes!
-  amountOwned: BigInt!
-  tokensRepresented: BigInt!
-}
