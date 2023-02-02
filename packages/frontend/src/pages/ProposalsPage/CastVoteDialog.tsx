@@ -18,6 +18,7 @@ import { OptimismGovernorV1 } from "../../contracts/generated";
 import { governorTokenContract } from "../../contracts/contracts";
 import { useContractWrite } from "../../hooks/useContractWrite";
 import { useAccount } from "wagmi";
+import { Link } from "../../components/HammockRouter/Link";
 
 type Props = {
   proposalId: string;
@@ -75,6 +76,10 @@ function CastVoteDialogContents({
     graphql`
       query CastVoteDialogQuery($accountAddress: String!, $skip: Boolean!) {
         delegate(addressOrEnsName: $accountAddress) @skip(if: $skip) {
+          statement {
+            __typename
+          }
+
           address {
             resolvedName {
               ...NounResolvedLinkFragment
@@ -186,7 +191,21 @@ function CastVoteDialogContents({
         the user already voted if write is unavailable */}
         {/* TODO: Make it obvious that the user already voted. Right now the button is just disabled
         Haven't done-so yet because the text "Already Voted" makes the button look ugly*/}
-        <VoteButton onClick={write}>Vote</VoteButton>
+        {delegate.statement ? (
+          <VoteButton onClick={write}>Vote</VoteButton>
+        ) : (
+          <div>
+            You do not have a delegate statement.{" "}
+            <Link
+              to="/create"
+              className={css`
+                text-decoration: underline;
+              `}
+            >
+              Set one up first.
+            </Link>
+          </div>
+        )}
       </HStack>
     </VStack>
   );

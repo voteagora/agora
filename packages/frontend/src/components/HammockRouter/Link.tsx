@@ -1,5 +1,6 @@
 import { CSSProperties, ReactNode } from "react";
 import { useNavigate } from "./HammockRouter";
+import { useOpenDialogOptional } from "../DialogProvider/DialogProvider";
 
 type Props = {
   to: string;
@@ -10,6 +11,7 @@ type Props = {
 
 export function Link({ to, className, children, style }: Props) {
   const navigate = useNavigate();
+  const openDialog = useOpenDialogOptional();
 
   return (
     <a
@@ -26,7 +28,9 @@ export function Link({ to, className, children, style }: Props) {
         }
 
         event.preventDefault();
-        navigate({ path: to }, true);
+        navigate({ path: to }, true, () => {
+          openDialog?.(null);
+        });
       }}
     >
       {children}
