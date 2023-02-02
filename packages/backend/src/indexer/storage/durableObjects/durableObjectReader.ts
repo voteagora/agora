@@ -29,7 +29,7 @@ export class DurableObjectReader<
     this.storageArea = storageArea;
   }
 
-  async *getEntitiesByIndex<
+  getEntitiesByIndex<
     Entity extends keyof EntityDefinitionsType & string,
     IndexName extends EntityDefinitionsType[Entity]["indexes"][0]["indexName"]
   >(
@@ -65,6 +65,9 @@ export class DurableObjectReader<
           // todo: there is a consistency bug here. it might not be very important though
           const rawValue = await storage.get(makeEntityKey(entity, entityId));
           if (!rawValue) {
+            continue;
+
+            // todo: why does this happen
             throw new Error("index value not found");
           }
 
