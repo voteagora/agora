@@ -1,4 +1,4 @@
-import { LevelEntityStore } from "../storage/level/levelEntityStore";
+import { LevelEntityStore } from "../../indexer/storage/level/levelEntityStore";
 
 export async function main() {
   const entityStore = await LevelEntityStore.open();
