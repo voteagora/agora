@@ -275,7 +275,7 @@ export function HammockRouter({ children }: Props) {
         }
       });
     },
-    [setCurrentRoute, currentRoute, startTransition]
+    [setCurrentRoute, currentRoute, startTransition, relayEnvironment]
   );
 
   return (

@@ -29,21 +29,6 @@ const orderNames: { [K in DelegatesOrder]?: string } = {
   mostDelegates: "Most delegates",
 };
 
-const filterNames = [
-  {
-    title: "View all",
-    value: null,
-  },
-  {
-    title: "View with statement",
-    value: "withStatement" as const,
-  },
-  {
-    title: "View without statement",
-    value: "withoutStatement" as const,
-  },
-];
-
 const pulseAnimation = keyframes`
   0%   {opacity: 0.2;}
   50%  {opacity: 0.8;}
@@ -305,6 +290,9 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
 
               case "LOAD_MORE_SENTINEL":
                 return null;
+
+              default:
+                throw new Error("unknown");
             }
           })}
         </div>

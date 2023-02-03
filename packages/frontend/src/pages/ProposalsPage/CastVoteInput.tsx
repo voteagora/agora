@@ -107,21 +107,6 @@ function VoteButton({
   );
 }
 
-function DisabledVoteButton({ reason }: { reason: string }) {
-  return (
-    <button
-      disabled
-      className={css`
-        ${voteButtonStyles};
-        box-shadow: none;
-        width: 100%;
-      `}
-    >
-      {reason}
-    </button>
-  );
-}
-
 const voteButtonStyles = css`
   ${buttonStyles};
   height: ${theme.spacing["8"]};

@@ -41,7 +41,7 @@ export function TokenAmountDisplay({
       .filter((part) => part.type !== "currency" && part.type !== "literal")
       .map((part) => part.value)
       .join("");
-  }, [amount, decimals]);
+  }, [amount, decimals, maximumSignificantDigits]);
 
   return (
     <>
