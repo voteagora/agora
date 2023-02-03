@@ -162,14 +162,18 @@ export const Delegate: DelegateResolvers = {
     return tokensRepresented;
   },
 
-  async delegateMetrics({ address, accountsRepresented }, _args, { reader }) {
+  async delegateMetrics(
+    { address, accountsRepresentedCount },
+    _args,
+    { reader }
+  ) {
     const votes = await votesForAddress(reader, address);
     const proposed = await proposedByAddress(reader, address);
     const totalProposals = (await getGovernanceAggregate(reader))
       .totalProposals;
 
     return {
-      tokenHoldersRepresentedCount: accountsRepresented.length,
+      tokenHoldersRepresentedCount: accountsRepresentedCount.toNumber(),
       totalVotes: votes.length,
       forVotes: votes.filter((vote) => vote.support === 1).length,
       againstVotes: votes.filter((vote) => vote.support === 0).length,
