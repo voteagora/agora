@@ -72,12 +72,6 @@ jobs:
           command: install
           args: wasm-pack
 
-      - name: Build render-opengraph
-        working-directory: ./packages/render-opengraph
-        run: |
-          wasm-pack build --target web
-          rm pkg/render_opengraph_bg.wasm.d.ts
-
       - run: yarn workspace nouns-agora-backend run generate
 
       - name: Typescript
