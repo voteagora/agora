@@ -29,7 +29,7 @@
     "consistency-test": "ts-node src/bin/scripts/consistencyTest.ts",
     "test": "jest",
     "fetchSnapshotVotes": "ts-node --transpileOnly src/bin/scripts/fetchSnapshotVotes.ts",
-    "loadSnapshotVotes": "ts-node --transpileOnly src/bin/scripts/loadSnapshotVotes.ts"
+    "loadSnapshotVotes": "ts-node --transpileOnly src/bin/scripts/loadSnapshotVotes/run.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.199.0",
