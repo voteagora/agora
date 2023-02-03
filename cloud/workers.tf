@@ -11,6 +11,7 @@ resource "aws_iam_user_policy" "workers-execution-policy" {
         Effect = "Allow",
         Action = [
           "dynamodb:GetItem",
+          "dynamodb:BatchGetItem",
           "dynamodb:Query",
           "dynamodb:TransactWriteItems",
           "dynamodb:PutItem",
