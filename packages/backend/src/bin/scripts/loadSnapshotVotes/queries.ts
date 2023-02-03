@@ -1,7 +1,7 @@
 import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 import request from "graphql-request";
-import { graphql } from "../../../lambdas/loadSnapshotVotes/graphql";
-import { Exact } from "../../../lambdas/loadSnapshotVotes/graphql/graphql";
+import { graphql } from "./graphql";
+import { Exact } from "./graphql/graphql";
 import { RateLimiter } from "limiter";
 
 export const url = "https://hub.snapshot.org/graphql";
@@ -15,9 +15,9 @@ export function fetchProposals(space: string) {
 export const proposalsQuery = graphql(/* GraphQL */ `
   query ProposalsQuery($space: String!, $first: Int!, $cursor: Int) {
     items: proposals(
-      where: { space: $space, created_lte: $cursor }
+      where: { space: $space, created_gte: $cursor }
       orderBy: "created"
-      orderDirection: desc
+      orderDirection: asc
       first: $first
     ) {
       id
@@ -68,9 +68,9 @@ export function fetchVotes(space: string) {
 export const votesQuery = graphql(/* GraphQL */ `
   query VotesQuery($space: String!, $first: Int!, $cursor: Int) {
     items: votes(
-      where: { space: $space, created_lte: $cursor }
+      where: { space: $space, created_gte: $cursor }
       orderBy: "created"
-      orderDirection: desc
+      orderDirection: asc
       first: $first
     ) {
       app
@@ -196,11 +196,12 @@ export async function* getAllFromQuery<
 >(
   query: Query,
   variables: Omit<VariablesOf<Query>, "first" | "cursor">,
+  initialCursor?: number,
   limits: LimitsType = defaultLimits
 ): AsyncGenerator<
   Array<NonNullable<NonNullable<ResultOf<Query>["items"]>[0]>>
 > {
-  let cursor = undefined;
+  let cursor = initialCursor;
 
   for (let pageIndex = 0; true; pageIndex++) {
     const first = limits.first;
