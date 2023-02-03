@@ -31,25 +31,33 @@ export class StorageDurableObjectV1 {
 
   async fetchWithSentry(request: Request, sentry: Toucan): Promise<Response> {
     const url = new URL(request.url);
-    switch (url.pathname) {
-      case "/admin/ops": {
-        if (request.method !== "POST") {
-          throw new Error("invalid");
+    if (url.pathname.startsWith("/admin/")) {
+      if (request.headers.get("x-admin-api-key") !== this.env.ADMIN_API_KEY) {
+        throw new Error("invalid value for x-admin-api-key");
+      }
+
+      switch (url.pathname) {
+        case "/admin/ops": {
+          if (request.method !== "POST") {
+            throw new Error("invalid");
+          }
+
+          const message = await request.json<AdminMessage>();
+          return await this.fetchAdminMessage(message);
         }
 
-        const message = await request.json<AdminMessage>();
-        return await this.fetchAdminMessage(message);
+        case "/admin/dump": {
+          const stream = dumpEntries(this.state.storage);
+          return new Response(stream, {
+            headers: {
+              "Content-Disposition": 'attachment; filename="dump.jsonl"',
+            },
+          });
+        }
       }
+    }
 
-      case "/admin/dump": {
-        const stream = dumpEntries(this.state.storage);
-        return new Response(stream, {
-          headers: {
-            "Content-Disposition": 'attachment; filename="dump.jsonl"',
-          },
-        });
-      }
-
+    switch (url.pathname) {
       case "/inspect": {
         const entityStore = new DurableObjectEntityStore(this.state.storage);
         return new Response(

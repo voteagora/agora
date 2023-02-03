@@ -16,6 +16,7 @@ durable_objects.bindings = [
 ENVIRONMENT = "dev"
 DEPLOYMENT = "optimism"
 HONEYCOMB_DATASET = "nouns-agora-dev"
+ADMIN_API_KEY = ''
 
 [env.prod]
 name = "optimism-agora-prod"

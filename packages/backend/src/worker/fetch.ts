@@ -8,8 +8,6 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
   const url = new URL(request.url);
   if (
     url.pathname === "/graphql" ||
-    url.pathname === "/load" ||
-    url.pathname === "/dump" ||
     url.pathname === "/inspect" ||
     url.pathname.startsWith("/admin/")
   ) {

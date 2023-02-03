@@ -23,6 +23,9 @@ export async function sendAdminMessage(message: AdminMessage) {
         {
           method: "POST",
           body: JSON.stringify(message),
+          headers: {
+            "x-admin-api-key": process.env.ADMIN_API_KEY!,
+          },
         }
       );
       if (response.status !== 200) {
