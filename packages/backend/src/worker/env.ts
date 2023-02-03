@@ -4,6 +4,7 @@ export interface Env {
   SENTRY_DSN: string;
   ALCHEMY_API_KEY: string;
   GITHUB_SHA: string;
+  ADMIN_API_KEY: string;
 
   EMAILS: KVNamespace;
   __STATIC_CONTENT: KVNamespace;
