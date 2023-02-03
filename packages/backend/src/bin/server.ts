@@ -12,10 +12,11 @@ import { ethers } from "ethers";
 import { TransparentMultiCallProvider } from "../multicall";
 import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
 import { useErrorInspection } from "../schema/plugins/useErrorInspection";
-import { followChain } from "../indexer/followChain";
+import { followChain, makeInitialStorageArea } from "../indexer/followChain";
 import { entityDefinitions, indexers } from "../indexer/contracts";
 import { LevelEntityStore } from "../indexer/storage/level/levelEntityStore";
 import { LevelReader } from "../indexer/storage/level/levelReader";
+import { timeout } from "../indexer/utils/asyncUtils";
 
 // p0
 // todo: where are delegate statements going to be stored?
@@ -38,7 +39,20 @@ async function main() {
     process.env.ALCHEMY_API_KEY
   );
 
-  const storageArea = await followChain(store, indexers, baseProvider);
+  const storageArea = await makeInitialStorageArea(store);
+  const iter = followChain(store, indexers, baseProvider, storageArea);
+  const _ = (async () => {
+    while (true) {
+      const value = await iter();
+      console.log({ value });
+      switch (value.type) {
+        case "TIP": {
+          await timeout(1000);
+        }
+      }
+    }
+  })();
+
   const reader = new LevelReader(entityDefinitions, store.level, storageArea);
 
   const dynamoDb = new DynamoDB({});
