@@ -39,15 +39,6 @@ export function updatesForEntities(
         },
         ...entityDefinition.indexes.flatMap((indexDefinition) => {
           return [
-            {
-              type: "PUT" as const,
-              key: makeIndexKey(indexDefinition, {
-                entity: change.entity,
-                id: change.id,
-                value: change.newValue,
-              }),
-              value: change.id,
-            },
             ...(() => {
               if (!change.oldValue) {
                 return [];
@@ -64,6 +55,15 @@ export function updatesForEntities(
                 },
               ];
             })(),
+            {
+              type: "PUT" as const,
+              key: makeIndexKey(indexDefinition, {
+                entity: change.entity,
+                id: change.id,
+                value: change.newValue,
+              }),
+              value: change.id,
+            },
           ];
         }),
       ];
