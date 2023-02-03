@@ -7,9 +7,9 @@ import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { OverviewMetricsContainerFragment$key } from "./__generated__/OverviewMetricsContainerFragment.graphql";
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
-import { BigNumber } from "ethers";
 import { CalendarIcon } from "@heroicons/react/20/solid";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
+import { bpsToString } from "../../utils/bps";
 
 type Props = {
   fragmentRef: OverviewMetricsContainerFragment$key;
@@ -83,53 +83,18 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
           </>
         }
       />
-      <HStack
-        gap="3"
-        className={css`
-          background: ${theme.colors.white};
-          border-radius: ${theme.spacing["3"]};
-          padding: ${theme.spacing["3"]};
-          border-width: ${theme.spacing.px};
-          border-color: ${theme.colors.gray["300"]};
-          box-shadow: ${theme.boxShadow.newDefault};
-        `}
-      >
-        <div
-          className={css`
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: ${theme.spacing["2"]};
-            border-width: ${theme.spacing.px};
-            border-color: ${theme.colors.gray["300"]};
-            background: ${color};
-            flex-shrink: 0;
-            padding: ${theme.spacing["3"]};
-          `}
-        >
-          <img
-            className={css`
-              width: 24px;
-              height: 24px;
-            `}
-            src={icons.ballot}
-            alt={icons.ballot}
-          />
-        </div>
-        <VStack>
-          <div
-            className={css`
-              font-size: ${theme.fontSize.sm};
-              color: ${theme.colors.gray["700"]};
-            `}
-          >
-            Quorum
-          </div>
-          <HStack gap="2" alignItems="center">
-            <div>30% of delegated tokens </div>
-          </HStack>
-        </VStack>
-      </HStack>
+
+      <MetricContainer
+        icon="ballot"
+        title="Quorum"
+        body={
+          <>
+            <TokenAmountDisplay fragment={metrics.quorum.amount} /> (
+            {bpsToString(metrics.quorum.bpsOfTotal)} of supply)
+          </>
+        }
+      />
+
       <a
         href="https://github.com/ethereum-optimism/OPerating-manual/blob/main/manual.md"
         target="_blank"
