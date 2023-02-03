@@ -5,6 +5,9 @@ export type AdminMessage =
       type: "START";
     }
   | {
+      type: "STOP";
+    }
+  | {
       type: "STEP";
     }
   | {

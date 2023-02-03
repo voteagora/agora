@@ -63,6 +63,7 @@ export class StorageDurableObjectV1 {
         return new Response(
           JSON.stringify({
             alarm: await this.state.storage.getAlarm(),
+            stopSentinel: await this.state.storage.get(stopSentinel),
             block: await entityStore.getFinalizedBlock(),
           })
         );
@@ -101,6 +102,11 @@ export class StorageDurableObjectV1 {
     switch (message.type) {
       case "START": {
         await this.state.storage.setAlarm(Date.now());
+        break;
+      }
+
+      case "STOP": {
+        await this.state.storage.put(stopSentinel, true);
         break;
       }
 
@@ -149,6 +155,12 @@ export class StorageDurableObjectV1 {
   }
 
   async alarmWithSentry() {
+    const stopSentinelValue = await this.state.storage.get(stopSentinel);
+    if (stopSentinelValue) {
+      await this.state.storage.delete(stopSentinel);
+      return;
+    }
+
     await this.state.storage.deleteAlarm();
     const result = await this.stepChainForward();
     await this.state.storage.setAlarm(
@@ -196,3 +208,5 @@ function dumpEntries(
     })()
   ).pipeThrough(new TextEncoderStream());
 }
+
+const stopSentinel = "stopSentinel";
