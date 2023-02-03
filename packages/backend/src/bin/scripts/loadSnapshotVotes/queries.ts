@@ -1,10 +1,16 @@
 import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 import request from "graphql-request";
-import { graphql } from "./graphql";
-import { Exact } from "./graphql/graphql";
+import { graphql } from "../../../lambdas/loadSnapshotVotes/graphql";
+import { Exact } from "../../../lambdas/loadSnapshotVotes/graphql/graphql";
 import { RateLimiter } from "limiter";
 
 export const url = "https://hub.snapshot.org/graphql";
+
+export function fetchProposals(space: string) {
+  return getAllFromQuery(proposalsQuery, {
+    space,
+  });
+}
 
 export const proposalsQuery = graphql(/* GraphQL */ `
   query ProposalsQuery($space: String!, $first: Int!, $cursor: Int) {
@@ -52,6 +58,12 @@ export const proposalsQuery = graphql(/* GraphQL */ `
     }
   }
 `);
+
+export function fetchVotes(space: string) {
+  return getAllFromQuery(votesQuery, {
+    space,
+  });
+}
 
 export const votesQuery = graphql(/* GraphQL */ `
   query VotesQuery($space: String!, $first: Int!, $cursor: Int) {
@@ -185,8 +197,9 @@ export async function* getAllFromQuery<
   query: Query,
   variables: Omit<VariablesOf<Query>, "first" | "cursor">,
   limits: LimitsType = defaultLimits
-): AsyncGenerator<ResultOf<Query>["items"]> {
-  const allItems = [];
+): AsyncGenerator<
+  Array<NonNullable<NonNullable<ResultOf<Query>["items"]>[0]>>
+> {
   let cursor = undefined;
 
   for (let pageIndex = 0; true; pageIndex++) {
@@ -211,29 +224,30 @@ export async function* getAllFromQuery<
         continue;
       }
 
-      if (!result?.items?.length) {
-        return allItems;
-      }
-
-      const items: { created: number }[] = result.items.flatMap((it) => {
+      const items: Array<
+        NonNullable<NonNullable<ResultOf<Query>["items"]>[0]> & {
+          created: number;
+        }
+      > = (result.items ?? []).flatMap((it) => {
         if (it) {
           return [it];
         } else {
           return [];
         }
-      });
+      }) as any;
       const lastItem = items[items.length - 1];
       const filteredItems = items.filter(
         (it) => it.created !== lastItem.created
       );
 
-      allItems.push(...filteredItems);
+      yield filteredItems;
+
       if (cursor === lastItem.created) {
         if (items.length === limits.first) {
           throw new Error("many items with the same cursor value");
         }
 
-        return allItems;
+        return;
       }
 
       cursor = lastItem.created;

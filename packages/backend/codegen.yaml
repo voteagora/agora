@@ -1,8 +1,8 @@
 generates:
-  src/lambdas/loadSnapshotVotes/graphql/:
+  src/bin/scripts/loadSnapshotVotes/graphql/:
     documents:
-      - src/lambdas/loadSnapshotVotes/**/*.ts
-    schema: src/lambdas/loadSnapshotVotes/schema.graphql
+      - src/bin/scripts/loadSnapshotVotes/**/*.ts
+    schema: src/bin/scripts/loadSnapshotVotes/schema.graphql
     preset: client
   src/schema/resolvers/generated/types.ts:
     schema: ./src/schema/schema.graphql
