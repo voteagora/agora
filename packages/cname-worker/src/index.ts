@@ -10,6 +10,7 @@ type ServiceBindings = {
   ENS: ServiceBinding;
   NOUNS: ServiceBinding;
   LIL_NOUNS: ServiceBinding;
+  OPTIMISM: ServiceBinding;
 };
 
 type MappingType = {
@@ -20,6 +21,7 @@ const dev: MappingType = {};
 
 const prod: MappingType = {
   "agora.ensdao.org": "ENS",
+  "vote.optimism.io": "OPTIMISM",
 };
 
 const mapping: { dev: MappingType; prod: MappingType } = {

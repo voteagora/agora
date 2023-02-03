@@ -9,6 +9,7 @@ account_id = "86fdf8ef811b4d0aa8954fa036684ea3"
 
 services = [
     { binding = "ENS", service = "ens-agora-dev" },
+    { binding = "OPTIMISM", service = "optimism-agora-dev" }
 ]
 
 [env.prod]
@@ -17,5 +18,6 @@ vars = { ENVIRONMENT = "prod" }
 account_id = "d0222542a05849995856d260759717d4"
 
 services = [
-  { binding = "ENS", service = "ens-agora-prod", environment = "production" }
+  { binding = "ENS", service = "ens-agora-prod", environment = "production" },
+    { binding = "OPTIMISM", service = "optimism-agora-prod", environment = "production" }
 ]
