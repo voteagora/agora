@@ -8,14 +8,17 @@ import { createServer } from "@graphql-yoga/common";
 import Toucan from "toucan-js";
 import { makeToucanOptions, runReportingException } from "./sentry";
 import { ethers } from "ethers";
-import { makeInitialStorageArea } from "../indexer/followChain";
+import { followChain, makeInitialStorageArea } from "../indexer/followChain";
 import { DurableObjectEntityStore } from "../indexer/storage/durableObjects/durableObjectEntityStore";
 import { AdminMessage } from "../indexer/ops/adminMessage";
+import { indexers } from "../indexer/contracts";
 
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
   private readonly env: Env;
   private readonly provider: ethers.providers.JsonRpcProvider;
+
+  private iter: ReturnType<typeof followChain> | null = null;
 
   constructor(state: DurableObjectState, env: Env) {
     this.state = state;
@@ -78,6 +81,11 @@ export class StorageDurableObjectV1 {
 
   async fetchAdminMessage(message: AdminMessage): Promise<Response> {
     switch (message.type) {
+      case "START": {
+        await this.state.storage.setAlarm(new Date());
+        break;
+      }
+
       case "WRITE_BATCH": {
         await Promise.all(
           message.items.map((items) =>
@@ -112,7 +120,30 @@ export class StorageDurableObjectV1 {
     );
   }
 
-  async alarm() {}
+  async alarm() {
+    const iter =
+      this.iter ??
+      (await (async () => {
+        const entityStore = new DurableObjectEntityStore(this.state.storage);
+        const storageArea = await makeInitialStorageArea(entityStore);
+        return followChain(entityStore, indexers, this.provider, storageArea);
+      })());
+
+    const result = await iter();
+    await this.state.storage.setAlarm(
+      (() => {
+        switch (result.type) {
+          case "TIP": {
+            return Date.now() + 1000;
+          }
+
+          case "MORE": {
+            return Date.now();
+          }
+        }
+      })()
+    );
+  }
 }
 
 function dumpEntries(

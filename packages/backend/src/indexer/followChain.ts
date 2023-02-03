@@ -21,22 +21,20 @@ import {
   makeStorageHandleForStorageArea,
   pathBetween,
 } from "./storageHandle";
-import { timeout } from "./utils/asyncUtils";
 import { collectGenerator, groupBy } from "./utils/generatorUtils";
 import { ethers } from "ethers";
 import { StructuredError } from "./utils/errorUtils";
 import * as serde from "./serde";
 
-export async function followChain(
+export function followChain(
   store: EntityStore,
   indexers: IndexerDefinition[],
-  provider: ethers.providers.JsonRpcProvider
+  provider: ethers.providers.JsonRpcProvider,
+  storageArea: StorageArea
 ) {
   const blockProvider = new BlockProviderImpl(provider);
   const logProvider = new EthersLogProvider(provider);
   const entityDefinitions = combineEntities(indexers);
-
-  const storageArea = await makeInitialStorageArea(store);
 
   const filter = topicFilterForIndexers(indexers);
 
@@ -147,102 +145,96 @@ export async function followChain(
     }
   }
 
-  const _ = (async () => {
-    let nextBlockNumber = storageArea.finalizedBlock.blockNumber + 1;
+  let nextBlockNumber = storageArea.finalizedBlock.blockNumber;
 
-    while (true) {
-      const latestBlock = await blockProvider.getLatestBlock();
+  return async () => {
+    const latestBlock = await blockProvider.getLatestBlock();
 
-      if (latestBlock.number <= nextBlockNumber) {
-        console.log("at tip!");
-        // we're ahead of the tip, continue
-        await timeout(1000);
-        continue;
-      }
+    if (latestBlock.number <= nextBlockNumber) {
+      return {
+        type: "TIP" as const,
+      };
+    }
 
-      const fetchTill = Math.min(
-        latestBlock.number,
+    const fetchTill = Math.min(
+      latestBlock.number,
+      nextBlockNumber + maxBlockRange
+    );
+
+    const blocks = await blockProvider.getBlockRange(
+      nextBlockNumber,
+      fetchTill
+    );
+
+    const fetchLogsCacheTill = Math.max(
+      Math.min(
+        latestBlock.number - maxReorgBlocksDepth - 1,
         nextBlockNumber + maxBlockRange
-      );
+      ),
+      nextBlockNumber
+    );
+    const logs = await logProvider.getLogs({
+      ...filter,
+      fromBlock: nextBlockNumber,
+      toBlock: fetchLogsCacheTill,
+    });
 
-      const blocks = await blockProvider.getBlockRange(
-        nextBlockNumber,
-        fetchTill
-      );
-
-      const fetchLogsCacheTill = Math.max(
-        Math.min(
-          latestBlock.number - maxReorgBlocksDepth - 1,
-          nextBlockNumber + maxBlockRange
-        ),
-        nextBlockNumber
-      );
-      const logs = await logProvider.getLogs({
-        ...filter,
-        fromBlock: nextBlockNumber,
-        toBlock: fetchLogsCacheTill,
-      });
-
-      const groupedLogs = await collectGenerator(
-        groupBy(
-          (async function* () {
-            for (const log of logs) {
-              yield log;
-            }
-          })(),
-          (log) => log.blockHash
-        )
-      );
-
-      const logsCache = new Map([
-        ...blocks.flatMap<[string, Log[]]>((block) => {
-          const depth = latestBlock.number - block.number;
-          if (!isBlockDepthFinalized(depth)) {
-            return [];
+    const groupedLogs = await collectGenerator(
+      groupBy(
+        (async function* () {
+          for (const log of logs) {
+            yield log;
           }
+        })(),
+        (log) => log.blockHash
+      )
+    );
 
-          return [[block.hash, []]];
-        }),
-        ...groupedLogs.map<[string, Log[]]>((it) => [it[0].blockHash, it]),
-      ]);
-
-      console.log({
-        blocks: blocks.length,
-        startingBlock: blocks[0].number,
-        endingBlock: blocks[blocks.length - 1].number,
-        depth: latestBlock.number - nextBlockNumber,
-      });
-
-      for (const nextBlock of blocks) {
-        await ensureParentsAvailable(blockIdentifierFromParentBlock(nextBlock));
-
-        storageArea.parents.set(
-          nextBlock.hash,
-          blockIdentifierFromParentBlock(nextBlock)
-        );
-
-        await processBlock(nextBlock, logsCache);
-
-        await promoteFinalizedBlocks(
-          latestBlock.number,
-          blockIdentifierFromBlock(nextBlock),
-          storageArea.finalizedBlock
-        );
-
-        // update storageArea.tipBlock
-        if (
-          !storageArea.tipBlock ||
-          nextBlock.number > storageArea.tipBlock.blockNumber
-        ) {
-          storageArea.tipBlock = blockIdentifierFromBlock(nextBlock);
+    const logsCache = new Map([
+      ...blocks.flatMap<[string, Log[]]>((block) => {
+        const depth = latestBlock.number - block.number;
+        if (!isBlockDepthFinalized(depth)) {
+          return [];
         }
 
-        nextBlockNumber = nextBlock.number + 1;
-      }
-    }
-  })();
+        return [[block.hash, []]];
+      }),
+      ...groupedLogs.map<[string, Log[]]>((it) => [it[0].blockHash, it]),
+    ]);
 
-  return storageArea;
+    for (const nextBlock of blocks) {
+      await ensureParentsAvailable(blockIdentifierFromParentBlock(nextBlock));
+
+      storageArea.parents.set(
+        nextBlock.hash,
+        blockIdentifierFromParentBlock(nextBlock)
+      );
+
+      await processBlock(nextBlock, logsCache);
+
+      await promoteFinalizedBlocks(
+        latestBlock.number,
+        blockIdentifierFromBlock(nextBlock),
+        storageArea.finalizedBlock
+      );
+
+      // update storageArea.tipBlock
+      if (
+        !storageArea.tipBlock ||
+        nextBlock.number > storageArea.tipBlock.blockNumber
+      ) {
+        storageArea.tipBlock = blockIdentifierFromBlock(nextBlock);
+      }
+
+      nextBlockNumber = nextBlock.number + 1;
+    }
+
+    return {
+      type: "MORE" as const,
+      depth: latestBlock.number - nextBlockNumber,
+      nextBlock: nextBlockNumber,
+    };
+  };
 }
 
 export async function makeInitialStorageArea(
