@@ -176,16 +176,16 @@ const rateLimiter = new RateLimiter({
   tokensPerInterval: 60 * 0.5,
 });
 
-export async function getAllFromQuery<
+export async function* getAllFromQuery<
   Query extends DocumentNode<
-    Exact<{ items?: { created: number }[] | undefined | null }>,
+    { items?: ({ created: number } | null)[] | undefined | null },
     any
   >
 >(
   query: Query,
   variables: Omit<VariablesOf<Query>, "first" | "cursor">,
   limits: LimitsType = defaultLimits
-): Promise<ResultOf<Query>["items"]> {
+): AsyncGenerator<ResultOf<Query>["items"]> {
   const allItems = [];
   let cursor = undefined;
 
@@ -215,7 +215,13 @@ export async function getAllFromQuery<
         return allItems;
       }
 
-      const items = result.items;
+      const items: { created: number }[] = result.items.flatMap((it) => {
+        if (it) {
+          return [it];
+        } else {
+          return [];
+        }
+      });
       const lastItem = items[items.length - 1];
       const filteredItems = items.filter(
         (it) => it.created !== lastItem.created
