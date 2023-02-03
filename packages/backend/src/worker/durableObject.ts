@@ -50,6 +50,16 @@ export class StorageDurableObjectV1 {
         });
       }
 
+      case "/inspect": {
+        const entityStore = new DurableObjectEntityStore(this.state.storage);
+        return new Response(
+          JSON.stringify({
+            alarm: await this.state.storage.getAlarm(),
+            block: await entityStore.getFinalizedBlock(),
+          })
+        );
+      }
+
       case "/graphql": {
         const isProduction = this.env.ENVIRONMENT === "prod";
         const entityStore = new DurableObjectEntityStore(this.state.storage);
@@ -82,7 +92,12 @@ export class StorageDurableObjectV1 {
   async fetchAdminMessage(message: AdminMessage): Promise<Response> {
     switch (message.type) {
       case "START": {
-        await this.state.storage.setAlarm(new Date());
+        await this.state.storage.setAlarm(Date.now());
+        break;
+      }
+
+      case "STEP": {
+        await this.stepChainForward();
         break;
       }
 
@@ -105,22 +120,15 @@ export class StorageDurableObjectV1 {
         await this.state.storage.deleteAll();
         break;
       }
+
+      default:
+        throw new Error(`unknown type ${(message as any).type}`);
     }
 
     return new Response();
   }
 
-  async fetch(request: Request): Promise<Response> {
-    const toucan = new Toucan(
-      makeToucanOptions({ env: this.env, ctx: this.state })
-    );
-
-    return await runReportingException(toucan, () =>
-      this.fetchWithSentry(request, toucan)
-    );
-  }
-
-  async alarm() {
+  async stepChainForward() {
     const iter =
       this.iter ??
       (await (async () => {
@@ -129,7 +137,12 @@ export class StorageDurableObjectV1 {
         return followChain(entityStore, indexers, this.provider, storageArea);
       })());
 
-    const result = await iter();
+    return await iter();
+  }
+
+  async alarmWithSentry() {
+    await this.state.storage.deleteAlarm();
+    const result = await this.stepChainForward();
     await this.state.storage.setAlarm(
       (() => {
         switch (result.type) {
@@ -143,6 +156,23 @@ export class StorageDurableObjectV1 {
         }
       })()
     );
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const toucan = new Toucan(
+      makeToucanOptions({ env: this.env, ctx: this.state })
+    );
+
+    return await runReportingException(toucan, () =>
+      this.fetchWithSentry(request, toucan)
+    );
+  }
+
+  async alarm() {
+    const toucan = new Toucan(
+      makeToucanOptions({ env: this.env, ctx: this.state })
+    );
+    return await runReportingException(toucan, () => this.alarmWithSentry());
   }
 }
 

@@ -5,6 +5,9 @@ export type AdminMessage =
       type: "START";
     }
   | {
+      type: "STEP";
+    }
+  | {
       type: "WRITE_BATCH";
       items: StoredEntry[][];
     }
