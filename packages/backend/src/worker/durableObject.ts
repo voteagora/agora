@@ -63,7 +63,8 @@ export class StorageDurableObjectV1 {
         return new Response(
           JSON.stringify({
             alarm: await this.state.storage.getAlarm(),
-            stopSentinel: await this.state.storage.get(stopSentinel),
+            stopSentinel:
+              (await this.state.storage.get(stopSentinel)) ?? "empty",
             block: await entityStore.getFinalizedBlock(),
           })
         );
