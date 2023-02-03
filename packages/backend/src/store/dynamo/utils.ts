@@ -36,7 +36,7 @@ export function withAttributes(
 ): AttributeFields {
   return {
     ExpressionAttributeNames: attributes.names,
-    ExpressionAttributeValues: attributes.values,
+    ExpressionAttributeValues: attributes.values as any,
   };
 }
 

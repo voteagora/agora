@@ -12,7 +12,8 @@ import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { loadJsonLines } from "../../utils/jsonLines";
 import { collectGenerator } from "../../indexer/utils/generatorUtils";
 import request from "graphql-request";
-import { spaceId } from "../../lambdas/loadSnapshotVotes/handler";
+
+const spaceId = "opcollective.eth";
 
 async function main() {
   const dynamo = new DynamoDB({
