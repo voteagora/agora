@@ -171,7 +171,7 @@ export type ResultOf<Query extends DocumentNode<any, any>> =
 
 export type GetAllFromQueryResult<
   Query extends DocumentNode<Exact<{ items?: any[] | undefined | null }>, any>
-> = ResultOf<Query>["items"];
+> = Array<NonNullable<NonNullable<ResultOf<Query>["items"]>[0]>>;
 
 type LimitsType = {
   first: number;
@@ -198,9 +198,7 @@ export async function* getAllFromQuery<
   variables: Omit<VariablesOf<Query>, "first" | "cursor">,
   initialCursor?: number,
   limits: LimitsType = defaultLimits
-): AsyncGenerator<
-  Array<NonNullable<NonNullable<ResultOf<Query>["items"]>[0]>>
-> {
+): AsyncGenerator<GetAllFromQueryResult<Query>> {
   let cursor = initialCursor;
 
   for (let pageIndex = 0; true; pageIndex++) {
