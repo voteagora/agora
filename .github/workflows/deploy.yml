@@ -63,15 +63,6 @@ jobs:
         with:
           toolchain: stable
 
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: package/render-opengraph
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: wasm-pack
-
       - run: yarn workspace nouns-agora-backend run generate
 
       - name: Typescript
