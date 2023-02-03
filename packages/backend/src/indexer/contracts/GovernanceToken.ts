@@ -6,7 +6,7 @@ import {
 } from "../process";
 import { makeContractInstance } from "../../contracts";
 import { GovernanceToken__factory } from "../../contracts/generated";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import * as serde from "../serde";
 import { RuntimeType } from "../serde";
 
@@ -35,7 +35,7 @@ export const governanceTokenIndexer = makeIndexerDefinition(
           tokensOwned: serde.bigNumber,
           tokensRepresented: serde.bigNumber,
           delegatingTo: serde.string,
-          accountsRepresented: serde.passthrough<string[]>(),
+          accountsRepresentedCount: serde.bigNumber,
         }),
         indexes: [
           {
@@ -58,7 +58,7 @@ export const governanceTokenIndexer = makeIndexerDefinition(
             indexName: "byTokenHoldersRepresented",
             indexKey(entity) {
               return efficientLengthEncodingNaturalNumbers(
-                ethers.BigNumber.from(entity.accountsRepresented.length).mul(-1)
+                entity.accountsRepresentedCount.mul(-1)
               );
             },
           },
@@ -142,24 +142,17 @@ export const governanceTokenIndexer = makeIndexerDefinition(
               handle,
               event.args.fromDelegate
             );
-            const delegatorIndex = fromAccount.accountsRepresented.indexOf(
-              event.args.delegator
-            );
-            if (delegatorIndex === -1) {
-              throw new Error("delegator not found in from account");
-            }
 
-            fromAccount.accountsRepresented.splice(delegatorIndex, 1);
+            fromAccount.accountsRepresentedCount =
+              fromAccount.accountsRepresentedCount.sub(1);
             saveAccount(handle, fromAccount);
           }
 
           if (event.args.toDelegate !== ethers.constants.AddressZero) {
             const toAccount = await loadAccount(handle, event.args.toDelegate);
 
-            toAccount.accountsRepresented = [
-              ...toAccount.accountsRepresented,
-              event.args.delegator,
-            ];
+            toAccount.accountsRepresentedCount =
+              toAccount.accountsRepresentedCount.add(1);
 
             saveAccount(handle, toAccount);
           }
@@ -171,12 +164,14 @@ export const governanceTokenIndexer = makeIndexerDefinition(
   }
 );
 
-export function defaultAccount(from: string) {
+export function defaultAccount(
+  from: string
+): RuntimeType<typeof governanceTokenIndexer["entities"]["Address"]["serde"]> {
   return {
     address: from,
     tokensOwned: ethers.BigNumber.from(0),
     tokensRepresented: ethers.BigNumber.from(0),
-    accountsRepresented: [from],
+    accountsRepresentedCount: BigNumber.from(1),
     delegatingTo: ethers.constants.AddressZero,
   };
 }
@@ -185,7 +180,9 @@ async function loadAccount(
   // @ts-ignore
   handle: StorageHandleForIndexer<typeof governanceTokenIndexer>,
   from: string
-) {
+): Promise<
+  RuntimeType<typeof governanceTokenIndexer["entities"]["Address"]["serde"]>
+> {
   return (await handle.loadEntity("Address", from)) ?? defaultAccount(from);
 }
 
