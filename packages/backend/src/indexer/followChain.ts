@@ -145,7 +145,7 @@ export function followChain(
     }
   }
 
-  let nextBlockNumber = storageArea.finalizedBlock.blockNumber;
+  let nextBlockNumber = storageArea.finalizedBlock.blockNumber + 1;
 
   return async () => {
     const latestBlock = await blockProvider.getLatestBlock();
