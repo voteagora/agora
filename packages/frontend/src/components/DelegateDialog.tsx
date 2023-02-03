@@ -1,10 +1,9 @@
-import * as Sentry from "@sentry/react";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { inset0, shadow } from "../theme";
 import * as theme from "../theme";
 import { HStack, VStack } from "./VStack";
-import { useAccount, usePrepareContractWrite } from "wagmi";
+import { useAccount } from "wagmi";
 import { ArrowDownIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
 import { motion } from "framer-motion";

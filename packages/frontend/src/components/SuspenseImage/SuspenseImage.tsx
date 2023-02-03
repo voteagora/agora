@@ -72,6 +72,7 @@ export function SuspenseImage({ className, src, name }: Props) {
       >
         {!isHidden && src && (
           <img
+            alt="ENS Avatar"
             className={css`
               @keyframes fade-in {
                 from {
@@ -89,7 +90,7 @@ export function SuspenseImage({ className, src, name }: Props) {
           />
         )}
 
-        <img src={thisAvatar} />
+        <img alt="Avatar" src={thisAvatar} />
       </div>
     </div>
   );

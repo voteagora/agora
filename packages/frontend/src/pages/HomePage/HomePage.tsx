@@ -92,7 +92,7 @@ function Hero() {
           max-width: ${theme.maxWidth["md"]};
         `}
         src={partnerBackground}
-        alt="Optimism background image"
+        alt="optimism background"
       />
     </HStack>
   );
