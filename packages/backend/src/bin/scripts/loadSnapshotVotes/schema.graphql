@@ -151,6 +151,7 @@ type Space {
   filters: SpaceFilters
   followersCount: Int
   github: String
+  guidelines: String
   id: String!
   location: String
   members: [String]
@@ -163,6 +164,7 @@ type Space {
   skin: String
   strategies: [Strategy]
   symbol: String
+  template: String
   terms: String
   treasuries: [Treasury]
   twitter: String
@@ -296,6 +298,8 @@ input FollowWhere {
 }
 
 input MessageWhere {
+  id: String
+  id_in: [String]
   mci: Int
   mci_gt: Int
   mci_gte: Int
@@ -350,6 +354,7 @@ input ProposalWhere {
   title_contains: String
   type: String
   type_in: [String]
+  validation: String
 }
 
 input SpaceWhere {
