@@ -70,6 +70,11 @@ export function wrapModuleSentry(
       });
 
       const handlers = generateHandlers(sentry);
+      const scheduleHandler = handlers.scheduled;
+
+      if (!scheduleHandler) {
+        return;
+      }
 
       return await runReportingException(sentry, async () => {
         sentry.setTag("entrypoint", "scheduled");
@@ -79,7 +84,7 @@ export function wrapModuleSentry(
             cron: event.cron,
           },
         });
-        return handlers.scheduled?.(...args);
+        return scheduleHandler(...args);
       });
     },
   };
