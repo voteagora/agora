@@ -1,25 +1,25 @@
 import { S3 } from "@aws-sdk/client-s3";
 import { chunk } from "lodash";
 import {
-  getAllFromQuery,
+  fetchProposals,
+  fetchVotes,
   GetAllFromQueryResult,
   proposalsQuery,
   ResultOf,
   spaceQuery,
   url,
   votesQuery,
-} from "./queries";
+} from "../../bin/scripts/loadSnapshotVotes/queries";
 import request from "graphql-request";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { makeKey, marshaller } from "../../store/dynamo/utils";
+import { collectGenerator } from "../../indexer/utils/generatorUtils";
 
 export const spaceId = "opcollective.eth";
 
 export async function fetchEverything() {
   const [proposals, space, votes] = await Promise.all([
-    getAllFromQuery(proposalsQuery, {
-      space: spaceId,
-    }),
+    (await collectGenerator(fetchProposals(spaceId))).flat(),
     request({
       url,
       document: spaceQuery,
@@ -27,9 +27,7 @@ export async function fetchEverything() {
         space: spaceId,
       },
     }),
-    getAllFromQuery(votesQuery, {
-      space: spaceId,
-    }),
+    (await collectGenerator(fetchVotes(spaceId))).flat(),
   ]);
 
   return {
