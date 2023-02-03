@@ -1,5 +1,4 @@
 import { Env } from "./env";
-import { TextLineStream } from "../utils/TextLineStream";
 import { StoredEntry } from "../indexer/storage/dump";
 import { readableStreamFromGenerator } from "../utils/readableStream";
 import { listEntries } from "../indexer/storage/durableObjects/durableObjectReader";
@@ -11,26 +10,12 @@ import { makeToucanOptions, runReportingException } from "./sentry";
 import { ethers } from "ethers";
 import { makeInitialStorageArea } from "../indexer/followChain";
 import { DurableObjectEntityStore } from "../indexer/storage/durableObjects/durableObjectEntityStore";
-import {
-  batch,
-  limitGenerator,
-  skipFirst,
-} from "../indexer/utils/generatorUtils";
-import {
-  alarmValueKey,
-  makeYieldingWorkloadExecutor,
-  YieldingWorkloadExecutor,
-} from "./yieldingWorkload";
-import { AdminWebsocketMessage } from "../indexer/adminSocket/types";
+import { AdminMessage } from "../indexer/ops/adminMessage";
 
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
   private readonly env: Env;
   private readonly provider: ethers.providers.JsonRpcProvider;
-
-  private readonly yieldingWorkload: YieldingWorkloadExecutor<{
-    startingLineNumber: number;
-  }>;
 
   constructor(state: DurableObjectState, env: Env) {
     this.state = state;
@@ -39,118 +24,27 @@ export class StorageDurableObjectV1 {
       "optimism",
       env.ALCHEMY_API_KEY
     );
-
-    this.yieldingWorkload = makeYieldingWorkloadExecutor<{
-      startingLineNumber: number;
-    }>(this.state.storage, async (nextValue) => {
-      const startingLineNumber = nextValue?.startingLineNumber ?? 0;
-      console.log({ startingLineNumber });
-      if (startingLineNumber === 0) {
-        await this.state.storage.deleteAll({
-          allowConcurrency: true,
-          noCache: true,
-          allowUnconfirmed: true,
-        });
-      }
-
-      const inputHandle = await this.env.INDEXER_DUMPS.get("input.jsonl");
-      if (!inputHandle) {
-        throw new Error("input.jsonl not found");
-      }
-
-      const lines = inputHandle.body
-        .pipeThrough(new TextDecoderStream())
-        .pipeThrough(new TextLineStream());
-
-      let nextStartingLineNumber = startingLineNumber;
-
-      const entriesBatchSize = 128;
-
-      for await (const entriesBatch of batch(
-        (async function* () {
-          for await (const line of limitGenerator(
-            skipFirst(lines, startingLineNumber),
-            entriesBatchSize * 1000
-          )) {
-            nextStartingLineNumber++;
-            if (!line.length) {
-              continue;
-            }
-
-            const object = JSON.parse(line) as StoredEntry;
-
-            yield object;
-          }
-        })(),
-        entriesBatchSize
-      )) {
-        this.state.storage.put(
-          Object.fromEntries(entriesBatch.map((it) => [it.key, it.value])),
-          {
-            allowConcurrency: true,
-            allowUnconfirmed: true,
-            noCache: true,
-          }
-        );
-
-        if (entriesBatchSize > entriesBatch.length) {
-          return {
-            type: "TERMINATE",
-          };
-        }
-      }
-
-      console.log({ nextStartingLineNumber });
-
-      return {
-        type: "REPEAT",
-        value: {
-          startingLineNumber: nextStartingLineNumber,
-        },
-      };
-    });
   }
 
   async fetchWithSentry(request: Request, sentry: Toucan): Promise<Response> {
     const url = new URL(request.url);
     switch (url.pathname) {
-      case "/load": {
-        await this.yieldingWorkload.start();
-
-        return new Response("loaded first chunk from input.jsonl");
-      }
-
-      case "/admin/ws": {
-        const upgradeHeader = request.headers.get("Upgrade");
-        if (!upgradeHeader || upgradeHeader !== "websocket") {
-          return new Response("Expected Upgrade: websocket", { status: 426 });
+      case "/admin/ops": {
+        if (request.method !== "POST") {
+          throw new Error("invalid");
         }
 
-        const webSocketPair = new WebSocketPair();
-        const [client, server] = Object.values(webSocketPair);
-
-        // @ts-ignore
-        server.accept();
-
-        server.addEventListener("message", (event) => {
-          const message: AdminWebsocketMessage = JSON.parse(event.data);
-
-          this.state.storage.put(
-            Object.fromEntries(message.items.map((it) => [it.key, it.value]))
-          );
-        });
-
-        return new Response(null, {
-          status: 101,
-          webSocket: client,
-        });
+        const message = await request.json<AdminMessage>();
+        return await this.fetchAdminMessage(message);
       }
 
-      case "/inspect": {
-        const entityStore = new DurableObjectEntityStore(this.state.storage);
-        const value = await this.state.storage.get(alarmValueKey);
-        const finalizedBlock = await entityStore.getFinalizedBlock();
-        return new Response(JSON.stringify({ value, finalizedBlock }));
+      case "/admin/dump": {
+        const stream = dumpEntries(this.state.storage);
+        return new Response(stream, {
+          headers: {
+            "Content-Disposition": 'attachment; filename="dump.jsonl"',
+          },
+        });
       }
 
       case "/graphql": {
@@ -182,6 +76,32 @@ export class StorageDurableObjectV1 {
     }
   }
 
+  async fetchAdminMessage(message: AdminMessage): Promise<Response> {
+    switch (message.type) {
+      case "WRITE_BATCH": {
+        await Promise.all(
+          message.items.map((items) =>
+            this.state.storage.put(
+              Object.fromEntries(items.map((it) => [it.key, it.value])),
+              {
+                allowConcurrency: true,
+                noCache: true,
+              }
+            )
+          )
+        );
+        break;
+      }
+
+      case "CLEAR_STORAGE": {
+        await this.state.storage.deleteAll();
+        break;
+      }
+    }
+
+    return new Response();
+  }
+
   async fetch(request: Request): Promise<Response> {
     const toucan = new Toucan(
       makeToucanOptions({ env: this.env, ctx: this.state })
@@ -192,9 +112,7 @@ export class StorageDurableObjectV1 {
     );
   }
 
-  async alarm() {
-    await this.yieldingWorkload.execute();
-  }
+  async alarm() {}
 }
 
 function dumpEntries(
