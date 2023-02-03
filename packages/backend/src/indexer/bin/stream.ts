@@ -1,7 +1,9 @@
+import "isomorphic-fetch";
+
 import { loadExportFile } from "../export/fs";
 import { batch, indexed, takeLast } from "../utils/generatorUtils";
-import { AdminWebSocket } from "../adminSocket/socket";
 import { makeProgressBar } from "../utils/progressBarUtils";
+import { sendAdminMessage } from "../ops/adminMessage";
 
 /**
  * Cloudflare Workers Durable Object Maximum Batch Size
@@ -9,25 +11,23 @@ import { makeProgressBar } from "../utils/progressBarUtils";
 const batchSize = 128;
 
 async function main() {
-  const adminSocket = await AdminWebSocket.open();
+  const makeBatchesGenerator = () => batch(loadExportFile(), batchSize);
 
-  const makeBatchesGenerator = () =>
-    indexed(batch(loadExportFile(), batchSize));
+  await sendAdminMessage({
+    type: "CLEAR_STORAGE",
+  });
 
-  const [lastLineIdx] = (await takeLast(makeBatchesGenerator()))!;
+  const [lastLineIdx] = (await takeLast(indexed(makeBatchesGenerator())))!;
 
   const progressBar = makeProgressBar(lastLineIdx * batchSize);
 
-  for await (const [_, items] of makeBatchesGenerator()) {
-    progressBar.tick(batchSize);
-
-    await adminSocket.send({
+  for await (const batches of batch(makeBatchesGenerator(), 10)) {
+    await sendAdminMessage({
       type: "WRITE_BATCH",
-      items,
+      items: batches,
     });
+    progressBar.tick(batchSize * batches.length);
   }
-
-  adminSocket.close();
 }
 
 main();
