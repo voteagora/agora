@@ -10,6 +10,6 @@ export const governanceTokenContract = makeContractInstance({
 
 export const governorTokenContract = makeContractInstance({
   factory: OptimismGovernorV1__factory,
-  address: "0x4200dfa134da52d9c96f523af1fcb507199b1042",
-  startingBlock: 60786205,
+  address: "0xcDF27F107725988f2261Ce2256bDfCdE8B382B10",
+  startingBlock: 71801427,
 });
