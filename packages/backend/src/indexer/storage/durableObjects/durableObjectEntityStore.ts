@@ -155,26 +155,6 @@ export class DurableObjectEntityStore implements EntityStore {
   }
 }
 
-export async function exclusiveRegion<T>(
-  storage: DurableObjectStorage,
-  fn: () => Promise<T>
-): Promise<T> {
-  const withinRegion = await storage.get(exclusiveRegionKey);
-  if (withinRegion) {
-    throw new Error("already locked");
-  }
-
-  await storage.put(exclusiveRegionKey, "locked");
-
-  const result = await fn();
-
-  await storage.delete(exclusiveRegionKey);
-
-  return result;
-}
-
-const exclusiveRegionKey = "isInExclusiveRegion";
-
 const undoLogPrefix = "undoLog|";
 
 const rollingBackStartedKey = "rollingBackStartedKey";
