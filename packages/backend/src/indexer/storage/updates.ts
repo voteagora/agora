@@ -22,20 +22,29 @@ export type Operation =
       key: string;
     };
 
+export type VersionedOperation = {
+  operation: Operation;
+  previousValue: unknown | null;
+};
+
 export function updatesForEntities(
   block: BlockIdentifier,
+  previousBlockIdentifier: BlockIdentifier | null,
   changes: EntityWithChange[],
   entityDefinitions: EntityDefinitions
-): Operation[] {
+): VersionedOperation[] {
   return [
     ...changes.flatMap((change) => {
       const entityDefinition = entityDefinitions[change.entity];
 
       return [
         {
-          type: "PUT" as const,
-          key: makeEntityKey(change.entity, change.id),
-          value: entityDefinition.serde.serialize(change.newValue),
+          operation: {
+            type: "PUT" as const,
+            key: makeEntityKey(change.entity, change.id),
+            value: entityDefinition.serde.serialize(change.newValue),
+          },
+          previousValue: change.oldValue,
         },
         ...entityDefinition.indexes.flatMap((indexDefinition) => {
           return [
@@ -46,32 +55,43 @@ export function updatesForEntities(
 
               return [
                 {
-                  type: "DELETE" as const,
-                  key: makeIndexKey(indexDefinition, {
-                    entity: change.entity,
-                    id: change.id,
-                    value: entityDefinition.serde.deserialize(change.oldValue),
-                  }),
+                  operation: {
+                    type: "DELETE" as const,
+                    key: makeIndexKey(indexDefinition, {
+                      entity: change.entity,
+                      id: change.id,
+                      value: entityDefinition.serde.deserialize(
+                        change.oldValue
+                      ),
+                    }),
+                  },
+                  previousValue: change.id,
                 },
               ];
             })(),
             {
-              type: "PUT" as const,
-              key: makeIndexKey(indexDefinition, {
-                entity: change.entity,
-                id: change.id,
-                value: change.newValue,
-              }),
-              value: change.id,
+              operation: {
+                type: "PUT" as const,
+                key: makeIndexKey(indexDefinition, {
+                  entity: change.entity,
+                  id: change.id,
+                  value: change.newValue,
+                }),
+                value: change.id,
+              },
+              previousValue: change.id,
             },
           ];
         }),
       ];
     }),
     {
-      type: "PUT",
-      key: blockIdentifierKey,
-      value: block,
+      operation: {
+        type: "PUT",
+        key: blockIdentifierKey,
+        value: block,
+      },
+      previousValue: previousBlockIdentifier,
     },
   ];
 }

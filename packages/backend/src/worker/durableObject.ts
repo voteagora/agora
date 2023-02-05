@@ -17,6 +17,7 @@ export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
   private readonly env: Env;
   private readonly provider: ethers.providers.JsonRpcProvider;
+  private readonly entityStore: DurableObjectEntityStore;
 
   private iter: ReturnType<typeof followChain> | null = null;
 
@@ -27,6 +28,7 @@ export class StorageDurableObjectV1 {
       "optimism",
       env.ALCHEMY_API_KEY
     );
+    this.entityStore = new DurableObjectEntityStore(this.state.storage);
   }
 
   async fetchWithSentry(request: Request, sentry: Toucan): Promise<Response> {
@@ -144,12 +146,18 @@ export class StorageDurableObjectV1 {
   }
 
   async stepChainForward() {
+    await this.entityStore.ensureConsistentState();
+
     const iter =
       this.iter ??
       (await (async () => {
-        const entityStore = new DurableObjectEntityStore(this.state.storage);
-        const storageArea = await makeInitialStorageArea(entityStore);
-        return followChain(entityStore, indexers, this.provider, storageArea);
+        const storageArea = await makeInitialStorageArea(this.entityStore);
+        return followChain(
+          this.entityStore,
+          indexers,
+          this.provider,
+          storageArea
+        );
       })());
 
     return await iter();

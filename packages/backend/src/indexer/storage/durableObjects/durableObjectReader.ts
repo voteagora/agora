@@ -115,10 +115,10 @@ export type ListEntriesArgs = {
   prefix?: string;
 };
 
-export async function* listEntries(
+export async function* listEntries<T>(
   storage: DurableObjectStorage,
   args?: ListEntriesArgs
-) {
+): AsyncGenerator<[string, T]> {
   const limit = 1000;
 
   let start = args?.start;
@@ -136,6 +136,7 @@ export async function* listEntries(
       return;
     }
 
+    // @ts-ignore
     yield* entries;
 
     const [lastEntryKey] = entries[entries.length - 1];

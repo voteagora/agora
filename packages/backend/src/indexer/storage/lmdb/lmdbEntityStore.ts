@@ -35,6 +35,7 @@ export class LmdbEntityStore implements EntityStore {
 
     const updates = updatesForEntities(
       blockIdentifier,
+      await this.getFinalizedBlock(),
       updatedEntities.map((it, idx) => ({
         id: it.id,
         entity: it.entity,
@@ -45,7 +46,7 @@ export class LmdbEntityStore implements EntityStore {
     );
 
     await this.lmdb.transaction(() => {
-      for (const update of updates) {
+      for (const { operation: update } of updates) {
         switch (update.type) {
           case "PUT": {
             this.lmdb.put(update.key, update.value);

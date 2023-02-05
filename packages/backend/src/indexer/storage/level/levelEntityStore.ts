@@ -65,7 +65,12 @@ export class LevelEntityStore implements EntityStore {
     });
 
     await this.level.batch(
-      updatesForEntities(block, entries, entityDefinitions).map((it) => {
+      updatesForEntities(
+        block,
+        await this.getFinalizedBlock(),
+        entries,
+        entityDefinitions
+      ).map(({ operation: it }) => {
         switch (it.type) {
           case "PUT": {
             return {
