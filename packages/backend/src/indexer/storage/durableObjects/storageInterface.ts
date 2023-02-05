@@ -4,11 +4,14 @@ export interface StorageInterface extends StorageInterfaceLeaf {
   ): Promise<T>;
 }
 
-interface StorageInterfaceLeaf {
-  get<T = unknown>(key: string): Promise<T | undefined>;
-  put<T>(key: string, value: T): Promise<void>;
-  delete(key: string): Promise<boolean>;
-  delete(keys: string[]): Promise<number>;
+export interface StorageInterfaceLeaf {
+  get<T = unknown>(
+    key: string,
+    opts?: DurableObjectGetOptions
+  ): Promise<T | undefined>;
+  put<T>(key: string, value: T, opts?: DurableObjectPutOptions): Promise<void>;
+  delete(key: string, opts?: DurableObjectPutOptions): Promise<boolean>;
+  delete(keys: string[], opts?: DurableObjectPutOptions): Promise<number>;
   list<T = unknown>(
     options?: DurableObjectListOptions
   ): Promise<Map<string, T>>;
