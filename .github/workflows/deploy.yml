@@ -13,6 +13,15 @@ on:
         default: "dev"
 
 jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    name: Formatting
+    steps:
+      - uses: actionsx/prettier@v2
+        with:
+          # prettier CLI arguments.
+          args: --check .
+
   build-frontend:
     runs-on: ubuntu-latest
     name: Build Frontend
