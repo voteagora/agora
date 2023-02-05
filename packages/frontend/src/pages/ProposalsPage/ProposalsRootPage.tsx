@@ -223,8 +223,6 @@ function ProposalRow({
 
   // const outcome =
   //   parseFloat(proposal.forVotes) > parseFloat(proposal.againstVotes);
-  console.log("-");
-  console.log(proposal.voteEndsAt);
 
   return (
     <div
