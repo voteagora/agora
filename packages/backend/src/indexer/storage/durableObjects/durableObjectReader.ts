@@ -8,6 +8,7 @@ import {
 import { StorageArea } from "../../followChain";
 import { RuntimeType } from "../../serde";
 import { makeEntityKey } from "../../entityKey";
+import { listEntries } from "./storageInterface";
 
 export class DurableObjectReader<
   EntityDefinitionsType extends EntityDefinitions
@@ -107,39 +108,5 @@ export class DurableObjectReader<
     }
 
     return entityDefinition.serde.deserialize(fromLevel);
-  }
-}
-
-export type ListEntriesArgs = {
-  start?: string;
-  prefix?: string;
-};
-
-export async function* listEntries<T>(
-  storage: DurableObjectStorage,
-  args?: ListEntriesArgs
-): AsyncGenerator<[string, T]> {
-  const limit = 1000;
-
-  let start = args?.start;
-
-  while (true) {
-    const values = await storage.list({
-      start,
-      prefix: args?.prefix,
-      limit,
-      allowConcurrency: true,
-    });
-
-    const entries = Array.from(values.entries());
-    if (!entries.length) {
-      return;
-    }
-
-    // @ts-ignore
-    yield* entries;
-
-    const [lastEntryKey] = entries[entries.length - 1];
-    start = lastEntryKey;
   }
 }
