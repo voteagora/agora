@@ -21,6 +21,14 @@ export async function* skipFirst<T>(
   }
 }
 
+export async function* asyncIterableFromIterable<T>(
+  iterator: Iterable<T>
+): AsyncGenerator<T> {
+  for (const item of iterator) {
+    yield item;
+  }
+}
+
 export async function* batch<T>(
   iterator: AsyncIterable<T>,
   batchSize: number

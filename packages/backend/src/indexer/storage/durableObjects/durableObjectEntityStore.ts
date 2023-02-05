@@ -8,6 +8,19 @@ import { BlockIdentifier } from "../../storageHandle";
 import { IndexerDefinition } from "../../process";
 import { makeEntityKey } from "../../entityKey";
 import { updatesForEntities } from "../updates";
+import { listEntries } from "./durableObjectReader";
+import {
+  asyncIterableFromIterable,
+  batch,
+  collectGenerator,
+} from "../../utils/generatorUtils";
+import { efficientLengthEncodingNaturalNumbers } from "../../utils/efficientLengthEncoding";
+import { BigNumber } from "ethers";
+
+type UndoLogEntry = {
+  key: string;
+  previousValue: unknown | null;
+};
 
 export class DurableObjectEntityStore implements EntityStore {
   private readonly storage: DurableObjectStorage;
@@ -29,8 +42,16 @@ export class DurableObjectEntityStore implements EntityStore {
       )
     );
 
+    // All operations here should be:
+    // * allowConcurrency: true because we are fine with other reads and
+    //   writes happening after all reads.
+    //
+    // * allowUnconfirmed: true because we do not care about write durability
+    //   with updates. If they're dropped, we can recreate them from the
+    //   chain.
     const updates = updatesForEntities(
       blockIdentifier,
+      await this.getFinalizedBlock(),
       updatedEntities.map((it, idx) => {
         return {
           entity: it.entity,
@@ -42,32 +63,87 @@ export class DurableObjectEntityStore implements EntityStore {
       entityDefinitions
     );
 
-    // All operations here should be:
-    // * allowConcurrency: true because we are fine with other reads and
-    //   writes happening after all reads.
-    //
-    // * allowUnconfirmed: true because we do not care about write durability
-    //   with updates. If they're dropped, we can recreate them from the
-    //   chain.
-    await exclusiveRegion(this.storage, async () => {
-      for (const update of updates) {
+    for (const [idx, operation] of updates.entries()) {
+      await this.storage.transaction(async (txn) => {
+        const update = operation.operation;
+
         switch (update.type) {
           case "PUT": {
-            await this.storage.put(update.key, update.value, {
+            await txn.put(update.key, update.value, {
               allowConcurrency: true,
             });
             break;
           }
 
           case "DELETE": {
-            await this.storage.delete(update.key, {
+            await txn.delete(update.key, {
               allowConcurrency: true,
             });
             break;
           }
         }
+
+        const undoLogEntry: UndoLogEntry = {
+          key: update.key,
+          previousValue: operation.previousValue,
+        };
+
+        await txn.put(
+          `${undoLogPrefix}${efficientLengthEncodingNaturalNumbers(
+            BigNumber.from(idx)
+          )}`,
+          undoLogEntry
+        );
+      });
+    }
+
+    const batches = await collectGenerator(
+      batch(asyncIterableFromIterable(updates.entries()), 128)
+    );
+
+    for (const batch of batches) {
+      await this.storage.delete(
+        batch.map(
+          ([idx]) =>
+            `${undoLogPrefix}${efficientLengthEncodingNaturalNumbers(
+              BigNumber.from(idx)
+            )}`
+        )
+      );
+    }
+  }
+
+  async ensureConsistentState(): Promise<void> {
+    const undoLogFirstEntry = await this.storage.get(
+      `${undoLogPrefix}${efficientLengthEncodingNaturalNumbers(
+        BigNumber.from(0)
+      )}`
+    );
+
+    if (undoLogFirstEntry || (await this.storage.get(rollingBackStartedKey))) {
+      await this.storage.put(rollingBackStartedKey, true);
+      // rollback the undo log
+      for await (const [key, value] of listEntries<UndoLogEntry>(this.storage, {
+        prefix: undoLogPrefix,
+      })) {
+        await this.storage.transaction(async (txn) => {
+          await txn.delete(key);
+
+          if (value.previousValue === null) {
+            await txn.delete(value.key);
+          } else {
+            await txn.put(value.key, value.previousValue);
+          }
+        });
       }
-    });
+      await this.storage.delete(rollingBackStartedKey);
+    } else {
+      for await (const [key] of listEntries<UndoLogEntry>(this.storage, {
+        prefix: undoLogPrefix,
+      })) {
+        await this.storage.delete(key);
+      }
+    }
   }
 
   async getEntity(entity: string, id: string): Promise<any> {
@@ -98,3 +174,7 @@ export async function exclusiveRegion<T>(
 }
 
 const exclusiveRegionKey = "isInExclusiveRegion";
+
+const undoLogPrefix = "undoLog|";
+
+const rollingBackStartedKey = "rollingBackStartedKey";
