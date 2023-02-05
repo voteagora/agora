@@ -27,5 +27,5 @@ export const icons = {
   tableView,
   cardView,
   wallet,
-  walletConnected
+  walletConnected,
 };

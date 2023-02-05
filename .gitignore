@@ -7,6 +7,10 @@ packages/backend/src/contracts/generated
 packages/frontend/src/contracts/generated
 packages/backend/dist
 
+packages/backend/src/contracts/abis/NounsDAOLogicV1.json
+packages/backend/src/contracts/abis/NounsDAOLogicV2.json
+packages/backend/src/contracts/abis/NounsToken.json
+
 packages/frontend/build
 __generated__
 .DS_Store

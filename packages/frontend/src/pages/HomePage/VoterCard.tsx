@@ -8,7 +8,11 @@ import { DelegateProfileImage } from "../../components/DelegateProfileImage";
 import { HStack, VStack } from "../../components/VStack";
 import { VoterPanelActions } from "../DelegatePage/VoterPanel";
 import { Link } from "../../components/HammockRouter/Link";
-import { UserIcon, ChatBubbleOvalLeftIcon, FireIcon } from "@heroicons/react/20/solid";
+import {
+  UserIcon,
+  ChatBubbleOvalLeftIcon,
+  FireIcon,
+} from "@heroicons/react/20/solid";
 import { ReactNode } from "react";
 import { BigNumber } from "ethers";
 import { pluralizeNoun, pluralizeVote } from "../../words";

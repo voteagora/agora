@@ -42,9 +42,9 @@ export function VoteAuctionPage() {
     useNFT(auctionListRaw[2].collection, auctionListRaw[2].tokenId) || null,
     useNFT(auctionListRaw[3].collection, auctionListRaw[3].tokenId) || null,
   ];
-  
+
   // @ts-ignore
-  const currentAuction = auctionList.findLast((auction:any) => {
+  const currentAuction = auctionList.findLast((auction: any) => {
     if (
       !auction.data ||
       !auction.data.markets ||
@@ -64,15 +64,15 @@ export function VoteAuctionPage() {
   ) {
     return null;
   }
-  
+
   const zoraLink = `https://market.zora.co/collections/${currentAuction.nft.contract.address}/${currentAuction.nft.tokenId}`;
 
   const market = currentAuction.markets[0];
   if (market.type !== "Auction") {
     return null;
   }
-  const marketEnd = market?.endsAt?.timestamp || '0';
-  const auctionEnded = Date.parse(marketEnd)< Date.now();
+  const marketEnd = market?.endsAt?.timestamp || "0";
+  const auctionEnded = Date.parse(marketEnd) < Date.now();
 
   const name = currentAuction.metadata?.name;
   const imgLink = currentAuction.metadata?.imageUri?.replace(
@@ -300,8 +300,7 @@ export function VoteAuctionPage() {
                   font-weight: ${theme.fontWeight.semibold};
                 `}
               >
-                {timeRemaining}{" "}
-                {auctionEnded && <span>ago</span>}
+                {timeRemaining} {auctionEnded && <span>ago</span>}
               </div>
             </VStack>
           </HStack>

@@ -56,11 +56,14 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
     .div(100 * 100)
     .add(1);
 
-  const recentlyCompletedProposals = recentProposals.filter((proposal) => {
-    return (
-      proposal.actualStatus !== "ACTIVE" && proposal.actualStatus !== "PENDING"
-    );
-  }).slice(0, 10);
+  const recentlyCompletedProposals = recentProposals
+    .filter((proposal) => {
+      return (
+        proposal.actualStatus !== "ACTIVE" &&
+        proposal.actualStatus !== "PENDING"
+      );
+    })
+    .slice(0, 10);
 
   return (
     <HStack
