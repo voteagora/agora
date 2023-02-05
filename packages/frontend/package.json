@@ -62,7 +62,8 @@
   },
   "eslintConfig": {
     "rules": {
-      "react/jsx-key": "error"
+      "react/jsx-key": "error",
+      "no-console": "error"
     },
     "extends": [
       "react-app",

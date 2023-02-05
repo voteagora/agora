@@ -78,7 +78,7 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
     delegate.delegate?.votes
       .map((vote) => +vote.proposal.number)
       .sort((a, b) => b - a) ?? [];
-  // console.log(allVotesCast)
+
   let votingStreak = 0;
 
   for (let i = 0; i < allVotesCast.length; i++) {
@@ -91,10 +91,6 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
       break;
     }
   }
-  console.log(allVotesCast);
-  console.log(delegate.address.resolvedName.name);
-  console.log(votingStreak);
-  console.log("----");
 
   return (
     <Link
