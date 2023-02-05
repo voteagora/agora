@@ -17,10 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Formatting
     steps:
-      - uses: actionsx/prettier@v2
+      - name: Prettify code
+        uses: creyD/prettier_action@v4.2
         with:
-          # prettier CLI arguments.
-          args: --check "**/*"
+          dry: True
+          prettier_options: --check .
 
   build-frontend:
     runs-on: ubuntu-latest
