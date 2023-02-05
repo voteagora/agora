@@ -8,7 +8,6 @@ import { BlockIdentifier } from "../../storageHandle";
 import { IndexerDefinition } from "../../process";
 import { makeEntityKey } from "../../entityKey";
 import { updatesForEntities } from "../updates";
-import { listEntries } from "./durableObjectReader";
 import {
   asyncIterableFromIterable,
   batch,
@@ -16,6 +15,7 @@ import {
 } from "../../utils/generatorUtils";
 import { efficientLengthEncodingNaturalNumbers } from "../../utils/efficientLengthEncoding";
 import { BigNumber } from "ethers";
+import { listEntries, StorageInterface } from "./storageInterface";
 
 type UndoLogEntry = {
   key: string;
@@ -23,9 +23,9 @@ type UndoLogEntry = {
 };
 
 export class DurableObjectEntityStore implements EntityStore {
-  private readonly storage: DurableObjectStorage;
+  private readonly storage: StorageInterface;
 
-  constructor(storage: DurableObjectStorage) {
+  constructor(storage: StorageInterface) {
     this.storage = storage;
   }
 
@@ -69,16 +69,12 @@ export class DurableObjectEntityStore implements EntityStore {
 
         switch (update.type) {
           case "PUT": {
-            await txn.put(update.key, update.value, {
-              allowConcurrency: true,
-            });
+            await txn.put(update.key, update.value);
             break;
           }
 
           case "DELETE": {
-            await txn.delete(update.key, {
-              allowConcurrency: true,
-            });
+            await txn.delete(update.key);
             break;
           }
         }

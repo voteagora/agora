@@ -1,7 +1,6 @@
 import { Env } from "./env";
 import { StoredEntry } from "../indexer/storage/dump";
 import { readableStreamFromGenerator } from "../utils/readableStream";
-import { listEntries } from "../indexer/storage/durableObjects/durableObjectReader";
 import { getGraphQLCallingContext } from "./graphql";
 import { useSentry } from "./useSentry";
 import { createServer } from "@graphql-yoga/common";
@@ -12,6 +11,7 @@ import { followChain, makeInitialStorageArea } from "../indexer/followChain";
 import { DurableObjectEntityStore } from "../indexer/storage/durableObjects/durableObjectEntityStore";
 import { AdminMessage } from "../indexer/ops/adminMessage";
 import { indexers } from "../indexer/contracts";
+import { listEntries } from "../indexer/storage/durableObjects/storageInterface";
 
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
