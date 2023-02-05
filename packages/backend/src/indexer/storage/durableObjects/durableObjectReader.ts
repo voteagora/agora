@@ -64,7 +64,9 @@ export class DurableObjectReader<
           }
 
           // todo: there is a consistency bug here. it might not be very important though
-          const rawValue = await storage.get(makeEntityKey(entity, entityId));
+          const rawValue = await storage.get(makeEntityKey(entity, entityId), {
+            allowConcurrency: true,
+          });
           if (!rawValue) {
             throw new Error("index value not found");
           }
