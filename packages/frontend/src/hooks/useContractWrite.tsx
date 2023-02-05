@@ -53,6 +53,8 @@ export function useContractWrite<
     args,
     onError(e) {
       const id = Sentry.captureException(e);
+
+      // eslint-ignore-next-line
       console.error(e, { id });
       // toast(`an error occurred when preparing transaction ${id}`);
     },
@@ -76,6 +78,8 @@ export function useContractWrite<
     },
     onError(e) {
       const id = Sentry.captureException(e);
+
+      // eslint-ignore-next-line
       console.error(e, { id });
       // toast(`an error occurred when preparing transaction ${id}`);
     },
