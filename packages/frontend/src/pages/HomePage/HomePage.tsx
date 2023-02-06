@@ -105,7 +105,6 @@ function Hero() {
         Agora is the home of nouns voters
       </h1>
 
-
       <p
         className={css`
           color: ${theme.colors.gray["700"]};
