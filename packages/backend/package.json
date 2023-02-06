@@ -5,8 +5,7 @@
   "scripts": {
     "downloadOptimismDelegateStatements": "ts-node --transpileOnly src/bin/scripts/downloadOptimismDelegateStatements/run.ts",
     "loadOptimismDelegateStatements": "ts-node --transpileOnly src/bin/scripts/loadOptimismDelegateStatements.ts",
-    "build-generate-schema": "esbuild --bundle --sourcemap src/bin/scripts/generateSchema.ts --outfile=dist/generateSchema.js --loader:.graphql=text",
-    "generate-schema": "node dist/generateSchema.js > ../frontend/schema.graphql",
+    "generate-schema": "ts-node --require ./scripts/registerGraphQL.ts src/bin/scripts/generateSchema.ts > ../frontend/schema.graphql",
     "build-dump-namespace": "esbuild --bundle --platform=node src/bin/scripts/dumpNamespace.ts --outfile=dist/dump.js",
     "dump-namespace": "node dist/dump.js",
     "check": "tsc --noEmit",
@@ -16,7 +15,7 @@
     "dump": "ts-node src/indexer/bin/dump.ts",
     "load": "ts-node src/indexer/bin/load.ts",
     "start-remote": "ts-node --transpileOnly src/indexer/ops/bin/start.ts",
-    "server": "ts-node --require ./scripts/registerGraphQL.ts --transpileOnly src/bin/server.ts",
+    "server": "ts-node --require ./scripts/registerGraphQL.ts src/bin/server.ts",
     "generate-typechain": "typechain --target ethers-v5 --out-dir src/contracts/generated src/contracts/abis/*.json",
     "generate-schema-types": "graphql-codegen",
     "generate": "yarn run generate-typechain && yarn run generate-schema-types",
