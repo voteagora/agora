@@ -60,6 +60,12 @@ class MemoryStorageLeaf implements StorageInterfaceLeaf {
         if (options?.end && !(key < options.end)) {
           return false;
         }
+
+        if (options?.prefix && !key.startsWith(options.prefix)) {
+          return false;
+        }
+
+        return true;
       });
 
     const reversed = (() => {
