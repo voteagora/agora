@@ -3,7 +3,7 @@ scalar BigInt
 scalar Timestamp
 
 type Query {
-  delegate(addressOrEnsName: String!): Delegate
+  delegate(addressOrEnsName: String!): Delegate!
   delegates(where: DelegatesWhere, orderBy: DelegatesOrder!, first: Int!, after: String): DelegatesConnection!
   proposal(id: ID!): Proposal!
   proposals: [Proposal!]!
@@ -211,7 +211,7 @@ enum ProposalStatus {
 }
 
 type Mutation {
-  createNewDelegateStatement(data: CreateNewDelegateStatementData): Delegate!
+  createNewDelegateStatement(data: CreateNewDelegateStatementData!): Delegate!
 }
 
 input CreateNewDelegateStatementData {
