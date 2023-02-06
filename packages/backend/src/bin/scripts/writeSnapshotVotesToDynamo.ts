@@ -12,6 +12,7 @@ import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { loadJsonLines } from "../../utils/jsonLines";
 import { collectGenerator } from "../../indexer/utils/generatorUtils";
 import request from "graphql-request";
+import path from "path";
 
 const spaceId = "opcollective.eth";
 
@@ -20,9 +21,11 @@ async function main() {
     retryMode: "standard",
   });
 
+  const basePath = `data/snapshot/${spaceId}`;
+
   const [votes, proposals, space] = await Promise.all([
-    collectGenerator(loadJsonLines("data/snapshot/votes.jsonl")),
-    collectGenerator(loadJsonLines("data/snapshot/proposals.jsonl")),
+    collectGenerator(loadJsonLines(path.join(basePath, "votes.jsonl"))),
+    collectGenerator(loadJsonLines(path.join(basePath, "proposals.jsonl"))),
     request({
       url,
       document: spaceQuery,
