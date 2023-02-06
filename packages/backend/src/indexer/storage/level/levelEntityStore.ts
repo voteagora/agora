@@ -11,6 +11,7 @@ import { Level } from "level";
 import { coerceLevelDbNotfoundError } from "./utils";
 import { StoredEntry } from "../dump";
 import { updatesForEntities } from "../updates";
+import { EntityDefinitions } from "../reader";
 
 export class LevelEntityStore implements EntityStore {
   readonly level: Level<string, any>;
@@ -46,11 +47,9 @@ export class LevelEntityStore implements EntityStore {
    */
   async flushUpdates(
     block: BlockIdentifier,
-    indexers: IndexerDefinition[],
+    entityDefinitions: EntityDefinitions,
     updatedEntities: EntityWithMetadata[]
   ): Promise<void> {
-    const entityDefinitions = combineEntities(indexers);
-
     const oldValues = await this.level.getMany(
       updatedEntities.map((it) => makeEntityKey(it.entity, it.id))
     );

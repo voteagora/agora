@@ -5,6 +5,12 @@ import { cloneDeep } from "lodash";
 class MemoryStorageLeaf implements StorageInterfaceLeaf {
   values: Map<string, unknown>;
 
+  getValues(): Map<string, unknown> {
+    return new Map(
+      Array.from(this.values.entries()).sort(compareBy(([key, _value]) => key))
+    );
+  }
+
   constructor(values: Map<string, unknown>) {
     this.values = values;
   }

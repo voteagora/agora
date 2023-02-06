@@ -131,7 +131,7 @@ export function followChain(
     for (const block of chainToLastFinalizedBlock) {
       await store.flushUpdates(
         block,
-        indexers,
+        entityDefinitions,
         Array.from(
           storageArea.blockStorageAreas.get(block.hash)?.entities?.values() ??
             []

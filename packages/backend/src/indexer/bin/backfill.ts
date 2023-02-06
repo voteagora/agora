@@ -1,4 +1,4 @@
-import { EntityWithMetadata } from "../storage/entityStore";
+import { combineEntities, EntityWithMetadata } from "../storage/entityStore";
 import { IndexerDefinition } from "../process";
 import { groupBy } from "../utils/generatorUtils";
 import { loadLastLogIndex, loadMergedLogs } from "../logStorage";
@@ -32,6 +32,8 @@ async function main() {
   ) {
     return;
   }
+
+  const entityDefinitions = combineEntities(indexers);
 
   const progressBar = makeProgressBar(highestCommonBlock.blockNumber);
 
@@ -91,12 +93,12 @@ async function main() {
 
     await store.flushUpdates(
       blockIdentifierFromLog(firstLog),
-      indexers,
+      entityDefinitions,
       Array.from(entityBlockStagingArea.values())
     );
   }
 
-  await store.flushUpdates(highestCommonBlock, indexers, []);
+  await store.flushUpdates(highestCommonBlock, entityDefinitions, []);
 }
 
 function blockIdentifierFromLog(log: ethers.providers.Log): BlockIdentifier {
