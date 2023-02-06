@@ -3,18 +3,23 @@ import { StorageInterface, StorageInterfaceLeaf } from "./storageInterface";
 class FailableStorageLeaf implements StorageInterfaceLeaf {
   private readonly _underlyingStorage: StorageInterfaceLeaf;
 
-  private failing: boolean = false;
+  private shouldFailIter: Iterator<boolean>;
 
-  public markFailing(failing: boolean = true) {
-    this.failing = failing;
-  }
-
-  constructor(storage: StorageInterfaceLeaf) {
+  constructor(
+    storage: StorageInterfaceLeaf,
+    shouldFailIter: Iterator<boolean>
+  ) {
     this._underlyingStorage = storage;
+    this.shouldFailIter = shouldFailIter;
   }
 
   private get underlyingStorage(): StorageInterfaceLeaf {
-    if (this.failing) {
+    const iterResult = this.shouldFailIter.next();
+    if (iterResult.done) {
+      throw new Error("shouldFailIter exhausted");
+    }
+
+    if (iterResult.value) {
       throw new Error("failing");
     }
 

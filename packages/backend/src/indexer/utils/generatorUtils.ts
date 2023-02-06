@@ -8,6 +8,12 @@ export async function* indexed<T>(
   }
 }
 
+export function* infiniteStream<T>(item: T): Iterator<T> {
+  while (true) {
+    yield item;
+  }
+}
+
 export async function* skipFirst<T>(
   iterator: AsyncIterable<T>,
   n: number

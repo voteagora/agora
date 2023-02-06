@@ -1,11 +1,9 @@
 import {
   blockIdentifierKey,
-  combineEntities,
   EntityStore,
   EntityWithMetadata,
 } from "../entityStore";
 import { BlockIdentifier } from "../../storageHandle";
-import { IndexerDefinition } from "../../process";
 import { makeEntityKey } from "../../entityKey";
 import { updatesForEntities } from "../updates";
 import {
@@ -16,6 +14,7 @@ import {
 import { efficientLengthEncodingNaturalNumbers } from "../../utils/efficientLengthEncoding";
 import { BigNumber } from "ethers";
 import { listEntries, StorageInterface } from "./storageInterface";
+import { EntityDefinitions } from "../reader";
 
 type UndoLogEntry = {
   key: string;
@@ -39,11 +38,9 @@ export class DurableObjectEntityStore implements EntityStore {
 
   async flushUpdates(
     blockIdentifier: BlockIdentifier,
-    indexers: IndexerDefinition[],
+    entityDefinitions: EntityDefinitions,
     updatedEntities: EntityWithMetadata[]
   ): Promise<void> {
-    const entityDefinitions = combineEntities(indexers);
-
     const oldValues = await Promise.all(
       updatedEntities.map(async (it) =>
         this.storage.get(makeEntityKey(it.entity, it.id), {
