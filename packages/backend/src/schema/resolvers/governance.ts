@@ -86,7 +86,7 @@ export const Query: QueryResolvers = {
   async delegate(_, { addressOrEnsName }, { ethProvider, reader }) {
     const address = await ethProvider.resolveName(addressOrEnsName);
     if (!address) {
-      return null;
+      throw new Error("failed to resolve address");
     }
 
     return (
@@ -124,7 +124,7 @@ export const Query: QueryResolvers = {
         }
       })(),
       first,
-      after
+      after ?? null
     );
   },
 };
