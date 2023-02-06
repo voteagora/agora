@@ -86,11 +86,10 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
 
       <MetricContainer
         icon="ballot"
-        title="Quorum"
+        title="Quorum (30% votable supply)"
         body={
           <>
-            <TokenAmountDisplay fragment={metrics.quorum.amount} /> (
-            {bpsToString(metrics.quorum.bpsOfTotal)} of supply)
+            <TokenAmountDisplay fragment={metrics.quorum.amount} />
           </>
         }
       />
@@ -143,7 +142,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
               Learn more
             </div>
             <HStack gap="2" alignItems="center">
-              <div>Governance handbook</div>
+              <div>Operating manual</div>
               <ArrowTopRightOnSquareIcon
                 className={css`
                   width: 16px;
@@ -203,7 +202,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
               Learn more
             </div>
             <HStack gap="2" alignItems="center">
-              <div>Proposals calendar</div>
+              <div>Governance calendar</div>
               <ArrowTopRightOnSquareIcon
                 className={css`
                   width: 16px;
