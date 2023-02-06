@@ -4,7 +4,7 @@ import { readableStreamFromGenerator } from "../utils/readableStream";
 import { getGraphQLCallingContext } from "./graphql";
 import { useSentry } from "./useSentry";
 import { createServer } from "@graphql-yoga/common";
-import Toucan from "toucan-js";
+import { Toucan } from "toucan-js";
 import { makeToucanOptions, runReportingException } from "./sentry";
 import { ethers } from "ethers";
 import { followChain, makeInitialStorageArea } from "../indexer/followChain";

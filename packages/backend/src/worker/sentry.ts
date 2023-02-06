@@ -1,5 +1,6 @@
-import Toucan, { Options } from "toucan-js";
+import { Toucan, Options } from "toucan-js";
 import { Env } from "./env";
+import { RewriteFrames } from "@sentry/integrations";
 
 export type MakeOptionsParams = {
   env: Env;
@@ -14,9 +15,7 @@ export function makeToucanOptions({ env, ctx }: MakeOptionsParams): Options {
     environment: env.ENVIRONMENT,
     release: env.GITHUB_SHA,
     context: ctx,
-    rewriteFrames: {
-      root: "/",
-    },
+    integrations: [new RewriteFrames({ root: "/" })],
   };
 }
 
@@ -56,7 +55,10 @@ export function wrapModuleSentry(
 
       return await runReportingException(sentry, async () => {
         sentry.setTag("entrypoint", "fetch");
-        return handlers.fetch?.(...args);
+        return (
+          handlers.fetch?.(...args) ??
+          new Response("not found", { status: 404 })
+        );
       });
     },
     async scheduled(...args) {
