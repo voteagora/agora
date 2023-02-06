@@ -37,13 +37,15 @@ export class StorageDurableObjectV1 {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/admin/")) {
       if (request.headers.get("x-admin-api-key") !== this.env.ADMIN_API_KEY) {
-        throw new Error("invalid value for x-admin-api-key");
+        return new Response("invalid value for x-admin-api-key", {
+          status: 401,
+        });
       }
 
       switch (url.pathname) {
         case "/admin/ops": {
           if (request.method !== "POST") {
-            throw new Error("invalid");
+            return new Response("not found", { status: 404 });
           }
 
           const message = await request.json<AdminMessage>();
@@ -57,6 +59,10 @@ export class StorageDurableObjectV1 {
               "Content-Disposition": 'attachment; filename="dump.jsonl"',
             },
           });
+        }
+
+        default: {
+          return new Response("not found", { status: 404 });
         }
       }
     }
