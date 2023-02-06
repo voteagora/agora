@@ -44,7 +44,7 @@ export function updatesForEntities(
             key: makeEntityKey(change.entity, change.id),
             value: entityDefinition.serde.serialize(change.newValue),
           },
-          previousValue: change.oldValue,
+          previousValue: change.oldValue ?? null,
         },
         ...entityDefinition.indexes.flatMap((indexDefinition) => {
           return [
@@ -79,7 +79,7 @@ export function updatesForEntities(
                 }),
                 value: change.id,
               },
-              previousValue: change.id,
+              previousValue: change.oldValue ? change.id : null,
             },
           ];
         }),
