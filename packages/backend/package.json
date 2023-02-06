@@ -16,7 +16,7 @@
     "dump": "ts-node src/indexer/bin/dump.ts",
     "load": "ts-node src/indexer/bin/load.ts",
     "start-remote": "ts-node --transpileOnly src/indexer/ops/bin/start.ts",
-    "server": "ts-node --transpileOnly src/bin/server.ts",
+    "server": "ts-node --require ./scripts/registerGraphQL.ts --transpileOnly src/bin/server.ts",
     "generate-typechain": "typechain --target ethers-v5 --out-dir src/contracts/generated src/contracts/abis/*.json",
     "generate-schema-types": "graphql-codegen",
     "generate": "yarn run generate-typechain && yarn run generate-schema-types",
