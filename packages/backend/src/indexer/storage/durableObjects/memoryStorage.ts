@@ -83,6 +83,10 @@ export class MemoryStorage
   extends MemoryStorageLeaf
   implements StorageInterface
 {
+  constructor(values: Map<string, unknown> = new Map()) {
+    super(values);
+  }
+
   async transaction<T>(
     closure: (txn: StorageInterfaceLeaf) => Promise<T>
   ): Promise<T> {
