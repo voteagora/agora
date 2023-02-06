@@ -18,6 +18,7 @@ export function ProposalDetailPanel({
   const result = useFragment(
     graphql`
       fragment ProposalDetailPanelFragment on Proposal {
+        ...VotesCastPanelFragment @arguments(address: $address)
         title
         description
         proposer {
@@ -36,7 +37,16 @@ export function ProposalDetailPanel({
   return (
     <>
       <VStack gap="4">
-        <HStack justifyContent="space-between" alignItems="center">
+        <HStack
+          justifyContent="space-between"
+          alignItems="center"
+          className={css`
+            @media (max-width: ${theme.maxWidth["2xl"]}) {
+              flex-direction: column-reverse;
+              align-items: flex-start;
+            }
+          `}
+        >
           <h2
             className={css`
               font-size: ${theme.fontSize["2xl"]};
@@ -52,7 +62,7 @@ export function ProposalDetailPanel({
               color: ${theme.colors.gray[700]};
             `}
           >
-            by &nbsp;
+            by&nbsp;
             <NounResolvedLink resolvedName={proposer.resolvedName} />
           </div>
         </HStack>

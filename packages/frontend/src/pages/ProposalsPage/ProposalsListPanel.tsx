@@ -85,6 +85,9 @@ export function ProposalsListPanel({
       className={css`
         display: flex;
         flex-direction: column;
+        @media (max-width: ${theme.maxWidth["2xl"]}) {
+          display: none;
+        }
       `}
       initial={{ opacity: 1 }}
       animate={{ opacity: isPending ? 0.3 : 1 }}

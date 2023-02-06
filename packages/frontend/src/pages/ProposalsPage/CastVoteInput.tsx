@@ -42,6 +42,9 @@ export function CastVoteInput({ fragmentRef, onVoteClick, className }: Props) {
         css`
           border: 1px solid #e0e0e0;
           border-radius: ${theme.borderRadius.lg};
+          @media (max-width: ${theme.maxWidth["2xl"]}) {
+            display: none;
+          }
         `,
         className
       )}
@@ -50,6 +53,9 @@ export function CastVoteInput({ fragmentRef, onVoteClick, className }: Props) {
         className={css`
           padding: ${theme.spacing["4"]};
           resize: none;
+          ::-webkit-scrollbar {
+            display: none;
+          }
           border-radius: ${theme.borderRadius.lg};
           :focus {
             outline: 0px;

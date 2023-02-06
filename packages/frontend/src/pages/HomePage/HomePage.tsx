@@ -74,23 +74,45 @@ function Hero() {
         max-width: ${theme.maxWidth["xl"]};
         text-align: center;
         padding: 0 ${theme.spacing["4"]};
-
         margin: ${theme.spacing["16"]} 0;
+        @media (max-width: ${theme.maxWidth.lg}) {
+          margin: 0;
+          text-align: left;
+          width: 100%;
+        }
       `}
     >
       <h1
         className={css`
           font-weight: ${theme.fontWeight.extrabold};
           font-size: ${theme.fontSize["2xl"]};
+          @media (min-width: ${theme.maxWidth.lg}) {
+            display: none;
+          }
+        `}
+      >
+        Voter metrics
+      </h1>
+      <h1
+        className={css`
+          font-weight: ${theme.fontWeight.extrabold};
+          font-size: ${theme.fontSize["2xl"]};
+          @media (max-width: ${theme.maxWidth.lg}) {
+            display: none;
+          }
         `}
       >
         Agora is the home of nouns voters
       </h1>
 
+
       <p
         className={css`
           color: ${theme.colors.gray["700"]};
           font-size: ${theme.fontSize.base};
+          @media (max-width: ${theme.maxWidth.lg}) {
+            display: none;
+          }
         `}
       >
         Nouns voters are the stewards for the DAO. You can see them all below,
@@ -109,6 +131,10 @@ function PageDivider() {
         height: 1px;
         margin-top: -${theme.spacing["8"]};
         z-index: -1;
+        @media (max-width: ${theme.maxWidth.lg}) {
+          margin-top: -${theme.spacing["40"]};
+          margin-bottom: ${theme.spacing["32"]};
+        }
       `}
     />
   );

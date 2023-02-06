@@ -159,6 +159,9 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
         className={css`
           width: 100%;
           margin-bottom: ${theme.spacing["8"]};
+          @media (max-width: ${theme.maxWidth.lg}) {
+            margin-bottom: ${theme.spacing["4"]};
+          }
         `}
       >
         <HStack
@@ -167,35 +170,29 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
           justifyContent="space-between"
           className={css`
             @media (max-width: ${theme.maxWidth.lg}) {
-              flex-direction: column;
-              align-items: stretch;
+              margin-top: ${theme.spacing["4"]};
             }
           `}
         >
           <h2
             className={css`
               font-size: ${theme.fontSize["2xl"]};
-              font-weight: bolder;
+              font-weight: ${theme.fontWeight.extrabold};
             `}
           >
             Voters
           </h2>
 
-          <HStack
-            gap="4"
-            className={css`
-              @media (max-width: ${theme.maxWidth.lg}) {
-                flex-direction: column;
-                align-items: stretch;
-              }
-            `}
-          >
+          <HStack gap="4" className={css``}>
             <HStack
               alignItems="center"
               className={css`
                 background: #f7f7f7;
                 border-radius: ${theme.borderRadius.full};
                 padding: 0 ${theme.spacing["4"]};
+                @media (max-width: ${theme.maxWidth.lg}) {
+                  display: none;
+                }
               `}
             >
               <Tab.Group
@@ -245,15 +242,15 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
               items={
                 [
                   {
-                    title: "View all",
+                    title: "All",
                     value: null,
                   },
                   {
-                    title: "View with statement",
+                    title: "With statement",
                     value: "withStatement" as const,
                   },
                   {
-                    title: "View seeking delegation",
+                    title: "Seeking delegation",
                     value: "seekingDelegation" as const,
                   },
                 ] as SelectorItem<WrappedDelegatesWhere | null>[]

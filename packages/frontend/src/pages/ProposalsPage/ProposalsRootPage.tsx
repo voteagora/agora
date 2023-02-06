@@ -78,9 +78,12 @@ export function ProposalsRootPage() {
         <h1
           className={css`
             font-size: ${theme.fontSize["2xl"]};
-            font-weight: bolder;
+            font-weight: ${theme.fontWeight["extrabold"]};
             padding: 0 ${theme.spacing["4"]};
             margin-bottom: ${theme.spacing["4"]};
+            @media (max-width: ${theme.maxWidth["lg"]}) {
+              margin-bottom: 0px;
+            }
           `}
         >
           Proposal metrics
@@ -103,10 +106,10 @@ export function ProposalsRootPage() {
         <h1
           className={css`
             font-size: ${theme.fontSize["2xl"]};
-            font-weight: bolder;
+            font-weight: ${theme.fontWeight["extrabold"]};
           `}
         >
-          All Proposals
+          Proposals
         </h1>
         <HStack gap="4">
           <Selector
@@ -427,6 +430,10 @@ function PageDivider() {
         height: 1px;
         margin-top: -${theme.spacing["8"]};
         z-index: -1;
+        @media (max-width: ${theme.maxWidth.lg}) {
+          margin-top: -${theme.spacing["40"]};
+          margin-bottom: ${theme.spacing["32"]};
+        }
       `}
     />
   );
