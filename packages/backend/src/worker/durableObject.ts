@@ -190,9 +190,15 @@ export class StorageDurableObjectV1 {
   }
 
   async fetch(request: Request): Promise<Response> {
-    const toucan = new Toucan(
-      makeToucanOptions({ env: this.env, ctx: this.state })
-    );
+    const toucan = new Toucan({
+      ...makeToucanOptions({ env: this.env, ctx: this.state }),
+      request,
+    });
+
+    toucan.setTags({
+      deployment: this.env.DEPLOYMENT,
+      entrypoint: "StorageDurableObjectV1.fetch",
+    });
 
     return await runReportingException(toucan, () =>
       this.fetchWithSentry(request, toucan)
@@ -203,6 +209,12 @@ export class StorageDurableObjectV1 {
     const toucan = new Toucan(
       makeToucanOptions({ env: this.env, ctx: this.state })
     );
+
+    toucan.setTags({
+      deployment: this.env.DEPLOYMENT,
+      entrypoint: "StorageDurableObjectV1.alarm",
+    });
+
     return await runReportingException(toucan, () => this.alarmWithSentry());
   }
 }
