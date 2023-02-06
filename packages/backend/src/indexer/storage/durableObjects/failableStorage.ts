@@ -1,15 +1,15 @@
 import { StorageInterface, StorageInterfaceLeaf } from "./storageInterface";
 
 class FailableStorageLeaf implements StorageInterfaceLeaf {
-  private readonly _underlyingStorage: StorageInterfaceLeaf;
+  protected readonly _underlyingStorageLeaf: StorageInterfaceLeaf;
 
-  private shouldFailIter: Iterator<boolean>;
+  protected shouldFailIter: Iterator<boolean>;
 
   constructor(
     storage: StorageInterfaceLeaf,
     shouldFailIter: Iterator<boolean>
   ) {
-    this._underlyingStorage = storage;
+    this._underlyingStorageLeaf = storage;
     this.shouldFailIter = shouldFailIter;
   }
 
@@ -23,7 +23,7 @@ class FailableStorageLeaf implements StorageInterfaceLeaf {
       throw new Error("failing");
     }
 
-    return this._underlyingStorage;
+    return this._underlyingStorageLeaf;
   }
 
   delete(...args: any[]) {
@@ -55,9 +55,22 @@ export class FailableStorage
   extends FailableStorageLeaf
   implements StorageInterface
 {
+  private _underlyingStorage: StorageInterface;
+
+  constructor(
+    underlyingStorage: StorageInterface,
+    shouldFailIter: Iterator<boolean>
+  ) {
+    super(underlyingStorage, shouldFailIter);
+    this._underlyingStorage = underlyingStorage;
+  }
   async transaction<T>(
     closure: (txn: StorageInterfaceLeaf) => Promise<T>
   ): Promise<T> {
-    return await closure(this);
+    return await this._underlyingStorage.transaction(async (txn) => {
+      const leaf = new FailableStorageLeaf(txn, this.shouldFailIter);
+
+      return await closure(leaf);
+    });
   }
 }
