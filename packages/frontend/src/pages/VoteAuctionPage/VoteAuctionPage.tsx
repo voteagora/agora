@@ -36,7 +36,7 @@ export function VoteAuctionPage() {
       tokenId: "3",
     },
   ];
-  
+
   const auctionList = [
     useNFT(auctionListRaw[0].collection, auctionListRaw[0].tokenId) || null,
     useNFT(auctionListRaw[1].collection, auctionListRaw[1].tokenId) || null,
@@ -72,7 +72,8 @@ export function VoteAuctionPage() {
   if (market.type !== "Auction") {
     return null;
   }
-  const auctionEnded = Date.parse(market?.endsAt?.timestamp || "1000000000") < Date.now();
+  const auctionEnded =
+    Date.parse(market?.endsAt?.timestamp || "1000000000") < Date.now();
   const name = currentAuction.metadata?.name;
   const imgLink = currentAuction.metadata?.imageUri?.replace(
     "ipfs://",
@@ -471,7 +472,8 @@ function BidItem(bidder: string, amount: number, link: string) {
 
 function PlaceBid({ market }: { market: any }) {
   const currentBid = market.currentBid?.amount?.eth?.value!;
-  const auctionEnded =  Date.parse(market?.endsAt?.timestamp || "1000000000") < Date.now();
+  const auctionEnded =
+    Date.parse(market?.endsAt?.timestamp || "1000000000") < Date.now();
   const auctionId = market.auctionId;
   const [bidAmount, setBidAmount] = React.useState("");
   const debouncedbidAmount = useDebounce(bidAmount, 1500);
