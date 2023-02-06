@@ -180,9 +180,9 @@ scalar Bytes
 type Proposal {
   id: ID!
   number: BigInt!
-  forVotes: BigInt!
-  againstVotes: BigInt!
-  abstainVotes: BigInt!
+  forVotes: TokenAmount!
+  againstVotes: TokenAmount!
+  abstainVotes: TokenAmount!
   title: String!
   description: String!
   voteEndsAt: Int!

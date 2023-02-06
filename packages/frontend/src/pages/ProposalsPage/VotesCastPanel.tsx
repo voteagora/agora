@@ -47,8 +47,6 @@ export function VotesCastPanel({
     graphql`
       fragment VotesCastPanelFragment on Proposal {
         number
-        forVotes
-        againstVotes
         quorumVotes
         votes {
           id
