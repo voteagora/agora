@@ -14,7 +14,7 @@ import { StorageArea } from "../indexer/followChain";
 // Initializing the schema takes about 250ms. We should avoid doing it once
 // per request. We need to move this calculation into some kind of compile time
 // step.
-let gatewaySchema = null;
+let gatewaySchema: ReturnType<typeof makeGatewaySchema> | null = null;
 
 export async function getGraphQLCallingContext(
   request: Request,
