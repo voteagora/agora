@@ -28,14 +28,15 @@ export function VoteAuctionPage() {
       tokenId: "1",
     },
     {
-      collection: "0xed620248618e2952952826d062A5E2798B472219",
-      tokenId: "2",
+      collection: "0x5f939767e6948F09B5703e358F3dc2a623687f02",
+      tokenId: "1",
     },
     {
       collection: "0xed620248618e2952952826d062A5E2798B472219",
       tokenId: "3",
     },
   ];
+  
   const auctionList = [
     useNFT(auctionListRaw[0].collection, auctionListRaw[0].tokenId) || null,
     useNFT(auctionListRaw[1].collection, auctionListRaw[1].tokenId) || null,
@@ -71,9 +72,7 @@ export function VoteAuctionPage() {
   if (market.type !== "Auction") {
     return null;
   }
-  const marketEnd = market?.endsAt?.timestamp || "0";
-  const auctionEnded = Date.parse(marketEnd) < Date.now();
-
+  const auctionEnded = Date.parse(market?.endsAt?.timestamp || "1000000000") < Date.now();
   const name = currentAuction.metadata?.name;
   const imgLink = currentAuction.metadata?.imageUri?.replace(
     "ipfs://",
@@ -92,7 +91,7 @@ export function VoteAuctionPage() {
       ? 0
       : parseISO(market.endsAt?.timestamp!);
   const timeRemaining =
-    auctionEnds === 0 ? "-" : formatDistanceToNow(auctionEnds);
+    auctionEnds === 0 ? "Not started" : formatDistanceToNow(auctionEnds);
 
   return (
     <VStack
@@ -472,7 +471,7 @@ function BidItem(bidder: string, amount: number, link: string) {
 
 function PlaceBid({ market }: { market: any }) {
   const currentBid = market.currentBid?.amount?.eth?.value!;
-  const auctionEnded = market.status === "complete";
+  const auctionEnded =  Date.parse(market?.endsAt?.timestamp || "1000000000") < Date.now();
   const auctionId = market.auctionId;
   const [bidAmount, setBidAmount] = React.useState("");
   const debouncedbidAmount = useDebounce(bidAmount, 1500);
