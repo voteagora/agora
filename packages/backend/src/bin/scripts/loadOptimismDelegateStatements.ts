@@ -9,7 +9,7 @@ async function main() {
   const dynamo = new DynamoDB({});
   const statements = delegatesType.parse(
     JSON.parse(
-      await fs.readFile("./data/statements.json", {
+      await fs.readFile("./data/optimismStatements/statements.json", {
         encoding: "utf-8",
       })
     )
