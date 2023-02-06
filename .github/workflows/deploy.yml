@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - deployment/optimism
 
   workflow_dispatch:
     inputs:
