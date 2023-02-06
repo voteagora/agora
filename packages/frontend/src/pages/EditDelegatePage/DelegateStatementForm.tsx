@@ -174,7 +174,7 @@ export function DelegateStatementForm({
     useMutation<DelegateStatementFormMutation>(
       graphql`
         mutation DelegateStatementFormMutation(
-          $input: CreateNewDelegateStatementData
+          $input: CreateNewDelegateStatementData!
         ) {
           createNewDelegateStatement(data: $input) {
             statement {
