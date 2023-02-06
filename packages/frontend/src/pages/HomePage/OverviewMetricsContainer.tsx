@@ -9,7 +9,6 @@ import { OverviewMetricsContainerFragment$key } from "./__generated__/OverviewMe
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
 import { CalendarIcon } from "@heroicons/react/20/solid";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
-import { bpsToString } from "../../utils/bps";
 
 type Props = {
   fragmentRef: OverviewMetricsContainerFragment$key;
@@ -86,11 +85,10 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
 
       <MetricContainer
         icon="ballot"
-        title="Quorum"
+        title="Quorum (30% votable supply)"
         body={
           <>
-            <TokenAmountDisplay fragment={metrics.quorum.amount} /> (
-            {bpsToString(metrics.quorum.bpsOfTotal)} of supply)
+            <TokenAmountDisplay fragment={metrics.quorum.amount} />
           </>
         }
       />
@@ -143,7 +141,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
               Learn more
             </div>
             <HStack gap="2" alignItems="center">
-              <div>Governance handbook</div>
+              <div>Operating manual</div>
               <ArrowTopRightOnSquareIcon
                 className={css`
                   width: 16px;
@@ -203,7 +201,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
               Learn more
             </div>
             <HStack gap="2" alignItems="center">
-              <div>Proposals calendar</div>
+              <div>Governance calendar</div>
               <ArrowTopRightOnSquareIcon
                 className={css`
                   width: 16px;
