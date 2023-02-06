@@ -1,9 +1,7 @@
 import { BlockIdentifier } from "../../storageHandle";
 import { makeEntityKey } from "../../entityKey";
-import { IndexerDefinition } from "../../process";
 import {
   blockIdentifierKey,
-  combineEntities,
   EntityStore,
   EntityWithMetadata,
 } from "../entityStore";
