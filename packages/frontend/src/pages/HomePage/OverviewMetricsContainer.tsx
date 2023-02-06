@@ -9,7 +9,6 @@ import { OverviewMetricsContainerFragment$key } from "./__generated__/OverviewMe
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
 import { CalendarIcon } from "@heroicons/react/20/solid";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
-import { bpsToString } from "../../utils/bps";
 
 type Props = {
   fragmentRef: OverviewMetricsContainerFragment$key;
