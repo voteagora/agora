@@ -245,24 +245,15 @@ export const Proposal: ProposalResolvers = {
 
   // todo: avoid re-querying these
   async forVotes({ proposalId }, _args, { reader }) {
-    const votes = await proposalVotes(proposalId, reader);
-    return votes
-      .filter((it) => it.support === 1)
-      .reduce((acc, value) => acc.add(value.weight), BigNumber.from(0));
+    return await countVotesWithStatus(proposalId, 1, reader);
   },
 
   async againstVotes({ proposalId }, _args, { reader }) {
-    const votes = await proposalVotes(proposalId, reader);
-    return votes
-      .filter((it) => it.support === 0)
-      .reduce((acc, value) => acc.add(value.weight), BigNumber.from(0));
+    return await countVotesWithStatus(proposalId, 0, reader);
   },
 
   async abstainVotes({ proposalId }, _args, { reader }) {
-    const votes = await proposalVotes(proposalId, reader);
-    return votes
-      .filter((it) => it.support === 2)
-      .reduce((acc, value) => acc.add(value.weight), BigNumber.from(0));
+    return await countVotesWithStatus(proposalId, 2, reader);
   },
 
   async voteStartsAt({ startBlock }, _args, { provider }) {
@@ -477,4 +468,20 @@ async function proposalVotes(
       indexKey: id.toString(),
     })
   );
+}
+
+async function countVotesWithStatus(
+  proposalId: BigNumber,
+  support: number,
+  reader: Reader<typeof entityDefinitions>
+) {
+  const votes = await proposalVotes(proposalId, reader);
+  const amount = votes
+    .filter((it) => it.support === support)
+    .reduce((acc, value) => acc.add(value.weight), BigNumber.from(0));
+
+  return {
+    ...amountSpec,
+    amount,
+  };
 }
