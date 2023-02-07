@@ -11,7 +11,7 @@ export type ValidatedMessage = {
 
 function hashEnvelopeValue(value: string) {
   return JSON.stringify({
-    for: "nouns-agora",
+    for: "optimism-agora",
     hashedValue: ethers.utils.hashMessage(value),
   });
 }
