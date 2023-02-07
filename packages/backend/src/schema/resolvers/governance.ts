@@ -31,7 +31,7 @@ const amountSpec = {
   decimals: 18,
 };
 
-const quorumDenominator = BigNumber.from(100);
+const quorumDenominator = BigNumber.from(100000);
 
 export type VotingPowerModel = BigNumber;
 
