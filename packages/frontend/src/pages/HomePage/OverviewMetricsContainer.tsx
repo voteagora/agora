@@ -66,11 +66,12 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
     .slice(0, 10);
 
   return (
-    <div
+    <HStack
+      justifyContent="center"
       className={css`
+        width: 100%;
         @media (max-width: ${theme.maxWidth.lg}) {
           padding: ${theme.spacing["4"]};
-          width: 100%;
         }
       `}
     >
@@ -158,7 +159,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
           })()}
         />
       </HStack>
-    </div>
+    </HStack>
   );
 }
 
