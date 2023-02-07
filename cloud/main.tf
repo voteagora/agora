@@ -20,13 +20,3 @@ provider "aws" {
   region = "us-east-2"
 }
 
-variable "deployment" {
-  type    = string
-  default = "ens"
-}
-
-variable "environment" {
-  description = "Deploy environment. One of dev, staging or prod"
-  type        = string
-  default     = "dev"
-}
