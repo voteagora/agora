@@ -36,6 +36,7 @@ export async function* listEntries<T>(
       prefix: args?.prefix,
       limit,
       allowConcurrency: true,
+      noCache: true,
     });
 
     const entries = Array.from(values.entries());
