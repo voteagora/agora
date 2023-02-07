@@ -33,16 +33,28 @@ async function main() {
     }
   })();
 
-  const lastEntry = await takeLast(loadJsonLines<{ created: number }>(file));
+  const lastEntry = await takeLast(
+    loadJsonLines<{ id: string; created: number }>(file)
+  );
 
   const votesFile = await fs.open(file, "a+");
+  let hasSeenLastEntry = false;
+
   for await (const vote of (async function* () {
     for await (const voteBatch of getAllFromQuery(
       query as any,
       { space: spaceId },
       lastEntry?.created ?? undefined
     )) {
-      yield* voteBatch;
+      for (const item of voteBatch) {
+        if (!lastEntry || hasSeenLastEntry) {
+          yield item;
+        }
+
+        if (lastEntry && (item as any).id === lastEntry.id) {
+          hasSeenLastEntry = true;
+        }
+      }
     }
   })()) {
     await votesFile.write(JSON.stringify(vote) + "\n");
