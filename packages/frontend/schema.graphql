@@ -187,7 +187,7 @@ type Proposal {
   description: String!
   voteEndsAt: Int!
   voteStartsAt: Int!
-  quorumVotes: BigInt!
+  quorumVotes: TokenAmount!
   totalVotes: BigInt!
   votes: [Vote!]!
   targets: [Bytes!]

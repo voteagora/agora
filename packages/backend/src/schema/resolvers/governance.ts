@@ -277,7 +277,10 @@ export const Proposal: ProposalResolvers = {
   },
 
   async quorumVotes({}, _args, { reader }) {
-    return await getQuorum(reader);
+    return {
+      amount: await getQuorum(reader),
+      ...amountSpec,
+    };
   },
 
   totalValue({ transactions }) {

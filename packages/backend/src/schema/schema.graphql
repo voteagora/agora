@@ -216,7 +216,7 @@ type Proposal {
 
   voteEndsAt: Int!
   voteStartsAt: Int!
-  quorumVotes: BigInt!
+  quorumVotes: TokenAmount!
   totalVotes: BigInt!
   votes: [Vote!]!
 

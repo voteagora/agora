@@ -27,7 +27,9 @@ export function ProposalVotesSummary({
         againstVotes {
           ...TokenAmountDisplayFragment
         }
-        quorumVotes
+        quorumVotes {
+          ...TokenAmountDisplayFragment
+        }
 
         ...ProposalVotesSummaryVotesBarFragment
         ...ProposalVotesSummaryVoteTimeFragment
@@ -73,7 +75,9 @@ export function ProposalVotesSummary({
           color: ${theme.colors.gray["4f"]};
         `}
       >
-        <div>QUORUM {proposal.quorumVotes}</div>
+        <div>
+          QUORUM <TokenAmountDisplay fragment={proposal.quorumVotes} />
+        </div>
         <VoteTime fragmentRef={proposal} />
       </HStack>
     </VStack>
