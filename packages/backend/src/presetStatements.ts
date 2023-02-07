@@ -11,7 +11,7 @@ export function initialFields(): z.TypeOf<typeof formSchema> {
     mostValuableProposals: [],
     leastValuableProposals: [],
     topIssues: [],
-    for: "nouns-agora",
+    for: "optimism-agora",
   };
 }
 
@@ -92,7 +92,7 @@ export const presetDelegateStatements = new Map<string, StoredStatement>([
   makeStoredStatementEntry("0xc3fdadbae46798cd8762185a09c5b672a7aa36bb", {
     delegateStatement:
       "I am the co-founder of Vector DAO and builder of prop 87. As long time designer and software builder, I plan on using my votes to advocate for and shepard through high quality projects that either creatively proliferate the meme, and contribute software to better functioning of the DAO.",
-    for: "nouns-agora",
+    for: "optimism-agora",
     twitter: "zhayitong",
     discord: "yitong#9038",
 

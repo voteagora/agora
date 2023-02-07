@@ -7,6 +7,8 @@ import * as delegateStatement from "./resolvers/delegateStatement";
 import { attachTracingContextInjection } from "./transformers/tracingContext";
 import { applyIdPrefix } from "./transformers/applyIdPrefix";
 import { makeExecutableSchema } from "@graphql-tools/schema";
+
+// @ts-ignore
 import schema from "./schema.graphql";
 
 // @ts-ignore

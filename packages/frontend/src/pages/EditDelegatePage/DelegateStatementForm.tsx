@@ -234,7 +234,7 @@ export function DelegateStatementForm({
       }
 
       const signingBody = {
-        for: "nouns-agora",
+        for: "optimism-agora",
         delegateStatement: formState.delegateStatement,
         topIssues: formState.topIssues,
         mostValuableProposals: formState.mostValuableProposals,
@@ -421,7 +421,7 @@ function withIgnoringBlock(fn: () => void) {
 
 function hashEnvelopeValue(value: string) {
   return JSON.stringify({
-    for: "nouns-agora",
+    for: "optimism-agora",
     hashedValue: ethers.utils.hashMessage(value),
   });
 }
