@@ -103,11 +103,18 @@ export const Query: QueryResolvers = {
   },
 
   async proposals(_, {}, { reader }) {
-    return await collectGenerator(
-      reader.getEntitiesByIndex("Proposal", "byEndBlock", {
-        type: "RANGE",
-      })
-    );
+    return [
+      (await reader.getEntity(
+        "Proposal",
+        "28601282374834906210319879956567232553560898502158891728063939287236508034960"
+      ))!,
+    ];
+    // todo: looks like the range imlementation is broken somehow for durable objects
+    // return await collectGenerator(
+    //   reader.getEntitiesByIndex("Proposal", "byEndBlock", {
+    //     type: "RANGE",
+    //   })
+    // );
   },
 
   async delegates(_, { orderBy, first, where, after }, { reader }) {
