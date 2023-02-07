@@ -13,7 +13,7 @@ const topIssueSchema = z
 
 const selectedProposalSchema = z
   .object({
-    number: z.number(),
+    number: z.string(),
   })
   .strict();
 
