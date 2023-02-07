@@ -9,7 +9,7 @@ terraform {
   cloud {
     organization = "0xcaff"
     workspaces {
-      name = "agora-dev"
+      name = "agora-optimism-prod"
     }
   }
 
