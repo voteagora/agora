@@ -51,7 +51,6 @@ export class DurableObjectReader<
       async function* (indexPrefix, startingKey, visitedValues) {
         for await (const [indexKey, rawEntityId] of listEntries(storage, {
           start: startingKey,
-          prefix: indexPrefix,
         })) {
           if (!indexKey.startsWith(indexPrefix)) {
             break;
