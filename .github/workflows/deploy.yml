@@ -62,9 +62,9 @@ jobs:
 
       - run: yarn workspace nouns-agora-backend run generate
 
-      # - name: Typescript
-      #   working-directory: ./packages/backend
-      #   run: yarn tsc --noEmit
+      - name: Typescript
+        working-directory: ./packages/backend
+        run: yarn tsc --noEmit
 
       - name: Run Test
         working-directory: ./packages/backend
