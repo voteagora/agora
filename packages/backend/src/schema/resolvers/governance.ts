@@ -391,7 +391,10 @@ export const Vote: VoteResolvers = {
     return weight;
   },
   async voter({ voterAddress }, _args, { reader }) {
-    return (await reader.getEntity("Address", voterAddress))!;
+    return (
+      (await reader.getEntity("Address", voterAddress)) ??
+      defaultAccount(voterAddress)
+    );
   },
 };
 
