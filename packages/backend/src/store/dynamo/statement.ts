@@ -2,7 +2,6 @@ import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { StatementStorage, StoredStatement } from "../../schema/model";
 import { makeKey, marshaller, TableName } from "./utils";
 import DataLoader from "dataloader";
-import { ethers } from "ethers";
 
 export function makeDelegateStatementKey(address: string) {
   return makeKey({
@@ -28,12 +27,12 @@ export function makeDynamoStatementStorage(client: DynamoDB): StatementStorage {
         Object.values(results.Responses![TableName])
           .map((value) => marshaller.unmarshallItem(value) as StoredStatement)
           .map((statement) => {
-            return [statement.address, statement];
+            return [statement.address.toLowerCase(), statement];
           })
       );
 
       const values = keys.map((key) => {
-        const normalizedKey = ethers.utils.getAddress(key);
+        const normalizedKey = key.toLowerCase();
         return statements.get(normalizedKey) ?? null;
       });
 
