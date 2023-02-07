@@ -30,7 +30,7 @@ function ensureUnique<T extends ZodTypeAny>(
 
 export const formSchema = z
   .object({
-    for: z.literal("nouns-agora"),
+    for: z.literal("optimism-agora"),
     delegateStatement: z.string(),
     topIssues: z.array(topIssueSchema),
     mostValuableProposals: z.array(selectedProposalSchema),
