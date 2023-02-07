@@ -258,12 +258,22 @@ export const Proposal: ProposalResolvers = {
 
   async voteStartsAt({ startBlock }, _args, { provider }) {
     const block = await provider.getBlock(startBlock.toNumber());
-    return block.timestamp;
+    if (block) {
+      return block.timestamp;
+    }
+
+    const latestBlock = await provider.getBlock("latest");
+    return latestBlock.timestamp + (startBlock.toNumber() - latestBlock.number);
   },
 
   async voteEndsAt({ endBlock }, _args, { provider }) {
     const block = await provider.getBlock(endBlock.toNumber());
-    return block.timestamp;
+    if (block) {
+      return block.timestamp;
+    }
+
+    const latestBlock = await provider.getBlock("latest");
+    return latestBlock.timestamp + (endBlock.toNumber() - latestBlock.number);
   },
 
   async quorumVotes({}, _args, { reader }) {
