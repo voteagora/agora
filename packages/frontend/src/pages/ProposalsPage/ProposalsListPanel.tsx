@@ -150,7 +150,7 @@ export function ProposalsListPanel({
                 },
                 {
                   title: "Defeated",
-                  value: "VETOED" as const,
+                  value: "DEFEATED" as const,
                 },
                 {
                   title: "Queued",
