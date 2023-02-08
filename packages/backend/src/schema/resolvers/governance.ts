@@ -25,6 +25,7 @@ import { collectGenerator } from "../../indexer/utils/generatorUtils";
 import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { driveReaderByIndex } from "../pagination";
 import { formSchema } from "../../formSchema";
+import { approximateBlockTimestampForBlock } from "../../utils/blockTimestamp";
 
 const amountSpec = {
   currency: "OP",
@@ -496,21 +497,4 @@ async function countVotesWithStatus(
     ...amountSpec,
     amount,
   };
-}
-
-const secondsPerBlock = 12;
-
-export async function approximateBlockTimestampForBlock(
-  provider: ethers.providers.BaseProvider,
-  blockNumber: number
-) {
-  const block = await provider.getBlock(blockNumber.toString());
-  if (block) {
-    return block.timestamp;
-  }
-
-  const latestBlock = await provider.getBlock("latest");
-  const blockDelta = blockNumber - latestBlock.number;
-
-  return latestBlock.timestamp + blockDelta * secondsPerBlock;
 }
