@@ -50,6 +50,12 @@ export const VotingPower: VotingPowerResolvers = {
     return bpsOf(value, aggregate.totalSupply);
   },
 
+  async bpsOfDelegatedSupply(value, _args, { reader }) {
+    const aggregate = await getAggregate(reader);
+
+    return bpsOf(value, aggregate.delegatedSupply);
+  },
+
   async bpsOfQuorum(value, _args, { reader }) {
     const quorum = await getQuorum(reader);
     return bpsOf(value, quorum);
