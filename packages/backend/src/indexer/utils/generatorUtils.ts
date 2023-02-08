@@ -28,11 +28,19 @@ export async function* skipFirst<T>(
 }
 
 export async function* asyncIterableFromIterable<T>(
-  iterator: Iterable<T>
+  iterable: Iterable<T>
 ): AsyncGenerator<T> {
-  for (const item of iterator) {
+  for (const item of iterable) {
     yield item;
   }
+}
+
+export function makeIterableFromIterator<T>(
+  iterator: Iterator<T>
+): Iterable<T> {
+  return {
+    [Symbol.iterator]: () => iterator,
+  };
 }
 
 export async function* batch<T>(
@@ -114,6 +122,27 @@ export async function collectGenerator<T>(
   }
 
   return items;
+}
+
+export async function* skipGenerator<T>(
+  asyncGenerator: AsyncIterable<T>,
+  n: number
+): AsyncGenerator<T> {
+  for await (const [idx, item] of indexed(asyncGenerator)) {
+    if (idx < n) {
+      continue;
+    }
+
+    yield item;
+  }
+}
+
+export function* infiniteCountingGenerator() {
+  let idx = 0;
+  while (true) {
+    yield idx;
+    idx++;
+  }
 }
 
 export async function takeLast<T>(gen: AsyncIterable<T>): Promise<T | null> {

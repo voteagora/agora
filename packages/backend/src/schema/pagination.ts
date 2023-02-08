@@ -3,6 +3,7 @@ import { RuntimeType } from "../indexer/serde";
 import {
   collectGenerator,
   limitGenerator,
+  skipGenerator,
 } from "../indexer/utils/generatorUtils";
 
 export type PageInfo = {
@@ -36,42 +37,29 @@ export async function driveReaderByIndex<
   const edges = (
     await collectGenerator(
       limitGenerator(
-        reader.getEntitiesByIndex(entityName, indexName, {
-          type: "RANGE",
-          starting: after
-            ? (() => {
-                const [indexKey, entityId] = after.split("|");
+        skipGenerator(
+          reader.getEntitiesByIndex(entityName, indexName, {
+            type: "RANGE",
+            starting: after
+              ? (() => {
+                  const [indexKey, entityId] = after.split("|");
 
-                return {
-                  indexKey,
-                  entityId,
-                };
-              })()
-            : undefined,
-        }),
-        first + 1
+                  return {
+                    indexKey,
+                    entityId,
+                  };
+                })()
+              : undefined,
+          }),
+          after ? 1 : 0
+        ),
+        first
       )
     )
-  ).flatMap<Edge<RuntimeType<EntityDefinitions[EntityName]["serde"]>>>(
-    (node, idx, array) => {
-      if (idx === first) {
-        return [];
-      }
-
-      return [
-        {
-          node: node.value,
-          cursor:
-            idx > 0
-              ? (() => {
-                  const lastValue = array[idx - 1];
-                  return [lastValue.indexKey, lastValue.entityId].join("|");
-                })()
-              : "",
-        },
-      ];
-    }
-  );
+  ).map<Edge<RuntimeType<EntityDefinitions[EntityName]["serde"]>>>((node) => ({
+    node: node.value,
+    cursor: [node.indexKey, node.entityId].join("|"),
+  }));
 
   const endCursor = edges[edges.length - 1]?.cursor;
   return {
