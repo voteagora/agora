@@ -2,12 +2,7 @@ import { z, ZodArray, ZodTypeAny } from "zod";
 
 const topIssueSchema = z
   .object({
-    // todo: validation around formSchema needs a once over
-    type: z.string() /*z.union([
-      z.literal("proliferation"),
-      z.literal("treasury"),
-      z.literal("funding"),
-    ])*/,
+    type: z.string(),
     value: z.string(),
   })
   .strict();
