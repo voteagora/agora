@@ -21,11 +21,16 @@ import {
 import { Reader } from "../../indexer/storage/reader";
 import { entityDefinitions } from "../../indexer/contracts";
 import { RuntimeType } from "../../indexer/serde";
-import { collectGenerator } from "../../indexer/utils/generatorUtils";
+import {
+  collectGenerator,
+  filterGenerator,
+  limitGenerator,
+} from "../../indexer/utils/generatorUtils";
 import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { driveReaderByIndex } from "../pagination";
 import { formSchema } from "../../formSchema";
 import { approximateBlockTimestampForBlock } from "../../utils/blockTimestamp";
+import { intersection } from "../../utils/set";
 
 const amountSpec = {
   currency: "OP",
@@ -181,6 +186,24 @@ export const Delegate: DelegateResolvers = {
     const totalProposals = (await getGovernanceAggregate(reader))
       .totalProposals;
 
+    const lastTenProposals = (
+      await collectGenerator(
+        limitGenerator(
+          filterGenerator(
+            reader.getEntitiesByIndex("Proposal", "byEndBlock", {
+              type: "RANGE",
+            }),
+            (value) => value.value.status !== "CANCELLED"
+          ),
+          10
+        )
+      )
+    ).map((it) => it.value.proposalId.toString());
+
+    const votedProposals = new Set(
+      votes.map((vote) => vote.proposalId.toString())
+    );
+
     return {
       tokenHoldersRepresentedCount: accountsRepresentedCount.toNumber(),
       totalVotes: votes.length,
@@ -188,7 +211,8 @@ export const Delegate: DelegateResolvers = {
       againstVotes: votes.filter((vote) => vote.support === 0).length,
       abstainVotes: votes.filter((vote) => vote.support === 2).length,
       // todo: implement ofLastTenProps
-      ofLastTenProps: 0,
+      ofLastTenProps: intersection(votedProposals, new Set(lastTenProposals))
+        .size,
       ofTotalProps: totalProposals
         ? Math.floor((votes.length / totalProposals) * 100)
         : 0,
