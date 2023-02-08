@@ -55,7 +55,23 @@ export function DelegateStatementFormSection({
       `}
     >
       <HStack alignItems="baseline" justifyContent="space-between" gap="4">
-        <h3 className={formSectionHeadingStyle}>Delegate statement</h3>
+        <HStack alignItems="baseline" gap="2">
+          <h3 className={formSectionHeadingStyle}>Delegate statement</h3>
+          <a
+            href="https://gov.optimism.io/t/delegate-commitments/235"
+            rel="noreferrer"
+            target="_blank"
+          >
+            <p
+              className={css`
+                font-size: ${theme.fontSize.sm};
+                opacity: 0.5;
+              `}
+            >
+              View template
+            </p>
+          </a>
+        </HStack>
 
         <Tab.Group
           manual
