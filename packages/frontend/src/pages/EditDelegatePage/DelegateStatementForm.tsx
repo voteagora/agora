@@ -9,10 +9,7 @@ import {
   IssueState,
   TopIssuesFormSection,
 } from "./TopIssuesFormSection";
-import {
-  PastProposalsFormSection,
-  SelectedProposal,
-} from "./PastProposalsFormSection";
+import { SelectedProposal } from "./PastProposalsFormSection";
 import { OtherInfoFormSection } from "./OtherInfoFormSection";
 import { buttonStyles } from "./EditDelegatePage";
 import { UseForm, useForm } from "./useForm";
@@ -105,8 +102,6 @@ export function DelegateStatementForm({
             openToSponsoringProposals
           }
         }
-
-        ...PastProposalsFormSectionProposalListFragment
       }
     `,
     queryFragment
@@ -293,7 +288,6 @@ export function DelegateStatementForm({
       >
         <DelegateStatementFormSection form={form} />
         <TopIssuesFormSection form={form} />
-        <PastProposalsFormSection form={form} queryFragment={data} />
         <OtherInfoFormSection form={form} />
 
         <HStack
