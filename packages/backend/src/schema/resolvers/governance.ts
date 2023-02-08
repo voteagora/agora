@@ -210,7 +210,6 @@ export const Delegate: DelegateResolvers = {
       forVotes: votes.filter((vote) => vote.support === 1).length,
       againstVotes: votes.filter((vote) => vote.support === 0).length,
       abstainVotes: votes.filter((vote) => vote.support === 2).length,
-      // todo: implement ofLastTenProps
       ofLastTenProps: intersection(votedProposals, new Set(lastTenProposals))
         .size,
       ofTotalProps: totalProposals
