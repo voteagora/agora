@@ -98,7 +98,7 @@ function VoteTime({
     `,
     fragmentRef
   );
-  const now = Date.now() / 1000;
+  const now = Date.now();
 
   let voteTime;
   let voteTextPrefix;
@@ -115,9 +115,9 @@ function VoteTime({
     }
   }
 
-  const ago = formatDistanceToNowStrict(voteTime * 1000, { addSuffix: true });
+  const ago = formatDistanceToNowStrict(voteTime, { addSuffix: true });
   const text = `${voteTextPrefix} ${ago}`;
-  return <span title={formatISO9075(voteTime * 1000)}>{text}</span>;
+  return <span title={formatISO9075(voteTime)}>{text}</span>;
 }
 
 function VotesBar({
