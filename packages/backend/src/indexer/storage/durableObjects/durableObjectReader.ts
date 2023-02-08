@@ -53,10 +53,6 @@ export class DurableObjectReader<
         for await (const [indexKey, rawEntityId] of listEntries(storage, {
           start: startingKey,
         })) {
-          if (!indexKey.startsWith(indexPrefix)) {
-            break;
-          }
-
           const entityId = rawEntityId as string;
 
           if (visitedValues.has(entityId)) {
