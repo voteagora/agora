@@ -259,13 +259,11 @@ export const Proposal: ProposalResolvers = {
   },
 
   async voteStartsAt({ startBlock }, _args, { provider }) {
-    const block = await provider.getBlock(startBlock.toNumber());
-    return block.timestamp;
+    return approximateBlockTimestampForBlock(provider, startBlock.toNumber());
   },
 
   async voteEndsAt({ endBlock }, _args, { provider }) {
-    const block = await provider.getBlock(endBlock.toNumber());
-    return block.timestamp;
+    return approximateBlockTimestampForBlock(provider, endBlock.toNumber());
   },
 
   async quorumVotes({}, _args, { reader }) {
@@ -498,4 +496,21 @@ async function countVotesWithStatus(
     ...amountSpec,
     amount,
   };
+}
+
+const secondsPerBlock = 12;
+
+export async function approximateBlockTimestampForBlock(
+  provider: ethers.providers.BaseProvider,
+  blockNumber: number
+) {
+  const block = await provider.getBlock(blockNumber.toString());
+  if (block) {
+    return block.timestamp;
+  }
+
+  const latestBlock = await provider.getBlock("latest");
+  const blockDelta = blockNumber - latestBlock.number;
+
+  return latestBlock.timestamp + blockDelta * secondsPerBlock;
 }
