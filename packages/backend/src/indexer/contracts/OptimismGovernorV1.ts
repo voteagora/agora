@@ -37,6 +37,7 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
         support: serde.number,
         weight: serde.bigNumber,
         reason: serde.string,
+        transactionHash: serde.string,
       }),
       indexes: [
         {
@@ -167,6 +168,7 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
     {
       signature: "VoteCast(address,uint256,uint8,uint256,string)",
       async handle(handle, event, log) {
+        log.blockNumber;
         const id = [log.transactionHash, log.logIndex].join("|");
         handle.saveEntity("Vote", id, {
           id,
@@ -175,6 +177,7 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
           support: event.args.support,
           weight: event.args.weight,
           reason: event.args.reason,
+          transactionHash: log.transactionHash,
         });
       },
     },
@@ -190,6 +193,7 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
           support: event.args.support,
           weight: event.args.weight,
           reason: event.args.reason,
+          transactionHash: log.transactionHash,
         });
       },
     },
