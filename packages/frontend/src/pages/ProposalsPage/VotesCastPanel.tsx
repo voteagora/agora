@@ -68,6 +68,7 @@ export function VotesCastPanel({
           ...VoteReasonFragment
         }
         ...ProposalVotesSummaryFragment
+        ...CastVoteInputVoteButtonsFragment
       }
     `,
     fragmentRef
@@ -172,6 +173,7 @@ export function VotesCastPanel({
 
         {!expanded && (
           <CastVoteInput
+            framgnetRef={result}
             className={css`
               flex-shrink: 0;
               margin-left: ${theme.spacing["4"]};
