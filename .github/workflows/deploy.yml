@@ -68,7 +68,7 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: nouns-agora-backend
+          SENTRY_PROJECT: agora-backend
         with:
           sourcemaps: "./packages/backend/dist/"
 
