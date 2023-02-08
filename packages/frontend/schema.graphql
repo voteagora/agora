@@ -185,8 +185,8 @@ type Proposal {
   abstainVotes: TokenAmount!
   title: String!
   description: String!
-  voteEndsAt: Int!
-  voteStartsAt: Int!
+  voteEndsAt: Timestamp!
+  voteStartsAt: Timestamp!
   quorumVotes: TokenAmount!
   totalVotes: BigInt!
   votes: [Vote!]!

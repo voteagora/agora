@@ -5,6 +5,7 @@ import {
   EntityDefinitions,
   getEntitiesByIndexFromStorageArea,
   getEntityFromStorageArea,
+  IndexedValue,
   IndexQueryArgs,
   Reader,
 } from "../reader";
@@ -38,7 +39,7 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
     indexName: IndexName,
     args: IndexQueryArgs
   ): AsyncGenerator<
-    Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>
+    IndexedValue<Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>>
   > {
     const level = this.level;
     const entityDefinition = this.entityDefinitions[entity];

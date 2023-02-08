@@ -25,6 +25,7 @@ import { collectGenerator } from "../../indexer/utils/generatorUtils";
 import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { driveReaderByIndex } from "../pagination";
 import { formSchema } from "../../formSchema";
+import { approximateBlockTimestampForBlock } from "../../utils/blockTimestamp";
 
 const amountSpec = {
   currency: "OP",
@@ -103,18 +104,13 @@ export const Query: QueryResolvers = {
   },
 
   async proposals(_, {}, { reader }) {
-    return [
-      (await reader.getEntity(
-        "Proposal",
-        "28601282374834906210319879956567232553560898502158891728063939287236508034960"
-      ))!,
-    ];
-    // todo: looks like the range imlementation is broken somehow for durable objects
-    // return await collectGenerator(
-    //   reader.getEntitiesByIndex("Proposal", "byEndBlock", {
-    //     type: "RANGE",
-    //   })
-    // );
+    return (
+      await collectGenerator(
+        reader.getEntitiesByIndex("Proposal", "byEndBlock", {
+          type: "RANGE",
+        })
+      )
+    ).map((it) => it.value);
   },
 
   async delegates(_, { orderBy, first, where, after }, { reader }) {
@@ -264,23 +260,11 @@ export const Proposal: ProposalResolvers = {
   },
 
   async voteStartsAt({ startBlock }, _args, { provider }) {
-    const block = await provider.getBlock(startBlock.toNumber());
-    if (block) {
-      return block.timestamp;
-    }
-
-    const latestBlock = await provider.getBlock("latest");
-    return latestBlock.timestamp + (startBlock.toNumber() - latestBlock.number);
+    return approximateBlockTimestampForBlock(provider, startBlock.toNumber());
   },
 
   async voteEndsAt({ endBlock }, _args, { provider }) {
-    const block = await provider.getBlock(endBlock.toNumber());
-    if (block) {
-      return block.timestamp;
-    }
-
-    const latestBlock = await provider.getBlock("latest");
-    return latestBlock.timestamp + (endBlock.toNumber() - latestBlock.number);
+    return approximateBlockTimestampForBlock(provider, endBlock.toNumber());
   },
 
   async quorumVotes({}, _args, { reader }) {
@@ -405,10 +389,14 @@ async function votesForAddress(
   const normalizedAddress = ethers.utils.getAddress(address);
   return await collectGenerator(
     (async function* () {
-      for await (const value of reader.getEntitiesByIndex("Vote", "byVoter", {
-        type: "EXACT_MATCH",
-        indexKey: normalizedAddress,
-      })) {
+      for await (const { value } of reader.getEntitiesByIndex(
+        "Vote",
+        "byVoter",
+        {
+          type: "EXACT_MATCH",
+          indexKey: normalizedAddress,
+        }
+      )) {
         if (value.voterAddress !== normalizedAddress) {
           return;
         }
@@ -426,7 +414,7 @@ async function proposedByAddress(
   const normalizedAddress = ethers.utils.getAddress(address);
   return await collectGenerator(
     (async function* () {
-      for await (const value of reader.getEntitiesByIndex(
+      for await (const { value } of reader.getEntitiesByIndex(
         "Proposal",
         "byProposer",
         { type: "EXACT_MATCH", indexKey: normalizedAddress }
@@ -485,12 +473,14 @@ async function proposalVotes(
   id: BigNumber,
   reader: Reader<typeof entityDefinitions>
 ) {
-  return await collectGenerator(
-    reader.getEntitiesByIndex("Vote", "byProposal", {
-      type: "EXACT_MATCH",
-      indexKey: id.toString(),
-    })
-  );
+  return (
+    await collectGenerator(
+      reader.getEntitiesByIndex("Vote", "byProposal", {
+        type: "EXACT_MATCH",
+        indexKey: id.toString(),
+      })
+    )
+  ).map((it) => it.value);
 }
 
 async function countVotesWithStatus(
