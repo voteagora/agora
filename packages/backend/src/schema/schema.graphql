@@ -93,6 +93,7 @@ type Vote {
 type Transaction {
   id: ID!
   hash: String!
+  timestamp: Timestamp!
   block: Block!
 }
 
