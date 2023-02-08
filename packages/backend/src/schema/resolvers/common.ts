@@ -7,6 +7,8 @@ import {
 import { ethers, BigNumber } from "ethers";
 import { resolveNameFromAddress } from "../../utils/resolveName";
 
+import { TransactionResponse } from "@ethersproject/abstract-provider/src.ts";
+
 export type AddressModel = {
   address: string;
 };
@@ -27,22 +29,23 @@ export const Address: AddressResolvers = {
   },
 };
 
-export type TransactionModel = {
-  transactionHash: string;
-  blockHash: string;
-};
+export type TransactionModel = TransactionResponse;
 
 export const Transaction: TransactionResolvers = {
-  id({ transactionHash }) {
-    return `Transaction:${transactionHash}`;
+  id({ hash }) {
+    return `Transaction:${hash}`;
   },
 
-  hash({ transactionHash }) {
-    return transactionHash;
+  hash({ hash }) {
+    return hash;
+  },
+
+  timestamp({ timestamp }) {
+    return new Date(timestamp! * 1000);
   },
 
   async block({ blockHash }, _args, { provider }) {
-    return await provider.getBlock(blockHash);
+    return await provider.getBlock(blockHash!);
   },
 };
 

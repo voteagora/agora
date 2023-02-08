@@ -365,10 +365,8 @@ export const Vote: VoteResolvers = {
     return support;
   },
 
-  // todo: missing fields
-  // @ts-ignore
-  transaction({ blockHash, transactionHash }) {
-    return { blockHash, transactionHash };
+  async transaction({ transactionHash }, _args, { provider }) {
+    return await provider.getTransaction(transactionHash);
   },
 
   votes({ weight }) {
