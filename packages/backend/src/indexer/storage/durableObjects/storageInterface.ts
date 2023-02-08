@@ -28,7 +28,8 @@ export async function* listEntries<T>(
 ): AsyncGenerator<[string, T]> {
   const limit = 1000;
 
-  let start = args?.start;
+  const initialStartValue = args?.start;
+  let start = initialStartValue;
 
   while (true) {
     const values = await storage.list({
@@ -36,9 +37,13 @@ export async function* listEntries<T>(
       prefix: args?.prefix,
       limit,
       allowConcurrency: true,
+      noCache: true,
     });
 
-    const entries = Array.from(values.entries());
+    const entries = Array.from(values.entries()).slice(
+      start === initialStartValue ? 0 : 1
+    );
+
     if (!entries.length) {
       return;
     }
@@ -46,7 +51,6 @@ export async function* listEntries<T>(
     // @ts-ignore
     yield* entries;
 
-    const [lastEntryKey] = entries[entries.length - 1];
-    start = lastEntryKey;
+    start = entries[entries.length - 1][0];
   }
 }

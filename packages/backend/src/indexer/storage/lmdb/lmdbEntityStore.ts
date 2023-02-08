@@ -1,14 +1,13 @@
 import {
   blockIdentifierKey,
-  combineEntities,
   EntityStore,
   EntityWithMetadata,
 } from "../entityStore";
 import { BlockIdentifier } from "../../storageHandle";
-import { IndexerDefinition } from "../../process";
 import lmdb from "lmdb";
 import { makeEntityKey } from "../../entityKey";
 import { updatesForEntities } from "../updates";
+import { EntityDefinitions } from "../reader";
 
 export class LmdbEntityStore implements EntityStore {
   readonly lmdb: lmdb.RootDatabase;
@@ -24,14 +23,12 @@ export class LmdbEntityStore implements EntityStore {
 
   async flushUpdates(
     blockIdentifier: BlockIdentifier,
-    indexers: IndexerDefinition[],
+    entityDefinitions: EntityDefinitions,
     updatedEntities: EntityWithMetadata[]
   ): Promise<void> {
     const oldValues = await this.lmdb.getMany(
       updatedEntities.map((it) => makeEntityKey(it.entity, it.id))
     );
-
-    const entityDefinitions = combineEntities(indexers);
 
     const updates = updatesForEntities(
       blockIdentifier,

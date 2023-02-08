@@ -2,6 +2,7 @@ import {
   EntityDefinitions,
   getEntitiesByIndexFromStorageArea,
   getEntityFromStorageArea,
+  IndexedValue,
   IndexQueryArgs,
   Reader,
 } from "../reader";
@@ -38,7 +39,7 @@ export class DurableObjectReader<
     indexName: IndexName,
     args: IndexQueryArgs
   ): AsyncGenerator<
-    Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>
+    IndexedValue<Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>>
   > {
     const entityDefinition = this.entityDefinitions[entity];
     const storage = this.storage;
@@ -53,10 +54,6 @@ export class DurableObjectReader<
           start: startingKey,
           prefix: indexPrefix,
         })) {
-          if (!indexKey.startsWith(indexPrefix)) {
-            break;
-          }
-
           const entityId = rawEntityId as string;
 
           if (visitedValues.has(entityId)) {

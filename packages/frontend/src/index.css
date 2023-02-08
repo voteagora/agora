@@ -14,6 +14,6 @@ html {
 }
 
 @font-face {
-  font-family: 'Rubik';
-  src: local('Rubik'), url(./fonts/Rubik-BoldItalic.ttf) format('ttf');
+  font-family: "Rubik";
+  src: local("Rubik"), url(./fonts/Rubik-BoldItalic.ttf) format("ttf");
 }

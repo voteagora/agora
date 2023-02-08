@@ -3,7 +3,7 @@ import { LevelEntityStore } from "../storage/level/levelEntityStore";
 
 async function main() {
   const entityStore = await LevelEntityStore.open();
-  const logFile = await fs.open("dump.jsonl", "w");
+  const logFile = await fs.open("data/dump/Optimism.jsonl", "w");
 
   for await (const entity of entityStore.getEntities()) {
     await logFile.write(JSON.stringify(entity) + "\n");

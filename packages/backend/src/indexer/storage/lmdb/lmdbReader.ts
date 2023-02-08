@@ -2,6 +2,7 @@ import {
   EntityDefinitions,
   getEntitiesByIndexFromStorageArea,
   getEntityFromStorageArea,
+  IndexedValue,
   IndexQueryArgs,
   Reader,
 } from "../reader";
@@ -37,7 +38,7 @@ export class LmdbReader<EntityDefinitionsType extends EntityDefinitions>
     indexName: IndexName,
     args: IndexQueryArgs
   ): AsyncGenerator<
-    Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>
+    IndexedValue<Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>>
   > {
     const entityDefinition = this.entityDefinitions[entity];
     const lmdb = this.entityStore.lmdb;

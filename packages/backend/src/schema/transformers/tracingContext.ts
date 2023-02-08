@@ -24,6 +24,10 @@ export function attachTracingContextInjection(
       return {
         ...fieldConfig,
         async resolve(...resolverArgs) {
+          if (!fieldConfig.resolve) {
+            throw new Error("fieldConfig resolve mutated, this is not allowed");
+          }
+
           const [parentValue, args, context, info] = resolverArgs;
 
           const tracingContext: TracingContext = context.tracingContext;

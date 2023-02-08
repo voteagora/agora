@@ -1,4 +1,4 @@
-import Toucan from "toucan-js";
+import { Toucan } from "toucan-js";
 import {
   GraphQLError,
   Kind,
@@ -22,16 +22,16 @@ export function useSentry(sentry: Toucan): Plugin<AgoraContextType> {
           return;
         }
 
-        const { opName, operationType } = context[
+        const { opName, operationType } = (context as any)[
           sentryTracingSymbol
         ] as SentryTracingContext;
         const path = responsePathAsArray(info.path);
-        withSentryScope(sentry, (scope) => {
+        sentry.withScope((scope) => {
           scope.setFingerprint([
             "graphql",
             stringifyPath(path),
-            opName,
             operationType,
+            opName ?? "defaultOperationName",
           ]);
 
           sentry.captureException(result);
@@ -126,8 +126,8 @@ function skipError(error: Error): boolean {
 const sentryTracingSymbol = Symbol("sentryTracing");
 
 type SentryTracingContext = {
-  opName: string;
   operationType: string;
+  opName?: string;
 };
 
 function stringifyPath(path: ReadonlyArray<string | number>): string {

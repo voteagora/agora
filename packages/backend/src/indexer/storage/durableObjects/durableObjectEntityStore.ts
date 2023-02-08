@@ -45,6 +45,7 @@ export class DurableObjectEntityStore implements EntityStore {
       updatedEntities.map(async (it) =>
         this.storage.get(makeEntityKey(it.entity, it.id), {
           allowConcurrency: true,
+          noCache: true,
         })
       )
     );
@@ -72,6 +73,7 @@ export class DurableObjectEntityStore implements EntityStore {
             await txn.put(update.key, update.value, {
               allowConcurrency: true,
               allowUnconfirmed: true,
+              noCache: true,
             });
             break;
           }
@@ -80,6 +82,7 @@ export class DurableObjectEntityStore implements EntityStore {
             await txn.delete(update.key, {
               allowConcurrency: true,
               allowUnconfirmed: true,
+              noCache: true,
             });
             break;
           }
@@ -98,6 +101,7 @@ export class DurableObjectEntityStore implements EntityStore {
           {
             allowConcurrency: true,
             allowUnconfirmed: true,
+            noCache: true,
           }
         );
       });
@@ -118,6 +122,7 @@ export class DurableObjectEntityStore implements EntityStore {
         {
           allowConcurrency: true,
           allowUnconfirmed: true,
+          noCache: true,
         }
       );
     }
@@ -130,6 +135,7 @@ export class DurableObjectEntityStore implements EntityStore {
       )}`,
       {
         allowConcurrency: true,
+        noCache: true,
       }
     );
 
@@ -137,6 +143,7 @@ export class DurableObjectEntityStore implements EntityStore {
       await this.storage.put(rollingBackStartedKey, true, {
         allowConcurrency: true,
         allowUnconfirmed: true,
+        noCache: true,
       });
       // rollback the undo log
       for await (const [key, value] of listEntries<UndoLogEntry>(this.storage, {
@@ -146,17 +153,20 @@ export class DurableObjectEntityStore implements EntityStore {
           await txn.delete(key, {
             allowConcurrency: true,
             allowUnconfirmed: true,
+            noCache: true,
           });
 
           if (value.previousValue === null) {
             await txn.delete(value.key, {
               allowConcurrency: true,
               allowUnconfirmed: true,
+              noCache: true,
             });
           } else {
             await txn.put(value.key, value.previousValue, {
               allowConcurrency: true,
               allowUnconfirmed: true,
+              noCache: true,
             });
           }
         });
@@ -164,6 +174,7 @@ export class DurableObjectEntityStore implements EntityStore {
       await this.storage.delete(rollingBackStartedKey, {
         allowConcurrency: true,
         allowUnconfirmed: true,
+        noCache: true,
       });
     } else {
       for await (const [key] of listEntries<UndoLogEntry>(this.storage, {
@@ -171,6 +182,7 @@ export class DurableObjectEntityStore implements EntityStore {
       })) {
         await this.storage.delete(key, {
           allowConcurrency: true,
+          noCache: true,
         });
       }
     }
@@ -180,6 +192,7 @@ export class DurableObjectEntityStore implements EntityStore {
     return (
       (await this.storage.get(makeEntityKey(entity, id), {
         allowConcurrency: true,
+        noCache: true,
       })) ?? null
     );
   }
@@ -188,6 +201,7 @@ export class DurableObjectEntityStore implements EntityStore {
     return (
       (await this.storage.get(blockIdentifierKey, {
         allowConcurrency: true,
+        noCache: true,
       })) ?? null
     );
   }

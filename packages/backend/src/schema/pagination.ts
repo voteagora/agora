@@ -33,17 +33,21 @@ export async function driveReaderByIndex<
   first: number,
   after: string | null
 ): Promise<Connection<RuntimeType<EntityDefinitions[EntityName]["serde"]>>> {
-  const entityDefinition = reader.entityDefinitions[entityName];
-  const indexDefinition = entityDefinition.indexes.find(
-    (indexDefinition) => indexDefinition.indexName === indexName
-  )!;
-
   const edges = (
     await collectGenerator(
       limitGenerator(
         reader.getEntitiesByIndex(entityName, indexName, {
           type: "RANGE",
-          startingIndexKey: after ?? undefined,
+          starting: after
+            ? (() => {
+                const [indexKey, entityId] = after.split("|");
+
+                return {
+                  indexKey,
+                  entityId,
+                };
+              })()
+            : undefined,
         }),
         first + 1
       )
@@ -56,8 +60,14 @@ export async function driveReaderByIndex<
 
       return [
         {
-          node,
-          cursor: idx > 0 ? indexDefinition.indexKey(array[idx - 1]) : "",
+          node: node.value,
+          cursor:
+            idx > 0
+              ? (() => {
+                  const lastValue = array[idx - 1];
+                  return [lastValue.indexKey, lastValue.entityId].join("|");
+                })()
+              : "",
         },
       ];
     }
