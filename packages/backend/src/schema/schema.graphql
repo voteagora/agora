@@ -93,6 +93,7 @@ type Vote {
 type Transaction {
   id: ID!
   hash: String!
+  timestamp: Timestamp!
   block: Block!
 }
 
@@ -113,6 +114,7 @@ type VotingPower {
   amount: TokenAmount!
 
   bpsOfQuorum: Int!
+  bpsOfDelegatedSupply: Int!
   bpsOfTotal: Int!
 }
 
@@ -207,16 +209,16 @@ type Proposal {
   id: ID!
   number: BigInt!
 
-  forVotes: BigInt!
-  againstVotes: BigInt!
-  abstainVotes: BigInt!
+  forVotes: TokenAmount!
+  againstVotes: TokenAmount!
+  abstainVotes: TokenAmount!
 
   title: String!
   description: String!
 
-  voteEndsAt: Int!
-  voteStartsAt: Int!
-  quorumVotes: BigInt!
+  voteEndsAt: Timestamp!
+  voteStartsAt: Timestamp!
+  quorumVotes: TokenAmount!
   totalVotes: BigInt!
   votes: [Vote!]!
 

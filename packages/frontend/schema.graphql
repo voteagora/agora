@@ -3,8 +3,13 @@ scalar BigInt
 scalar Timestamp
 
 type Query {
-  delegate(addressOrEnsName: String!): Delegate
-  delegates(where: DelegatesWhere, orderBy: DelegatesOrder!, first: Int!, after: String): DelegatesConnection!
+  delegate(addressOrEnsName: String!): Delegate!
+  delegates(
+    where: DelegatesWhere
+    orderBy: DelegatesOrder!
+    first: Int!
+    after: String
+  ): DelegatesConnection!
   proposal(id: ID!): Proposal!
   proposals: [Proposal!]!
   metrics: Metrics!
@@ -74,6 +79,7 @@ type Vote {
 type Transaction {
   id: ID!
   hash: String!
+  timestamp: Timestamp!
   block: Block!
 }
 
@@ -92,6 +98,7 @@ type TokenAmount {
 type VotingPower {
   amount: TokenAmount!
   bpsOfQuorum: Int!
+  bpsOfDelegatedSupply: Int!
   bpsOfTotal: Int!
 }
 
@@ -104,7 +111,12 @@ type SnapshotVote {
   reason: String!
 }
 
-union SnapshotVoteChoice = SnapshotVoteChoiceApproval | SnapshotVoteChoiceRanked | SnapshotVoteChoiceSingle | SnapshotVoteChoiceQuadratic | SnapshotVoteChoiceWeighted
+union SnapshotVoteChoice =
+    SnapshotVoteChoiceApproval
+  | SnapshotVoteChoiceRanked
+  | SnapshotVoteChoiceSingle
+  | SnapshotVoteChoiceQuadratic
+  | SnapshotVoteChoiceWeighted
 
 type SnapshotVoteChoiceApproval {
   approvedChoices: [Int!]!
@@ -180,14 +192,14 @@ scalar Bytes
 type Proposal {
   id: ID!
   number: BigInt!
-  forVotes: BigInt!
-  againstVotes: BigInt!
-  abstainVotes: BigInt!
+  forVotes: TokenAmount!
+  againstVotes: TokenAmount!
+  abstainVotes: TokenAmount!
   title: String!
   description: String!
-  voteEndsAt: Int!
-  voteStartsAt: Int!
-  quorumVotes: BigInt!
+  voteEndsAt: Timestamp!
+  voteStartsAt: Timestamp!
+  quorumVotes: TokenAmount!
   totalVotes: BigInt!
   votes: [Vote!]!
   targets: [Bytes!]
@@ -211,7 +223,7 @@ enum ProposalStatus {
 }
 
 type Mutation {
-  createNewDelegateStatement(data: CreateNewDelegateStatementData): Delegate!
+  createNewDelegateStatement(data: CreateNewDelegateStatementData!): Delegate!
 }
 
 input CreateNewDelegateStatementData {

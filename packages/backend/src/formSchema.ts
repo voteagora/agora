@@ -2,18 +2,14 @@ import { z, ZodArray, ZodTypeAny } from "zod";
 
 const topIssueSchema = z
   .object({
-    type: z.union([
-      z.literal("proliferation"),
-      z.literal("treasury"),
-      z.literal("funding"),
-    ]),
+    type: z.string(),
     value: z.string(),
   })
   .strict();
 
 const selectedProposalSchema = z
   .object({
-    number: z.number(),
+    number: z.string(),
   })
   .strict();
 
@@ -30,7 +26,7 @@ function ensureUnique<T extends ZodTypeAny>(
 
 export const formSchema = z
   .object({
-    for: z.literal("nouns-agora"),
+    for: z.literal("optimism-agora"),
     delegateStatement: z.string(),
     topIssues: z.array(topIssueSchema),
     mostValuableProposals: z.array(selectedProposalSchema),

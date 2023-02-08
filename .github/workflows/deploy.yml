@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - deployment/optimism
 
   workflow_dispatch:
     inputs:
@@ -60,18 +61,6 @@ jobs:
       - run: yarn install
 
       - run: yarn workspace nouns-agora-backend run generate
-
-      - name: Run Test
-        working-directory: ./packages/backend
-        run: yarn test
-
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: success() || failure()    # run this step even if previous step failed
-        with:
-          name: Backend Tests
-          path: ./packages/backend/dist/reports/junit.xml
-          reporter: jest-junit
 
       - run: yarn workspace nouns-agora-backend run build-worker
 

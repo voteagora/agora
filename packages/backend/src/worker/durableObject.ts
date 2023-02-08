@@ -4,7 +4,7 @@ import { readableStreamFromGenerator } from "../utils/readableStream";
 import { getGraphQLCallingContext } from "./graphql";
 import { useSentry } from "./useSentry";
 import { createServer } from "@graphql-yoga/common";
-import Toucan from "toucan-js";
+import { Toucan } from "toucan-js";
 import { makeToucanOptions, runReportingException } from "./sentry";
 import { ethers } from "ethers";
 import { followChain, makeInitialStorageArea } from "../indexer/followChain";
@@ -29,19 +29,23 @@ export class StorageDurableObjectV1 {
       env.ALCHEMY_API_KEY
     );
     this.entityStore = new DurableObjectEntityStore(this.state.storage);
+
+    state.waitUntil(this.state.storage.setAlarm(Date.now()));
   }
 
   async fetchWithSentry(request: Request, sentry: Toucan): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/admin/")) {
       if (request.headers.get("x-admin-api-key") !== this.env.ADMIN_API_KEY) {
-        throw new Error("invalid value for x-admin-api-key");
+        return new Response("invalid value for x-admin-api-key", {
+          status: 401,
+        });
       }
 
       switch (url.pathname) {
         case "/admin/ops": {
           if (request.method !== "POST") {
-            throw new Error("invalid");
+            return new Response("not found", { status: 404 });
           }
 
           const message = await request.json<AdminMessage>();
@@ -55,6 +59,10 @@ export class StorageDurableObjectV1 {
               "Content-Disposition": 'attachment; filename="dump.jsonl"',
             },
           });
+        }
+
+        default: {
+          return new Response("not found", { status: 404 });
         }
       }
     }
@@ -188,9 +196,15 @@ export class StorageDurableObjectV1 {
   }
 
   async fetch(request: Request): Promise<Response> {
-    const toucan = new Toucan(
-      makeToucanOptions({ env: this.env, ctx: this.state })
-    );
+    const toucan = new Toucan({
+      ...makeToucanOptions({ env: this.env, ctx: this.state }),
+      request,
+    });
+
+    toucan.setTags({
+      deployment: this.env.DEPLOYMENT,
+      entrypoint: "StorageDurableObjectV1.fetch",
+    });
 
     return await runReportingException(toucan, () =>
       this.fetchWithSentry(request, toucan)
@@ -201,6 +215,12 @@ export class StorageDurableObjectV1 {
     const toucan = new Toucan(
       makeToucanOptions({ env: this.env, ctx: this.state })
     );
+
+    toucan.setTags({
+      deployment: this.env.DEPLOYMENT,
+      entrypoint: "StorageDurableObjectV1.alarm",
+    });
+
     return await runReportingException(toucan, () => this.alarmWithSentry());
   }
 }

@@ -27,36 +27,38 @@ export function makeDynamoStatementStorage(client: DynamoDB): StatementStorage {
         Object.values(results.Responses![TableName])
           .map((value) => marshaller.unmarshallItem(value) as StoredStatement)
           .map((statement) => {
-            return [statement.address, statement];
+            return [statement.address.toLowerCase(), statement];
           })
       );
 
-      return keys.map((key) => statements.get(key) ?? null);
+      const values = keys.map((key) => {
+        const normalizedKey = key.toLowerCase();
+        return statements.get(normalizedKey) ?? null;
+      });
+
+      return values;
     },
     { batch: true, maxBatchSize: 100 }
   );
 
   return {
     async getStatement(address: string): Promise<StoredStatement | null> {
-      return await getStatementDataloader.load(address.toLowerCase());
+      const statement = await getStatementDataloader.load(
+        address.toLowerCase()
+      );
+      return statement;
     },
     async addStatement(statement: StoredStatement): Promise<void> {
       const marshalledStatement = marshaller.marshallItem({
         ...statement,
       });
 
-      await client.transactWriteItems({
-        TransactItems: [
-          {
-            Put: {
-              TableName,
-              Item: {
-                ...makeDelegateStatementKey(statement.address.toLowerCase()),
-                ...marshalledStatement,
-              } as any,
-            },
-          },
-        ],
+      await client.putItem({
+        TableName,
+        Item: {
+          ...makeDelegateStatementKey(statement.address.toLowerCase()),
+          ...marshalledStatement,
+        } as any,
       });
     },
   };

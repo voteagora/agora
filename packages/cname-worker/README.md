@@ -11,10 +11,9 @@ that worker.
 
 This is necessary because:
 
-* A worker's custom domain can only be configured for SSL certs a zone
+- A worker's custom domain can only be configured for SSL certs a zone
   configured by the cloudflare account the worker is in.
 
-* If site is available under a custom domain, it will become public. We want a
+- If site is available under a custom domain, it will become public. We want a
   single cannonical route, not many. The single cannonical route should be the
   only way to access a specific deployment (might revisit this decision later).
-
