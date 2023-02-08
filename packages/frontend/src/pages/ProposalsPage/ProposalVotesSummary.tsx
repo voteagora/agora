@@ -10,6 +10,7 @@ import { css, cx } from "@emotion/css";
 import { ProposalVotesSummaryVotesBarFragment$key } from "./__generated__/ProposalVotesSummaryVotesBarFragment.graphql";
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
 import { BigNumber } from "ethers";
+import { generateBarsForVote } from "./generateBarsForVote";
 
 export function ProposalVotesSummary({
   fragmentRef,
@@ -148,27 +149,11 @@ function VotesBar({
   return (
     <HStack justifyContent="space-between">
       {Array.from(
-        (function* () {
-          const totalVotes = BigNumber.from(forVotes.amount)
-            .add(abstainVotes.amount)
-            .add(againstVotes.amount);
-
-          const bars = 57;
-
-          for (let index = 0; index < bars; index++) {
-            const value = BigNumber.from(totalVotes).mul(index).div(bars);
-
-            if (value.lt(forVotes.amount)) {
-              yield "FOR";
-            } else if (
-              value.lt(BigNumber.from(forVotes.amount).add(abstainVotes.amount))
-            ) {
-              yield "ABSTAIN";
-            } else {
-              yield "AGAINST";
-            }
-          }
-        })()
+        generateBarsForVote(
+          BigNumber.from(forVotes.amount),
+          BigNumber.from(abstainVotes.amount),
+          BigNumber.from(againstVotes.amount)
+        )
       ).map((value, idx) => (
         <div
           key={`${idx}`}
