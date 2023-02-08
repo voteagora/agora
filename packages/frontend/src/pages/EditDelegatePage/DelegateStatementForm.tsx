@@ -217,7 +217,7 @@ export function DelegateStatementForm({
 
       if (formState.openToSponsoringProposals !== "yes") {
         throw new UserVisibleError(
-          "agree with the delegate code of conduct required"
+          "You must agree with the code of conduct to continue"
         );
       }
 
@@ -252,17 +252,15 @@ export function DelegateStatementForm({
         })
       );
 
-      withIgnoringBlock(() => {
-        if (!data.delegate) {
-          return;
-        }
+      if (!data.delegate) {
+        return;
+      }
 
-        navigate({
-          path: `/delegate/${
-            data.delegate.address.resolvedName.name ??
-            data.delegate.address.resolvedName.address
-          }`,
-        });
+      navigate({
+        path: `/delegate/${
+          data.delegate.address.resolvedName.name ??
+          data.delegate.address.resolvedName.address
+        }`,
       });
     },
   });
@@ -378,16 +376,6 @@ const containerStyle = css`
   border-color: ${theme.colors.gray["300"]};
   box-shadow: ${theme.boxShadow.newDefault};
 `;
-
-let currentlyIgnoringBlock = false;
-function withIgnoringBlock(fn: () => void) {
-  currentlyIgnoringBlock = true;
-  try {
-    fn();
-  } finally {
-    currentlyIgnoringBlock = false;
-  }
-}
 
 function hashEnvelopeValue(value: string) {
   return JSON.stringify({

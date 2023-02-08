@@ -35,16 +35,27 @@ export function ProposalDetailPanel({
   );
   const { title, description, proposer } = result;
 
-  // todo: remove hardcoded width
   return (
     <>
       <VStack
         gap="4"
         className={css`
           width: ${theme.maxWidth["3xl"]};
+          @media (max-width: ${theme.maxWidth["lg"]}) {
+            width: auto;
+          }
         `}
       >
-        <HStack justifyContent="space-between" alignItems="center">
+        <HStack
+          justifyContent="space-between"
+          alignItems="center"
+          className={css`
+            @media (max-width: ${theme.maxWidth["lg"]}) {
+              flex-direction: column-reverse;
+              align-items: flex-start;
+            }
+          `}
+        >
           <h2
             className={css`
               font-size: ${theme.fontSize["2xl"]};
