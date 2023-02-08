@@ -26,13 +26,9 @@ import {
 } from "./__generated__/DelegateStatementFormMutation.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { DelegateStatementFormFragment$key } from "./__generated__/DelegateStatementFormFragment.graphql";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { isEqual } from "lodash";
-import {
-  BlockNavigationError,
-  browserHistory,
-  useNavigate,
-} from "../../components/HammockRouter/HammockRouter";
+import { useNavigate } from "../../components/HammockRouter/HammockRouter";
 import { ethers, Signer } from "ethers";
 import * as Sentry from "@sentry/react";
 import { GnosisSafe, GnosisSafe__factory } from "../../contracts/generated";
@@ -149,26 +145,6 @@ export function DelegateStatementForm({
     () => !isEqual(form.state, initialFormValuesState),
     [form.state, initialFormValuesState]
   );
-
-  useEffect(() => {
-    if (!isDirty) {
-      return;
-    }
-
-    return browserHistory.block((transition) => {
-      if (currentlyIgnoringBlock) {
-        return;
-      }
-
-      const allowedToProceed = window.confirm(
-        "You have pending changes, are you sure you want to navigate?"
-      );
-
-      if (!allowedToProceed) {
-        throw new BlockNavigationError();
-      }
-    });
-  }, [isDirty]);
 
   const [createNewDelegateStatement, isMutationInFlight] =
     useMutation<DelegateStatementFormMutation>(
