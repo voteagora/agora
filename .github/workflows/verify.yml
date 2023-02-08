@@ -1,0 +1,63 @@
+name: Verify
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    name: Formatting
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actionsx/prettier@v2
+        with:
+          args: --check .
+
+  verify-frontend:
+    runs-on: ubuntu-latest
+    name: Verify Frontend
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.17.0
+          cache: "yarn"
+
+      - run: yarn install
+
+      - run: yarn prettier -- --check
+
+      - run: yarn workspace nouns-agora run build
+
+  verify-backend:
+    runs-on: ubuntu-latest
+    name: Verify Backend
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.17.0
+          cache: "yarn"
+
+      - run: yarn install
+
+      - run: yarn workspace nouns-agora-backend run generate
+
+      - name: Typescript
+        working-directory: ./packages/backend
+        run: yarn tsc --noEmit
+
+      - name: Run Test
+        working-directory: ./packages/backend
+        run: yarn test
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure() # run this step even if previous step failed
+        with:
+          name: Backend Tests
+          path: ./packages/backend/dist/reports/junit.xml
+          reporter: jest-junit

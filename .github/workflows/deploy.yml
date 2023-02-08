@@ -62,22 +62,6 @@ jobs:
 
       - run: yarn workspace nouns-agora-backend run generate
 
-      - name: Typescript
-        working-directory: ./packages/backend
-        run: yarn tsc --noEmit
-
-      - name: Run Test
-        working-directory: ./packages/backend
-        run: yarn test
-
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: success() || failure()    # run this step even if previous step failed
-        with:
-          name: Backend Tests
-          path: ./packages/backend/dist/reports/junit.xml
-          reporter: jest-junit
-
       - run: yarn workspace nouns-agora-backend run build-worker
 
       - uses: getsentry/action-release@v1
