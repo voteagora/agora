@@ -186,6 +186,24 @@ function CastVoteDialogContents({
         justifyContent="space-between"
         alignItems="center"
       >
+        <VStack>
+          <div
+            className={css`
+              font-weight: ${theme.fontWeight.semibold};
+            `}
+          >
+            Using{" "}
+            <TokenAmountDisplay fragment={delegate.tokensRepresented.amount} />
+          </div>
+          <div
+            className={css`
+              font-weight: ${theme.fontWeight.medium};
+              color: ${theme.colors.gray[700]};
+            `}
+          >
+            Delegated to you
+          </div>
+        </VStack>
         {/* TODO: There are a lot of reasons why write is unavailable. We've captured
         most of them by disable the vote buttons in the VotesCastPanel, so we're assuming
         the user already voted if write is unavailable */}
@@ -202,7 +220,7 @@ function CastVoteDialogContents({
                 text-decoration: underline;
               `}
             >
-              Set one up first.
+              Please set one up in order to vote.
             </Link>
           </div>
         )}
