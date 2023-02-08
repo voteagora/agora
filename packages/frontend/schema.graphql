@@ -98,6 +98,7 @@ type TokenAmount {
 type VotingPower {
   amount: TokenAmount!
   bpsOfQuorum: Int!
+  bpsOfDelegatedSupply: Int!
   bpsOfTotal: Int!
 }
 
