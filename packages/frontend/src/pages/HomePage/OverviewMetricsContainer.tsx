@@ -85,7 +85,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
 
       <MetricContainer
         icon="ballot"
-        title="Quorum (30% votable supply)"
+        title="Quorum"
         body={
           <>
             <TokenAmountDisplay fragment={metrics.quorum.amount} />
