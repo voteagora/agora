@@ -94,6 +94,17 @@ export async function* limitGenerator<T>(
   }
 }
 
+export async function* filterGenerator<T>(
+  asyncIterable: AsyncIterable<T>,
+  checkFn: (item: T) => boolean
+): AsyncGenerator<T> {
+  for await (const item of asyncIterable) {
+    if (checkFn(item)) {
+      yield item;
+    }
+  }
+}
+
 export async function collectGenerator<T>(
   asyncGenerator: AsyncGenerator<T>
 ): Promise<T[]> {
