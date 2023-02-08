@@ -52,6 +52,7 @@ export class DurableObjectReader<
       async function* (indexPrefix, startingKey, visitedValues) {
         for await (const [indexKey, rawEntityId] of listEntries(storage, {
           start: startingKey,
+          prefix: indexPrefix,
         })) {
           const entityId = rawEntityId as string;
 
