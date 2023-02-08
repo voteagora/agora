@@ -103,11 +103,13 @@ export const Query: QueryResolvers = {
   },
 
   async proposals(_, {}, { reader }) {
-    return await collectGenerator(
-      reader.getEntitiesByIndex("Proposal", "byEndBlock", {
-        type: "RANGE",
-      })
-    );
+    return (
+      await collectGenerator(
+        reader.getEntitiesByIndex("Proposal", "byEndBlock", {
+          type: "RANGE",
+        })
+      )
+    ).map((it) => it.value);
   },
 
   async delegates(_, { orderBy, first, where, after }, { reader }) {
@@ -398,10 +400,14 @@ async function votesForAddress(
   const normalizedAddress = ethers.utils.getAddress(address);
   return await collectGenerator(
     (async function* () {
-      for await (const value of reader.getEntitiesByIndex("Vote", "byVoter", {
-        type: "EXACT_MATCH",
-        indexKey: normalizedAddress,
-      })) {
+      for await (const { value } of reader.getEntitiesByIndex(
+        "Vote",
+        "byVoter",
+        {
+          type: "EXACT_MATCH",
+          indexKey: normalizedAddress,
+        }
+      )) {
         if (value.voterAddress !== normalizedAddress) {
           return;
         }
@@ -419,7 +425,7 @@ async function proposedByAddress(
   const normalizedAddress = ethers.utils.getAddress(address);
   return await collectGenerator(
     (async function* () {
-      for await (const value of reader.getEntitiesByIndex(
+      for await (const { value } of reader.getEntitiesByIndex(
         "Proposal",
         "byProposer",
         { type: "EXACT_MATCH", indexKey: normalizedAddress }
@@ -478,12 +484,14 @@ async function proposalVotes(
   id: BigNumber,
   reader: Reader<typeof entityDefinitions>
 ) {
-  return await collectGenerator(
-    reader.getEntitiesByIndex("Vote", "byProposal", {
-      type: "EXACT_MATCH",
-      indexKey: id.toString(),
-    })
-  );
+  return (
+    await collectGenerator(
+      reader.getEntitiesByIndex("Vote", "byProposal", {
+        type: "EXACT_MATCH",
+        indexKey: id.toString(),
+      })
+    )
+  ).map((it) => it.value);
 }
 
 async function countVotesWithStatus(
