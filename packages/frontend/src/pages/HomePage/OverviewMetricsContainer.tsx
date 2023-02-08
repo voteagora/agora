@@ -33,16 +33,6 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
             amount {
               ...TokenAmountDisplayFragment
             }
-
-            bpsOfTotal
-          }
-
-          proposalThreshold {
-            amount {
-              ...TokenAmountDisplayFragment
-            }
-
-            bpsOfTotal
           }
         }
       }
