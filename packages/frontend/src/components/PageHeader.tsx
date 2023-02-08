@@ -57,14 +57,17 @@ export function PageHeader() {
               color: ${theme.colors.gray["800"]};
             `}
           >
-            {orgName} Agora <span
-             className={css`
-             font-size: ${theme.fontSize.xs};
-              font-weight: ${theme.fontWeight.normal};
-              color: ${theme.colors.gray["500"]};
-              margin-left: ${theme.spacing["1"]};
-             `}
-            >BETA</span>
+            {orgName} Agora{" "}
+            <span
+              className={css`
+                font-size: ${theme.fontSize.xs};
+                font-weight: ${theme.fontWeight.normal};
+                color: ${theme.colors.gray["500"]};
+                margin-left: ${theme.spacing["1"]};
+              `}
+            >
+              BETA
+            </span>
           </span>
         </HStack>
       </Link>

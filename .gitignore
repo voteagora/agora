@@ -1,2 +1,7 @@
 node_modules
 
+packages/backend/data
+packages/backend/dist
+
+packages/frontend/build
+

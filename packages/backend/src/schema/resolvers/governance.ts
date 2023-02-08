@@ -307,11 +307,11 @@ export const Proposal: ProposalResolvers = {
       }
 
       case "PROPOSED": {
-        if (startBlock.toNumber() >= latestBlock.number) {
+        if (latestBlock.number <= startBlock.toNumber()) {
           return ProposalStatus.Pending;
         }
 
-        if (endBlock.toNumber() >= latestBlock.number) {
+        if (latestBlock.number <= endBlock.toNumber()) {
           return ProposalStatus.Active;
         }
 
