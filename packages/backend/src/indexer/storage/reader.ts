@@ -19,7 +19,10 @@ export type IndexQueryArgs =
     }
   | {
       type: "RANGE";
-      startingIndexKey?: string;
+      starting?: {
+        indexKey: string;
+        entityId?: string;
+      };
     };
 
 export interface Reader<EntityDefinitionsType extends EntityDefinitions> {
@@ -40,7 +43,7 @@ export interface Reader<EntityDefinitionsType extends EntityDefinitions> {
     indexName: IndexName,
     args: IndexQueryArgs
   ): AsyncGenerator<
-    Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>
+    IndexedValue<Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>>
   >;
 }
 
@@ -95,6 +98,12 @@ export function getEntityFromStorageArea<
   return null;
 }
 
+export type IndexedValue<T> = {
+  entityId: string;
+  indexKey: string;
+  value: T;
+};
+
 export async function* getEntitiesByIndexFromStorageArea<
   EntityDefinitionsType extends EntityDefinitions,
   Entity extends keyof EntityDefinitionsType & string,
@@ -109,13 +118,19 @@ export async function* getEntitiesByIndexFromStorageArea<
     indexPrefix: string,
     startingKey: string,
     visitedValues: Set<string>
-  ) => AsyncGenerator<{ entityId: string; indexKey: string; value: any }>
+  ) => AsyncGenerator<
+    IndexedValue<Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>>
+  >
 ): AsyncGenerator<
-  Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>
+  IndexedValue<Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>>
 > {
   const indexDefinition = entityDefinition.indexes.find(
     (indexDefinition) => indexDefinition.indexName === indexName
   )!;
+
+  type EntityValueType = Readonly<
+    RuntimeType<EntityDefinitionsType[Entity]["serde"]>
+  >;
 
   const { startingKey, indexPrefix } = (() => {
     switch (args.type) {
@@ -135,14 +150,14 @@ export async function* getEntitiesByIndexFromStorageArea<
       case "RANGE": {
         const indexPrefix = makeIndexPrefix(entity, indexName);
 
-        if (args.startingIndexKey) {
+        if (args.starting) {
           return {
             indexPrefix,
             startingKey: makeIndexKeyRaw(
               entity,
               indexName,
-              args.startingIndexKey,
-              ""
+              args.starting.indexKey,
+              args.starting.entityId ?? ""
             ),
           };
         } else {
@@ -158,17 +173,15 @@ export async function* getEntitiesByIndexFromStorageArea<
   type HeapValue =
     | {
         type: "VALUE";
-        indexKey: string;
-        value: any;
+        value: IndexedValue<EntityValueType>;
       }
     | {
         type: "GENERATOR";
-        indexKey: string;
-        value: any;
-        generator: AsyncGenerator<{ indexKey: string; value: any }>;
+        value: IndexedValue<EntityValueType>;
+        generator: AsyncGenerator<IndexedValue<EntityValueType>>;
       };
 
-  const heap = new Heap<HeapValue>(compareBy((it) => it.indexKey));
+  const heap = new Heap<HeapValue>(compareBy((it) => it.value.indexKey));
 
   const visitedValues = new Set<string>();
 
@@ -204,8 +217,14 @@ export async function* getEntitiesByIndexFromStorageArea<
 
         heap.push({
           type: "VALUE",
-          indexKey,
-          value: serde.cloneSerdeValue(entityDefinition.serde, value),
+          value: {
+            entityId: id,
+            indexKey,
+            value: serde.cloneSerdeValue(
+              entityDefinition.serde,
+              value
+            ) as EntityValueType,
+          },
         });
       }
     }
@@ -217,8 +236,7 @@ export async function* getEntitiesByIndexFromStorageArea<
   if (!nextValue.done) {
     heap.push({
       type: "GENERATOR",
-      indexKey: nextValue.value.indexKey,
-      value: nextValue.value.value,
+      value: nextValue.value,
       generator: generator,
     });
   }
@@ -229,27 +247,28 @@ export async function* getEntitiesByIndexFromStorageArea<
       break;
     }
 
+    if (!item.value.indexKey.startsWith(indexPrefix)) {
+      break;
+    }
+
+    yield {
+      entityId: item.value.entityId,
+      indexKey: item.value.indexKey.split("|")[3],
+      value: item.value.value,
+    };
+
     switch (item.type) {
       case "VALUE": {
-        if (!item.indexKey.startsWith(indexPrefix)) {
-          break;
-        }
-
-        yield item.value;
         break;
       }
 
       case "GENERATOR": {
-        yield item.value;
-
         const nextValue = await item.generator.next();
         if (!nextValue.done) {
           heap.push({
             type: "GENERATOR",
             generator: item.generator,
-
-            value: nextValue.value.value,
-            indexKey: nextValue.value.indexKey,
+            value: nextValue.value,
           });
         }
       }
