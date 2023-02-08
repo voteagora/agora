@@ -246,7 +246,7 @@ export function DelegateStatementForm({
 
       if (formState.openToSponsoringProposals !== "yes") {
         throw new UserVisibleError(
-          "agree with the delegate code of conduct required"
+          "You must agree with the code of conduct to continue"
         );
       }
 
