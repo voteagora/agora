@@ -9,6 +9,7 @@ import {
 import * as serde from "../serde";
 import { RuntimeType } from "../serde";
 import { efficientLengthEncodingNaturalNumbers } from "../utils/efficientLengthEncoding";
+import { makeCompoundKey } from "../indexKey";
 
 export const governorTokenContract = makeContractInstance({
   iface: OptimismGovernorV1__factory.createInterface(),
@@ -41,9 +42,12 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
       }),
       indexes: [
         {
-          indexName: "byProposal",
+          indexName: "byProposalByVotes",
           indexKey(entity) {
-            return entity.proposalId.toString();
+            return makeCompoundKey(
+              entity.proposalId.toString(),
+              efficientLengthEncodingNaturalNumbers(entity.weight.mul(-1))
+            );
           },
         },
         {

@@ -38,3 +38,7 @@ export const indexSeparator = "|";
 export function makeIndexPrefix(entity: string, indexName: string) {
   return ["indexes", entity, indexName, ""].join(indexSeparator);
 }
+
+export function makeCompoundKey(...args: string[]) {
+  return args.join("#");
+}
