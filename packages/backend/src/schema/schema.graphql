@@ -205,6 +205,16 @@ type PageInfo {
 
 scalar Bytes
 
+type VotesConnection {
+  pageInfo: PageInfo!
+  edges: [DelegatesEdge!]!
+}
+
+type VotesEdge {
+  node: Vote!
+  cursor: String!
+}
+
 type Proposal {
   id: ID!
   number: BigInt!
@@ -220,7 +230,8 @@ type Proposal {
   voteStartsAt: Timestamp!
   quorumVotes: TokenAmount!
   totalVotes: BigInt!
-  votes: [Vote!]!
+
+  votes(first: Int!, after: String): VotesConnection!
 
   targets: [Bytes!]
   values: [BigInt!]

@@ -201,7 +201,7 @@ type Proposal {
   voteStartsAt: Timestamp!
   quorumVotes: TokenAmount!
   totalVotes: BigInt!
-  votes: [Vote!]!
+  votes(first: Int!, after: String): VotesConnection!
   targets: [Bytes!]
   values: [BigInt!]
   signatures: [String!]
@@ -209,6 +209,16 @@ type Proposal {
   status: ProposalStatus!
   totalValue: BigInt!
   proposer: Delegate!
+}
+
+type VotesConnection {
+  pageInfo: PageInfo!
+  edges: [DelegatesEdge!]!
+}
+
+type VotesEdge {
+  node: Vote!
+  cursor: String!
 }
 
 enum ProposalStatus {

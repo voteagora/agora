@@ -5,6 +5,7 @@ import {
   limitGenerator,
   skipGenerator,
 } from "../indexer/utils/generatorUtils";
+import { IndexKeyType } from "../indexer/indexKey";
 
 export type PageInfo = {
   hasPreviousPage: boolean;
@@ -32,13 +33,15 @@ export async function driveReaderByIndex<
   entityName: EntityName,
   indexName: IndexName,
   first: number,
-  after: string | null
+  after: string | null,
+  prefix?: IndexKeyType
 ): Promise<Connection<RuntimeType<EntityDefinitions[EntityName]["serde"]>>> {
   const edges = (
     await collectGenerator(
       limitGenerator(
         skipGenerator(
           reader.getEntitiesByIndex(entityName, indexName, {
+            prefix,
             starting: after
               ? (() => {
                   const [indexKey, entityId] = after.split("|");
