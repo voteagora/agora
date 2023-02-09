@@ -268,8 +268,17 @@ export const Proposal: ProposalResolvers = {
     return [];
   },
 
-  async votes({ proposalId }, _args, { reader }) {
-    return await proposalVotes(proposalId, reader);
+  async votes({ proposalId }, { first, after }, { reader }) {
+    return driveReaderByIndex(
+      reader,
+      "Vote",
+      "byProposalByVotes",
+      first,
+      after ?? null,
+      {
+        indexKey: makeCompoundKey(proposalId.toString(), ""),
+      }
+    );
   },
 
   // todo: avoid re-querying these
