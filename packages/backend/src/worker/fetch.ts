@@ -12,7 +12,7 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
     url.pathname.startsWith("/admin/")
   ) {
     const object = env.STORAGE_OBJECT.get(
-      env.STORAGE_OBJECT.idFromName("stable")
+      env.STORAGE_OBJECT.idFromName("stable1")
     );
 
     return await object.fetch(request);
