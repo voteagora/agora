@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-const secondsPerBlock = 12;
+const secondsPerBlock = 0.25;
 
 export async function approximateBlockTimestampForBlock(
   provider: ethers.providers.BaseProvider,
