@@ -30,6 +30,7 @@ import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { driveReaderByIndex } from "../pagination";
 import { formSchema } from "../../formSchema";
 import { approximateBlockTimestampForBlock } from "../../utils/blockTimestamp";
+import { makeCompoundKey } from "../../indexer/indexKey";
 import { intersection } from "../../utils/set";
 
 const amountSpec = {
@@ -495,13 +496,10 @@ async function proposalVotes(
 ) {
   return (
     await collectGenerator(
-      limitGenerator(
-        reader.getEntitiesByIndex(
-          "Vote",
-          "byProposal",
-          exactIndexValue(id.toString())
-        ),
-        10
+      reader.getEntitiesByIndex(
+        "Vote",
+        "byProposalByVotes",
+        exactIndexValue(makeCompoundKey(id.toString(), ""))
       )
     )
   ).map((it) => it.value);
