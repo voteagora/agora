@@ -4,7 +4,12 @@ import { RuntimeType } from "../serde";
 import { StorageArea } from "../followChain";
 import { pathBetween } from "../storageHandle";
 import { makeEntityKey } from "../entityKey";
-import { makeIndexKey, makeIndexKeyRaw, makeIndexPrefix } from "../indexKey";
+import {
+  IndexKeyType,
+  makeIndexKey,
+  makeIndexPrefix,
+  serializeIndexKey,
+} from "../indexKey";
 import Heap from "heap";
 import { compareBy } from "../utils/sortUtils";
 
@@ -12,18 +17,18 @@ export type EntityDefinitions = {
   [key: string]: EntityDefinition;
 };
 
-export type IndexQueryArgs =
-  | {
-      type: "EXACT_MATCH";
-      indexKey: string;
-    }
-  | {
-      type: "RANGE";
-      starting?: {
-        indexKey: string;
-        entityId?: string;
-      };
-    };
+export type IndexQueryArgs = {
+  prefix?: IndexKeyType;
+  starting?: IndexKeyType;
+};
+
+export function exactIndexValue(indexKey: string): IndexQueryArgs {
+  return {
+    prefix: {
+      indexKey,
+    },
+  };
+}
 
 export interface Reader<EntityDefinitionsType extends EntityDefinitions> {
   readonly entityDefinitions: EntityDefinitionsType;
@@ -133,41 +138,15 @@ export async function* getEntitiesByIndexFromStorageArea<
   >;
 
   const { startingKey, indexPrefix } = (() => {
-    switch (args.type) {
-      case "EXACT_MATCH": {
-        const indexPrefix = makeIndexKeyRaw(
-          entity,
-          indexName,
-          args.indexKey,
-          ""
-        );
-        return {
-          indexPrefix,
-          startingKey: indexPrefix,
-        };
-      }
+    const indexKeyPrefix = makeIndexPrefix(entity, indexName);
 
-      case "RANGE": {
-        const indexPrefix = makeIndexPrefix(entity, indexName);
-
-        if (args.starting) {
-          return {
-            indexPrefix,
-            startingKey: makeIndexKeyRaw(
-              entity,
-              indexName,
-              args.starting.indexKey,
-              args.starting.entityId ?? ""
-            ),
-          };
-        } else {
-          return {
-            indexPrefix: indexPrefix,
-            startingKey: indexPrefix,
-          };
-        }
-      }
-    }
+    return {
+      startingKey:
+        indexKeyPrefix +
+        (!!args.starting ? serializeIndexKey(args.starting) : ""),
+      indexPrefix:
+        indexKeyPrefix + (!!args.prefix ? serializeIndexKey(args.prefix) : ""),
+    };
   })();
 
   type HeapValue =
