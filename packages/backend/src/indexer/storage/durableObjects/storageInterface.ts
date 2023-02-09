@@ -9,10 +9,6 @@ export interface StorageInterfaceLeaf {
     key: string,
     opts?: DurableObjectGetOptions
   ): Promise<T | undefined>;
-  get<T = unknown>(
-    keys: string[],
-    opts?: DurableObjectGetOptions
-  ): Promise<Map<string, T>>;
   put<T>(key: string, value: T, opts?: DurableObjectPutOptions): Promise<void>;
   delete(key: string, opts?: DurableObjectPutOptions): Promise<boolean>;
   delete(keys: string[], opts?: DurableObjectPutOptions): Promise<number>;
