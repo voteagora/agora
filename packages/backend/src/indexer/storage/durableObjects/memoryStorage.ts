@@ -15,8 +15,32 @@ class MemoryStorageLeaf implements StorageInterfaceLeaf {
     this.values = values;
   }
 
-  async get<T = unknown>(key: string): Promise<T | undefined> {
-    return this.values.get(key) as T;
+  get<T = unknown>(
+    key: string,
+    opts?: DurableObjectGetOptions
+  ): Promise<T | undefined>;
+  get<T = unknown>(
+    keys: string[],
+    opts?: DurableObjectGetOptions
+  ): Promise<Map<string, T>>;
+  async get<T = unknown>(
+    key: string | string[],
+    opts?: DurableObjectGetOptions
+  ): Promise<T | undefined | Map<string, T>> {
+    if (Array.isArray(key)) {
+      return new Map(
+        key.flatMap<[string, T]>((key) => {
+          const value = this.values.get(key) as T | undefined;
+          if (!value) {
+            return [];
+          }
+
+          return [[key, value as T]];
+        })
+      );
+    } else {
+      return this.values.get(key) as T | undefined;
+    }
   }
 
   async put<T>(key: string, value: T): Promise<void> {

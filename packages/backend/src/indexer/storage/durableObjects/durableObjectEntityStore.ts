@@ -3,6 +3,7 @@ import {
   EntityStore,
   EntityWithMetadata,
 } from "../entityStore";
+import { chunk } from "lodash";
 import { BlockIdentifier } from "../../storageHandle";
 import { makeEntityKey } from "../../entityKey";
 import { updatesForEntities } from "../updates";
@@ -41,14 +42,26 @@ export class DurableObjectEntityStore implements EntityStore {
     entityDefinitions: EntityDefinitions,
     updatedEntities: EntityWithMetadata[]
   ): Promise<void> {
-    const oldValues = await Promise.all(
-      updatedEntities.map(async (it) =>
-        this.storage.get(makeEntityKey(it.entity, it.id), {
-          allowConcurrency: true,
-          noCache: true,
-        })
-      )
+    const oldValuesMap = new Map(
+      (
+        await Promise.all(
+          chunk(updatedEntities, 128).map((chunk) =>
+            this.storage.get(
+              chunk.map((it) => makeEntityKey(it.entity, it.id)),
+              {
+                allowConcurrency: true,
+                noCache: true,
+              }
+            )
+          )
+        )
+      ).flatMap((it) => Array.from(it.entries()))
     );
+
+    const oldValues = updatedEntities.map((entity) => {
+      const key = makeEntityKey(entity.entity, entity.id);
+      return oldValuesMap.get(key);
+    });
 
     const updates = updatesForEntities(
       blockIdentifier,
