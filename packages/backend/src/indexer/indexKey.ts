@@ -15,15 +15,26 @@ export function makeIndexKey<Type extends SerDe<any, any>>(
   ].join("|");
 }
 
-export function makeIndexKeyRaw(
-  entity: string,
-  indexName: string,
-  indexKey: string,
-  entityId: string
-) {
-  return ["indexes", entity, indexName, indexKey, entityId].join("|");
+export type IndexKeyType = {
+  indexKey: string;
+  entityId?: string;
+};
+
+export function serializeIndexKey(indexKeyType: IndexKeyType) {
+  return [
+    indexKeyType.indexKey,
+    ...(() => {
+      if (!indexKeyType.entityId) {
+        return [];
+      }
+
+      return [indexKeyType.entityId];
+    })(),
+  ].join("|");
 }
 
+export const indexSeparator = "|";
+
 export function makeIndexPrefix(entity: string, indexName: string) {
-  return ["indexes", entity, indexName].join("|");
+  return ["indexes", entity, indexName, ""].join(indexSeparator);
 }

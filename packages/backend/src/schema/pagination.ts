@@ -39,7 +39,6 @@ export async function driveReaderByIndex<
       limitGenerator(
         skipGenerator(
           reader.getEntitiesByIndex(entityName, indexName, {
-            type: "RANGE",
             starting: after
               ? (() => {
                   const [indexKey, entityId] = after.split("|");

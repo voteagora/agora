@@ -18,7 +18,7 @@ import {
   defaultAccount,
   makeDefaultAggregate,
 } from "../../indexer/contracts/GovernanceToken";
-import { Reader } from "../../indexer/storage/reader";
+import { exactIndexValue, Reader } from "../../indexer/storage/reader";
 import { entityDefinitions } from "../../indexer/contracts";
 import { RuntimeType } from "../../indexer/serde";
 import {
@@ -117,9 +117,7 @@ export const Query: QueryResolvers = {
   async proposals(_, {}, { reader }) {
     return (
       await collectGenerator(
-        reader.getEntitiesByIndex("Proposal", "byEndBlock", {
-          type: "RANGE",
-        })
+        reader.getEntitiesByIndex("Proposal", "byEndBlock", {})
       )
     ).map((it) => it.value);
   },
@@ -190,9 +188,7 @@ export const Delegate: DelegateResolvers = {
       await collectGenerator(
         limitGenerator(
           filterGenerator(
-            reader.getEntitiesByIndex("Proposal", "byEndBlock", {
-              type: "RANGE",
-            }),
+            reader.getEntitiesByIndex("Proposal", "byEndBlock", {}),
             (value) => value.value.status !== "CANCELLED"
           ),
           10
@@ -419,10 +415,7 @@ async function votesForAddress(
       for await (const { value } of reader.getEntitiesByIndex(
         "Vote",
         "byVoter",
-        {
-          type: "EXACT_MATCH",
-          indexKey: normalizedAddress,
-        }
+        exactIndexValue(normalizedAddress)
       )) {
         if (value.voterAddress !== normalizedAddress) {
           return;
@@ -444,7 +437,7 @@ async function proposedByAddress(
       for await (const { value } of reader.getEntitiesByIndex(
         "Proposal",
         "byProposer",
-        { type: "EXACT_MATCH", indexKey: normalizedAddress }
+        exactIndexValue(normalizedAddress)
       )) {
         if (value.proposer !== normalizedAddress) {
           return;
@@ -502,12 +495,12 @@ async function proposalVotes(
 ) {
   return (
     await collectGenerator(
-      // todo: remove this and paginate it
       limitGenerator(
-        reader.getEntitiesByIndex("Vote", "byProposal", {
-          type: "EXACT_MATCH",
-          indexKey: id.toString(),
-        }),
+        reader.getEntitiesByIndex(
+          "Vote",
+          "byProposal",
+          exactIndexValue(id.toString())
+        ),
         10
       )
     )
