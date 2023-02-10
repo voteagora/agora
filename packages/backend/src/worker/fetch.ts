@@ -6,14 +6,15 @@ const assetManifest = JSON.parse(manifestJSON);
 
 export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
   const url = new URL(request.url);
+  const name =
+    request.headers.get("x-durable-object-instance-name") || "stable2";
+
   if (
     url.pathname === "/graphql" ||
     url.pathname === "/inspect" ||
     url.pathname.startsWith("/admin/")
   ) {
-    const object = env.STORAGE_OBJECT.get(
-      env.STORAGE_OBJECT.idFromName("stable1")
-    );
+    const object = env.STORAGE_OBJECT.get(env.STORAGE_OBJECT.idFromName(name));
 
     return await object.fetch(request);
   }
