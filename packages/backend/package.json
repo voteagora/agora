@@ -14,7 +14,7 @@
     "tail": "ts-node src/indexer/bin/tail.ts",
     "dump": "ts-node src/indexer/bin/dump.ts",
     "load": "ts-node src/indexer/bin/load.ts",
-    "start-remote": "ts-node --transpileOnly src/indexer/ops/bin/start.ts",
+    "send-admin-message": "ts-node --transpileOnly src/indexer/ops/bin/sendAdminMessage.ts",
     "server": "ts-node --require ./scripts/registerGraphQL.ts src/bin/server.ts",
     "generate-typechain": "typechain --target ethers-v5 --out-dir src/contracts/generated src/contracts/abis/*.json",
     "generate-schema-types": "graphql-codegen",
