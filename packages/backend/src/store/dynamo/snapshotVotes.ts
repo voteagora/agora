@@ -23,7 +23,15 @@ export function makeSnapshotVoteStorage(dynamo: DynamoDB): SnapshotVoteStorage {
         ...withAttributes(expressionAttributes),
       });
 
-      return result.Items.map((it) => marshaller.unmarshallItem(it)) as any;
+      return result.Items.map((it) => marshaller.unmarshallItem(it)).flatMap(
+        (it) => {
+          if (!it.proposal) {
+            return [];
+          }
+
+          return [it];
+        }
+      ) as any;
     },
   };
 }
