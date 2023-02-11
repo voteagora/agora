@@ -10,6 +10,7 @@ import { StorageArea } from "../../followChain";
 import { RuntimeType } from "../../serde";
 import { LmdbEntityStore } from "./lmdbEntityStore";
 import { makeEntityKey } from "../../entityKey";
+import { BlockIdentifier } from "../../storageHandle";
 
 export class LmdbReader<EntityDefinitionsType extends EntityDefinitions>
   implements Reader<EntityDefinitionsType>
@@ -102,5 +103,9 @@ export class LmdbReader<EntityDefinitionsType extends EntityDefinitions>
     }
 
     return entityDefinition.serde.deserialize(fromStore);
+  }
+
+  getLatestBlock(): BlockIdentifier {
+    return this.storageArea.tipBlock ?? this.storageArea.finalizedBlock;
   }
 }
