@@ -502,10 +502,14 @@ async function proposalVotes(
 ) {
   return (
     await collectGenerator(
-      reader.getEntitiesByIndex("Vote", "byProposal", {
-        type: "EXACT_MATCH",
-        indexKey: id.toString(),
-      })
+      // todo: remove this and paginate it
+      limitGenerator(
+        reader.getEntitiesByIndex("Vote", "byProposal", {
+          type: "EXACT_MATCH",
+          indexKey: id.toString(),
+        }),
+        10
+      )
     )
   ).map((it) => it.value);
 }
