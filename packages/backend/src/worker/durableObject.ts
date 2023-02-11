@@ -29,8 +29,6 @@ export class StorageDurableObjectV1 {
       env.ALCHEMY_API_KEY
     );
     this.entityStore = new DurableObjectEntityStore(this.state.storage);
-
-    state.waitUntil(this.state.storage.setAlarm(Date.now()));
   }
 
   async fetchWithSentry(request: Request, sentry: Toucan): Promise<Response> {
