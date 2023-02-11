@@ -319,9 +319,9 @@ export const Proposal: ProposalResolvers = {
   async status(
     { proposalId, status, startBlock, endBlock, aggregates },
     _args,
-    { provider, reader }
+    { reader }
   ) {
-    const latestBlock = await provider.getBlock("latest");
+    const latestBlock = reader.getLatestBlock();
 
     switch (status) {
       case "CANCELLED": {
@@ -333,11 +333,11 @@ export const Proposal: ProposalResolvers = {
       }
 
       case "PROPOSED": {
-        if (latestBlock.number <= startBlock.toNumber()) {
+        if (latestBlock.blockNumber <= startBlock.toNumber()) {
           return ProposalStatus.Pending;
         }
 
-        if (latestBlock.number <= endBlock.toNumber()) {
+        if (latestBlock.blockNumber <= endBlock.toNumber()) {
           return ProposalStatus.Active;
         }
 

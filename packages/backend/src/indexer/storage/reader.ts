@@ -2,7 +2,7 @@ import { EntityDefinition } from "../process";
 import * as serde from "../serde";
 import { RuntimeType } from "../serde";
 import { StorageArea } from "../followChain";
-import { pathBetween } from "../storageHandle";
+import { BlockIdentifier, pathBetween } from "../storageHandle";
 import { makeEntityKey } from "../entityKey";
 import {
   IndexKeyType,
@@ -25,6 +25,9 @@ export type IndexQueryArgs = {
 export function exactIndexValue(indexKey: string): IndexQueryArgs {
   return {
     prefix: {
+      indexKey,
+    },
+    starting: {
       indexKey,
     },
   };
@@ -50,6 +53,8 @@ export interface Reader<EntityDefinitionsType extends EntityDefinitions> {
   ): AsyncGenerator<
     IndexedValue<Readonly<RuntimeType<EntityDefinitionsType[Entity]["serde"]>>>
   >;
+
+  getLatestBlock(): BlockIdentifier;
 }
 
 export type LookupValue<T> = {

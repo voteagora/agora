@@ -10,6 +10,7 @@ import { StorageArea } from "../../followChain";
 import { RuntimeType } from "../../serde";
 import { makeEntityKey } from "../../entityKey";
 import { listEntries } from "./storageInterface";
+import { BlockIdentifier } from "../../storageHandle";
 
 export class DurableObjectReader<
   EntityDefinitionsType extends EntityDefinitions
@@ -107,5 +108,9 @@ export class DurableObjectReader<
     }
 
     return entityDefinition.serde.deserialize(fromLevel);
+  }
+
+  getLatestBlock(): BlockIdentifier {
+    return this.storageArea.tipBlock ?? this.storageArea.finalizedBlock;
   }
 }
