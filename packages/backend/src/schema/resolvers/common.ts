@@ -14,6 +14,10 @@ export type AddressModel = {
 };
 
 export const Address: AddressResolvers = {
+  address({ address }) {
+    return address;
+  },
+
   isContract: {
     async resolve({ address }, _args, { provider }) {
       const code = await provider.getCode(address);
