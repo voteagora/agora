@@ -73,6 +73,12 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
         startBlock: serde.bigNumber,
         endBlock: serde.bigNumber,
         description: serde.string,
+
+        aggregates: serde.object({
+          forVotes: serde.bigNumber,
+          abstainVotes: serde.bigNumber,
+          againstVotes: serde.bigNumber,
+        }),
       }),
       indexes: [
         {
@@ -111,6 +117,12 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
           startBlock: event.args.startBlock,
           endBlock: event.args.endBlock,
           description: event.args.description,
+
+          aggregates: {
+            forVotes: ethers.BigNumber.from(0),
+            abstainVotes: ethers.BigNumber.from(0),
+            againstVotes: ethers.BigNumber.from(0),
+          },
         });
 
         const agg = await loadAggregate(handle);
@@ -172,10 +184,33 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
     {
       signature: "VoteCast(address,uint256,uint8,uint256,string)",
       async handle(handle, event, log) {
-        log.blockNumber;
-        const id = [log.transactionHash, log.logIndex].join("|");
-        handle.saveEntity("Vote", id, {
-          id,
+        const proposalId = event.args.proposalId.toString();
+
+        const proposal = await handle.loadEntity("Proposal", proposalId);
+        if (!proposal) {
+          throw new Error(`vote cast on non-existing proposal: ${proposalId}`);
+        }
+
+        const supportType = toSupportType(event.args.support);
+
+        handle.saveEntity("Proposal", proposalId, {
+          ...proposal,
+          aggregates: {
+            forVotes: proposal.aggregates.forVotes.add(
+              supportType === "FOR" ? event.args.votes : 0
+            ),
+            againstVotes: proposal.aggregates.againstVotes.add(
+              supportType === "AGAINST" ? event.args.votes : 0
+            ),
+            abstainVotes: proposal.aggregates.abstainVotes.add(
+              supportType === "ABSTAIN" ? event.args.votes : 0
+            ),
+          },
+        });
+
+        const voteId = [log.transactionHash, log.logIndex].join("|");
+        handle.saveEntity("Vote", voteId, {
+          id: voteId,
           voterAddress: event.args.voter,
           proposalId: event.args.proposalId,
           support: event.args.support,
@@ -284,4 +319,17 @@ function saveAggregate(
   >
 ) {
   handle.saveEntity("GovernorAggregates", governanceAggregatesKey, entity);
+}
+
+export function toSupportType(value: number): "FOR" | "AGAINST" | "ABSTAIN" {
+  switch (value) {
+    case 0:
+      return "AGAINST";
+    case 1:
+      return "FOR";
+    case 2:
+      return "ABSTAIN";
+    default:
+      throw new Error(`unknown type ${value}`);
+  }
 }
