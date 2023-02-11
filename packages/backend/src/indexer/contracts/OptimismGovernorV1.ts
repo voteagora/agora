@@ -197,13 +197,13 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
           ...proposal,
           aggregates: {
             forVotes: proposal.aggregates.forVotes.add(
-              supportType === "FOR" ? event.args.votes : 0
+              supportType === "FOR" ? event.args.weight : 0
             ),
             againstVotes: proposal.aggregates.againstVotes.add(
-              supportType === "AGAINST" ? event.args.votes : 0
+              supportType === "AGAINST" ? event.args.weight : 0
             ),
             abstainVotes: proposal.aggregates.abstainVotes.add(
-              supportType === "ABSTAIN" ? event.args.votes : 0
+              supportType === "ABSTAIN" ? event.args.weight : 0
             ),
           },
         });

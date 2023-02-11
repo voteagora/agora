@@ -6,7 +6,7 @@ import {
   SupportTextProps,
 } from "../DelegatePage/VoteDetailsContainer";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useAccount } from "wagmi";
 import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay/hooks";
@@ -79,31 +79,24 @@ function VoteButtons({
     graphql`
       fragment CastVoteInputVoteButtonsFragment on Proposal {
         status
-
-        votes {
-          voter {
-            address {
-              resolvedName {
-                address
-              }
-            }
-          }
-        }
       }
     `,
     fragmentRef
   );
 
-  const hasVoted = useMemo(
-    () =>
-      accountAddress &&
-      !!result.votes.find(
-        (vote) =>
-          vote.voter.address.resolvedName.address.toLowerCase() ===
-          accountAddress.toLowerCase()
-      ),
-    [result.votes, accountAddress]
-  );
+  // const hasVoted = useMemo(
+  //   () =>
+  //     accountAddress &&
+  //     !!result.votes.find(
+  //       (vote) =>
+  //         vote.voter.address.resolvedName.address.toLowerCase() ===
+  //         accountAddress.toLowerCase()
+  //     ),
+  //   [result.votes, accountAddress]
+  // );
+
+  // todo: fix me
+  const hasVoted = false;
 
   if (result.status !== "ACTIVE") {
     return <DisabledVoteButton reason="Not open to voting" />;

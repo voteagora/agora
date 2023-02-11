@@ -10,6 +10,7 @@ type Query {
     first: Int!
     after: String
   ): DelegatesConnection!
+  votes(proposalId: ID!, first: Int!, after: String): VotesConnection!
   proposal(id: ID!): Proposal!
   proposals: [Proposal!]!
   metrics: Metrics!
@@ -188,6 +189,16 @@ type PageInfo {
   endCursor: String
 }
 
+type VotesConnection {
+  pageInfo: PageInfo!
+  edges: [VotesEdge!]!
+}
+
+type VotesEdge {
+  node: Vote!
+  cursor: String!
+}
+
 scalar Bytes
 
 type Proposal {
@@ -202,7 +213,6 @@ type Proposal {
   voteStartsAt: Timestamp!
   quorumVotes: TokenAmount!
   totalVotes: BigInt!
-  votes(first: Int!, after: String): VotesConnection!
   targets: [Bytes!]
   values: [BigInt!]
   signatures: [String!]
@@ -210,16 +220,6 @@ type Proposal {
   status: ProposalStatus!
   totalValue: BigInt!
   proposer: Delegate!
-}
-
-type VotesConnection {
-  pageInfo: PageInfo!
-  edges: [DelegatesEdge!]!
-}
-
-type VotesEdge {
-  node: Vote!
-  cursor: String!
 }
 
 enum ProposalStatus {

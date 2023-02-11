@@ -97,6 +97,19 @@ export const Query: QueryResolvers = {
     );
   },
 
+  async votes(_, { proposalId, first, after }, { reader }) {
+    return driveReaderByIndex(
+      reader,
+      "Vote",
+      "byProposalByVotes",
+      first,
+      after ?? null,
+      {
+        indexKey: makeCompoundKey(proposalId.toString(), ""),
+      }
+    );
+  },
+
   metrics() {
     return {};
   },
@@ -256,19 +269,6 @@ export const Proposal: ProposalResolvers = {
 
   signatures({ transactions }) {
     return [];
-  },
-
-  async votes({ proposalId }, { first, after }, { reader }) {
-    return driveReaderByIndex(
-      reader,
-      "Vote",
-      "byProposalByVotes",
-      first,
-      after ?? null,
-      {
-        indexKey: makeCompoundKey(proposalId.toString(), ""),
-      }
-    );
   },
 
   forVotes({ aggregates: { forVotes } }, _args) {
