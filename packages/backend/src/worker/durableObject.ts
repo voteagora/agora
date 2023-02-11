@@ -176,6 +176,7 @@ export class StorageDurableObjectV1 {
       return;
     }
 
+    await this.state.storage.deleteAlarm();
     const result = await this.stepChainForward();
     await this.state.storage.setAlarm(
       (() => {
