@@ -28,6 +28,7 @@ type Delegate {
 }
 
 type Address {
+  address: String!
   resolvedName: ResolvedName!
   isContract: Boolean!
 }
