@@ -11,6 +11,8 @@ type Query {
     after: String
   ): DelegatesConnection!
 
+  votes(proposalId: ID!, first: Int!, after: String): VotesConnection!
+
   proposal(id: ID!): Proposal!
   proposals: [Proposal!]!
 
@@ -38,6 +40,7 @@ type Delegate {
 }
 
 type Address {
+  address: String!
   resolvedName: ResolvedName!
   isContract: Boolean!
 }
@@ -203,17 +206,17 @@ type PageInfo {
   endCursor: String
 }
 
-scalar Bytes
-
 type VotesConnection {
   pageInfo: PageInfo!
-  edges: [DelegatesEdge!]!
+  edges: [VotesEdge!]!
 }
 
 type VotesEdge {
   node: Vote!
   cursor: String!
 }
+
+scalar Bytes
 
 type Proposal {
   id: ID!
@@ -230,8 +233,6 @@ type Proposal {
   voteStartsAt: Timestamp!
   quorumVotes: TokenAmount!
   totalVotes: BigInt!
-
-  votes(first: Int!, after: String): VotesConnection!
 
   targets: [Bytes!]
   values: [BigInt!]

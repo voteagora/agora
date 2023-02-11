@@ -1,5 +1,5 @@
 import { css, cx } from "@emotion/css";
-import { CSSProperties, ReactNode } from "react";
+import { CSSProperties, ReactNode, RefObject } from "react";
 import * as theme from "../theme";
 import { DataType } from "csstype";
 
@@ -9,7 +9,8 @@ type Props = {
   gap?: keyof typeof theme["spacing"];
   justifyContent?: DataType.ContentDistribution | DataType.ContentPosition;
   alignItems?: DataType.SelfPosition | "baseline" | "normal" | "stretch";
-  children: ReactNode;
+  children?: ReactNode;
+  innerRef?: RefObject<HTMLDivElement>;
 };
 
 function Stack({
@@ -19,9 +20,17 @@ function Stack({
   justifyContent,
   children,
   style,
+  innerRef,
 }: Props) {
   return (
     <div
+      {...(() => {
+        if (innerRef) {
+          return {
+            ref: innerRef,
+          };
+        }
+      })()}
       style={style}
       className={cx(
         css`

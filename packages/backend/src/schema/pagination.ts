@@ -42,16 +42,25 @@ export async function driveReaderByIndex<
         skipGenerator(
           reader.getEntitiesByIndex(entityName, indexName, {
             prefix,
-            starting: after
-              ? (() => {
-                  const [indexKey, entityId] = after.split("|");
 
-                  return {
-                    indexKey,
-                    entityId,
-                  };
-                })()
-              : undefined,
+            starting: (() => {
+              if (after) {
+                const [indexKey, entityId] = after.split("|");
+
+                return {
+                  indexKey,
+                  entityId,
+                };
+              }
+
+              if (prefix) {
+                return {
+                  indexKey: prefix.indexKey,
+                };
+              }
+
+              return undefined;
+            })(),
           }),
           after ? 1 : 0
         ),
