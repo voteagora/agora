@@ -1,5 +1,5 @@
-import { VStack } from "../../components/VStack";
-import { css } from "@emotion/css";
+import { VStack, HStack } from "../../components/VStack";
+import { css, keyframes } from "@emotion/css";
 import * as theme from "../../theme";
 import { useFragment, usePaginationFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
@@ -89,18 +89,55 @@ export function VotesCastPanel({
               <Suspense
                 fallback={
                   <VStack
-                    gap="4"
+                    gap="8"
                     className={css`
                       height: 100%;
                       padding: ${theme.spacing["6"]};
                       border-radius: ${theme.spacing["3"]};
                       background: ${theme.colors.white};
                       border-width: ${theme.spacing.px};
-                      border-color: ${theme.colors.gray["300"]};
+                      border-color: ${theme.colors.gray["eb"]};
                       box-shadow: ${theme.boxShadow.newDefault};
                       cursor: pointer;
                     `}
-                  />
+                  >
+                    <HStack gap="4">
+                      <div
+                        className={css`
+                          width: 44px;
+                          height: 44px;
+                          border-radius: ${theme.borderRadius.full};
+                          background: ${theme.colors.gray["eb"]};
+                        `}
+                      />
+                      <VStack gap="2" justifyContent="center">
+                        <div
+                          className={css`
+                            width: 120px;
+                            height: 12px;
+                            border-radius: ${theme.borderRadius.sm};
+                            background: ${theme.colors.gray["eb"]};
+                          `}
+                        />
+                        <div
+                          className={css`
+                            width: 64px;
+                            height: 12px;
+                            border-radius: ${theme.borderRadius.sm};
+                            background: ${theme.colors.gray["eb"]};
+                          `}
+                        />
+                      </VStack>
+                    </HStack>
+                    <div
+                      className={css`
+                        height: 44px;
+                        width: 100%;
+                        border-radius: ${theme.borderRadius.md};
+                        background: ${theme.colors.gray["eb"]};
+                      `}
+                    />
+                  </VStack>
                 }
               >
                 <HoveredVoter hoveredVoterAddress={hoveredVoterAddress} />
@@ -192,13 +229,34 @@ function VotesCastPanelVotes({
   const pageSize = 100;
 
   const items = makePaginationItems(votes.edges, isLoadingNext, hasNext);
-
+  const shimmer = keyframes`
+  from {
+    opacity: 0.4;
+  }
+  
+  to {
+    opacity: 0.7;
+  }
+`;
   return (
     <VStack gap="4">
       {items.map((item, idx) => {
         switch (item.type) {
           case "LOADING": {
-            return <VStack key={idx}>Loading...</VStack>;
+            return (
+              <HStack
+                justifyContent="center"
+                key={idx}
+                className={css`
+                  color: ${theme.colors.gray["700"]};
+                  font-weight: ${theme.fontWeight.medium};
+                  animation: ${shimmer} 0.5s alternate-reverse infinite
+                    ease-in-out;
+                `}
+              >
+                Loading more votes
+              </HStack>
+            );
           }
 
           case "ITEMS": {
