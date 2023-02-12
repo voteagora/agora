@@ -1,73 +1,54 @@
-import { HStack, VStack } from "../../components/VStack";
-import { css } from "@emotion/css";
+import { VStack, HStack } from "../../components/VStack";
+import { css, keyframes } from "@emotion/css";
 import * as theme from "../../theme";
-import { UserIcon } from "@heroicons/react/20/solid";
-import { useFragment } from "react-relay";
+import { useFragment, usePaginationFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { VotesCastPanelFragment$key } from "./__generated__/VotesCastPanelFragment.graphql";
-import { VotesCastPanelTextFragment$key } from "./__generated__/VotesCastPanelTextFragment.graphql";
-import { NounResolvedLink } from "../../components/NounResolvedLink";
-import {
-  colorForSupportType,
-  toSupportType,
-} from "../DelegatePage/VoteDetailsContainer";
-import { useEffect, useState } from "react";
-import { VoterCardFragment$key } from "../HomePage/__generated__/VoterCardFragment.graphql";
-import { VoterCard } from "../HomePage/VoterCard";
-import { VoteReason } from "../../components/VoteReason";
 import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
 import { CastVoteInput } from "./CastVoteInput";
 import { ProposalVotesSummary } from "./ProposalVotesSummary";
 import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
-import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
+import { VoteRow } from "./VoteRow";
+import { VotesCastPanelVotesFragment$key } from "./__generated__/VotesCastPanelVotesFragment.graphql";
+import { makePaginationItems } from "../../hooks/pagination";
+import { InView } from "react-intersection-observer";
+import { Suspense, useEffect, useState } from "react";
+import { useLazyLoadQuery } from "react-relay/hooks";
+import { VotesCastPanelHoveredVoterQuery } from "./__generated__/VotesCastPanelHoveredVoterQuery.graphql";
+import { VoterCard } from "../HomePage/VoterCard";
 
 export function VotesCastPanel({
   fragmentRef,
+  queryFragmentRef,
   expanded,
 }: {
   fragmentRef: VotesCastPanelFragment$key;
+  queryFragmentRef: VotesCastPanelVotesFragment$key;
   expanded: boolean;
 }) {
-  const startTransition = useStartTransition();
-  const openDialog = useOpenDialog();
+  const [hoveredVoterAddress, setHoveredVoterAddress] = useState<string | null>(
+    null
+  );
 
-  // todo: implement this in a bit less hacky way
-  const [hoveredVoter, setHoveredVoter] =
-    useState<VoterCardFragment$key | null>(null);
-
+  // todo: this is a very jank ui
   useEffect(() => {
-    const handleClick = () => setHoveredVoter(null);
+    const handleClick = () => setHoveredVoterAddress(null);
     window.addEventListener("click", handleClick);
     return () => {
       window.removeEventListener("click", handleClick);
     };
   });
 
+  const startTransition = useStartTransition();
+  const openDialog = useOpenDialog();
+
   const result = useFragment(
     graphql`
       fragment VotesCastPanelFragment on Proposal {
         number
-        votes {
-          id
-          reason
-          votes {
-            amount {
-              ...TokenAmountDisplayFragment
-            }
-          }
-          voter {
-            ...VoterCardFragment
 
-            address {
-              resolvedName {
-                ...NounResolvedLinkFragment
-              }
-            }
-          }
-          ...VotesCastPanelTextFragment
-          ...VoteReasonFragment
-        }
         ...ProposalVotesSummaryFragment
+        ...CastVoteInputVoteButtonsFragment
       }
     `,
     fragmentRef
@@ -97,6 +78,73 @@ export function VotesCastPanel({
             overflow-y: scroll;
           `}
         >
+          {hoveredVoterAddress && (
+            <div
+              className={css`
+                position: absolute;
+                width: calc(100% - 2 * ${theme.spacing["4"]});
+                right: calc(100% + ${theme.spacing["4"]});
+              `}
+            >
+              <Suspense
+                fallback={
+                  <VStack
+                    gap="8"
+                    className={css`
+                      height: 100%;
+                      padding: ${theme.spacing["6"]};
+                      border-radius: ${theme.spacing["3"]};
+                      background: ${theme.colors.white};
+                      border-width: ${theme.spacing.px};
+                      border-color: ${theme.colors.gray["eb"]};
+                      box-shadow: ${theme.boxShadow.newDefault};
+                      cursor: pointer;
+                    `}
+                  >
+                    <HStack gap="4">
+                      <div
+                        className={css`
+                          width: 44px;
+                          height: 44px;
+                          border-radius: ${theme.borderRadius.full};
+                          background: ${theme.colors.gray["eb"]};
+                        `}
+                      />
+                      <VStack gap="2" justifyContent="center">
+                        <div
+                          className={css`
+                            width: 120px;
+                            height: 12px;
+                            border-radius: ${theme.borderRadius.sm};
+                            background: ${theme.colors.gray["eb"]};
+                          `}
+                        />
+                        <div
+                          className={css`
+                            width: 64px;
+                            height: 12px;
+                            border-radius: ${theme.borderRadius.sm};
+                            background: ${theme.colors.gray["eb"]};
+                          `}
+                        />
+                      </VStack>
+                    </HStack>
+                    <div
+                      className={css`
+                        height: 44px;
+                        width: 100%;
+                        border-radius: ${theme.borderRadius.md};
+                        background: ${theme.colors.gray["eb"]};
+                      `}
+                    />
+                  </VStack>
+                }
+              >
+                <HoveredVoter hoveredVoterAddress={hoveredVoterAddress} />
+              </Suspense>
+            </div>
+          )}
+
           <ProposalVotesSummary
             fragmentRef={result}
             className={css`
@@ -105,73 +153,16 @@ export function VotesCastPanel({
           />
 
           {!expanded && (
-            <VStack gap="4">
-              {result.votes.map((vote) => (
-                <VStack key={vote.id} gap="1">
-                  <VStack>
-                    {hoveredVoter && vote.voter === hoveredVoter && (
-                      <div
-                        className={css`
-                          position: absolute;
-                          top: 50%;
-                          margin-top: -50%;
-                          width: 23rem;
-                          right: calc(100% + ${theme.spacing["4"]});
-                        `}
-                      >
-                        <VoterCard fragmentRef={hoveredVoter} />
-                      </div>
-                    )}
-
-                    <HStack
-                      justifyContent="space-between"
-                      className={css`
-                        color: ${theme.colors.gray["800"]};
-                        font-weight: ${theme.fontWeight.semibold};
-                        font-size: ${theme.fontSize.xs};
-                      `}
-                    >
-                      <HStack>
-                        <div onMouseEnter={() => setHoveredVoter(vote.voter)}>
-                          <NounResolvedLink
-                            resolvedName={vote.voter.address.resolvedName}
-                          />
-                        </div>
-
-                        <VoteText fragmentRef={vote} />
-                      </HStack>
-
-                      <HStack
-                        gap="1"
-                        alignItems="center"
-                        className={css`
-                          color: #66676b;
-                          font-size: ${theme.fontSize.xs};
-                        `}
-                      >
-                        <TokenAmountDisplay fragment={vote.votes.amount} />
-
-                        <div
-                          className={css`
-                            width: ${theme.spacing["3"]};
-                            height: ${theme.spacing["3"]};
-                          `}
-                        >
-                          <UserIcon />
-                        </div>
-                      </HStack>
-                    </HStack>
-                  </VStack>
-
-                  {vote.reason && <VoteReason fragmentKey={vote} />}
-                </VStack>
-              ))}
-            </VStack>
+            <VotesCastPanelVotes
+              onVoterHovered={(address) => setHoveredVoterAddress(address)}
+              fragmentRef={queryFragmentRef}
+            />
           )}
         </VStack>
 
         {!expanded && (
           <CastVoteInput
+            framgnetRef={result}
             className={css`
               flex-shrink: 0;
               margin-left: ${theme.spacing["4"]};
@@ -196,41 +187,143 @@ export function VotesCastPanel({
   );
 }
 
-function VoteText({
+function VotesCastPanelVotes({
+  onVoterHovered,
   fragmentRef,
 }: {
-  fragmentRef: VotesCastPanelTextFragment$key;
+  onVoterHovered: (address: string) => void;
+  fragmentRef: VotesCastPanelVotesFragment$key;
 }) {
-  const { supportDetailed } = useFragment(
+  const {
+    data: { votes },
+    loadNext,
+    hasNext,
+    isLoadingNext,
+  } = usePaginationFragment(
     graphql`
-      fragment VotesCastPanelTextFragment on Vote {
-        supportDetailed
+      fragment VotesCastPanelVotesFragment on Query
+      @argumentDefinitions(
+        proposalId: { type: "ID!" }
+        first: { type: "Int", defaultValue: 30 }
+        after: { type: "String" }
+      )
+      @refetchable(queryName: "VotesCastPanelPaginationQuery") {
+        votes(proposalId: $proposalId, first: $first, after: $after)
+          @connection(key: "VotesCastPanelFragment_votes") {
+          edges {
+            node {
+              voter {
+                address {
+                  address
+                }
+              }
+              ...VoteRowFragment
+            }
+          }
+        }
       }
     `,
     fragmentRef
   );
 
-  const supportType = toSupportType(supportDetailed);
+  const pageSize = 100;
 
+  const items = makePaginationItems(votes.edges, isLoadingNext, hasNext);
+  const shimmer = keyframes`
+  from {
+    opacity: 0.4;
+  }
+  
+  to {
+    opacity: 0.7;
+  }
+`;
   return (
-    <div
-      className={css`
-        color: ${colorForSupportType(supportType)};
-      `}
-    >
-      &nbsp;
-      {(() => {
-        switch (supportType) {
-          case "AGAINST":
-            return "voted against";
+    <VStack gap="4">
+      {items.map((item, idx) => {
+        switch (item.type) {
+          case "LOADING": {
+            return (
+              <HStack
+                justifyContent="center"
+                key={idx}
+                className={css`
+                  color: ${theme.colors.gray["700"]};
+                  font-weight: ${theme.fontWeight.medium};
+                  animation: ${shimmer} 0.5s alternate-reverse infinite
+                    ease-in-out;
+                `}
+              >
+                Loading more votes
+              </HStack>
+            );
+          }
 
-          case "ABSTAIN":
-            return "abstained";
+          case "ITEMS": {
+            return (
+              <div
+                key={idx}
+                onMouseEnter={() =>
+                  onVoterHovered(item.items.node.voter.address.address)
+                }
+              >
+                <VoteRow fragmentRef={item.items.node} />
+              </div>
+            );
+          }
 
-          case "FOR":
-            return "voted for";
+          case "LOAD_MORE_SENTINEL": {
+            return (
+              <LoadMoreSentinel
+                onVisible={() => {
+                  loadNext(pageSize);
+                }}
+              />
+            );
+          }
+
+          default: {
+            throw new Error("unknown");
+          }
         }
-      })()}
-    </div>
+      })}
+    </VStack>
+  );
+}
+
+type HoveredVoterProps = {
+  hoveredVoterAddress: string;
+};
+
+function HoveredVoter({ hoveredVoterAddress }: HoveredVoterProps) {
+  const { delegate } = useLazyLoadQuery<VotesCastPanelHoveredVoterQuery>(
+    graphql`
+      query VotesCastPanelHoveredVoterQuery($voter: String!) {
+        delegate(addressOrEnsName: $voter) {
+          ...VoterCardFragment
+        }
+      }
+    `,
+    {
+      voter: hoveredVoterAddress,
+    }
+  );
+
+  return <VoterCard fragmentRef={delegate} />;
+}
+
+type LoadingProps = {
+  onVisible: () => void;
+};
+
+function LoadMoreSentinel({ onVisible }: LoadingProps) {
+  return (
+    <InView
+      onChange={(inView) => {
+        if (inView) {
+          onVisible();
+        }
+      }}
+    />
   );
 }

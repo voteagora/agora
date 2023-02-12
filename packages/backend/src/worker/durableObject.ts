@@ -18,6 +18,9 @@ export class StorageDurableObjectV1 {
   private readonly env: Env;
   private readonly provider: ethers.providers.JsonRpcProvider;
   private readonly entityStore: DurableObjectEntityStore;
+  private lastResult: Awaited<
+    ReturnType<ReturnType<typeof followChain>>
+  > | null = null;
 
   private iter: ReturnType<typeof followChain> | null = null;
 
@@ -29,8 +32,6 @@ export class StorageDurableObjectV1 {
       env.ALCHEMY_API_KEY
     );
     this.entityStore = new DurableObjectEntityStore(this.state.storage);
-
-    state.waitUntil(this.state.storage.setAlarm(Date.now()));
   }
 
   async fetchWithSentry(request: Request, sentry: Toucan): Promise<Response> {
@@ -75,6 +76,7 @@ export class StorageDurableObjectV1 {
             alarm: await this.state.storage.getAlarm(),
             stopSentinel:
               (await this.state.storage.get(stopSentinel)) ?? "empty",
+            lastResult: this.lastResult,
             block: await entityStore.getFinalizedBlock(),
           })
         );
@@ -113,6 +115,13 @@ export class StorageDurableObjectV1 {
     switch (message.type) {
       case "START": {
         await this.state.storage.setAlarm(Date.now());
+        break;
+      }
+
+      case "RESET": {
+        await this.state.blockConcurrencyWhile(async () => {
+          throw new Error("object reset!");
+        });
         break;
       }
 
@@ -178,19 +187,18 @@ export class StorageDurableObjectV1 {
       return;
     }
 
-    await this.state.storage.deleteAlarm();
     const result = await this.stepChainForward();
+    this.lastResult = result;
     await this.state.storage.setAlarm(
       (() => {
-        switch (result.type) {
-          case "TIP": {
-            return Date.now() + 1000;
-          }
-
-          case "MORE": {
-            return Date.now();
-          }
+        if (
+          result.type === "TIP" ||
+          (result.type === "MORE" && result.depth <= 0)
+        ) {
+          return Date.now() + 1000 * 10;
         }
+
+        return Date.now();
       })()
     );
   }

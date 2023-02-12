@@ -9,10 +9,7 @@ import {
   IssueState,
   TopIssuesFormSection,
 } from "./TopIssuesFormSection";
-import {
-  PastProposalsFormSection,
-  SelectedProposal,
-} from "./PastProposalsFormSection";
+import { SelectedProposal } from "./PastProposalsFormSection";
 import { OtherInfoFormSection } from "./OtherInfoFormSection";
 import { buttonStyles } from "./EditDelegatePage";
 import { UseForm, useForm } from "./useForm";
@@ -26,13 +23,9 @@ import {
 } from "./__generated__/DelegateStatementFormMutation.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { DelegateStatementFormFragment$key } from "./__generated__/DelegateStatementFormFragment.graphql";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { isEqual } from "lodash";
-import {
-  BlockNavigationError,
-  browserHistory,
-  useNavigate,
-} from "../../components/HammockRouter/HammockRouter";
+import { useNavigate } from "../../components/HammockRouter/HammockRouter";
 import { ethers, Signer } from "ethers";
 import * as Sentry from "@sentry/react";
 import { GnosisSafe, GnosisSafe__factory } from "../../contracts/generated";
@@ -109,8 +102,6 @@ export function DelegateStatementForm({
             openToSponsoringProposals
           }
         }
-
-        ...PastProposalsFormSectionProposalListFragment
       }
     `,
     queryFragment
@@ -149,26 +140,6 @@ export function DelegateStatementForm({
     () => !isEqual(form.state, initialFormValuesState),
     [form.state, initialFormValuesState]
   );
-
-  useEffect(() => {
-    if (!isDirty) {
-      return;
-    }
-
-    return browserHistory.block((transition) => {
-      if (currentlyIgnoringBlock) {
-        return;
-      }
-
-      const allowedToProceed = window.confirm(
-        "You have pending changes, are you sure you want to navigate?"
-      );
-
-      if (!allowedToProceed) {
-        throw new BlockNavigationError();
-      }
-    });
-  }, [isDirty]);
 
   const [createNewDelegateStatement, isMutationInFlight] =
     useMutation<DelegateStatementFormMutation>(
@@ -281,17 +252,15 @@ export function DelegateStatementForm({
         })
       );
 
-      withIgnoringBlock(() => {
-        if (!data.delegate) {
-          return;
-        }
+      if (!data.delegate) {
+        return;
+      }
 
-        navigate({
-          path: `/delegate/${
-            data.delegate.address.resolvedName.name ??
-            data.delegate.address.resolvedName.address
-          }`,
-        });
+      navigate({
+        path: `/delegate/${
+          data.delegate.address.resolvedName.name ??
+          data.delegate.address.resolvedName.address
+        }`,
       });
     },
   });
@@ -317,7 +286,6 @@ export function DelegateStatementForm({
       >
         <DelegateStatementFormSection form={form} />
         <TopIssuesFormSection form={form} />
-        <PastProposalsFormSection form={form} queryFragment={data} />
         <OtherInfoFormSection form={form} />
 
         <HStack
@@ -408,16 +376,6 @@ const containerStyle = css`
   border-color: ${theme.colors.gray["300"]};
   box-shadow: ${theme.boxShadow.newDefault};
 `;
-
-let currentlyIgnoringBlock = false;
-function withIgnoringBlock(fn: () => void) {
-  currentlyIgnoringBlock = true;
-  try {
-    fn();
-  } finally {
-    currentlyIgnoringBlock = false;
-  }
-}
 
 function hashEnvelopeValue(value: string) {
   return JSON.stringify({

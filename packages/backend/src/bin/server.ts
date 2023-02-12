@@ -64,7 +64,10 @@ async function main() {
 
       return {
         ethProvider: new TransparentMultiCallProvider(
-          new ethers.providers.CloudflareProvider()
+          new ethers.providers.AlchemyProvider(
+            "mainnet",
+            process.env.ALCHEMY_API_KEY
+          )
         ),
         provider,
         reader,

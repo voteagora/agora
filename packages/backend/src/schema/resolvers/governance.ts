@@ -18,14 +18,20 @@ import {
   defaultAccount,
   makeDefaultAggregate,
 } from "../../indexer/contracts/GovernanceToken";
-import { Reader } from "../../indexer/storage/reader";
+import { exactIndexValue, Reader } from "../../indexer/storage/reader";
 import { entityDefinitions } from "../../indexer/contracts";
 import { RuntimeType } from "../../indexer/serde";
-import { collectGenerator } from "../../indexer/utils/generatorUtils";
+import {
+  collectGenerator,
+  filterGenerator,
+  limitGenerator,
+} from "../../indexer/utils/generatorUtils";
 import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { driveReaderByIndex } from "../pagination";
 import { formSchema } from "../../formSchema";
 import { approximateBlockTimestampForBlock } from "../../utils/blockTimestamp";
+import { makeCompoundKey } from "../../indexer/indexKey";
+import { intersection } from "../../utils/set";
 
 const amountSpec = {
   currency: "OP",
@@ -38,10 +44,7 @@ export type VotingPowerModel = BigNumber;
 
 export const VotingPower: VotingPowerResolvers = {
   amount(value) {
-    return {
-      amount: value,
-      ...amountSpec,
-    };
+    return asTokenAmount(value);
   },
 
   async bpsOfTotal(value, _args, { reader }) {
@@ -71,18 +74,11 @@ export const Metrics: MetricsResolvers = {
   },
   async delegatedSupply(_parent, _args, { reader }) {
     const aggregate = await getAggregate(reader);
-    return {
-      amount: aggregate.delegatedSupply,
-      ...amountSpec,
-    };
+    return asTokenAmount(aggregate.delegatedSupply);
   },
   async totalSupply(_parent, _args, { reader }) {
     const aggregate = await getAggregate(reader);
-
-    return {
-      amount: aggregate.totalSupply,
-      ...amountSpec,
-    };
+    return asTokenAmount(aggregate.totalSupply);
   },
   quorum(_parent, _args, { reader }) {
     return getQuorum(reader);
@@ -101,6 +97,19 @@ export const Query: QueryResolvers = {
     );
   },
 
+  async votes(_, { proposalId, first, after }, { reader }) {
+    return driveReaderByIndex(
+      reader,
+      "Vote",
+      "byProposalByVotes",
+      first,
+      after ?? null,
+      {
+        indexKey: makeCompoundKey(proposalId.toString(), ""),
+      }
+    );
+  },
+
   metrics() {
     return {};
   },
@@ -112,9 +121,7 @@ export const Query: QueryResolvers = {
   async proposals(_, {}, { reader }) {
     return (
       await collectGenerator(
-        reader.getEntitiesByIndex("Proposal", "byEndBlock", {
-          type: "RANGE",
-        })
+        reader.getEntitiesByIndex("Proposal", "byEndBlock", {})
       )
     ).map((it) => it.value);
   },
@@ -181,14 +188,30 @@ export const Delegate: DelegateResolvers = {
     const totalProposals = (await getGovernanceAggregate(reader))
       .totalProposals;
 
+    const lastTenProposals = (
+      await collectGenerator(
+        limitGenerator(
+          filterGenerator(
+            reader.getEntitiesByIndex("Proposal", "byEndBlock", {}),
+            (value) => value.value.status !== "CANCELLED"
+          ),
+          10
+        )
+      )
+    ).map((it) => it.value.proposalId.toString());
+
+    const votedProposals = new Set(
+      votes.map((vote) => vote.proposalId.toString())
+    );
+
     return {
       tokenHoldersRepresentedCount: accountsRepresentedCount.toNumber(),
       totalVotes: votes.length,
       forVotes: votes.filter((vote) => vote.support === 1).length,
       againstVotes: votes.filter((vote) => vote.support === 0).length,
       abstainVotes: votes.filter((vote) => vote.support === 2).length,
-      // todo: implement ofLastTenProps
-      ofLastTenProps: 0,
+      ofLastTenProps: intersection(votedProposals, new Set(lastTenProposals))
+        .size,
       ofTotalProps: totalProposals
         ? Math.floor((votes.length / totalProposals) * 100)
         : 0,
@@ -248,21 +271,16 @@ export const Proposal: ProposalResolvers = {
     return [];
   },
 
-  async votes({ proposalId }, _args, { reader }) {
-    return await proposalVotes(proposalId, reader);
+  forVotes({ aggregates: { forVotes } }, _args) {
+    return asTokenAmount(forVotes);
   },
 
-  // todo: avoid re-querying these
-  async forVotes({ proposalId }, _args, { reader }) {
-    return await countVotesWithStatus(proposalId, 1, reader);
+  againstVotes({ aggregates: { againstVotes } }, _args) {
+    return asTokenAmount(againstVotes);
   },
 
-  async againstVotes({ proposalId }, _args, { reader }) {
-    return await countVotesWithStatus(proposalId, 0, reader);
-  },
-
-  async abstainVotes({ proposalId }, _args, { reader }) {
-    return await countVotesWithStatus(proposalId, 2, reader);
+  abstainVotes({ aggregates: { abstainVotes } }, _args) {
+    return asTokenAmount(abstainVotes);
   },
 
   async voteStartsAt({ startBlock }, _args, { provider }) {
@@ -291,17 +309,19 @@ export const Proposal: ProposalResolvers = {
     return getTitleFromProposalDescription(description);
   },
 
-  async totalVotes({ proposalId }, _args, { reader }) {
-    const votes = await proposalVotes(proposalId, reader);
-    return BigNumber.from(votes.length);
+  async totalVotes(
+    { aggregates: { forVotes, abstainVotes, againstVotes } },
+    _args
+  ) {
+    return forVotes.add(abstainVotes).add(againstVotes);
   },
 
   async status(
-    { proposalId, status, startBlock, endBlock },
+    { proposalId, status, startBlock, endBlock, aggregates },
     _args,
-    { provider, reader }
+    { reader }
   ) {
-    const latestBlock = await provider.getBlock("latest");
+    const latestBlock = reader.getLatestBlock();
 
     switch (status) {
       case "CANCELLED": {
@@ -313,28 +333,16 @@ export const Proposal: ProposalResolvers = {
       }
 
       case "PROPOSED": {
-        if (latestBlock.number <= startBlock.toNumber()) {
+        if (latestBlock.blockNumber <= startBlock.toNumber()) {
           return ProposalStatus.Pending;
         }
 
-        if (latestBlock.number <= endBlock.toNumber()) {
+        if (latestBlock.blockNumber <= endBlock.toNumber()) {
           return ProposalStatus.Active;
         }
 
-        // todo: constants for vote type
         const quorum = await getQuorum(reader);
-        const votes = await proposalVotes(proposalId, reader);
-        const forVotes = votes
-          .filter((vote) => vote.support === 1 || vote.support === 1)
-          .reduce((acc, value) => value.weight.add(acc), BigNumber.from(0));
-
-        const abstainVotes = votes
-          .filter((vote) => vote.support === 1 || vote.support === 2)
-          .reduce((acc, value) => value.weight.add(acc), BigNumber.from(0));
-
-        const againstVotes = votes
-          .filter((vote) => vote.support === 1 || vote.support === 0)
-          .reduce((acc, value) => value.weight.add(acc), BigNumber.from(0));
+        const { forVotes, abstainVotes, againstVotes } = aggregates;
 
         const proposalQuorumVotes = forVotes.add(abstainVotes);
 
@@ -396,10 +404,7 @@ async function votesForAddress(
       for await (const { value } of reader.getEntitiesByIndex(
         "Vote",
         "byVoter",
-        {
-          type: "EXACT_MATCH",
-          indexKey: normalizedAddress,
-        }
+        exactIndexValue(normalizedAddress)
       )) {
         if (value.voterAddress !== normalizedAddress) {
           return;
@@ -421,7 +426,7 @@ async function proposedByAddress(
       for await (const { value } of reader.getEntitiesByIndex(
         "Proposal",
         "byProposer",
-        { type: "EXACT_MATCH", indexKey: normalizedAddress }
+        exactIndexValue(normalizedAddress)
       )) {
         if (value.proposer !== normalizedAddress) {
           return;
@@ -473,32 +478,9 @@ function bpsOf(top: BigNumber, bottom: BigNumber): number {
   );
 }
 
-async function proposalVotes(
-  id: BigNumber,
-  reader: Reader<typeof entityDefinitions>
-) {
-  return (
-    await collectGenerator(
-      reader.getEntitiesByIndex("Vote", "byProposal", {
-        type: "EXACT_MATCH",
-        indexKey: id.toString(),
-      })
-    )
-  ).map((it) => it.value);
-}
-
-async function countVotesWithStatus(
-  proposalId: BigNumber,
-  support: number,
-  reader: Reader<typeof entityDefinitions>
-) {
-  const votes = await proposalVotes(proposalId, reader);
-  const amount = votes
-    .filter((it) => it.support === support)
-    .reduce((acc, value) => acc.add(value.weight), BigNumber.from(0));
-
+function asTokenAmount(amount: BigNumber) {
   return {
-    ...amountSpec,
     amount,
+    ...amountSpec,
   };
 }

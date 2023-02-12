@@ -27,17 +27,18 @@ export default function ProposalsPage() {
 
   const result = useLazyLoadQuery<ProposalsPageDetailQuery>(
     graphql`
-      query ProposalsPageDetailQuery($proposalID: ID!) {
-        firstProposal: proposal(id: $proposalID) {
+      query ProposalsPageDetailQuery($proposalId: ID!) {
+        firstProposal: proposal(id: $proposalId) {
           number
           ...ProposalDetailPanelFragment
           ...VotesCastPanelFragment
         }
         ...ProposalsListPanelFragment
+        ...VotesCastPanelVotesFragment @arguments(proposalId: $proposalId)
       }
     `,
     {
-      proposalID: proposalId,
+      proposalId,
     }
   );
 
@@ -108,6 +109,7 @@ export default function ProposalsPage() {
           />
           <VotesCastPanel
             fragmentRef={selectedProposal!}
+            queryFragmentRef={result}
             expanded={proposalsListExpanded}
           />
         </VStack>

@@ -14,6 +14,10 @@ export type AddressModel = {
 };
 
 export const Address: AddressResolvers = {
+  address({ address }) {
+    return address;
+  },
+
   isContract: {
     async resolve({ address }, _args, { provider }) {
       const code = await provider.getCode(address);
@@ -41,7 +45,7 @@ export const Transaction: TransactionResolvers = {
   },
 
   timestamp({ timestamp }) {
-    return new Date(timestamp! * 1000);
+    return timestamp ? new Date(timestamp * 1000) : new Date();
   },
 
   async block({ blockHash }, _args, { provider }) {
