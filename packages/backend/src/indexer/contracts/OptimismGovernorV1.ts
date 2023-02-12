@@ -215,7 +215,15 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
           proposalId: event.args.proposalId,
           support: event.args.support,
           weight: event.args.weight,
-          reason: event.args.reason,
+          reason: (() => {
+            try {
+              return event.args.reason;
+            } catch (e) {
+              // todo: warn somewhere more visible
+              console.warn(e);
+              return "";
+            }
+          })(),
           transactionHash: log.transactionHash,
         });
       },
