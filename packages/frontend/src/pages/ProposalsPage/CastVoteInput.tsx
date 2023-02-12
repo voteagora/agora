@@ -7,6 +7,10 @@ import {
 } from "../DelegatePage/VoteDetailsContainer";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 import { useState } from "react";
+import { useAccount } from "wagmi";
+import graphql from "babel-plugin-relay/macro";
+import { useFragment } from "react-relay/hooks";
+import { CastVoteInputVoteButtonsFragment$key } from "./__generated__/CastVoteInputVoteButtonsFragment.graphql";
 
 type Props = {
   onVoteClick: (
@@ -14,9 +18,10 @@ type Props = {
     reason: string
   ) => void;
   className: string;
+  framgnetRef: CastVoteInputVoteButtonsFragment$key;
 };
 
-export function CastVoteInput({ onVoteClick, className }: Props) {
+export function CastVoteInput({ onVoteClick, className, framgnetRef }: Props) {
   const [reason, setReason] = useState<string>("");
 
   return (
@@ -54,6 +59,7 @@ export function CastVoteInput({ onVoteClick, className }: Props) {
       >
         <VoteButtons
           onClick={(supportType) => onVoteClick(supportType, reason)}
+          fragmentRef={framgnetRef}
         />
       </VStack>
     </VStack>
@@ -62,12 +68,47 @@ export function CastVoteInput({ onVoteClick, className }: Props) {
 
 function VoteButtons({
   onClick,
+  fragmentRef,
 }: {
   onClick: (nextSupportType: SupportTextProps["supportType"]) => void;
+  fragmentRef: CastVoteInputVoteButtonsFragment$key;
 }) {
-  // todo: check if voting open
-  // todo: check if already voted
-  // todo: we want to check this from the chain not from the subgraph
+  const { address: accountAddress } = useAccount();
+
+  const result = useFragment(
+    graphql`
+      fragment CastVoteInputVoteButtonsFragment on Proposal {
+        status
+      }
+    `,
+    fragmentRef
+  );
+
+  // const hasVoted = useMemo(
+  //   () =>
+  //     accountAddress &&
+  //     !!result.votes.find(
+  //       (vote) =>
+  //         vote.voter.address.resolvedName.address.toLowerCase() ===
+  //         accountAddress.toLowerCase()
+  //     ),
+  //   [result.votes, accountAddress]
+  // );
+
+  // todo: fix me
+  const hasVoted = false;
+
+  if (result.status !== "ACTIVE") {
+    return <DisabledVoteButton reason="Not open to voting" />;
+  }
+
+  if (!accountAddress) {
+    return <DisabledVoteButton reason="Connect wallet to vote" />;
+  }
+
+  if (hasVoted) {
+    return <DisabledVoteButton reason="Already voted" />;
+  }
 
   return (
     <HStack gap="2">
@@ -116,3 +157,18 @@ const voteButtonStyles = css`
   align-items: center;
   border-radius: ${theme.borderRadius.md};
 `;
+
+function DisabledVoteButton({ reason }: { reason: string }) {
+  return (
+    <button
+      disabled
+      className={css`
+        ${voteButtonStyles};
+        box-shadow: none;
+        width: 100%;
+      `}
+    >
+      {reason}
+    </button>
+  );
+}

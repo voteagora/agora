@@ -1,8 +1,8 @@
 import { css } from "@emotion/css";
 import { icons } from "../../icons/icons";
 import graphql from "babel-plugin-relay/macro";
+import { AnimatePresence, motion } from "framer-motion";
 import { utils } from "ethers";
-import { motion } from "framer-motion";
 import { useMemo, useState, useTransition } from "react";
 import { useFragment } from "react-relay";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
@@ -111,6 +111,7 @@ export function ProposalsListPanel({
           alignItems="center"
           className={css`
             flex-shrink: 0;
+            height: ${theme.spacing["12"]};
             padding-top: ${theme.spacing["4"]};
             padding-left: ${theme.spacing["4"]};
             padding-right: ${theme.spacing["4"]};
@@ -125,60 +126,73 @@ export function ProposalsListPanel({
           >
             Proposals
           </div>
-          <HStack gap="3">
-            <Selector
-              items={[
-                {
-                  title: "All",
-                  value: "ALL" as const,
-                },
-                {
-                  title: "Active",
-                  value: "ACTIVE" as const,
-                },
-                {
-                  title: "Pending",
-                  value: "PENDING" as const,
-                },
-                {
-                  title: "Cancelled",
-                  value: "CANCELLED" as const,
-                },
-                {
-                  title: "Executed",
-                  value: "EXECUTED" as const,
-                },
-                {
-                  title: "Defeated",
-                  value: "VETOED" as const,
-                },
-                {
-                  title: "Queued",
-                  value: "QUEUED" as const,
-                },
-              ]}
-              value={filter}
-              onChange={(newFilter) =>
-                startTransition(() => setFilter(newFilter))
-              }
-              size={"m"}
-            />
-            <Selector
-              items={[
-                {
-                  title: "Newest",
-                  value: "desc" as const,
-                },
-                {
-                  title: "Oldest",
-                  value: "asc" as const,
-                },
-              ]}
-              value={sort}
-              onChange={(newSort) => startTransition(() => setSort(newSort))}
-              size={"m"}
-            />
-          </HStack>
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.1 }}
+              >
+                <HStack gap="3">
+                  <Selector
+                    items={[
+                      {
+                        title: "All",
+                        value: "ALL" as const,
+                      },
+                      {
+                        title: "Active",
+                        value: "ACTIVE" as const,
+                      },
+                      {
+                        title: "Pending",
+                        value: "PENDING" as const,
+                      },
+                      {
+                        title: "Cancelled",
+                        value: "CANCELLED" as const,
+                      },
+                      {
+                        title: "Executed",
+                        value: "EXECUTED" as const,
+                      },
+                      {
+                        title: "Defeated",
+                        value: "DEFEATED" as const,
+                      },
+                      {
+                        title: "Queued",
+                        value: "QUEUED" as const,
+                      },
+                    ]}
+                    value={filter}
+                    onChange={(newFilter) =>
+                      startTransition(() => setFilter(newFilter))
+                    }
+                    size={"m"}
+                  />
+                  <Selector
+                    items={[
+                      {
+                        title: "Newest",
+                        value: "desc" as const,
+                      },
+                      {
+                        title: "Oldest",
+                        value: "asc" as const,
+                      },
+                    ]}
+                    value={sort}
+                    onChange={(newSort) =>
+                      startTransition(() => setSort(newSort))
+                    }
+                    size={"m"}
+                  />
+                </HStack>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </HStack>
 
         <VStack

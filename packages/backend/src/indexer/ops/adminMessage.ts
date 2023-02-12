@@ -2,6 +2,9 @@ import { StoredEntry } from "../storage/dump";
 
 export type AdminMessage =
   | {
+      type: "RESET";
+    }
+  | {
       type: "START";
     }
   | {
@@ -21,16 +24,15 @@ export type AdminMessage =
 export async function sendAdminMessage(message: AdminMessage) {
   while (true) {
     try {
-      const response = await fetch(
-        "https://optimism-agora-dev.act.workers.dev/admin/ops",
-        {
-          method: "POST",
-          body: JSON.stringify(message),
-          headers: {
-            "x-admin-api-key": process.env.ADMIN_API_KEY!,
-          },
-        }
-      );
+      const response = await fetch("https://vote.optimism.io/admin/ops", {
+        method: "POST",
+        body: JSON.stringify(message),
+        headers: {
+          "x-admin-api-key": process.env.ADMIN_API_KEY!,
+          "x-durable-object-instance-name":
+            process.env.DURABLE_OBJECT_INSTANCE_NAME!,
+        },
+      });
       if (response.status !== 200) {
         throw new Error(
           `non-200 response ${response.status} ${

@@ -3,7 +3,9 @@ import { RuntimeType } from "../indexer/serde";
 import {
   collectGenerator,
   limitGenerator,
+  skipGenerator,
 } from "../indexer/utils/generatorUtils";
+import { IndexKeyType } from "../indexer/indexKey";
 
 export type PageInfo = {
   hasPreviousPage: boolean;
@@ -31,47 +33,44 @@ export async function driveReaderByIndex<
   entityName: EntityName,
   indexName: IndexName,
   first: number,
-  after: string | null
+  after: string | null,
+  prefix?: IndexKeyType
 ): Promise<Connection<RuntimeType<EntityDefinitions[EntityName]["serde"]>>> {
   const edges = (
     await collectGenerator(
       limitGenerator(
-        reader.getEntitiesByIndex(entityName, indexName, {
-          type: "RANGE",
-          starting: after
-            ? (() => {
+        skipGenerator(
+          reader.getEntitiesByIndex(entityName, indexName, {
+            prefix,
+
+            starting: (() => {
+              if (after) {
                 const [indexKey, entityId] = after.split("|");
 
                 return {
                   indexKey,
                   entityId,
                 };
-              })()
-            : undefined,
-        }),
-        first + 1
+              }
+
+              if (prefix) {
+                return {
+                  indexKey: prefix.indexKey,
+                };
+              }
+
+              return undefined;
+            })(),
+          }),
+          after ? 1 : 0
+        ),
+        first
       )
     )
-  ).flatMap<Edge<RuntimeType<EntityDefinitions[EntityName]["serde"]>>>(
-    (node, idx, array) => {
-      if (idx === first) {
-        return [];
-      }
-
-      return [
-        {
-          node: node.value,
-          cursor:
-            idx > 0
-              ? (() => {
-                  const lastValue = array[idx - 1];
-                  return [lastValue.indexKey, lastValue.entityId].join("|");
-                })()
-              : "",
-        },
-      ];
-    }
-  );
+  ).map<Edge<RuntimeType<EntityDefinitions[EntityName]["serde"]>>>((node) => ({
+    node: node.value,
+    cursor: [node.indexKey, node.entityId].join("|"),
+  }));
 
   const endCursor = edges[edges.length - 1]?.cursor;
   return {

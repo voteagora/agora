@@ -18,6 +18,11 @@ import { useWindowVirtualizer, VirtualItem } from "@tanstack/react-virtual";
 import { chunk } from "lodash";
 import { useMediaQuery } from "react-responsive";
 import { Variables } from "./HomePageRoute";
+import {
+  isLastDisplayedItemLoadMoreSentinel,
+  makePaginationItems,
+  PaginationItemType,
+} from "../../hooks/pagination";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -84,39 +89,15 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
 
   const columns = isSmallerThanThreeColumns ? 1 : 3;
 
-  type ItemType =
-    | {
-        type: "LOADING";
-      }
-    | {
-        type: "LOAD_MORE_SENTINEL";
-      }
-    | {
-        type: "ITEMS";
-        items: DelegatesContainerFragment$data["voters"]["edges"];
-      };
+  type ItemType = PaginationItemType<
+    DelegatesContainerFragment$data["voters"]["edges"]
+  >;
 
-  const items: ItemType[] = [
-    ...chunk(voters.edges, columns).map((items) => ({
-      type: "ITEMS" as const,
-      items,
-    })),
-    ...(() => {
-      if (isLoadingNext) {
-        return [{ type: "LOADING" as const }];
-      }
-
-      if (hasNext) {
-        return [
-          {
-            type: "LOAD_MORE_SENTINEL" as const,
-          },
-        ];
-      } else {
-        return [];
-      }
-    })(),
-  ];
+  const items: ItemType[] = makePaginationItems(
+    chunk(voters.edges, columns),
+    isLoadingNext,
+    hasNext
+  );
 
   const virtualizer = useWindowVirtualizer({
     count: items.length,
@@ -132,19 +113,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
       }
     },
     onChange(instance) {
-      const virtualItems = instance.getVirtualItems();
-      const lastItem = virtualItems[virtualItems.length - 1];
-
-      if (!lastItem) {
-        return;
-      }
-
-      const item = items[lastItem.index];
-      if (!item) {
-        return;
-      }
-
-      if (item.type === "LOAD_MORE_SENTINEL") {
+      if (isLastDisplayedItemLoadMoreSentinel(instance, items)) {
         loadNext(30);
       }
     },

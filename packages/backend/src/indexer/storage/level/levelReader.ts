@@ -11,6 +11,7 @@ import {
 } from "../reader";
 import { Level } from "level";
 import { coerceLevelDbNotfoundError } from "./utils";
+import { BlockIdentifier } from "../../storageHandle";
 
 export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
   implements Reader<EntityDefinitionsType>
@@ -104,5 +105,9 @@ export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
     }
 
     return entityDefinition.serde.deserialize(fromLevel);
+  }
+
+  getLatestBlock(): BlockIdentifier {
+    return this.storageArea.tipBlock ?? this.storageArea.finalizedBlock;
   }
 }
