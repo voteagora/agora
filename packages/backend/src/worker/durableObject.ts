@@ -18,6 +18,9 @@ export class StorageDurableObjectV1 {
   private readonly env: Env;
   private readonly provider: ethers.providers.JsonRpcProvider;
   private readonly entityStore: DurableObjectEntityStore;
+  private lastResult: Awaited<
+    ReturnType<ReturnType<typeof followChain>>
+  > | null = null;
 
   private iter: ReturnType<typeof followChain> | null = null;
 
@@ -73,6 +76,7 @@ export class StorageDurableObjectV1 {
             alarm: await this.state.storage.getAlarm(),
             stopSentinel:
               (await this.state.storage.get(stopSentinel)) ?? "empty",
+            lastResult: this.lastResult,
             block: await entityStore.getFinalizedBlock(),
           })
         );
@@ -184,17 +188,17 @@ export class StorageDurableObjectV1 {
     }
 
     const result = await this.stepChainForward();
+    this.lastResult = result;
     await this.state.storage.setAlarm(
       (() => {
-        switch (result.type) {
-          case "TIP": {
-            return Date.now() + 1000 * 10;
-          }
-
-          case "MORE": {
-            return Date.now();
-          }
+        if (
+          result.type === "TIP" ||
+          (result.type === "MORE" && result.depth <= 0)
+        ) {
+          return Date.now() + 1000 * 10;
         }
+
+        return Date.now();
       })()
     );
   }
