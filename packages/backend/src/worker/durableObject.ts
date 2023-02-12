@@ -12,6 +12,10 @@ import { DurableObjectEntityStore } from "../indexer/storage/durableObjects/dura
 import { AdminMessage } from "../indexer/ops/adminMessage";
 import { indexers } from "../indexer/contracts";
 import { listEntries } from "../indexer/storage/durableObjects/storageInterface";
+import {
+  collectGenerator,
+  limitGenerator,
+} from "../indexer/utils/generatorUtils";
 
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
@@ -116,6 +120,19 @@ export class StorageDurableObjectV1 {
       case "START": {
         await this.state.storage.setAlarm(Date.now());
         break;
+      }
+
+      case "GET_KEYS": {
+        const entries = await collectGenerator(
+          limitGenerator(
+            listEntries(this.state.storage, {
+              start: message.cursor,
+            }),
+            10000
+          )
+        );
+
+        return new Response(JSON.stringify(entries));
       }
 
       case "RESET": {
