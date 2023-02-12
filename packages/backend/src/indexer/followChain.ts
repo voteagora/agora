@@ -166,17 +166,10 @@ export function followChain(
       fetchTill
     );
 
-    const fetchLogsCacheTill = Math.max(
-      Math.min(
-        latestBlock.number - maxReorgBlocksDepth - 1,
-        nextBlockNumber + maxBlockRange
-      ),
-      nextBlockNumber
-    );
     const logs = await logProvider.getLogs({
       ...filter,
       fromBlock: nextBlockNumber,
-      toBlock: fetchLogsCacheTill,
+      toBlock: fetchTill,
     });
 
     const groupedLogs = await collectGenerator(
@@ -191,14 +184,7 @@ export function followChain(
     );
 
     const logsCache = new Map([
-      ...blocks.flatMap<[string, Log[]]>((block) => {
-        const depth = latestBlock.number - block.number;
-        if (!isBlockDepthFinalized(depth)) {
-          return [];
-        }
-
-        return [[block.hash, []]];
-      }),
+      ...blocks.flatMap<[string, Log[]]>((block) => [[block.hash, []]]),
       ...groupedLogs.map<[string, Log[]]>((it) => [it[0].blockHash, it]),
     ]);
 
