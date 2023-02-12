@@ -114,6 +114,13 @@ export class StorageDurableObjectV1 {
         break;
       }
 
+      case "RESET": {
+        await this.state.blockConcurrencyWhile(async () => {
+          throw new Error("object reset!");
+        });
+        break;
+      }
+
       case "STOP": {
         await this.state.storage.put(stopSentinel, true);
         break;
