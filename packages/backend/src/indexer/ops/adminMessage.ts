@@ -5,6 +5,10 @@ export type AdminMessage =
       type: "RESET";
     }
   | {
+      type: "GET_KEYS";
+      cursor?: string;
+    }
+  | {
       type: "START";
     }
   | {
@@ -40,7 +44,7 @@ export async function sendAdminMessage(message: AdminMessage) {
           } ${await response.text()}`
         );
       }
-      return;
+      // return await response.json();
     } catch (e) {
       console.error(e);
     }
