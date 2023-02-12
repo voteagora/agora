@@ -188,7 +188,7 @@ export class StorageDurableObjectV1 {
       (() => {
         switch (result.type) {
           case "TIP": {
-            return Date.now() + 1000;
+            return Date.now() + 1000 * 10;
           }
 
           case "MORE": {
