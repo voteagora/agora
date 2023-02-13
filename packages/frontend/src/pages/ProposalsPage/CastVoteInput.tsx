@@ -7,7 +7,6 @@ import {
 } from "../DelegatePage/VoteDetailsContainer";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 import { useState } from "react";
-import { useAccount } from "wagmi";
 import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay/hooks";
 import { CastVoteInputVoteButtonsFragment$key } from "./__generated__/CastVoteInputVoteButtonsFragment.graphql";
