@@ -11,6 +11,7 @@ import { useAccount } from "wagmi";
 import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay/hooks";
 import { CastVoteInputVoteButtonsFragment$key } from "./__generated__/CastVoteInputVoteButtonsFragment.graphql";
+import { CastVoteInputVoteButtonsQueryFragment$key } from "./__generated__/CastVoteInputVoteButtonsQueryFragment.graphql";
 
 type Props = {
   onVoteClick: (
@@ -19,9 +20,15 @@ type Props = {
   ) => void;
   className: string;
   framgnetRef: CastVoteInputVoteButtonsFragment$key;
+  queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
 };
 
-export function CastVoteInput({ onVoteClick, className, framgnetRef }: Props) {
+export function CastVoteInput({
+  onVoteClick,
+  className,
+  framgnetRef,
+  queryFragmentRef,
+}: Props) {
   const [reason, setReason] = useState<string>("");
 
   return (
@@ -60,6 +67,7 @@ export function CastVoteInput({ onVoteClick, className, framgnetRef }: Props) {
         <VoteButtons
           onClick={(supportType) => onVoteClick(supportType, reason)}
           fragmentRef={framgnetRef}
+          queryFragmentRef={queryFragmentRef}
         />
       </VStack>
     </VStack>
@@ -69,43 +77,49 @@ export function CastVoteInput({ onVoteClick, className, framgnetRef }: Props) {
 function VoteButtons({
   onClick,
   fragmentRef,
+  queryFragmentRef,
 }: {
   onClick: (nextSupportType: SupportTextProps["supportType"]) => void;
   fragmentRef: CastVoteInputVoteButtonsFragment$key;
+  queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
 }) {
-  const { address: accountAddress } = useAccount();
-
   const result = useFragment(
     graphql`
       fragment CastVoteInputVoteButtonsFragment on Proposal {
+        id
         status
       }
     `,
     fragmentRef
   );
 
-  // const hasVoted = useMemo(
-  //   () =>
-  //     accountAddress &&
-  //     !!result.votes.find(
-  //       (vote) =>
-  //         vote.voter.address.resolvedName.address.toLowerCase() ===
-  //         accountAddress.toLowerCase()
-  //     ),
-  //   [result.votes, accountAddress]
-  // );
-
-  // todo: fix me
-  const hasVoted = false;
+  const { delegate } = useFragment(
+    graphql`
+      fragment CastVoteInputVoteButtonsQueryFragment on Query
+      @argumentDefinitions(
+        address: { type: "String!" }
+        skipAddress: { type: "Boolean!" }
+      ) {
+        delegate(addressOrEnsName: $address) @skip(if: $skipAddress) {
+          votes {
+            proposal {
+              id
+            }
+          }
+        }
+      }
+    `,
+    queryFragmentRef
+  );
 
   if (result.status !== "ACTIVE") {
     return <DisabledVoteButton reason="Not open to voting" />;
   }
 
-  if (!accountAddress) {
+  if (!delegate) {
     return <DisabledVoteButton reason="Connect wallet to vote" />;
   }
-
+  const hasVoted = !!delegate.votes.find((it) => it.proposal.id === result.id);
   if (hasVoted) {
     return <DisabledVoteButton reason="Already voted" />;
   }

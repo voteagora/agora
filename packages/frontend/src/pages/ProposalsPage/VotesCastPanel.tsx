@@ -16,6 +16,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import { VotesCastPanelHoveredVoterQuery } from "./__generated__/VotesCastPanelHoveredVoterQuery.graphql";
 import { VoterCard } from "../HomePage/VoterCard";
+import { VotesCastPanelQueryFragment$key } from "./__generated__/VotesCastPanelQueryFragment.graphql";
 
 export function VotesCastPanel({
   fragmentRef,
@@ -23,9 +24,25 @@ export function VotesCastPanel({
   expanded,
 }: {
   fragmentRef: VotesCastPanelFragment$key;
-  queryFragmentRef: VotesCastPanelVotesFragment$key;
+  queryFragmentRef: VotesCastPanelQueryFragment$key;
   expanded: boolean;
 }) {
+  const queryResult = useFragment(
+    graphql`
+      fragment VotesCastPanelQueryFragment on Query
+      @argumentDefinitions(
+        address: { type: "String!" }
+        proposalId: { type: "ID!" }
+        skipAddress: { type: "Boolean!" }
+      ) {
+        ...VotesCastPanelVotesFragment @arguments(proposalId: $proposalId)
+        ...CastVoteInputVoteButtonsQueryFragment
+          @arguments(address: $address, skipAddress: $skipAddress)
+      }
+    `,
+    queryFragmentRef
+  );
+
   const [hoveredVoterAddress, setHoveredVoterAddress] = useState<string | null>(
     null
   );
@@ -155,13 +172,14 @@ export function VotesCastPanel({
           {!expanded && (
             <VotesCastPanelVotes
               onVoterHovered={(address) => setHoveredVoterAddress(address)}
-              fragmentRef={queryFragmentRef}
+              fragmentRef={queryResult}
             />
           )}
         </VStack>
 
         {!expanded && (
           <CastVoteInput
+            queryFragmentRef={queryResult}
             framgnetRef={result}
             className={css`
               flex-shrink: 0;
