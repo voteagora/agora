@@ -13,11 +13,13 @@ import {
   useNavigate,
   useParams,
 } from "../../components/HammockRouter/HammockRouter";
+import { useAccount } from "wagmi";
 
 export default function ProposalsPage() {
   const { proposalId } = useParams();
   const [isPending, startTransition] = useTransition();
   const navigate = useNavigate();
+  const { address } = useAccount();
   let setSelectedProposalID = (newProposalID: string) => {
     startTransition(() => {
       navigate({ path: `/proposals/${newProposalID}` });
@@ -27,18 +29,29 @@ export default function ProposalsPage() {
 
   const result = useLazyLoadQuery<ProposalsPageDetailQuery>(
     graphql`
-      query ProposalsPageDetailQuery($proposalId: ID!) {
+      query ProposalsPageDetailQuery(
+        $proposalId: ID!
+        $address: String!
+        $skipAddress: Boolean!
+      ) {
         firstProposal: proposal(id: $proposalId) {
           number
           ...ProposalDetailPanelFragment
           ...VotesCastPanelFragment
         }
         ...ProposalsListPanelFragment
-        ...VotesCastPanelVotesFragment @arguments(proposalId: $proposalId)
+        ...VotesCastPanelQueryFragment
+          @arguments(
+            address: $address
+            skipAddress: $skipAddress
+            proposalId: $proposalId
+          )
       }
     `,
     {
       proposalId,
+      address: address ?? "",
+      skipAddress: !address,
     }
   );
 
