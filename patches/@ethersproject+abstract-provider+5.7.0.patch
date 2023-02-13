@@ -1,0 +1,46 @@
+diff --git a/node_modules/@ethersproject/abstract-provider/src.ts/index.ts b/node_modules/@ethersproject/abstract-provider/src.ts/index.ts
+index d56958a..281111e 100644
+--- a/node_modules/@ethersproject/abstract-provider/src.ts/index.ts
++++ b/node_modules/@ethersproject/abstract-provider/src.ts/index.ts
+@@ -149,6 +149,7 @@ export interface FilterByBlockHash extends EventFilter {
+ //};
+ 
+ export abstract class ForkEvent extends Description {
++    // @ts-ignore
+     readonly expiry: number;
+ 
+     readonly _isForkEvent?: boolean;
+@@ -159,6 +160,7 @@ export abstract class ForkEvent extends Description {
+ }
+ 
+ export class BlockForkEvent extends ForkEvent {
++    // @ts-ignore
+     readonly blockHash: string;
+ 
+     readonly _isBlockForkEvent?: boolean;
+@@ -178,6 +180,7 @@ export class BlockForkEvent extends ForkEvent {
+ }
+ 
+ export class TransactionForkEvent extends ForkEvent {
++    // @ts-ignore
+     readonly hash: string;
+ 
+     readonly _isTransactionOrderForkEvent?: boolean;
+@@ -197,7 +200,9 @@ export class TransactionForkEvent extends ForkEvent {
+ }
+ 
+ export class TransactionOrderForkEvent extends ForkEvent {
++    // @ts-ignore
+     readonly beforeHash: string;
++    // @ts-ignore
+     readonly afterHash: string;
+ 
+     constructor(beforeHash: string, afterHash: string, expiry?: number) {
+@@ -302,6 +307,7 @@ export abstract class Provider implements OnceBlockable {
+     // @TODO: This *could* be implemented here, but would pull in events...
+     abstract waitForTransaction(transactionHash: string, confirmations?: number, timeout?: number): Promise<TransactionReceipt>;
+ 
++    // @ts-ignore
+     readonly _isProvider: boolean;
+ 
+     constructor() {

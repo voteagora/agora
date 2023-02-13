@@ -45,17 +45,7 @@ export const presetDelegateStatements = new Map<string, StoredStatement>([
   makeStoredStatementEntry("0xf1544ba9a1ad3c8c8b507de3e1f5243c3697e367", {
     delegateStatement:
       "I'm optimistic on the future and believe all spending is useful.",
-    mostValuableProposals: [
-      {
-        number: 121,
-      },
-      {
-        number: 87,
-      },
-      {
-        number: 77,
-      },
-    ],
+    mostValuableProposals: [],
   }),
   makeStoredStatementEntry("0xa1e4f7dc1983fefe37e2175524ebad87f1c78c3c", {
     delegateStatement: "Just a guy with a few nouns.",
@@ -64,18 +54,8 @@ export const presetDelegateStatements = new Map<string, StoredStatement>([
     delegateStatement:
       "We are a group of Nounish builders and representatives from launched Nounish NFT extension projects, coming together to participate in Nouns DAO governance.",
     twitter: "nouncil",
-    mostValuableProposals: [
-      {
-        number: 121,
-      },
-      {
-        number: 87,
-      },
-      {
-        number: 77,
-      },
-    ],
-    leastValuableProposals: [{ number: 127 }, { number: 122 }, { number: 74 }],
+    mostValuableProposals: [],
+    leastValuableProposals: [],
     topIssues: [
       {
         type: "proliferation",
@@ -96,18 +76,8 @@ export const presetDelegateStatements = new Map<string, StoredStatement>([
     twitter: "zhayitong",
     discord: "yitong#9038",
 
-    mostValuableProposals: [
-      {
-        number: 121,
-      },
-      {
-        number: 87,
-      },
-      {
-        number: 77,
-      },
-    ],
-    leastValuableProposals: [{ number: 127 }, { number: 122 }, { number: 74 }],
+    mostValuableProposals: [],
+    leastValuableProposals: [],
     topIssues: [
       {
         type: "proliferation",
