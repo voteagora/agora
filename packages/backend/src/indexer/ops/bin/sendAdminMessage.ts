@@ -9,6 +9,7 @@ export async function main() {
         case "START":
         case "STOP":
         case "STEP":
+        case "RESET":
           return command;
 
         default:
