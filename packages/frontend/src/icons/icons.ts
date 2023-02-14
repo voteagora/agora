@@ -25,5 +25,5 @@ export const icons = {
   pedestrian,
   walletConnected,
   wallet,
-  spinner
+  spinner,
 };
