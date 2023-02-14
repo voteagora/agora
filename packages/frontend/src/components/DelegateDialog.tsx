@@ -17,6 +17,7 @@ import { TokenAmountDisplayFragment$key } from "./__generated__/TokenAmountDispl
 import { useContractWrite } from "../hooks/useContractWrite";
 import { governanceTokenContract } from "../contracts/contracts";
 import { GovernanceToken } from "../contracts/generated";
+import { BigNumber } from "ethers";
 
 export function DelegateDialog({
   target,
@@ -123,6 +124,7 @@ function DelegateDialogContents({
           @skip(if: $skipCurrentAccount) {
           amountOwned {
             amount {
+              amount
               ...TokenAmountDisplayFragment
             }
           }
@@ -176,19 +178,22 @@ function DelegateDialogContents({
           gap="3"
         >
           {(() => {
-            if (!currentAccount?.amountOwned?.amount) {
+            if (
+              !currentAccount?.amountOwned?.amount?.amount ||
+              BigNumber.from(
+                currentAccount.amountOwned?.amount?.amount ?? "0"
+              ).isZero()
+            ) {
               return <div>You don't have any tokens to delegate</div>;
-            } else {
-              return (
-                <>
-                  <div>Delegating your</div>
-
-                  <OPAmountDisplay
-                    fragment={currentAccount.amountOwned.amount}
-                  />
-                </>
-              );
             }
+
+            return (
+              <>
+                <div>Delegating your</div>
+
+                <OPAmountDisplay fragment={currentAccount.amountOwned.amount} />
+              </>
+            );
           })()}
         </VStack>
 
