@@ -10,6 +10,7 @@ import anonNoun from "./anonNoun.svg";
 import expand from "./expand.svg";
 import walletConnected from "./walletConnected.svg";
 import wallet from "./wallet.svg";
+import spinner from "./spinner.svg";
 
 export const icons = {
   expand,
@@ -24,4 +25,5 @@ export const icons = {
   pedestrian,
   walletConnected,
   wallet,
+  spinner,
 };

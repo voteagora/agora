@@ -136,7 +136,10 @@ function DelegateDialogContents({
     }
   );
 
-  const delegateVotes = useContractWrite<GovernanceToken, "delegate">(
+  const { write: delegateVotes } = useContractWrite<
+    GovernanceToken,
+    "delegate"
+  >(
     governanceTokenContract,
     "delegate",
     [delegate?.address?.resolvedName?.address as any],
