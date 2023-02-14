@@ -101,7 +101,7 @@ function CastVoteDialogContents({
     }
   );
 
-  const { write, isLoading, isSuccess, isError} = useContractWrite<
+  const { write, isLoading, isSuccess, isError } = useContractWrite<
     OptimismGovernorV1,
     "castVoteWithReason"
   >(
@@ -182,7 +182,7 @@ function CastVoteDialogContents({
         </div>
       </VStack>
       {/* TO DO: ADD IS SUCCESS STATE */}
-      {isLoading ? (
+      {isLoading && (
         <HStack
           justifyContent="space-between"
           alignItems="center"
@@ -204,7 +204,31 @@ function CastVoteDialogContents({
           </div>
           <img src={icons.spinner} alt={icons.spinner} />
         </HStack>
-      ) : (
+      )}
+      {isSuccess && (
+        <HStack
+          justifyContent="space-between"
+          alignItems="center"
+          className={css`
+            width: 100%;
+            z-index: 1;
+            position: relative;
+            padding: ${theme.spacing["4"]};
+            border-radius: ${theme.spacing["2"]};
+            border: 1px solid ${theme.colors.gray.eb};
+          `}
+        >
+          <div
+            className={css`
+              font-weight: ${theme.fontWeight.medium};
+            `}
+          >
+            Vote Submitted!
+          </div>
+          <img src={icons.ballot} alt={icons.ballot} className={css`height:20px;`}/>
+        </HStack>
+      )}
+      {!isLoading && !isSuccess && (
         <div>
           {delegate.statement ? (
             <HStack
@@ -239,9 +263,7 @@ function CastVoteDialogContents({
                   Delegated to you
                 </div>
               </VStack>
-              <VoteButton onClick={write}>
-                Vote
-              </VoteButton>
+              <VoteButton onClick={write}>Vote</VoteButton>
             </HStack>
           ) : (
             <VStack
