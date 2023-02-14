@@ -72,6 +72,9 @@ function OPAmountDisplay({
       className={css`
         color: ${theme.colors.black};
         font-size: ${theme.fontSize["4xl"]};
+        @media (max-width: ${theme.maxWidth.md}) {
+          font-size: ${theme.fontSize["3xl"]};
+        }
       `}
       alignItems="center"
     >
@@ -136,16 +139,16 @@ function DelegateDialogContents({
     }
   );
 
-  const { write: delegateVotes } = useContractWrite<
-    GovernanceToken,
-    "delegate"
-  >(
+  const {
+    write: delegateVotes,
+    isLoading,
+    isSuccess,
+    isError,
+  } = useContractWrite<GovernanceToken, "delegate">(
     governanceTokenContract,
     "delegate",
     [delegate?.address?.resolvedName?.address as any],
-    () => {
-      completeDelegation();
-    }
+    () => {}
   );
 
   if (!delegate) {
@@ -171,6 +174,9 @@ function DelegateDialogContents({
         <VStack
           className={css`
             padding: ${theme.spacing["4"]} ${theme.spacing["12"]};
+            @media (max-width: ${theme.maxWidth.md}) {
+              padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+            }
           `}
           alignItems="center"
           gap="3"
@@ -238,6 +244,9 @@ function DelegateDialogContents({
         <VStack
           className={css`
             padding: ${theme.spacing["4"]} ${theme.spacing["12"]};
+            @media (max-width: ${theme.maxWidth.md}) {
+              padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
+            }
           `}
         >
           <div
@@ -252,20 +261,25 @@ function DelegateDialogContents({
           <OPAmountDisplay fragment={delegate.tokensRepresented.amount} />
         </VStack>
       </VStack>
-
-      {(() => {
-        if (!currentAccount) {
-          return (
-            <DelegateButton disabled={false}>Connect Wallet</DelegateButton>
-          );
-        }
-
-        return (
-          <DelegateButton disabled={false} onClick={() => delegateVotes()}>
-            Delegate
-          </DelegateButton>
-        );
-      })()}
+      {!currentAccount && (
+        <DelegateButton disabled={false}>Connect Wallet</DelegateButton>
+      )}
+      {isLoading && (
+        <DelegateButton disabled={false}>
+          Submitting your delegation...
+        </DelegateButton>
+      )}
+      {isSuccess && (
+        <DelegateButton disabled={false}>Delegation completed!</DelegateButton>
+      )}
+      {isError && (
+        <DelegateButton disabled={false}>Delegation failed</DelegateButton>
+      )}
+      {!isError && !isSuccess && !isLoading && (
+        <DelegateButton disabled={false} onClick={() => delegateVotes()}>
+          Delegate your votes
+        </DelegateButton>
+      )}
     </VStack>
   );
 }
@@ -295,8 +309,8 @@ const DelegateButton = ({
 
         ${!effectiveOnClick &&
         css`
-          background: ${theme.colors.gray.eb};
-          color: ${theme.colors.gray["700"]};
+          background: white;
+          color: black;
           cursor: not-allowed;
         `}
 
