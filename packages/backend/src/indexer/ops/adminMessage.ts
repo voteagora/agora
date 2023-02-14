@@ -44,7 +44,7 @@ export async function sendAdminMessage(message: AdminMessage) {
           } ${await response.text()}`
         );
       }
-      return await response.json();
+      return await response.text();
     } catch (e) {
       console.error(e);
     }
