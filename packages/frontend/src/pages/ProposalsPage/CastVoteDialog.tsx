@@ -18,6 +18,7 @@ import { OptimismGovernorV1 } from "../../contracts/generated";
 import { governorTokenContract } from "../../contracts/contracts";
 import { useContractWrite } from "../../hooks/useContractWrite";
 import { useAccount } from "wagmi";
+import { icons } from "../../icons/icons";
 import { Link } from "../../components/HammockRouter/Link";
 
 type Props = {
@@ -100,17 +101,23 @@ function CastVoteDialogContents({
     }
   );
 
-  const write = useContractWrite<OptimismGovernorV1, "castVoteWithReason">(
+  const { write, isLoading, isSuccess, isError} = useContractWrite<
+    OptimismGovernorV1,
+    "castVoteWithReason"
+  >(
     governorTokenContract,
     "castVoteWithReason",
     [proposalId, ["AGAINST", "FOR", "ABSTAIN"].indexOf(supportType), reason],
-    () => closeDialog()
+    () => {}
   );
 
   if (!delegate) {
     // todo: log
     return null;
   }
+  console.log(isLoading);
+  console.log(isSuccess);
+  console.log(isError);
 
   return (
     <VStack
@@ -174,57 +181,92 @@ function CastVoteDialogContents({
           {reason ? reason : "No reason provided"}
         </div>
       </VStack>
-      <HStack
-        className={css`
-          width: 100%;
-          z-index: 1;
-          position: relative;
-          padding: ${theme.spacing["4"]};
-          border-radius: ${theme.spacing["2"]};
-          border: 1px solid ${theme.colors.gray.eb};
-        `}
-        justifyContent="space-between"
-        alignItems="center"
-      >
-        <VStack>
-          <div
-            className={css`
-              font-weight: ${theme.fontWeight.semibold};
-            `}
-          >
-            Using{" "}
-            <TokenAmountDisplay fragment={delegate.tokensRepresented.amount} />
-          </div>
+      {/* TO DO: ADD IS SUCCESS STATE */}
+      {isLoading ? (
+        <HStack
+          justifyContent="space-between"
+          alignItems="center"
+          className={css`
+            width: 100%;
+            z-index: 1;
+            position: relative;
+            padding: ${theme.spacing["4"]};
+            border-radius: ${theme.spacing["2"]};
+            border: 1px solid ${theme.colors.gray.eb};
+          `}
+        >
           <div
             className={css`
               font-weight: ${theme.fontWeight.medium};
-              color: ${theme.colors.gray[700]};
             `}
           >
-            Delegated to you
+            Submitting your vote
           </div>
-        </VStack>
-        {/* TODO: There are a lot of reasons why write is unavailable. We've captured
-        most of them by disable the vote buttons in the VotesCastPanel, so we're assuming
-        the user already voted if write is unavailable */}
-        {/* TODO: Make it obvious that the user already voted. Right now the button is just disabled
-        Haven't done-so yet because the text "Already Voted" makes the button look ugly*/}
-        {delegate.statement ? (
-          <VoteButton onClick={write}>Vote</VoteButton>
-        ) : (
-          <div>
-            You do not have a delegate statement.{" "}
-            <Link
-              to="/create"
+          <img src={icons.spinner} alt={icons.spinner} />
+        </HStack>
+      ) : (
+        <div>
+          {delegate.statement ? (
+            <HStack
               className={css`
-                text-decoration: underline;
+                width: 100%;
+                z-index: 1;
+                position: relative;
+                padding: ${theme.spacing["4"]};
+                border-radius: ${theme.spacing["2"]};
+                border: 1px solid ${theme.colors.gray.eb};
+              `}
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <VStack>
+                <div
+                  className={css`
+                    font-weight: ${theme.fontWeight.semibold};
+                  `}
+                >
+                  Using{" "}
+                  <TokenAmountDisplay
+                    fragment={delegate.tokensRepresented.amount}
+                  />
+                </div>
+                <div
+                  className={css`
+                    font-weight: ${theme.fontWeight.medium};
+                    color: ${theme.colors.gray[700]};
+                  `}
+                >
+                  Delegated to you
+                </div>
+              </VStack>
+              <VoteButton onClick={write}>
+                Vote
+              </VoteButton>
+            </HStack>
+          ) : (
+            <VStack
+              className={css`
+                width: 100%;
+                z-index: 1;
+                position: relative;
+                padding: ${theme.spacing["4"]};
+                border-radius: ${theme.spacing["2"]};
+                border: 1px solid ${theme.colors.gray.eb};
               `}
             >
-              Please set one up in order to vote.
-            </Link>
-          </div>
-        )}
-      </HStack>
+              You do not have a delegate statement.{" "}
+              <Link
+                to="/create"
+                className={css`
+                  text-decoration: underline;
+                `}
+              >
+                Please set one up in order to vote.
+              </Link>
+            </VStack>
+          )}
+        </div>
+      )}
     </VStack>
   );
 }
@@ -235,6 +277,7 @@ const VoteButton = ({
 }: {
   children: ReactNode;
   onClick?: () => void;
+  isLoading?: boolean;
 }) => {
   return (
     <div
