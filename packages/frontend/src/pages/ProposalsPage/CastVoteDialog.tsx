@@ -225,7 +225,13 @@ function CastVoteDialogContents({
           >
             Vote Submitted!
           </div>
-          <img src={icons.ballot} alt={icons.ballot} className={css`height:20px;`}/>
+          <img
+            src={icons.ballot}
+            alt={icons.ballot}
+            className={css`
+              height: 20px;
+            `}
+          />
         </HStack>
       )}
       {!isLoading && !isSuccess && (
