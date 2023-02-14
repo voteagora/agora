@@ -79,7 +79,12 @@ export function updatesForEntities(
                 }),
                 value: change.id,
               },
-              previousValue: change.oldValue ? change.id : null,
+
+              // When inserting an index key, rollbacks should always delete
+              // the value. An index key will never be updated, only created
+              // and deleted. This is true because the value is part of the
+              // indexKey.
+              previousValue: null,
             },
           ];
         }),

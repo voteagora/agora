@@ -26,14 +26,15 @@ describe("durableObjectEntityStore", () => {
     numRuns: 10000,
   })("works in the face of arbitrary failures", async (stream) => {
     const memoryStorage = new MemoryStorage();
-    const failableStorage = new FailableStorage(memoryStorage, stream);
-    const entityStore = new DurableObjectEntityStore(failableStorage);
 
-    const _flushUpdatesError = await entityStore
-      .flushUpdates(
+    // initialize
+    {
+      const entityStore = new DurableObjectEntityStore(memoryStorage);
+
+      await entityStore.flushUpdates(
         {
-          hash: "0x462cee4b869131e08b03caea27901e16af214c6930f427c650e475c4bbaa3302",
-          blockNumber: 72486800,
+          hash: "0x462cee4b869131e08b03caea27901e16af214c6930f427c650e475c4bbaa3301",
+          blockNumber: 72486799,
         },
         entityDefinitions,
         [
@@ -52,36 +53,80 @@ describe("durableObjectEntityStore", () => {
             },
           },
         ]
-      )
-      .catch((e) => e);
-
-    const ensureConsistentStateError = await entityStore
-      .ensureConsistentState()
-      .catch((e) => e);
-
-    if (ensureConsistentStateError) {
-      const entityStore = new DurableObjectEntityStore(memoryStorage);
-      await entityStore.ensureConsistentState();
+      );
     }
 
-    const lastValues = memoryStorage.getValues();
-    if (lastValues.size) {
-      expect(lastValues).toMatchInlineSnapshot(`
-        Map {
-          "entity|Entity|1" => {
-            "field": "firstValue",
+    // test
+    {
+      const failableStorage = new FailableStorage(memoryStorage, stream);
+      const entityStore = new DurableObjectEntityStore(failableStorage);
+
+      await entityStore
+        .flushUpdates(
+          {
+            hash: "0x462cee4b869131e08b03caea27901e16af214c6930f427c650e475c4bbaa3302",
+            blockNumber: 72486800,
           },
-          "entity|Entity|2" => {
-            "field": "secondValue",
-          },
-          "indexes|Entity|field|firstValue|1" => "1",
-          "indexes|Entity|field|secondValue|2" => "2",
-          "latest" => {
-            "blockNumber": 72486800,
-            "hash": "0x462cee4b869131e08b03caea27901e16af214c6930f427c650e475c4bbaa3302",
-          },
-        }
-      `);
+          entityDefinitions,
+          [
+            {
+              entity: "Entity",
+              id: "1",
+              value: {
+                field: "firstValueUpdated",
+              },
+            },
+            {
+              entity: "Entity",
+              id: "2",
+              value: {
+                field: "secondValueUpdated",
+              },
+            },
+            {
+              entity: "Entity",
+              id: "3",
+              value: {
+                field: "newValue",
+              },
+            },
+          ]
+        )
+        .catch((e) => e);
+
+      const ensureConsistentStateError = await entityStore
+        .ensureConsistentState()
+        .catch((e) => e);
+
+      if (ensureConsistentStateError) {
+        const entityStore = new DurableObjectEntityStore(memoryStorage);
+        await entityStore.ensureConsistentState();
+      }
+    }
+
+    // assert
+    {
+      const entityStore = new DurableObjectEntityStore(memoryStorage);
+      const latestBlock = (await entityStore.getFinalizedBlock())!;
+      const lastValues = memoryStorage.getValues();
+      if (latestBlock.blockNumber === 72486799) {
+        expect(lastValues).toMatchInlineSnapshot(`
+          Map {
+            "entity|Entity|1" => {
+              "field": "firstValue",
+            },
+            "entity|Entity|2" => {
+              "field": "secondValue",
+            },
+            "indexes|Entity|field|firstValue|1" => "1",
+            "indexes|Entity|field|secondValue|2" => "2",
+            "latest" => {
+              "blockNumber": 72486799,
+              "hash": "0x462cee4b869131e08b03caea27901e16af214c6930f427c650e475c4bbaa3301",
+            },
+          }
+        `);
+      }
     }
 
     // todo: maybe write these cases explicitly
