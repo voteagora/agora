@@ -7,6 +7,7 @@ import React from "react";
 import { parseOrderName } from "./DelegatesContainer";
 import { HomePageRouteQuery } from "./__generated__/HomePageRouteQuery.graphql";
 
+/* eslint-disable relay/unused-fields, relay/must-colocate-fragment-spreads */
 export const query = graphql`
   query HomePageRouteQuery($orderBy: DelegatesOrder!) {
     ...DelegatesContainerFragment @arguments(orderBy: $orderBy)
@@ -14,6 +15,7 @@ export const query = graphql`
     ...OverviewMetricsContainerFragment
   }
 `;
+/* eslint-enable relay/unused-fields, relay/must-colocate-fragment-spreads */
 
 export type Variables = ReturnType<typeof locationToVariables>;
 

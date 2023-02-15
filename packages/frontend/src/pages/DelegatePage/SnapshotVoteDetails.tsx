@@ -31,7 +31,6 @@ export function SnapshotVoteDetails({ voteFragment }: Props) {
 
           choices {
             title
-            score
           }
         }
 

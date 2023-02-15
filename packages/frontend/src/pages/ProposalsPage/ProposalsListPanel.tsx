@@ -405,7 +405,6 @@ function colorForProposalStatus(status: ProposalStatus) {
     case "VETOED":
       return colorForSupportType("AGAINST");
 
-    case "%future added value":
     default:
       throw new Error(`Unknown proposal status ${status}`);
   }

@@ -22,8 +22,6 @@ export function VoterCard({ fragmentRef, style }: VoterCardProps) {
           resolvedName {
             address
             name
-
-            ...NounResolvedNameFragment
           }
         }
 

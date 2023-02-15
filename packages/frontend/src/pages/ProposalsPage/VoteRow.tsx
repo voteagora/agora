@@ -27,8 +27,6 @@ export function VoteRow({ fragmentRef }: { fragmentRef: VoteRowFragment$key }) {
           }
         }
         voter {
-          ...VoterCardFragment
-
           address {
             resolvedName {
               ...NounResolvedLinkFragment
