@@ -85,6 +85,10 @@ export class StorageDurableObjectV1 {
         const entityStore = new DurableObjectEntityStore(this.state.storage);
         return new Response(
           JSON.stringify({
+            id: {
+              name: this.state.id.name,
+              id: this.state.id.toString(),
+            },
             alarm: await this.state.storage.getAlarm(),
             stopSentinel:
               (await this.state.storage.get(stopSentinel)) ?? "empty",
