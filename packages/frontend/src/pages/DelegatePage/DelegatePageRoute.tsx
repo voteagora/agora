@@ -3,6 +3,7 @@ import React from "react";
 import graphql from "babel-plugin-relay/macro";
 import { DelegatePageRouteQuery } from "./__generated__/DelegatePageRouteQuery.graphql";
 
+/* eslint-disable relay/unused-fields, relay/must-colocate-fragment-spreads */
 export const query = graphql`
   query DelegatePageRouteQuery($addressOrEnsName: String!) {
     delegate(addressOrEnsName: $addressOrEnsName) {
@@ -19,6 +20,7 @@ export const query = graphql`
     }
   }
 `;
+/* eslint-enable relay/unused-fields, relay/must-colocate-fragment-spreads */
 
 export const delegatePageRoute: RouteLoadingParams<DelegatePageRouteQuery> = {
   query,

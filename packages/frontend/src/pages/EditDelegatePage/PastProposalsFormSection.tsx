@@ -73,7 +73,6 @@ function ProposalList({
     graphql`
       fragment PastProposalsFormSectionProposalListFragment on Query {
         allProposals: proposals {
-          id
           number
           title
         }

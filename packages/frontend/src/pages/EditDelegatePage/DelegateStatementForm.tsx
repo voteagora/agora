@@ -85,17 +85,21 @@ export function DelegateStatementForm({
           statement {
             statement
             mostValuableProposals {
+              # eslint-disable-next-line relay/unused-fields
               number
             }
 
             leastValuableProposals {
+              # eslint-disable-next-line relay/unused-fields
               number
             }
 
             discord
             twitter
             topIssues {
+              # eslint-disable-next-line relay/unused-fields
               type
+              # eslint-disable-next-line relay/unused-fields
               value
             }
 
