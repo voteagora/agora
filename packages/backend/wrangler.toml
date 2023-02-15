@@ -22,6 +22,7 @@ HONEYCOMB_DATASET = "nouns-agora-dev"
 ADMIN_API_KEY = ''
 PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'stable5'
 BLOCK_STEP_SIZE = "100"
+ALLOW_READS_PERCENTAGE = "100"
 
 [env.prod]
 name = "optimism-agora-prod"
@@ -42,6 +43,7 @@ DEPLOYMENT = "optimism"
 HONEYCOMB_DATASET = "nouns-agora-prod"
 PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'stable9'
 BLOCK_STEP_SIZE = "100"
+ALLOW_READS_PERCENTAGE = "100"
 
 [[migrations]]
 tag = "v1" # Should be unique for each entry

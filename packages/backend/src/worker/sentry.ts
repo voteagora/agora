@@ -1,7 +1,7 @@
 import { Toucan, Options } from "toucan-js";
 import { Env } from "./env";
 import { RewriteFrames } from "@sentry/integrations";
-import type { ExportedHandler, Response } from "@cloudflare/workers-types";
+import { ExportedHandler, Response } from "@cloudflare/workers-types";
 
 export type MakeOptionsParams = {
   env: Env;

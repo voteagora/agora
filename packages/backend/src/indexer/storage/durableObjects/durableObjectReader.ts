@@ -16,7 +16,7 @@ export class DurableObjectReader<
   EntityDefinitionsType extends EntityDefinitions
 > implements Reader<EntityDefinitionsType>
 {
-  readonly entityDefinitions: EntityDefinitionsType;
+  private readonly entityDefinitions: EntityDefinitionsType;
 
   private readonly storage: StorageInterface;
 

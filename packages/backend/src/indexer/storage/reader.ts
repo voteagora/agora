@@ -34,8 +34,6 @@ export function exactIndexValue(indexKey: string): IndexQueryArgs {
 }
 
 export interface Reader<EntityDefinitionsType extends EntityDefinitions> {
-  readonly entityDefinitions: EntityDefinitionsType;
-
   getEntity<Entity extends keyof EntityDefinitionsType & string>(
     entity: Entity,
     id: string
