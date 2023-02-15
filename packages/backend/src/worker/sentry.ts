@@ -1,6 +1,7 @@
 import { Toucan, Options } from "toucan-js";
 import { Env } from "./env";
 import { RewriteFrames } from "@sentry/integrations";
+import { ExportedHandler, Response } from "@cloudflare/workers-types";
 
 export type MakeOptionsParams = {
   env: Env;
@@ -38,13 +39,10 @@ export function wrapModuleSentry(
     async fetch(...args): Promise<Response> {
       const [request, env, ctx] = args;
 
-      request.tracer.addData({
-        deployment: env.DEPLOYMENT,
-      });
-
       const sentry = new Toucan({
         ...makeOptions({ env, ctx }),
-        request,
+        // @ts-expect-error
+        request: request,
       });
 
       sentry.setTags({

@@ -1,3 +1,9 @@
+import {
+  AnalyticsEngineDataset,
+  DurableObjectNamespace,
+  KVNamespace,
+} from "@cloudflare/workers-types";
+
 export interface Env {
   ENVIRONMENT: "prod" | "dev" | "staging";
   DEPLOYMENT: string;
@@ -5,6 +11,7 @@ export interface Env {
   ALCHEMY_API_KEY: string;
   GITHUB_SHA: string;
   ADMIN_API_KEY: string;
+  STORAGE_ANALYTICS: AnalyticsEngineDataset;
 
   EMAILS: KVNamespace;
   __STATIC_CONTENT: KVNamespace;

@@ -10,6 +10,8 @@ import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
 import { DurableObjectReader } from "../indexer/storage/durableObjects/durableObjectReader";
 import { entityDefinitions } from "../indexer/contracts";
 import { StorageArea } from "../indexer/followChain";
+import { StorageInterface } from "../indexer/storage/durableObjects/storageInterface";
+import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
 
 // Initializing the schema takes about 250ms. We should avoid doing it once
 // per request. We need to move this calculation into some kind of compile time
@@ -19,7 +21,7 @@ let gatewaySchema: ReturnType<typeof makeGatewaySchema> | null = null;
 export async function getGraphQLCallingContext(
   request: Request,
   env: Env,
-  storage: DurableObjectStorage,
+  storage: StorageInterface,
   provider: ethers.providers.JsonRpcProvider,
   storageArea: StorageArea
 ) {
@@ -39,12 +41,9 @@ export async function getGraphQLCallingContext(
     snapshotVoteStorage: makeSnapshotVoteStorage(dynamoClient),
     statementStorage: makeDynamoStatementStorage(dynamoClient),
     emailStorage: makeEmailStorage(env.EMAILS),
-    tracingContext: {
-      spanMap: new Map(),
-      rootSpan: request.tracer,
-    },
+    tracingContext: makeEmptyTracingContext(),
     cache: {
-      span: request.tracer,
+      span: makeFakeSpan(),
     },
   };
 
