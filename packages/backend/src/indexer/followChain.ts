@@ -147,7 +147,7 @@ export function followChain(
 
   let nextBlockNumber = storageArea.finalizedBlock.blockNumber + 1;
 
-  return async () => {
+  return async (maxStepSize: number = maxBlockRange) => {
     const latestBlock = await blockProvider.getLatestBlock();
 
     if (latestBlock.number <= nextBlockNumber) {
@@ -156,10 +156,10 @@ export function followChain(
       };
     }
 
-    const fetchTill = Math.min(
-      latestBlock.number,
-      nextBlockNumber + maxBlockRange
-    );
+    // stepSize will be 1 <= stepSize <= maxBlockRange
+    const stepSize = Math.max(1, Math.min(maxStepSize, maxBlockRange));
+
+    const fetchTill = Math.min(latestBlock.number, nextBlockNumber + stepSize);
 
     const blocks = await blockProvider.getBlockRange(
       nextBlockNumber,

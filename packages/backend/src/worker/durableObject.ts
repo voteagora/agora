@@ -1,4 +1,4 @@
-import { Env } from "./env";
+import { Env, safelyLoadBlockStepSize } from "./env";
 import { StoredEntry } from "../indexer/storage/dump";
 import { readableStreamFromGenerator } from "../utils/readableStream";
 import { getGraphQLCallingContext } from "./graphql";
@@ -167,7 +167,7 @@ export class StorageDurableObjectV1 {
       }
 
       case "STEP": {
-        await this.stepChainForward();
+        await this.stepChainForward(message.blockStepSize);
         break;
       }
 
@@ -198,7 +198,9 @@ export class StorageDurableObjectV1 {
     return new Response();
   }
 
-  async stepChainForward() {
+  async stepChainForward(blockStepSize?: number) {
+    const resolvedStepSize = blockStepSize ?? safelyLoadBlockStepSize(this.env);
+
     await this.stepChainEntityStore.ensureConsistentState();
 
     const iter =
@@ -216,7 +218,7 @@ export class StorageDurableObjectV1 {
       })());
 
     try {
-      return await iter();
+      return await iter(resolvedStepSize);
     } finally {
       this.storage.flushIoReport(["kind:write"]);
     }
