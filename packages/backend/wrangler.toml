@@ -41,6 +41,7 @@ ENVIRONMENT = "prod"
 DEPLOYMENT = "optimism"
 HONEYCOMB_DATASET = "nouns-agora-prod"
 PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'stable9'
+BLOCK_STEP_SIZE = "100"
 
 [[migrations]]
 tag = "v1" # Should be unique for each entry
