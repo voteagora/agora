@@ -6,10 +6,13 @@ logpush = true
 name = "optimism-agora-dev"
 account_id = "86fdf8ef811b4d0aa8954fa036684ea3"
 kv_namespaces = [
-    { binding = "EMAILS", id = "23588c86ba844b2ab1e966da7e039f61" }
+    { binding = "EMAILS", id = "23588c86ba844b2ab1e966da7e039f61", preview_id = "23588c86ba844b2ab1e966da7e039f61" }
 ]
 durable_objects.bindings = [
     { name = "STORAGE_OBJECT", class_name = "StorageDurableObjectV1" }
+]
+analytics_engine_datasets = [
+    { binding = "STORAGE_ANALYTICS" }
 ]
 
 [env.dev.vars]
@@ -26,6 +29,9 @@ kv_namespaces = [
 ]
 durable_objects.bindings = [
     { name = "STORAGE_OBJECT", class_name = "StorageDurableObjectV1" }
+]
+analytics_engine_datasets = [
+    { binding = "STORAGE_ANALYTICS" }
 ]
 
 [env.prod.vars]

@@ -1,5 +1,6 @@
 import { EmailStorage } from "../schema/model";
 import { ValidatedMessage } from "../utils/signing";
+import { KVNamespace } from "@cloudflare/workers-types";
 
 export function makeEmailStorage(kvNamespace: KVNamespace): EmailStorage {
   return {

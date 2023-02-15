@@ -16,12 +16,15 @@ import {
   collectGenerator,
   limitGenerator,
 } from "../indexer/utils/generatorUtils";
+import { AnalyticsEngineReporter } from "../indexer/storage/durableObjects/analyticsEngineReporter";
 
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
   private readonly env: Env;
   private readonly provider: ethers.providers.JsonRpcProvider;
-  private readonly entityStore: DurableObjectEntityStore;
+
+  private readonly storage: AnalyticsEngineReporter;
+  private readonly stepChainEntityStore: DurableObjectEntityStore;
   private lastResult: Awaited<
     ReturnType<ReturnType<typeof followChain>>
   > | null = null;
@@ -35,7 +38,12 @@ export class StorageDurableObjectV1 {
       "optimism",
       env.ALCHEMY_API_KEY
     );
-    this.entityStore = new DurableObjectEntityStore(this.state.storage);
+
+    this.storage = new AnalyticsEngineReporter(
+      this.state.storage,
+      env.STORAGE_ANALYTICS
+    );
+    this.stepChainEntityStore = new DurableObjectEntityStore(this.storage);
   }
 
   async fetchWithSentry(request: Request, sentry: Toucan): Promise<Response> {
@@ -88,25 +96,36 @@ export class StorageDurableObjectV1 {
 
       case "/graphql": {
         const isProduction = this.env.ENVIRONMENT === "prod";
-        const entityStore = new DurableObjectEntityStore(this.state.storage);
+        const storage = new AnalyticsEngineReporter(
+          this.state.storage,
+          this.env.STORAGE_ANALYTICS
+        );
+
+        const entityStore = new DurableObjectEntityStore(storage);
+
         const storageArea = await makeInitialStorageArea(entityStore);
         const { schema, context } = await getGraphQLCallingContext(
           request,
           this.env,
-          this.state.storage,
+          storage,
           this.provider,
           storageArea
         );
 
-        const server = createServer({
-          schema,
-          context,
-          maskedErrors: isProduction,
-          graphiql: !isProduction,
-          plugins: [useSentry(sentry)],
-        });
+        try {
+          const server = createServer({
+            schema,
+            context,
+            maskedErrors: isProduction,
+            graphiql: !isProduction,
+            plugins: [useSentry(sentry)],
+          });
 
-        return server.handleRequest(request);
+          const response = await server.handleRequest(request);
+          return response;
+        } finally {
+          storage.flushIoReport(["kind:read"]);
+        }
       }
 
       default: {
@@ -180,21 +199,27 @@ export class StorageDurableObjectV1 {
   }
 
   async stepChainForward() {
-    await this.entityStore.ensureConsistentState();
+    await this.stepChainEntityStore.ensureConsistentState();
 
     const iter =
       this.iter ??
       (await (async () => {
-        const storageArea = await makeInitialStorageArea(this.entityStore);
+        const storageArea = await makeInitialStorageArea(
+          this.stepChainEntityStore
+        );
         return followChain(
-          this.entityStore,
+          this.stepChainEntityStore,
           indexers,
           this.provider,
           storageArea
         );
       })());
 
-    return await iter();
+    try {
+      return await iter();
+    } finally {
+      this.storage.flushIoReport(["kind:write"]);
+    }
   }
 
   async alarmWithSentry() {
