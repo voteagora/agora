@@ -8,7 +8,8 @@ const assetManifest = JSON.parse(manifestJSON);
 export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
   const url = new URL(request.url);
   const name =
-    request.headers.get("x-durable-object-instance-name") || "stable9";
+    request.headers.get("x-durable-object-instance-name") ||
+    env.PRIMARY_DURABLE_OBJECT_INSTANCE_NAME;
 
   if (
     url.pathname === "/graphql" ||

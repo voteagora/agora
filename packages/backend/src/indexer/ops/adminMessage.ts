@@ -16,6 +16,7 @@ export type AdminMessage =
     }
   | {
       type: "STEP";
+      blockStepSize?: number;
     }
   | {
       type: "WRITE_BATCH";
