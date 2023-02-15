@@ -1,6 +1,5 @@
 import { Env } from "./env";
 import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
-import type { Request, Response } from "@cloudflare/workers-types";
 
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
 const assetManifest = JSON.parse(manifestJSON);
@@ -18,6 +17,7 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
   ) {
     const object = env.STORAGE_OBJECT.get(env.STORAGE_OBJECT.idFromName(name));
 
+    // @ts-expect-error
     return await object.fetch(request);
   }
 
