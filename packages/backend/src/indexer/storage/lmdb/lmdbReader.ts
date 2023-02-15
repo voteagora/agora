@@ -15,7 +15,7 @@ import { BlockIdentifier } from "../../storageHandle";
 export class LmdbReader<EntityDefinitionsType extends EntityDefinitions>
   implements Reader<EntityDefinitionsType>
 {
-  readonly entityDefinitions: EntityDefinitionsType;
+  private readonly entityDefinitions: EntityDefinitionsType;
 
   private readonly storageArea: StorageArea;
 
