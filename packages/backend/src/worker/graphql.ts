@@ -1,4 +1,4 @@
-import { Env } from "./env";
+import { Env, shouldAllowRead } from "./env";
 import { makeGatewaySchema } from "../schema";
 import { AgoraContextType } from "../schema/context";
 import { makeEmailStorage } from "./storage";
@@ -12,6 +12,8 @@ import { entityDefinitions } from "../indexer/contracts";
 import { StorageArea } from "../indexer/followChain";
 import { StorageInterface } from "../indexer/storage/durableObjects/storageInterface";
 import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
+import { NopReader } from "../indexer/storage/nopReader";
+import { Reader } from "../indexer/storage/reader";
 
 // Initializing the schema takes about 250ms. We should avoid doing it once
 // per request. We need to move this calculation into some kind of compile time
@@ -31,13 +33,19 @@ export async function getGraphQLCallingContext(
 
   const dynamoClient = makeDynamoClient(env);
 
+  const allowRead = shouldAllowRead(env);
+
+  const reader = allowRead
+    ? new DurableObjectReader(entityDefinitions, storage, storageArea)
+    : (new NopReader(storageArea) as Reader<typeof entityDefinitions>);
+
   const context: AgoraContextType = {
     ethProvider: (() => {
       const baseProvider = new ethers.providers.CloudflareProvider();
       return new TransparentMultiCallProvider(baseProvider);
     })(),
     provider,
-    reader: new DurableObjectReader(entityDefinitions, storage, storageArea),
+    reader,
     snapshotVoteStorage: makeSnapshotVoteStorage(dynamoClient),
     statementStorage: makeDynamoStatementStorage(dynamoClient),
     emailStorage: makeEmailStorage(env.EMAILS),
