@@ -12,6 +12,7 @@ import * as theme from "../../theme";
 import { formatDistanceToNow } from "date-fns";
 import { pluralizeVote } from "../../words";
 import { BigNumber } from "ethers";
+import { Link } from "../../components/HammockRouter/Link";
 
 type Props = {
   voteFragment: PropHouseVoteDetailsFragment$key;
@@ -20,9 +21,10 @@ type Props = {
 export function PropHouseVoteDetails({ voteFragment }: Props) {
   const vote = useFragment(
     graphql`
-      fragment PropHouseVoteDetailsFragment on PropHouseRoundVotes {
+      fragment PropHouseVoteDetailsFragment on PropHouseAuctionVotes {
         createdAt
         round {
+          number
           title
           currencyType
           fundingAmount
@@ -76,9 +78,9 @@ export function PropHouseVoteDetails({ voteFragment }: Props) {
           </div>
 
           <VoteTitle>
-            <a href={`https://prop.house/nouns/${roundSlug}`}>
+            <Link to={`/auctions/${vote.round.number}`}>
               {vote.round.title}
-            </a>
+            </Link>
           </VoteTitle>
         </VStack>
 

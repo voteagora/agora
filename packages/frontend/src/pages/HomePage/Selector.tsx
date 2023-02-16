@@ -15,7 +15,7 @@ export type SelectorItem<T> = {
   value: T;
 };
 
-type SelectorProps<T> = {
+export type SelectorProps<T> = {
   items: SelectorItem<T>[];
   value: T;
   onChange: (item: T) => void;

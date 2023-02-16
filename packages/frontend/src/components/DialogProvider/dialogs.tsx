@@ -2,8 +2,12 @@ import { DialogDefinitions } from "./types";
 import { DelegateDialog } from "../DelegateDialog";
 import { SupportTextProps } from "../../pages/DelegatePage/VoteDetailsContainer";
 import { CastVoteDialog } from "../../pages/ProposalsPage/CastVoteDialog";
+import { AuctionCastVoteDialog } from "../../pages/PropHouseAuctionPage/AuctionCastVoteDialog";
 
-export type DialogType = DelegateDialogType | CastVoteDialogType;
+export type DialogType =
+  | DelegateDialogType
+  | CastVoteDialogType
+  | CastAuctionVoteDialogType;
 
 export type DelegateDialogType = {
   type: "DELEGATE";
@@ -25,6 +29,15 @@ export type CastVoteDialogType = {
   };
 };
 
+export type CastAuctionVoteDialogType = {
+  type: "CAST_AUCTION_VOTE";
+  params: {
+    address: string;
+    auctionId: number;
+    pendingVotes: Record<number, number>;
+  };
+};
+
 export const dialogs: DialogDefinitions<DialogType> = {
   DELEGATE: ({ targetAccountAddress }, closeDialog) => {
     return (
@@ -36,5 +49,8 @@ export const dialogs: DialogDefinitions<DialogType> = {
   },
   CAST_VOTE: ({ ...props }, closeDialog) => {
     return <CastVoteDialog {...props} closeDialog={closeDialog} />;
+  },
+  CAST_AUCTION_VOTE: ({ ...props }, closeDialog) => {
+    return <AuctionCastVoteDialog {...props} closeDialog={closeDialog} />;
   },
 };

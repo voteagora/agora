@@ -23,7 +23,8 @@ import {
 import { History } from "history";
 import { isEqual } from "lodash";
 import { ProposalsPage } from "../../pages/ProposalsPage/ProposalsPage";
-import { ProposalsRootPage } from "../../pages/ProposalsPage/ProposalsRootPage";
+import { ProposalsListPage } from "../../pages/ProposalsListPage/ProposalsListPage";
+import { PropHouseAuctionPage } from "../../pages/PropHouseAuctionPage/PropHouseAuctionPage";
 
 export const browserHistory = createBrowserHistory();
 // TODO: Set this to false before merging
@@ -57,7 +58,7 @@ const routes: Route[] = [
     ? [
         {
           path: "/proposals",
-          element: ProposalsRootPage,
+          element: ProposalsListPage,
         },
       ]
     : []),
@@ -69,6 +70,10 @@ const routes: Route[] = [
         },
       ]
     : []),
+  {
+    path: "/auctions/:auctionId",
+    element: PropHouseAuctionPage,
+  },
 ];
 
 type RouteMatch = {

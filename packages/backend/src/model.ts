@@ -4,6 +4,9 @@ import { formSchema } from "./formSchema";
 import { ValidatedMessage } from "./utils/signing";
 import { CacheDependencies, Span } from "./utils/cache";
 import { Snapshot } from "./snapshot";
+import { auctionsAuction } from "./propHouse/fetchAuctions";
+import { auction } from "./propHouse/fetchAuction";
+import { proposal } from "./propHouse/common";
 
 export type OverallMetrics = {};
 
@@ -73,3 +76,8 @@ export type AgoraContextType = {
   emailStorage: EmailStorage;
   nounsExecutor: Executor;
 };
+
+export type PropHouseAuction = z.infer<typeof auctionsAuction> &
+  z.infer<typeof auction>;
+
+export type PropHouseProposal = z.infer<typeof proposal>;

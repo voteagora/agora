@@ -1,56 +1,50 @@
-import { useLazyLoadQuery } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
-import { ProposalsPageDetailQuery } from "./__generated__/ProposalsPageDetailQuery.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { ProposalDetailPanel } from "./ProposalDetailPanel";
-import { VotesCastPanel } from "./VotesCastPanel";
-import {
-  ProposalsListPanel,
-  selectedProposalToPath,
-} from "./ProposalListPanel/ProposalsListPanel";
 import { useState, useTransition } from "react";
-import { motion } from "framer-motion";
-import { useAccount } from "wagmi";
 import {
   useNavigate,
   useParams,
 } from "../../components/HammockRouter/HammockRouter";
+import { AuctionDetailPanel } from "./AuctionDetailPanel";
+import { motion } from "framer-motion";
+import {
+  ProposalsListPanel,
+  selectedProposalToPath,
+} from "../ProposalsPage/ProposalListPanel/ProposalsListPanel";
+import graphql from "babel-plugin-relay/macro";
+import { useLazyLoadQuery } from "react-relay/hooks";
+import { PropHouseAuctionPageQuery } from "./__generated__/PropHouseAuctionPageQuery.graphql";
+import { PropHousePastVotes } from "./PropHousePastVotes";
 
-export function ProposalsPage() {
-  const { proposalId } = useParams();
-  const [isPending, startTransition] = useTransition();
-  const navigate = useNavigate();
+// nouns
+export const COMMUNITY_ADDRESS = "0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03";
 
-  const [proposalsListExpanded, setExpanded] = useState<boolean>(!proposalId);
-  const { address: accountAddress } = useAccount();
+export function PropHouseAuctionPage() {
+  const { auctionId } = useParams();
 
-  const result = useLazyLoadQuery<ProposalsPageDetailQuery>(
+  const result = useLazyLoadQuery<PropHouseAuctionPageQuery>(
     graphql`
-      query ProposalsPageDetailQuery($proposalID: ID!, $address: String!) {
-        firstProposal: proposal(id: $proposalID) {
-          number
-          ...ProposalDetailPanelFragment
-          ...VotesCastPanelFragment @arguments(address: $address)
-        }
+      query PropHouseAuctionPageQuery($auctionId: String!) {
         ...ProposalsListPanelFragment
+
+        propHouseAuction(auctionId: $auctionId) {
+          id
+
+          ...AuctionDetailPanelFragment
+          ...PropHousePastVotesFragment
+        }
       }
     `,
     {
-      proposalID: proposalId,
-      address: accountAddress ?? "",
+      auctionId,
     }
   );
 
-  // This happens if user enters an invalid proposal
-  // TODO: Show a 404 page instead
-  if (!result?.firstProposal?.number) {
-    startTransition(() => {
-      navigate({ path: "/proposals" });
-    });
-    return;
-  }
+  const [pendingVotes, setPendingVotes] = useState<Record<number, number>>({});
+  const [proposalsListExpanded, setExpanded] = useState<boolean>(false);
+  const [isPending, startTransition] = useTransition();
+  const navigate = useNavigate();
 
   return (
     <motion.div
@@ -73,7 +67,11 @@ export function ProposalsPage() {
           }
         `}
       >
-        <ProposalDetailPanel fragmentRef={result.firstProposal} />
+        <AuctionDetailPanel
+          fragmentRef={result.propHouseAuction}
+          pendingVotes={pendingVotes}
+          setPendingVotes={setPendingVotes}
+        />
 
         <VStack
           justifyContent="space-between"
@@ -91,14 +89,10 @@ export function ProposalsPage() {
             margin-bottom: ${theme.spacing["8"]};
 
             @media (max-width: ${theme.maxWidth["2xl"]}) {
-              position: fixed;
-              left: 16px;
-              top: calc(100% - 124px);
-              max-height: 108px;
-              height: 108px;
               align-items: stretch;
               justify-content: flex-end;
-              width: calc(100% - 32px);
+              width: 100%;
+
               height: auto;
             }
           `}
@@ -106,8 +100,8 @@ export function ProposalsPage() {
           <ProposalsListPanel
             fragmentRef={result}
             selectedProposal={{
-              type: "ON_CHAIN",
-              identifier: result.firstProposal.number.toString(),
+              type: "PROP_HOUSE_AUCTION",
+              identifier: result.propHouseAuction.id.toString(),
             }}
             expanded={proposalsListExpanded}
             onProposalSelected={(nextSelected) =>
@@ -120,9 +114,10 @@ export function ProposalsPage() {
             }
             toggleExpanded={() => setExpanded((expanded) => !expanded)}
           />
-          <VotesCastPanel
-            fragmentRef={result.firstProposal}
-            expanded={proposalsListExpanded}
+          <PropHousePastVotes
+            fragmentRef={result.propHouseAuction}
+            pendingVotes={pendingVotes}
+            expanded={!proposalsListExpanded}
           />
         </VStack>
       </HStack>

@@ -107,10 +107,7 @@ pub fn draw_opengraph_image_inner(
     let content_width = width - gap * 3f32;
     let max_text_width = content_width * (4f32 / 10f32);
 
-    let address = match data.address {
-        None => return Ok(None),
-        Some(address) => address,
-    };
+    let address = data.address;
 
     let address_text_fonts = [&dependencies.inter_black, &dependencies.dejavu_sans_bold];
 

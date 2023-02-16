@@ -445,7 +445,8 @@ type Query {
   """
   _meta(block: Block_height): _Meta_
   metrics: OverallMetrics!
-  address(addressOrEnsName: String!): Address
+  address(addressOrEnsName: String!): Address!
+  propHouseAuctions: [PropHouseAuction!]!
   wrappedDelegates(
     where: WrappedDelegatesWhere
     orderBy: WrappedDelegatesOrder! = mostNounsRepresented
@@ -453,6 +454,7 @@ type Query {
     after: String
   ): WrappedDelegatesConnection!
   currentGovernance: Governance!
+  propHouseAuction(auctionId: String!): PropHouseAuction!
 }
 
 type Subscription {
@@ -1478,7 +1480,7 @@ type Delegate {
   address: Address!
   resolvedName: ResolvedName!
   voteSummary: DelegateVotesSummary!
-  propHouseVotes: [PropHouseRoundVotes!]!
+  propHouseVotes: [PropHouseAuctionVotes!]!
 }
 
 input Delegate_filter {
@@ -2672,21 +2674,40 @@ enum ActualProposalStatus {
   EXPIRED
 }
 
-type PropHouseRoundVotes {
+type PropHouseAuctionVotes {
   id: ID!
+  address: Address!
   createdAt: BigInt!
-  round: PropHouseRound!
-  votes: [PropHouseRoundVote!]!
+  round: PropHouseAuction!
+  votes: [PropHouseAuctionVote!]!
 }
 
-type PropHouseRound {
+type PropHouseAuction {
   id: ID!
   title: String!
+  number: Int!
+  description: String!
+  startTime: String!
+  proposalEndTime: String!
+  votingEndTime: String!
+  status: PropHouseAuctionStatus!
+  numProposals: Int!
+  numWinners: Int!
   fundingAmount: String!
   currencyType: String!
+  proposals: [PropHouseProposal!]!
+  votes: [PropHouseAuctionVote!]!
 }
 
-type PropHouseRoundVote {
+enum PropHouseAuctionStatus {
+  PENDING
+  PROPOSING
+  ACTIVE
+  EXECUTED
+}
+
+type PropHouseAuctionVote {
+  address: Address!
   proposal: PropHouseProposal!
   weight: Int!
 }
@@ -2695,6 +2716,10 @@ type PropHouseProposal {
   id: ID!
   number: Int!
   title: String!
+  tldr: String!
+  voteCount: Int!
+  createdDate: String!
+  proposer: Address!
 }
 
 type DelegateVotesSummary {

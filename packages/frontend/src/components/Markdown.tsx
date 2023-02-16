@@ -3,6 +3,8 @@ import * as theme from "../theme";
 
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
+import sanitizeHtml from "sanitize-html";
+import rehypeRaw from "rehype-raw";
 
 type Props = {
   markdown: string;
@@ -11,7 +13,8 @@ type Props = {
 export function Markdown({ markdown }: Props) {
   return (
     <ReactMarkdown
-      children={markdown}
+      rehypePlugins={[rehypeRaw]}
+      children={sanitizeHtml(markdown)}
       remarkPlugins={[remarkBreaks]}
       className={cx(
         "prose",

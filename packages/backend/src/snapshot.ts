@@ -5,7 +5,6 @@ import { NounsTokenInterface } from "./contracts/generated/NounsToken";
 import { resolveNameFromAddress } from "./utils/resolveName";
 import { ToucanInterface, withSentryScope } from "./sentry";
 import { getAllLogs } from "./events";
-import { fetchAuctions, fetchAuctionsResponse } from "./propHouse";
 import { z } from "zod";
 import {
   ContractInstance,
@@ -13,6 +12,10 @@ import {
   nounsToken,
   TypedInterface,
 } from "./contracts";
+import {
+  fetchAuctions,
+  fetchAuctionsResponse,
+} from "./propHouse/fetchAuctions";
 
 type ReducerDefinition<
   InterfaceType extends TypedInterface,

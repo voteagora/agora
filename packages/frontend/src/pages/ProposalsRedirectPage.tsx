@@ -1,7 +1,7 @@
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { useTransition } from "react";
-import { useNavigate } from "../../components/HammockRouter/HammockRouter";
+import { useNavigate } from "../components/HammockRouter/HammockRouter";
 import { ProposalsRedirectPageQuery } from "./__generated__/ProposalsRedirectPageQuery.graphql";
 
 export function ProposalsRedirectPage() {

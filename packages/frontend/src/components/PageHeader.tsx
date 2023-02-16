@@ -11,14 +11,28 @@ import { useAccount } from "wagmi";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
-import { Suspense, useEffect } from "react";
+import { ReactNode, Suspense, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
 import { icons } from "../icons/icons";
 import { PROPOSALS_ENABLED, useLocation } from "./HammockRouter/HammockRouter";
 
 export function PageHeader() {
-  const isProposalsPageActive = useLocation().pathname.startsWith("/proposals");
-  const isVotePageActive = useLocation().pathname.startsWith("/voteauction");
+  const location = useLocation();
+
+  const activePage = (() => {
+    if (
+      location.pathname.startsWith("/proposals") ||
+      location.pathname.startsWith("/auction")
+    ) {
+      return "PROPOSALS";
+    }
+
+    if (location.pathname.startsWith("/voteauction")) {
+      return "AUCTION";
+    }
+
+    return "VOTERS";
+  })();
 
   return (
     <HStack
@@ -79,62 +93,21 @@ export function PageHeader() {
             `}
           >
             <Link to="/">
-              <div
-                className={css`
-                  padding: ${theme.spacing[1]} ${theme.spacing[4]};
-                  border-radius: ${theme.borderRadius.full};
-                  color: ${theme.colors.gray[700]};
-                  @media (max-width: ${theme.maxWidth.md}) {
-                    font-size: ${theme.fontSize.sm};
-                  }
-                  ${!isProposalsPageActive &&
-                  !isVotePageActive &&
-                  css`
-                    background-color: ${theme.colors.gray.fa};
-                    color: inherit;
-                  `};
-                `}
-              >
+              <LinkContents isActive={activePage === "VOTERS"}>
                 Voters
-              </div>
+              </LinkContents>
             </Link>
+
             <Link to="/proposals">
-              <div
-                className={css`
-                  padding: ${theme.spacing[1]} ${theme.spacing[4]};
-                  border-radius: ${theme.borderRadius.full};
-                  color: ${theme.colors.gray[700]};
-                  @media (max-width: ${theme.maxWidth.md}) {
-                    font-size: ${theme.fontSize.sm};
-                  }
-                  ${isProposalsPageActive &&
-                  css`
-                    background-color: ${theme.colors.gray.fa};
-                    color: inherit;
-                  `};
-                `}
-              >
+              <LinkContents isActive={activePage === "PROPOSALS"}>
                 Proposals
-              </div>
+              </LinkContents>
             </Link>
+
             <Link to="/voteauction">
-              <div
-                className={css`
-                  padding: ${theme.spacing[1]} ${theme.spacing[4]};
-                  border-radius: ${theme.borderRadius.full};
-                  color: ${theme.colors.gray[700]};
-                  @media (max-width: ${theme.maxWidth.md}) {
-                    font-size: ${theme.fontSize.sm};
-                  }
-                  ${isVotePageActive &&
-                  css`
-                    background-color: ${theme.colors.gray.fa};
-                    color: inherit;
-                  `};
-                `}
-              >
+              <LinkContents isActive={activePage === "AUCTION"}>
                 Auction
-              </div>
+              </LinkContents>
             </Link>
           </HStack>
         </>
@@ -180,6 +153,33 @@ export function PageHeader() {
         </HStack>
       </HStack>
     </HStack>
+  );
+}
+
+type LinkContentsProp = {
+  isActive: boolean;
+  children: ReactNode;
+};
+
+function LinkContents({ children, isActive }: LinkContentsProp) {
+  return (
+    <div
+      className={css`
+        padding: ${theme.spacing[1]} ${theme.spacing[4]};
+        border-radius: ${theme.borderRadius.full};
+        color: ${theme.colors.gray[700]};
+        @media (max-width: ${theme.maxWidth.md}) {
+          font-size: ${theme.fontSize.sm};
+        }
+        ${isActive &&
+        css`
+          background-color: ${theme.colors.gray.fa};
+          color: inherit;
+        `};
+      `}
+    >
+      {children}
+    </div>
   );
 }
 

@@ -187,7 +187,7 @@ function VoteButton({
   );
 }
 
-function DisabledVoteButton({ reason }: { reason: string }) {
+export function DisabledVoteButton({ reason }: { reason: string }) {
   return (
     <button
       disabled
@@ -202,7 +202,7 @@ function DisabledVoteButton({ reason }: { reason: string }) {
   );
 }
 
-const voteButtonStyles = css`
+export const voteButtonStyles = css`
   ${buttonStyles};
   height: ${theme.spacing["8"]};
   text-transform: capitalize;
