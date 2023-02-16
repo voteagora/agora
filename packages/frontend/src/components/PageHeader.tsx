@@ -30,8 +30,11 @@ export function PageHeader() {
     if (location.pathname.startsWith("/voteauction")) {
       return "AUCTION";
     }
+    if (location.pathname.startsWith("/voters")) {
+      return "VOTERS";
+    }
 
-    return "VOTERS";
+    return "PROPOSALS";
   })();
 
   return (
@@ -92,7 +95,7 @@ export function PageHeader() {
               box-shadow: ${theme.boxShadow.newDefault};
             `}
           >
-            <Link to="/">
+            <Link to="/voters">
               <LinkContents isActive={activePage === "VOTERS"}>
                 Voters
               </LinkContents>

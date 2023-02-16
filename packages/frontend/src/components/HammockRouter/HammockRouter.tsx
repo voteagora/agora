@@ -22,7 +22,6 @@ import {
 } from "recoil";
 import { History } from "history";
 import { isEqual } from "lodash";
-import { ProposalsPage } from "../../pages/ProposalsPage/ProposalsPage";
 import { ProposalsListPage } from "../../pages/ProposalsListPage/ProposalsListPage";
 import { PropHouseAuctionPage } from "../../pages/PropHouseAuctionPage/PropHouseAuctionPage";
 
@@ -40,6 +39,10 @@ type Route = {
 const routes: Route[] = [
   {
     path: "/",
+    element: ProposalsListPage,
+  },
+  {
+    path: "/voters",
     element: HomePage,
   },
   {
@@ -54,22 +57,10 @@ const routes: Route[] = [
     path: "/create",
     element: EditDelegatePage,
   },
-  ...(PROPOSALS_ENABLED
-    ? [
-        {
-          path: "/proposals",
-          element: ProposalsListPage,
-        },
-      ]
-    : []),
-  ...(PROPOSALS_ENABLED
-    ? [
-        {
-          path: "/proposals/:proposalId",
-          element: ProposalsPage,
-        },
-      ]
-    : []),
+  {
+    path: "/proposals",
+    element: ProposalsListPage,
+  },
   {
     path: "/auctions/:auctionId",
     element: PropHouseAuctionPage,
