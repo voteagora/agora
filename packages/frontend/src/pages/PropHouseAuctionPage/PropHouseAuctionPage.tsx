@@ -29,7 +29,7 @@ export function PropHouseAuctionPage() {
         ...ProposalsListPanelFragment
 
         propHouseAuction(auctionId: $auctionId) {
-          id
+          number
 
           ...AuctionDetailPanelFragment
           ...PropHousePastVotesFragment
@@ -101,7 +101,7 @@ export function PropHouseAuctionPage() {
             fragmentRef={result}
             selectedProposal={{
               type: "PROP_HOUSE_AUCTION",
-              identifier: result.propHouseAuction.id.toString(),
+              identifier: result.propHouseAuction.number.toString(),
             }}
             expanded={proposalsListExpanded}
             onProposalSelected={(nextSelected) =>
