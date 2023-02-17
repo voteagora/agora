@@ -34,9 +34,7 @@ type Delegate {
 
   votes: [Vote!]!
   snapshotVotes: [SnapshotVote!]!
-
 }
-
 
 type Address {
   resolvedName: ResolvedName!
@@ -127,7 +125,7 @@ type SnapshotVote {
 }
 
 union SnapshotVoteChoice =
-  SnapshotVoteChoiceApproval
+    SnapshotVoteChoiceApproval
   | SnapshotVoteChoiceRanked
   | SnapshotVoteChoiceSingle
   | SnapshotVoteChoiceQuadratic
@@ -207,7 +205,7 @@ type Proposal {
   number: BigInt!
   title: String!
   totalVotes: BigInt!
-  votes: [Vote!]!
+  # votes: [Vote!]!
 
   totalValue: BigInt!
 
@@ -215,9 +213,7 @@ type Proposal {
 }
 
 type Mutation {
-  createNewDelegateStatement(
-    data: CreateNewDelegateStatementData
-  ): Delegate!
+  createNewDelegateStatement(data: CreateNewDelegateStatementData): Delegate!
 }
 
 input CreateNewDelegateStatementData {
@@ -232,4 +228,3 @@ input ValueWithSignature {
   value: String!
   signature: String!
 }
-

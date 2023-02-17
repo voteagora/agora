@@ -8,7 +8,7 @@ import { GraphQLScalarType } from "graphql";
 import { BigNumber, ethers } from "ethers";
 import { Resolvers } from "./generated/types";
 import { formSchema } from "./formSchema";
-import { StoredStatement } from "./model";
+import { ChainVoteStorage, StoredStatement } from "./model";
 import schema from "./schema.graphql";
 import { marked } from "marked";
 import { validateSigned } from "./utils/signing";
@@ -55,10 +55,8 @@ export function makeGatewaySchema() {
     );
   }
 
-  function votesByAddress(address: string, snapshot: Snapshot) {
-    return snapshot.ENSGovernor.votes.filter(
-      (vote) => vote.voter.toLowerCase() === address
-    );
+  async function votesByAddress(address: string, chainVoteStorage: ChainVoteStorage) {
+    return await chainVoteStorage.getChainVotesByVoter(address)
   }
 
   function getVotesForProposal(proposalId: BigNumber, snapshot: Snapshot) {
@@ -220,12 +218,12 @@ export function makeGatewaySchema() {
         return tokensRepresented;
       },
 
-      delegateMetrics(
+      async delegateMetrics(
         { address, tokenHoldersRepresented },
         _args,
-        { snapshot }
+        { snapshot, chainVoteStorage }
       ) {
-        const votes = votesByAddress(address, snapshot);
+        const votes = await votesByAddress(address, chainVoteStorage);
         const lastTenProps = new Set(
           recentCompletedProposals(snapshot)
             .slice(0, 10)
@@ -240,7 +238,7 @@ export function makeGatewaySchema() {
           againstVotes: votes.filter((vote) => vote.support === 0).length,
           abstainVotes: votes.filter((vote) => vote.support === 2).length,
           ofLastTenProps: votes.filter((vote) =>
-            lastTenProps.has(vote.proposalId.toString())
+            lastTenProps.has(vote.proposal.id.toString())
           ).length,
           ofTotalProps: Math.floor(
             (votes.length / snapshot.ENSGovernor.proposals.size) * 100
@@ -253,8 +251,12 @@ export function makeGatewaySchema() {
         return proposedByAddress(address, snapshot);
       },
 
-      votes({ address }, _args, { snapshot }) {
-        return votesByAddress(address, snapshot);
+      // votes({ address }, _args, { snapshot }) {
+      //   return votesByAddress(address, snapshot);
+      // },
+
+      async votes({ address }, _args, { chainVoteStorage }) {
+        return await chainVoteStorage.getChainVotesByVoter(address);
       },
 
       async snapshotVotes({ address }, _args, { snapshotVoteStorage }) {
@@ -364,8 +366,8 @@ export function makeGatewaySchema() {
         return `Vote|${transactionHash}`;
       },
 
-      proposal({ proposalId }, _args, { snapshot }) {
-        return snapshot.ENSGovernor.proposals.get(proposalId.toString());
+      proposal({ proposal }) {
+        return proposal;
       },
 
       reason({ reason }) {
@@ -381,7 +383,7 @@ export function makeGatewaySchema() {
       },
 
       votes({ weight }) {
-        return weight;
+        return BigNumber.from(weight);
       },
     },
 
@@ -392,10 +394,6 @@ export function makeGatewaySchema() {
 
       number({ id }) {
         return id;
-      },
-
-      votes({ id }, _args, { snapshot }) {
-        return getVotesForProposal(id, snapshot);
       },
 
       totalValue({ values }) {

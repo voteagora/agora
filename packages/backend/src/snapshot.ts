@@ -178,7 +178,7 @@ type GovernorState = {
   quorumNumerator: BigNumber;
 };
 
-type ProposalRaw = {
+export type ProposalRaw = {
   id: string;
   proposer: string;
   startBlock: string;
@@ -194,7 +194,7 @@ type ProposalRaw = {
   activatedAt?: string;
 };
 
-type VoteRaw = {
+export type VoteRaw = {
   blockHash: string;
   transactionHash: string;
   proposalId: string;

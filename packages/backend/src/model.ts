@@ -3,7 +3,7 @@ import { z } from "zod";
 import { formSchema } from "./formSchema";
 import { ValidatedMessage } from "./utils/signing";
 import { CacheDependencies, Span } from "./utils/cache";
-import { ENSAccount, Snapshot } from "./snapshot";
+import { ENSAccount, Proposal, Snapshot } from "./snapshot";
 
 export type Address = {
   address: string;
@@ -124,10 +124,15 @@ export type SnapshotVoteStorage = {
   getSnapshotVotesByVoter(address: string): Promise<SnapshotVote[]>;
 };
 
+export type ChainVoteStorage = {
+  getChainVotesByVoter(address: string): Promise<Vote[]>;
+};
+
 export type AgoraContextType = {
   provider: ethers.providers.BaseProvider;
   delegateStorage: DelegateStorage;
   snapshotVoteStorage: SnapshotVoteStorage;
+  chainVoteStorage: ChainVoteStorage;
   snapshot: Snapshot;
   tracingContext: TracingContext;
   statementStorage: StatementStorage;
@@ -139,7 +144,7 @@ export type Account = ENSAccount & {
   address: string;
 };
 
-export { Proposal, Vote } from "./snapshot";
+export { Proposal } from "./snapshot";
 
 export type VotingPower = ethers.BigNumber;
 
@@ -175,4 +180,14 @@ export type SnapshotVoteChoice = SnapshotVote;
 export type WeightedSelectedChoice = {
   choiceIdx: number;
   weight: number;
+};
+
+export type Vote = {
+  blockHash: string;
+  transactionHash: string;
+  proposal: Proposal;
+  voter: string;
+  support: number;
+  weight: string;
+  reason: string;
 };

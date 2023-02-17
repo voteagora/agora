@@ -4,6 +4,7 @@ import { promises as fs } from "fs";
 import { updateSnapshotUpdateStatus } from "../lambdas/ingestUpdatesFromChain/snapshotUpdateStatus";
 import { storeSnapshotInS3 } from "../lambdas/ingestUpdatesFromChain/storedSnapshot";
 import { S3 } from "@aws-sdk/client-s3";
+import { writeVotesToDynamoDb } from "../store/dynamo/chainVoites";
 
 async function main() {
   const dynamoDb = new DynamoDB({
@@ -24,9 +25,15 @@ async function main() {
 
   for (const reducer of makeReducers()) {
     const initialState = reducer.initialState();
-    const currentState = snapshot[reducer.name];
+    const currentState = reducer.encodeState(snapshot[reducer.name]);
 
-    await reducer.dumpChangesToDynamo?.(dynamoDb, initialState, currentState);
+    await Promise.all([
+      // write delegates
+      reducer.dumpChangesToDynamo?.(dynamoDb, initialState, currentState),
+      // write votes & proposals
+      writeVotesToDynamoDb(dynamoDb, currentState.votes, currentState.proposals)
+    ]);
+
   }
 
   await updateSnapshotUpdateStatus(snapshotLatestBlock, dynamoDb);

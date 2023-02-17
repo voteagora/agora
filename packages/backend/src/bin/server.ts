@@ -15,6 +15,7 @@ import { ethers } from "ethers";
 import { TransparentMultiCallProvider } from "../multicall";
 import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
 import { promises as fs } from "fs";
+import { makeChainVotesStorage } from "../store/dynamo/chainVoites";
 
 async function main() {
   const schema = makeGatewaySchema();
@@ -34,6 +35,7 @@ async function main() {
       return {
         provider,
         snapshot,
+        chainVoteStorage: makeChainVotesStorage(dynamoDb),
         snapshotVoteStorage: makeSnapshotVoteStorage(dynamoDb),
         delegateStorage: makeDynamoDelegateStore(dynamoDb),
         statementStorage: makeDynamoStatementStorage(dynamoDb),
