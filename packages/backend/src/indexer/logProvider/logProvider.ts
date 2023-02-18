@@ -61,13 +61,18 @@ type Log = {
 
 export class EthersLogProvider implements LogProvider {
   private readonly provider: ethers.providers.JsonRpcProvider;
+  private readonly failImmediately: boolean;
 
-  constructor(provider: ethers.providers.JsonRpcProvider) {
+  constructor(
+    provider: ethers.providers.JsonRpcProvider,
+    failImmediately: boolean = false
+  ) {
     this.provider = provider;
+    this.failImmediately = failImmediately;
   }
 
   async getLogs(filter: LogFilter): Promise<ethers.providers.Log[]> {
-    const logs: Log[] = await executeWithRetries(() =>
+    const attemptFn = () =>
       this.provider.send("eth_getLogs", [
         {
           ...(() => {
@@ -89,8 +94,11 @@ export class EthersLogProvider implements LogProvider {
           address: filter.address,
           topics: filter.topics,
         },
-      ])
-    );
+      ]);
+
+    const logs: Log[] = this.failImmediately
+      ? await attemptFn()
+      : await executeWithRetries(attemptFn);
 
     const parsedLogs = logs.map((log) => logsSerde.deserialize(log));
 

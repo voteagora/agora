@@ -24,7 +24,7 @@ async function main() {
     process.env.ALCHEMY_API_KEY
   );
 
-  const logProvider = new EthersLogProvider(provider);
+  const logProvider = new EthersLogProvider(provider, true);
 
   const indexer = indexers.find((it) => it.name === process.argv[2]);
   if (!indexer) {
