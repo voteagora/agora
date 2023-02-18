@@ -5,14 +5,14 @@ import { cloneDeep } from "lodash";
 class MemoryStorageLeaf implements StorageInterfaceLeaf {
   values: Map<string, unknown>;
 
-  getValues(): Map<string, unknown> {
+  getValues(): ReadonlyMap<string, unknown> {
     return new Map(
       Array.from(this.values.entries()).sort(compareBy(([key, _value]) => key))
     );
   }
 
-  constructor(values: Map<string, unknown>) {
-    this.values = values;
+  constructor(values: ReadonlyMap<string, unknown>) {
+    this.values = new Map(values);
   }
 
   async get<T = unknown>(key: string): Promise<T | undefined> {
@@ -95,8 +95,8 @@ export class MemoryStorage
   extends MemoryStorageLeaf
   implements StorageInterface
 {
-  constructor(values: Map<string, unknown> = new Map()) {
-    super(values);
+  constructor(initialValues: ReadonlyMap<string, unknown> = new Map()) {
+    super(initialValues);
   }
 
   async transaction<T>(

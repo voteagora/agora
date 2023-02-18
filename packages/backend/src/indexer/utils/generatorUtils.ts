@@ -14,6 +14,16 @@ export function* infiniteStream<T>(item: T): Iterator<T> {
   }
 }
 
+export function* countingStream(
+  endingIndexExclusive: number,
+  startingIndex: number = 0,
+  step: number = 1
+) {
+  for (let idx = startingIndex; idx < endingIndexExclusive; idx += step) {
+    yield idx;
+  }
+}
+
 export async function* skipFirst<T>(
   iterator: AsyncIterable<T>,
   n: number

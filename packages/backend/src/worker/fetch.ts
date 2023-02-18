@@ -17,7 +17,6 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
   ) {
     const object = env.STORAGE_OBJECT.get(env.STORAGE_OBJECT.idFromName(name));
 
-    // @ts-expect-error
     return await object.fetch(request);
   }
 

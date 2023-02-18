@@ -17,6 +17,8 @@ import { entityDefinitions, indexers } from "../indexer/contracts";
 import { LevelEntityStore } from "../indexer/storage/level/levelEntityStore";
 import { LevelReader } from "../indexer/storage/level/levelReader";
 import { timeout } from "../indexer/utils/asyncUtils";
+import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
+import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 
 // p0
 // todo: where are delegate statements going to be stored?
@@ -40,7 +42,15 @@ async function main() {
   );
 
   const storageArea = await makeInitialStorageArea(store);
-  const iter = followChain(store, indexers, baseProvider, storageArea);
+  const blockProvider = new EthersBlockProvider(baseProvider);
+  const logProvider = new EthersLogProvider(baseProvider);
+  const iter = followChain(
+    store,
+    indexers,
+    blockProvider,
+    logProvider,
+    storageArea
+  );
   const _ = (async () => {
     while (true) {
       const value = await iter();

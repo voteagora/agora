@@ -17,6 +17,8 @@ import {
   limitGenerator,
 } from "../indexer/utils/generatorUtils";
 import { AnalyticsEngineReporter } from "../indexer/storage/durableObjects/analyticsEngineReporter";
+import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
+import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
@@ -213,10 +215,13 @@ export class StorageDurableObjectV1 {
         const storageArea = await makeInitialStorageArea(
           this.stepChainEntityStore
         );
+        const blockProvider = new EthersBlockProvider(this.provider);
+        const logProvider = new EthersLogProvider(this.provider);
         return followChain(
           this.stepChainEntityStore,
           indexers,
-          this.provider,
+          blockProvider,
+          logProvider,
           storageArea
         );
       })());
