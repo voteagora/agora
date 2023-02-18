@@ -1,7 +1,6 @@
 import { Toucan, Options } from "toucan-js";
 import { Env } from "./env";
 import { RewriteFrames } from "@sentry/integrations";
-import type { ExportedHandler } from "@cloudflare/workers-types";
 
 export type MakeOptionsParams = {
   env: Env;
@@ -36,13 +35,11 @@ export function wrapModuleSentry(
   generateHandlers: (sentry: Toucan) => ExportedHandler<Env>
 ): ExportedHandler<Env> {
   return {
-    // @ts-expect-error
     async fetch(...args) {
       const [request, env, ctx] = args;
 
       const sentry = new Toucan({
         ...makeOptions({ env, ctx }),
-        // @ts-expect-error
         request: request,
       });
 

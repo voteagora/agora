@@ -1,8 +1,9 @@
 import { ethers } from "ethers";
-import { IndexerDefinition } from "./process";
-import { topicsForSignatures } from "../contracts";
-import { compareByTuple } from "./utils/sortUtils";
-import { executeWithRetries } from "./utils/asyncUtils";
+import { IndexerDefinition } from "../process";
+import { topicsForSignatures } from "../../contracts";
+import { compareByTuple } from "../utils/sortUtils";
+import { executeWithRetries } from "../utils/asyncUtils";
+import * as serde from "../serde";
 
 export type LogFilter = BlockSpec & TopicFilter;
 
@@ -35,10 +36,16 @@ export function topicFilterForIndexers(indexers: IndexerDefinition[]) {
 }
 
 export interface LogProvider {
-  getLogs(filter: LogFilter): Promise<Log[]>;
+  /**
+   * Returns a list of logs, sorted in ascending ordinal order
+   * ({@link ethers.providers.Log#blockNumber},
+   * {@link ethers.providers.Log#transactionIndex},
+   * {@link ethers.providers.Log#logIndex}).
+   */
+  getLogs(filter: LogFilter): Promise<ethers.providers.Log[]>;
 }
 
-export type Log = {
+type Log = {
   address: string;
   blockHash: string;
   blockNumber: string;
@@ -59,7 +66,7 @@ export class EthersLogProvider implements LogProvider {
     this.provider = provider;
   }
 
-  async getLogs(filter: LogFilter): Promise<Log[]> {
+  async getLogs(filter: LogFilter): Promise<ethers.providers.Log[]> {
     const logs: Log[] = await executeWithRetries(() =>
       this.provider.send("eth_getLogs", [
         {
@@ -85,12 +92,22 @@ export class EthersLogProvider implements LogProvider {
       ])
     );
 
-    return logs.sort(
-      compareByTuple((it) => [
-        parseInt(it.blockNumber, 16),
-        parseInt(it.transactionIndex, 16),
-        parseInt(it.logIndex, 16),
-      ])
+    const parsedLogs = logs.map((log) => logsSerde.deserialize(log));
+
+    return parsedLogs.sort(
+      compareByTuple((it) => [it.blockNumber, it.transactionIndex, it.logIndex])
     );
   }
 }
+
+const logsSerde: serde.De<ethers.providers.Log, Log> = serde.objectDe({
+  blockNumber: serde.bigNumberParseNumber,
+  blockHash: serde.string,
+  transactionIndex: serde.bigNumberParseNumber,
+  removed: serde.constantDe(false),
+  address: serde.string,
+  data: serde.string,
+  topics: serde.array(serde.string),
+  transactionHash: serde.string,
+  logIndex: serde.bigNumberParseNumber,
+});

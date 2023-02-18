@@ -1,0 +1,8 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [],
+    "name": "ALogEvent",
+    "type": "event"
+  }
+]

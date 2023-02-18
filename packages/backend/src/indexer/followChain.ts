@@ -11,36 +11,38 @@ import {
 import {
   blockIdentifierFromBlock,
   blockIdentifierFromParentBlock,
+  BlockProvider,
   BlockProviderBlock,
-  BlockProviderImpl,
   maxBlockRange,
-} from "./blockProvider";
-import { EthersLogProvider, Log, topicFilterForIndexers } from "./logProvider";
+} from "./blockProvider/blockProvider";
+import { LogProvider, topicFilterForIndexers } from "./logProvider/logProvider";
 import {
   BlockIdentifier,
   makeStorageHandleForStorageArea,
   pathBetween,
 } from "./storageHandle";
-import { collectGenerator, groupBy } from "./utils/generatorUtils";
+import {
+  asyncIterableFromIterable,
+  collectGenerator,
+  groupBy,
+} from "./utils/generatorUtils";
 import { ethers } from "ethers";
 import { StructuredError } from "./utils/errorUtils";
-import * as serde from "./serde";
 
 export function followChain(
   store: EntityStore,
   indexers: IndexerDefinition[],
-  provider: ethers.providers.JsonRpcProvider,
+  blockProvider: BlockProvider,
+  logProvider: LogProvider,
   storageArea: StorageArea
 ) {
-  const blockProvider = new BlockProviderImpl(provider);
-  const logProvider = new EthersLogProvider(provider);
   const entityDefinitions = combineEntities(indexers);
 
   const filter = topicFilterForIndexers(indexers);
 
   async function processBlock(
     block: BlockProviderBlock,
-    logsCache?: Map<string, Log[]>
+    logsCache?: Map<string, ethers.providers.Log[]>
   ) {
     const [storageHandle, loadedEntities] = makeStorageHandleForStorageArea(
       storageArea,
@@ -65,11 +67,7 @@ export function followChain(
       )!;
 
       try {
-        await eventHandler.handle(
-          storageHandle,
-          event as any,
-          logsSerde.deserialize(log)
-        );
+        await eventHandler.handle(storageHandle, event as any, log);
       } catch (e) {
         throw new StructuredError(
           {
@@ -102,10 +100,7 @@ export function followChain(
 
     await ensureParentsAvailable(blockIdentifierFromParentBlock(parentBlock));
 
-    storageArea.parents.set(
-      parentBlock.hash,
-      blockIdentifierFromParentBlock(parentBlock)
-    );
+    addToParents(storageArea.parents, parentBlock);
 
     await processBlock(parentBlock);
   }
@@ -150,7 +145,7 @@ export function followChain(
   return async (maxStepSize: number = maxBlockRange) => {
     const latestBlock = await blockProvider.getLatestBlock();
 
-    if (latestBlock.number <= nextBlockNumber) {
+    if (nextBlockNumber > latestBlock.number) {
       return {
         type: "TIP" as const,
       };
@@ -172,29 +167,12 @@ export function followChain(
       toBlock: fetchTill,
     });
 
-    const groupedLogs = await collectGenerator(
-      groupBy(
-        (async function* () {
-          for (const log of logs) {
-            yield log;
-          }
-        })(),
-        (log) => log.blockHash
-      )
-    );
-
-    const logsCache = new Map([
-      ...blocks.flatMap<[string, Log[]]>((block) => [[block.hash, []]]),
-      ...groupedLogs.map<[string, Log[]]>((it) => [it[0].blockHash, it]),
-    ]);
+    const logsCache = await makeLogsCache(logs, blocks);
 
     for (const nextBlock of blocks) {
       await ensureParentsAvailable(blockIdentifierFromParentBlock(nextBlock));
 
-      storageArea.parents.set(
-        nextBlock.hash,
-        blockIdentifierFromParentBlock(nextBlock)
-      );
+      addToParents(storageArea.parents, nextBlock);
 
       await processBlock(nextBlock, logsCache);
 
@@ -270,14 +248,105 @@ export type BlockStorageArea = {
   entities: Map<string, EntityWithMetadata>;
 };
 
-const logsSerde: serde.De<ethers.providers.Log, Log> = serde.objectDe({
-  blockNumber: serde.bigNumberParseNumber,
-  blockHash: serde.string,
-  transactionIndex: serde.bigNumberParseNumber,
-  removed: serde.constantDe(false),
-  address: serde.string,
-  data: serde.string,
-  topics: serde.array(serde.string),
-  transactionHash: serde.string,
-  logIndex: serde.bigNumberParseNumber,
-});
+function addToParents(
+  parents: Map<string, BlockIdentifier>,
+  block: BlockProviderBlock
+) {
+  parents.set(block.hash, blockIdentifierFromParentBlock(block));
+}
+
+function* pathBetweenInclusive(
+  nextBlock: BlockIdentifier,
+  endBlockIdentifier: BlockIdentifier,
+  parents: ReadonlyMap<string, BlockIdentifier>
+) {
+  let hasAtLeastOneItem = false;
+  for (const node of pathBetween(nextBlock, endBlockIdentifier, parents)) {
+    yield node;
+    hasAtLeastOneItem = true;
+  }
+
+  if (hasAtLeastOneItem) {
+    yield endBlockIdentifier;
+  }
+}
+
+/**
+ * Creates a mapping of blockHash to logs. Tries to fill in the blank entries
+ * for blocks which are known to not have related logs without making
+ * assumptions about consistency between {@link blocks} and {@link logs}.
+ *
+ * {@link blocks} and {@link logs} should both be internally consistent with
+ * themselves. Some checks are done to validate this but the checks are not
+ * complete.
+ */
+export async function makeLogsCache(
+  logs: ethers.providers.Log[],
+  blocks: BlockProviderBlock[]
+): Promise<Map<string, ethers.providers.Log[]>> {
+  const parents = new Map<string, BlockIdentifier>();
+
+  for (const block of blocks) {
+    addToParents(parents, block);
+  }
+
+  if (blocks.length) {
+    /**
+     * ensure blocks is internally consistent with itself. concretely there is
+     * a path from the last block in the group to the first block. extra blocks
+     * are allowed and this does not verify ordering
+     * ({@link BlockProvider#getBlockRange} is responsible for that).
+     */
+    Array.from(
+      pathBetween(
+        blockIdentifierFromBlock(blocks[blocks.length - 1]),
+        blockIdentifierFromBlock(blocks[0]),
+        parents
+      )
+    );
+  }
+
+  const groupedLogs = await collectGenerator(
+    groupBy(asyncIterableFromIterable(logs), (log) => log.blockHash)
+  );
+
+  const groupedLogsWithBlock = groupedLogs.map((logs) => {
+    const block: BlockIdentifier = {
+      blockNumber: logs[0].blockNumber,
+      hash: logs[0].blockHash,
+    };
+
+    return {
+      logs: logs,
+      block,
+    };
+  });
+
+  const logsPath = !groupedLogsWithBlock.length
+    ? []
+    : [
+        ...Array.from(
+          pathBetweenInclusive(
+            groupedLogsWithBlock[groupedLogsWithBlock.length - 1].block,
+            groupedLogsWithBlock[0].block,
+            parents
+          )
+        ),
+      ];
+
+  const value = new Map([
+    ...((): [string, ethers.providers.Log[]][] => {
+      if (!groupedLogsWithBlock.length) {
+        return [];
+      }
+
+      return logsPath.map((it) => [it.hash, []]);
+    })(),
+    ...groupedLogs.map<[string, ethers.providers.Log[]]>((it) => [
+      it[0].blockHash,
+      it,
+    ]),
+  ]);
+
+  return value;
+}

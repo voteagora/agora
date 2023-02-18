@@ -1,12 +1,11 @@
 import { ethers } from "ethers";
-import { BlockIdentifier } from "./storageHandle";
-import { compareBy } from "./utils/sortUtils";
-import { executeWithRetries } from "./utils/asyncUtils";
+import { BlockIdentifier } from "../storageHandle";
+import { compareBy } from "../utils/sortUtils";
+import { executeWithRetries } from "../utils/asyncUtils";
 
 export type BlockProviderBlock = {
   number: number;
   parentHash: string;
-  logsBloom: string;
   hash: string;
 };
 
@@ -14,6 +13,11 @@ export interface BlockProvider {
   getBlockByHash(hash: string): Promise<BlockProviderBlock>;
   getBlockByNumber(number: number): Promise<BlockProviderBlock | null>;
   getLatestBlock(): Promise<BlockProviderBlock>;
+
+  /**
+   * Returns a list of blocks, sorted in ascending order of
+   * {@link BlockProviderBlock#number}.
+   */
   getBlockRange(
     fromBlockInclusive: number,
     toBlockInclusive: number
@@ -22,7 +26,7 @@ export interface BlockProvider {
 
 export const maxBlockRange = 1000;
 
-export class BlockProviderImpl implements BlockProvider {
+export class EthersBlockProvider implements BlockProvider {
   private provider: ethers.providers.JsonRpcProvider;
 
   constructor(provider: ethers.providers.JsonRpcProvider) {
@@ -94,7 +98,6 @@ export function blockIdentifierFromBlock(block: BlockProviderBlock) {
 function transformResponse(raw: any): BlockProviderBlock {
   return {
     hash: raw.hash,
-    logsBloom: raw.logsBloom,
     parentHash: raw.parentHash,
     number: ethers.BigNumber.from(raw.number).toNumber(),
   };
