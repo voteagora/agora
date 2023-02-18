@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { TopicFilter } from "./indexer/logProvider/logProvider";
 
 export type ContractInstance<InterfaceType extends TypedInterface> = {
   iface: InterfaceType;
@@ -23,9 +24,9 @@ export type Signatures<InterfaceType extends TypedInterface> = {
 export function filterForEventHandlers<InterfaceType extends TypedInterface>(
   instance: ContractInstance<InterfaceType>,
   signatures: Signatures<InterfaceType>
-): ethers.EventFilter {
+): TopicFilter {
   return {
-    address: instance.address,
+    address: [instance.address],
     topics: [topicsForSignatures(instance.iface, signatures)],
   };
 }
