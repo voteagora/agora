@@ -135,6 +135,7 @@ export function ProposalsListPage() {
             margin: ${theme.spacing["4"]} 0 ${theme.spacing["12"]} 0;
             border: 1px solid ${theme.colors.gray[300]};
             border-radius: ${theme.borderRadius["xl"]};
+            box-shadow: ${theme.boxShadow["newDefault"]};
             overflow: hidden;
           `}
         >

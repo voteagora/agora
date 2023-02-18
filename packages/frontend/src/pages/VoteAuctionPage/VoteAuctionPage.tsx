@@ -31,12 +31,17 @@ export function VoteAuctionPage() {
       collection: "0x5f939767e6948F09B5703e358F3dc2a623687f02",
       tokenId: "1",
     },
+    {
+      collection: "0x53fdcCB6A3ddcDe8E2c1BE026471C0B887aaaCF3",
+      tokenId: "1",
+    },
   ];
 
   const auctionList = [
     useNFT(auctionListRaw[0].collection, auctionListRaw[0].tokenId) || null,
     useNFT(auctionListRaw[1].collection, auctionListRaw[1].tokenId) || null,
     useNFT(auctionListRaw[2].collection, auctionListRaw[2].tokenId) || null,
+    useNFT(auctionListRaw[3].collection, auctionListRaw[2].tokenId) || null,
   ];
 
   // @ts-ignore
