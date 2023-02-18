@@ -5,22 +5,21 @@ export interface PageSizeCalculator {
 }
 
 const minPageSize = 2_000;
-const maxPageSize = 10_000;
 
 export function defaultPageSizeCalculator() {
   let pageSize = 2_000;
 
   return {
     recordFailure() {
-      pageSize = Math.max(pageSize / 2, minPageSize);
+      pageSize /= 2;
     },
 
     recordSuccess() {
-      pageSize = Math.min(pageSize + 10, maxPageSize);
+      pageSize = pageSize + 10;
     },
 
     getPageSize() {
-      return pageSize;
+      return Math.max(pageSize, minPageSize);
     },
   };
 }
