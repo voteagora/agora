@@ -13,6 +13,7 @@ import {
 } from "@graphql-yoga/common";
 import { withSentryScope } from "../sentry";
 import { AgoraContextType } from "../schema/context";
+import { captureException } from "./sentry";
 
 export function useSentry(sentry: Toucan): Plugin<AgoraContextType> {
   return {
@@ -34,7 +35,7 @@ export function useSentry(sentry: Toucan): Plugin<AgoraContextType> {
             opName ?? "defaultOperationName",
           ]);
 
-          sentry.captureException(result);
+          captureException(sentry, result);
         });
       };
     },
@@ -101,7 +102,7 @@ export function useSentry(sentry: Toucan): Plugin<AgoraContextType> {
                     operationType,
                   ]);
 
-                  return sentry.captureException(error);
+                  return captureException(sentry, error);
                 });
 
                 return addEventId(error, eventId);
