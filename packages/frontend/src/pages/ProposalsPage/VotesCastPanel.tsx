@@ -12,7 +12,7 @@ import { VoteRow } from "./VoteRow";
 import { VotesCastPanelVotesFragment$key } from "./__generated__/VotesCastPanelVotesFragment.graphql";
 import { makePaginationItems } from "../../hooks/pagination";
 import { InView } from "react-intersection-observer";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useTransition } from "react";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import { VotesCastPanelHoveredVoterQuery } from "./__generated__/VotesCastPanelHoveredVoterQuery.graphql";
 import { VoterCard } from "../HomePage/VoterCard";
@@ -43,9 +43,15 @@ export function VotesCastPanel({
     queryFragmentRef
   );
 
-  const [hoveredVoterAddress, setHoveredVoterAddress] = useState<string | null>(
-    null
-  );
+  const [isPending, startTransition] = useTransition();
+
+  const [hoveredVoterAddress, setHoveredVoterAddressValue] = useState<
+    string | null
+  >(null);
+
+  function setHoveredVoterAddress(value: string | null) {
+    startTransition(() => setHoveredVoterAddressValue(value));
+  }
 
   // todo: this is a very jank ui
   useEffect(() => {
@@ -56,7 +62,7 @@ export function VotesCastPanel({
     };
   });
 
-  const startTransition = useStartTransition();
+  const startTransitionRoute = useStartTransition();
   const openDialog = useOpenDialog();
 
   const result = useFragment(
@@ -157,7 +163,14 @@ export function VotesCastPanel({
                   </VStack>
                 }
               >
-                <HoveredVoter hoveredVoterAddress={hoveredVoterAddress} />
+                <HoveredVoter
+                  hoveredVoterAddress={hoveredVoterAddress}
+                  contentClassName={css`
+                    transition: opacity 0.3s ease-in-out;
+
+                    opacity: ${isPending ? 0.3 : 1};
+                  `}
+                />
               </Suspense>
             </div>
           )}
@@ -187,7 +200,7 @@ export function VotesCastPanel({
               margin-right: ${theme.spacing["4"]};
             `}
             onVoteClick={(supportType, reason) => {
-              startTransition(() => {
+              startTransitionRoute(() => {
                 openDialog({
                   type: "CAST_VOTE",
                   params: {
@@ -311,9 +324,13 @@ function VotesCastPanelVotes({
 
 type HoveredVoterProps = {
   hoveredVoterAddress: string;
+  contentClassName: string;
 };
 
-function HoveredVoter({ hoveredVoterAddress }: HoveredVoterProps) {
+function HoveredVoter({
+  hoveredVoterAddress,
+  contentClassName,
+}: HoveredVoterProps) {
   const { delegate } = useLazyLoadQuery<VotesCastPanelHoveredVoterQuery>(
     graphql`
       query VotesCastPanelHoveredVoterQuery($voter: String!) {
@@ -327,7 +344,9 @@ function HoveredVoter({ hoveredVoterAddress }: HoveredVoterProps) {
     }
   );
 
-  return <VoterCard fragmentRef={delegate} />;
+  return (
+    <VoterCard contentClassName={contentClassName} fragmentRef={delegate} />
+  );
 }
 
 type LoadingProps = {
