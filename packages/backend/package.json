@@ -50,6 +50,7 @@
     "aws-sdk": "^2.1254.0",
     "dataloader": "^2.1.0",
     "alchemy-sdk": "^2.2.5",
+    "date-fns": "^2.29.3",
     "discord-api-types": "^0.37.15",
     "get-graphql-schema": "^2.1.2",
     "graphql": "^16.6.0",

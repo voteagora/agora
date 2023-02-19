@@ -20,6 +20,8 @@ import { AnalyticsEngineReporter } from "../indexer/storage/durableObjects/analy
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 
+export const blockUpdateIntervalSeconds = 10;
+
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
   private readonly env: Env;
@@ -248,7 +250,7 @@ export class StorageDurableObjectV1 {
           result.type === "TIP" ||
           (result.type === "MORE" && result.depth <= 0)
         ) {
-          return Date.now() + 1000 * 10;
+          return Date.now() + 1000 * blockUpdateIntervalSeconds;
         }
 
         return Date.now();
