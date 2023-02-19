@@ -1,6 +1,6 @@
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql";
 import { VStack } from "../../components/VStack";
@@ -58,7 +58,15 @@ export function VoterCard({ fragmentRef, contentClassName }: VoterCardProps) {
           cursor: pointer;
         `}
       >
-        <VStack gap="4" className={contentClassName}>
+        <VStack
+          gap="4"
+          className={cx(
+            contentClassName,
+            css`
+              height: 100%;
+            `
+          )}
+        >
           <VStack justifyContent="center">
             <DelegateProfileImage fragment={delegate} />
           </VStack>
