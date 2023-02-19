@@ -15,6 +15,7 @@ export interface Env {
    */
   BLOCK_STEP_SIZE?: string;
   ALLOW_READS_PERCENTAGE?: string;
+  USE_CACHE_PERCENTAGE?: string;
 
   STORAGE_ANALYTICS: AnalyticsEngineDataset;
 
@@ -25,7 +26,19 @@ export interface Env {
   AWS_SECRET_ACCESS_KEY: string;
 }
 
-export function safelyLoadValueFromEnv(value?: string) {
+export function safelyLoadBlockStepSize(env: Env): number | undefined {
+  return safelyLoadValueFromEnv(env.BLOCK_STEP_SIZE);
+}
+
+export function shouldUseCache(env: Env) {
+  return shouldAllow(env.USE_CACHE_PERCENTAGE);
+}
+
+export function shouldAllowRead(env: Env) {
+  return shouldAllow(env.ALLOW_READS_PERCENTAGE);
+}
+
+function safelyLoadValueFromEnv(value?: string) {
   if (!value) {
     return;
   }
@@ -37,20 +50,13 @@ export function safelyLoadValueFromEnv(value?: string) {
   }
 }
 
-export function safelyLoadBlockStepSize(env: Env): number | undefined {
-  return safelyLoadValueFromEnv(env.BLOCK_STEP_SIZE);
-}
-
-export function shouldAllowRead(env: Env) {
+function shouldAllow(value?: string) {
   const minValue = 0;
   const maxValue = 100;
 
   // 0 <= allowReadsPercentage <= 100
   const allowReadsPercentage = Math.max(
-    Math.min(
-      safelyLoadValueFromEnv(env.ALLOW_READS_PERCENTAGE) ?? maxValue,
-      maxValue
-    ),
+    Math.min(safelyLoadValueFromEnv(value) ?? maxValue, maxValue),
     minValue
   );
 
