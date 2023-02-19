@@ -7,14 +7,13 @@ import { VStack } from "../../components/VStack";
 import { Link } from "../../components/HammockRouter/Link";
 import { DelegateProfileImage } from "../../components/DelegateProfileImage";
 import { VoterPanelActions } from "../../components/VoterPanel/VoterPanelActions";
-import { CSSProperties } from "react";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
-  style?: CSSProperties;
+  contentClassName?: string;
 };
 
-export function VoterCard({ fragmentRef, style }: VoterCardProps) {
+export function VoterCard({ fragmentRef, contentClassName }: VoterCardProps) {
   const delegate = useFragment(
     graphql`
       fragment VoterCardFragment on Delegate {
@@ -46,10 +45,8 @@ export function VoterCard({ fragmentRef, style }: VoterCardProps) {
         display: flex;
         flex-direction: column;
       `}
-      style={style}
     >
       <VStack
-        gap="4"
         className={css`
           height: 100%;
           padding: ${theme.spacing["6"]};
@@ -61,36 +58,38 @@ export function VoterCard({ fragmentRef, style }: VoterCardProps) {
           cursor: pointer;
         `}
       >
-        <VStack justifyContent="center">
-          <DelegateProfileImage fragment={delegate} />
-        </VStack>
+        <VStack gap="4" className={contentClassName}>
+          <VStack justifyContent="center">
+            <DelegateProfileImage fragment={delegate} />
+          </VStack>
 
-        {!!delegate.statement?.summary && (
+          {!!delegate.statement?.summary && (
+            <div
+              className={css`
+                display: -webkit-box;
+
+                color: #66676b;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                line-clamp: 5;
+                -webkit-line-clamp: 5;
+                -webkit-box-orient: vertical;
+                font-size: ${theme.fontSize.base};
+                line-height: ${theme.lineHeight.normal};
+              `}
+            >
+              {delegate.statement.summary}
+            </div>
+          )}
+
           <div
             className={css`
-              display: -webkit-box;
-
-              color: #66676b;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              line-clamp: 5;
-              -webkit-line-clamp: 5;
-              -webkit-box-orient: vertical;
-              font-size: ${theme.fontSize.base};
-              line-height: ${theme.lineHeight.normal};
+              flex: 1;
             `}
-          >
-            {delegate.statement.summary}
-          </div>
-        )}
+          />
 
-        <div
-          className={css`
-            flex: 1;
-          `}
-        />
-
-        <VoterPanelActions fragment={delegate} />
+          <VoterPanelActions fragment={delegate} />
+        </VStack>
       </VStack>
     </Link>
   );
