@@ -179,7 +179,10 @@ export const Delegate: DelegateResolvers = {
   },
 
   async delegatingTo({ delegatingTo }, _args, { reader }) {
-    return (await reader.getEntity("Address", delegatingTo))!;
+    return (
+      (await reader.getEntity("Address", delegatingTo)) ??
+      defaultAccount(delegatingTo)
+    );
   },
 
   async delegateMetrics(
