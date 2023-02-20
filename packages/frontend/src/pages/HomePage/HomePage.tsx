@@ -34,7 +34,7 @@ export function locationToVariables(location: Location) {
     orderBy:
       orderByValidValues.find(
         (needle) => needle === location.search["orderBy"]
-      ) ?? "mostRelevant",
+      ) ?? "mostNounsRepresented",
   };
 }
 
