@@ -25,7 +25,7 @@ type Delegate {
 
   # Delegate where voting power has been delegated. Can be delegated to a
   # delegate with the same address as the account.
-  # delegatingTo: Delegate!
+  delegatingTo: Delegate!
 
   statement: DelegateStatement
 
