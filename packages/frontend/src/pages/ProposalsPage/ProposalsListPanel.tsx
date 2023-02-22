@@ -389,6 +389,7 @@ function ProposalStatusPane({
 
 function colorForProposalStatus(status: ProposalStatus) {
   switch (status) {
+    case "SUCCEEDED":
     case "ACTIVE":
       return colorForSupportType("FOR");
 
