@@ -11,7 +11,7 @@ export function defaultPageSizeCalculator() {
 
   return {
     recordFailure() {
-      pageSize /= 2;
+      pageSize /= Math.floor(pageSize / 2);
     },
 
     recordSuccess() {
