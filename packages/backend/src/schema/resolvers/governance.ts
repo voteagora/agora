@@ -358,7 +358,7 @@ export const Proposal: ProposalResolvers = {
         }
 
         if (forVotes.gt(againstVotes)) {
-          return ProposalStatus.Defeated;
+          return ProposalStatus.Succeeded;
         }
 
         return ProposalStatus.Queued;

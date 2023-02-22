@@ -19,6 +19,7 @@ type Query {
 type Delegate {
   id: ID!
   address: Address!
+  delegatingTo: Delegate!
   statement: DelegateStatement
   amountOwned: VotingPower!
   tokensRepresented: VotingPower!
@@ -228,6 +229,7 @@ enum ProposalStatus {
   CANCELLED
   VETOED
   QUEUED
+  SUCCEEDED
   EXECUTED
   DEFEATED
   EXPIRED
