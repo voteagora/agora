@@ -7,9 +7,10 @@ type Props = {
   className?: string;
   children: ReactNode;
   style?: CSSProperties;
+  afterUpdate?: () => void;
 };
 
-export function Link({ to, className, children, style }: Props) {
+export function Link({ to, className, children, style, afterUpdate }: Props) {
   const navigate = useNavigate();
   const openDialog = useOpenDialogOptional();
 
@@ -30,6 +31,7 @@ export function Link({ to, className, children, style }: Props) {
         event.preventDefault();
         navigate({ path: to }, true, () => {
           openDialog?.(null);
+          if (afterUpdate) afterUpdate();
         });
       }}
     >

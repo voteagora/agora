@@ -11,6 +11,7 @@ import expand from "./expand.svg";
 import walletConnected from "./walletConnected.svg";
 import wallet from "./wallet.svg";
 import spinner from "./spinner.svg";
+import power from "./power.svg";
 
 export const icons = {
   expand,
@@ -26,4 +27,5 @@ export const icons = {
   walletConnected,
   wallet,
   spinner,
+  power,
 };

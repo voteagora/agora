@@ -1,20 +1,16 @@
 import { css } from "@emotion/css";
-import * as Sentry from "@sentry/react";
 import * as theme from "../theme";
 import logo from "../logo.svg";
-import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { PageHeaderFragment$key } from "./__generated__/PageHeaderFragment.graphql";
 import { ConnectKitButton } from "connectkit";
 import { useAccount } from "wagmi";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
-import { Suspense, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
-import { TokenAmountDisplay } from "./TokenAmountDisplay";
 import { useLocation } from "./HammockRouter/HammockRouter";
 import { icons } from "../icons/icons";
+import { ProfileDropDownButton } from "./ProfileDropDownButton";
 
 export const orgName = "Optimism";
 
@@ -141,7 +137,7 @@ export function PageHeader() {
             }
           `}
         >
-          <ConnectKitButton mode="light" />
+          <DesktopButton />
         </HStack>
         <HStack
           justifyContent="center"
@@ -153,21 +149,72 @@ export function PageHeader() {
         >
           <MobileButton />
         </HStack>
-        <HStack
-          className={css`
-            @media (max-width: ${theme.maxWidth.md}) {
-              display: none;
-            }
-          `}
-        >
-          <Suspense fallback={null}>
-            <PageHeaderContents />
-          </Suspense>
-        </HStack>
       </HStack>
     </HStack>
   );
 }
+
+export const DesktopButton = () => {
+  const { address: accountAddress } = useAccount();
+
+  const { delegate } = useLazyLoadQuery<PageHeaderQuery>(
+    graphql`
+      query PageHeaderQuery($address: String!, $skip: Boolean!) {
+        delegate(addressOrEnsName: $address) @skip(if: $skip) {
+          statement {
+            __typename
+          }
+
+          ...ProfileDropDownButtonFragment
+        }
+      }
+    `,
+    {
+      address: accountAddress ?? "",
+      skip: !accountAddress,
+    }
+  );
+
+  return (
+    <ConnectKitButton.Custom>
+      {({ isConnected, isConnecting, show, hide, address, ensName }) => (
+        <div
+          className={css`
+            background-color: ${theme.colors.gray.fa};
+            border-radius: ${theme.borderRadius.full};
+            cursor: pointer;
+            :hover {
+              background: ${theme.colors.gray[200]};
+            }
+          `}
+        >
+          {!accountAddress && (
+            <div
+              className={css`
+                padding: ${theme.spacing[2]} ${theme.spacing[5]};
+              `}
+              onClick={show}
+            >
+              Connect Wallet
+            </div>
+          )}
+          {accountAddress && delegate && (
+            <ProfileDropDownButton
+              isConnected={isConnected}
+              isConnecting={isConnecting}
+              show={show}
+              hide={hide}
+              address={address}
+              ensName={ensName}
+              fragment={delegate}
+              hasStatment={!!delegate.statement}
+            />
+          )}
+        </div>
+      )}
+    </ConnectKitButton.Custom>
+  );
+};
 
 export const MobileButton = () => {
   return (
@@ -203,100 +250,3 @@ export const MobileButton = () => {
     </ConnectKitButton.Custom>
   );
 };
-
-function PageHeaderContents() {
-  const { address: accountAddress } = useAccount();
-
-  useEffect(() => {
-    Sentry.setUser({
-      id: accountAddress,
-    });
-  }, [accountAddress]);
-
-  const { delegate } = useLazyLoadQuery<PageHeaderQuery>(
-    graphql`
-      query PageHeaderQuery($address: String!, $skip: Boolean!) {
-        delegate(addressOrEnsName: $address) @skip(if: $skip) {
-          statement {
-            __typename
-          }
-
-          ...PageHeaderFragment
-        }
-      }
-    `,
-    {
-      address: accountAddress ?? "",
-      skip: !accountAddress,
-    }
-  );
-
-  return (
-    <HStack gap="2" justifyContent="center">
-      {delegate && (
-        <Link
-          to="/create"
-          className={css`
-            border-radius: ${theme.borderRadius.lg};
-            border-width: ${theme.spacing.px};
-            padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
-            color: ${theme.colors.gray["200"]};
-            background: ${theme.colors.black};
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            :hover {
-              background: ${theme.colors.gray["800"]};
-            }
-          `}
-        >
-          <div>{!!delegate.statement ? "Edit" : "Create"}</div>
-        </Link>
-      )}
-
-      {delegate && <OwnedValuePanel fragment={delegate} />}
-    </HStack>
-  );
-}
-
-type OwnedValuePanelProps = {
-  fragment: PageHeaderFragment$key;
-};
-
-function OwnedValuePanel({ fragment }: OwnedValuePanelProps) {
-  const delegate = useFragment(
-    graphql`
-      fragment PageHeaderFragment on Delegate {
-        amountOwned {
-          amount {
-            ...TokenAmountDisplayFragment
-          }
-        }
-      }
-    `,
-    fragment
-  );
-
-  return (
-    <HStack
-      className={css`
-        border-color: ${theme.colors.gray["300"]};
-        border-width: ${theme.spacing.px};
-        border-radius: ${theme.borderRadius.lg};
-        box-shadow: ${theme.boxShadow.newDefault};
-        background: ${theme.colors.white};
-      `}
-    >
-      <HStack
-        gap="1"
-        className={css`
-          align-items: center;
-
-          padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
-        `}
-      >
-        <TokenAmountDisplay fragment={delegate.amountOwned.amount} />
-      </HStack>
-    </HStack>
-  );
-}
