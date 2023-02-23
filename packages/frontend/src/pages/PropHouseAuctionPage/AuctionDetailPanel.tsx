@@ -11,6 +11,7 @@ import { AuctionDetailPanelFragment$key } from "./__generated__/AuctionDetailPan
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { AuctionDetailPanelAuctionProposalFragment$key } from "./__generated__/AuctionDetailPanelAuctionProposalFragment.graphql";
 import { compareBy, flipComparator } from "../../utils/sorting";
+import { icons } from "../../icons/icons";
 
 type Sort = "MOST VOTES" | "LEAST VOTES" | "NEWEST" | "OLDEST";
 
@@ -266,6 +267,13 @@ function AuctionProposal({
               `}
             />
             votes
+          </HStack>
+        )}
+
+        {!votingEnabled && (
+          <HStack gap="1" alignItems="center">
+            <img src={icons.vote} alt="vote" />
+            <span>{proposal.voteCount}</span>
           </HStack>
         )}
       </HStack>

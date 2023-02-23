@@ -12,6 +12,7 @@ import tableView from "./tableView.svg";
 import cardView from "./cardView.svg";
 import wallet from "./wallet.svg";
 import walletConnected from "./walletConnected.svg";
+import vote from "./vote.svg";
 
 export const icons = {
   expand,
@@ -28,4 +29,5 @@ export const icons = {
   cardView,
   wallet,
   walletConnected,
+  vote,
 };
