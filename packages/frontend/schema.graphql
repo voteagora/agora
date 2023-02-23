@@ -22,6 +22,7 @@ type Delegate {
   delegatingTo: Delegate!
   statement: DelegateStatement
   amountOwned: VotingPower!
+  delegatingTo: Delegate!
   tokensRepresented: VotingPower!
   delegateMetrics: DelegateMetrics!
   proposed: [Proposal!]!
