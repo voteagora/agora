@@ -2,6 +2,7 @@ import { wrapModuleSentry } from "./sentry";
 import { Env } from "./env";
 import { wrapModule } from "@cloudflare/workers-honeycomb-logger";
 import { fetch } from "./fetch";
+import { StorageDurableObjectV1 as StorageDurableObjectV1Implementation } from "./durableObject";
 
 const sentryWrappedModule = wrapModuleSentry(
   ({ env, ctx }) => ({
@@ -24,3 +25,5 @@ export default {
   ...wrapModule({}, sentryWrappedModule),
   scheduled: sentryWrappedModule.scheduled,
 };
+
+export { StorageDurableObjectV1Implementation as StorageDurableObjectV1 };
