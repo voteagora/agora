@@ -11,6 +11,7 @@ import { DurableObjectReader } from "../indexer/storage/durableObjects/durableOb
 import { entityDefinitions } from "../indexer/contracts";
 import { StorageArea } from "../indexer/followChain";
 import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
+import { makeFakeSpan } from "../utils/cache";
 
 // Initializing the schema takes about 250ms. We should avoid doing it once
 // per request. We need to move this calculation into some kind of compile time
@@ -46,10 +47,10 @@ export async function getGraphQLCallingContext(
     emailStorage: makeEmailStorage(env.EMAILS),
     tracingContext: {
       spanMap: new Map(),
-      rootSpan: request.tracer,
+      rootSpan: makeFakeSpan(),
     },
     cache: {
-      span: request.tracer,
+      span: makeFakeSpan(),
     },
   };
 
