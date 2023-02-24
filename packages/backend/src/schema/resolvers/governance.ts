@@ -7,7 +7,7 @@ import {
   QueryResolvers,
   VoteResolvers,
   VotingPowerResolvers,
-} from "./generated/types";
+} from "../generated/types";
 import { BigNumber, ethers } from "ethers";
 import {
   governanceAggregatesKey,
@@ -63,7 +63,7 @@ export const Metrics: MetricsResolvers = {
   async delegatedSupply(_parent, _args, { reader }) {
     const aggregate = await getAggregate(reader);
 
-    console.log(aggregate)
+    console.log(aggregate);
 
     return asTokenAmount(aggregate.delegatedSupply);
   },
@@ -150,7 +150,7 @@ export const Delegate: DelegateResolvers = {
   },
 
   async statement({ address }, _args, { delegateStorage }) {
-    const delegate = await delegateStorage.getDelegate(address)
+    const delegate = await delegateStorage.getDelegate(address);
 
     if (!delegate || !delegate.statement || !delegate.statement.signedPayload) {
       return null;

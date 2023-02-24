@@ -4,8 +4,8 @@ generates:
       - src/lambdas/loadSnapshotVotes/**/*.ts
     schema: src/lambdas/loadSnapshotVotes/schema.graphql
     preset: client
-  src/generated/types.ts:
-    schema: ./src/schema.graphql
+  src/schema/generated/types.ts:
+    schema: ./src/schema/schema.graphql
     plugins:
       - "@graphql-codegen/typescript"
       - "@graphql-codegen/typescript-resolvers"
@@ -16,6 +16,7 @@ generates:
       contextType: ../model#AgoraContextType
       strictScalars: true
       scalars:
+        Bytes: string
         BigInt: ethers.BigNumber
         Timestamp: Date
       mappers:
