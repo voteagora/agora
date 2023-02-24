@@ -53,15 +53,15 @@ export async function run() {
     }),
     s3.putObject({
       Bucket,
-      Key: `${spaceId}/votes.json`,
-      Body: JSON.stringify(votes),
+      Key: `${spaceId}/proposals.json`,
+      Body: JSON.stringify(proposals),
     }),
-    writeVotesToDynamoDb(dynamo, votes, space, proposals),
+    writeVotesToDynamoDb(dynamo, votes as any, space, proposals as any),
   ]);
 }
 
 async function writeVotesToDynamoDb(
-  dynamo,
+  dynamo: DynamoDB,
   votes: GetAllFromQueryResult<typeof votesQuery>,
   space: ResultOf<typeof spaceQuery>,
   proposals: GetAllFromQueryResult<typeof proposalsQuery>
@@ -85,7 +85,10 @@ async function writeVotesToDynamoDb(
                     Item: {
                       ...makeKey({
                         PartitionKey: `SnapshotVote#${item.voter.toLowerCase()}`,
-                        SortKey: item.created.toString().padStart(12, "0"),
+                        SortKey:
+                          item.created.toString().padStart(12, "0") +
+                            "#" +
+                            item.proposal?.id ?? "null",
                       }),
                       ...marshaller.marshallItem({
                         ...item,

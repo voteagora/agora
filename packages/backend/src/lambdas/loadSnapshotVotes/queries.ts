@@ -2,16 +2,23 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
 import request from "graphql-request";
 import { graphql } from "./graphql";
 import { Exact } from "./graphql/graphql";
+import { RateLimiter } from "limiter";
 
 export const url = "https://hub.snapshot.org/graphql";
 
+export function fetchProposals(space: string) {
+  return getAllFromQuery(proposalsQuery, {
+    space,
+  });
+}
+
 export const proposalsQuery = graphql(/* GraphQL */ `
-  query ProposalsQuery($space: String!, $first: Int!, $skip: Int!) {
+  query ProposalsQuery($space: String!, $first: Int!, $cursor: Int) {
     items: proposals(
-      where: { space: $space }
-      orderBy: "id"
+      where: { space: $space, created_gte: $cursor }
+      orderBy: "created"
+      orderDirection: asc
       first: $first
-      skip: $skip
     ) {
       id
       app
@@ -52,9 +59,20 @@ export const proposalsQuery = graphql(/* GraphQL */ `
   }
 `);
 
+export function fetchVotes(space: string) {
+  return getAllFromQuery(votesQuery, {
+    space,
+  });
+}
+
 export const votesQuery = graphql(/* GraphQL */ `
-  query VotesQuery($space: String!, $first: Int!, $skip: Int!) {
-    items: votes(where: { space: $space }, first: $first, skip: $skip) {
+  query VotesQuery($space: String!, $first: Int!, $cursor: Int) {
+    items: votes(
+      where: { space: $space, created_gte: $cursor }
+      orderBy: "created"
+      orderDirection: asc
+      first: $first
+    ) {
       app
       choice
       created
@@ -153,34 +171,83 @@ export type ResultOf<Query extends DocumentNode<any, any>> =
 
 export type GetAllFromQueryResult<
   Query extends DocumentNode<Exact<{ items?: any[] | undefined | null }>, any>
-> = ResultOf<Query>["items"];
+> = Array<NonNullable<NonNullable<ResultOf<Query>["items"]>[0]>>;
 
-export async function getAllFromQuery<
-  Query extends DocumentNode<Exact<{ items?: any[] | undefined | null }>, any>
+type LimitsType = {
+  first: number;
+  skip: number;
+};
+
+const defaultLimits: LimitsType = {
+  first: 1000,
+  skip: 5000,
+};
+
+const rateLimiter = new RateLimiter({
+  interval: 20 * 1e3,
+  tokensPerInterval: 60 * 0.5,
+});
+
+export async function* getAllFromQuery<
+  Query extends DocumentNode<
+    { items?: ({ created: number, id: string } | null)[] | undefined | null },
+    any
+  >
 >(
   query: Query,
-  variables: Omit<VariablesOf<Query>, "first" | "skip">
-): Promise<ResultOf<Query>["items"]> {
-  const pageSize = 20_000;
+  variables: Omit<VariablesOf<Query>, "first" | "cursor">,
+  initialCursor?: number,
+  limits: LimitsType = defaultLimits
+): AsyncGenerator<GetAllFromQueryResult<Query>> {
+  let cursor = initialCursor;
 
-  const allItems = [];
   for (let pageIndex = 0; true; pageIndex++) {
-    const result = await request({
-      url,
-      document: query,
-      variables: {
-        ...variables,
-        first: pageSize,
-        skip: pageSize * pageIndex,
-      } as any,
-    });
+    const first = limits.first;
 
-    if (!result?.items?.length) {
+    for (let attemptIdx = 0; attemptIdx < 10; attemptIdx++) {
+      let result;
+      try {
+        await rateLimiter.removeTokens(1);
+
+        result = await request({
+          url,
+          document: query,
+          variables: {
+            ...variables,
+            first,
+            cursor,
+          } as any,
+        });
+      } catch (e) {
+        console.error(e);
+        continue;
+      }
+
+      const items: Array<
+        NonNullable<NonNullable<ResultOf<Query>["items"]>[0]> & {
+          created: number;
+        }
+      > = (result.items ?? []).flatMap((it) => {
+        if (it) {
+          return [it];
+        } else {
+          return [];
+        }
+      }) as any;
+      const lastItem = items[items.length - 1];
+
+      yield items;
+
+      if (cursor === lastItem.created) {
+        if (items.length === limits.first) {
+          throw new Error("many items with the same cursor value");
+        }
+
+        return;
+      }
+
+      cursor = lastItem.created;
       break;
     }
-
-    allItems.push(...result.items);
   }
-
-  return allItems;
 }

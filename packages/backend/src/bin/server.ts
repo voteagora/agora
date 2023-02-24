@@ -1,44 +1,80 @@
 import "isomorphic-fetch";
-import { Plugin } from "@graphql-yoga/common";
 import { createServer } from "@graphql-yoga/node";
-import { makeGatewaySchema } from "../schema";
+import { makeGatewaySchema } from "../schema/index";
 import { useTiming } from "@envelop/core";
-import { AgoraContextType } from "../model";
+import { AgoraContextType } from "../schema/context";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { ValidatedMessage } from "../utils/signing";
 import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
 import { useApolloTracing } from "@envelop/apollo-tracing";
-import { parseStorage } from "../snapshot";
 import { makeDynamoStatementStorage } from "../store/dynamo/statement";
-import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
 import { ethers } from "ethers";
 import { TransparentMultiCallProvider } from "../multicall";
 import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
-import { promises as fs } from "fs";
-import { makeChainVotesStorage } from "../store/dynamo/chainVoites";
+import { useErrorInspection } from "../schema/plugins/useErrorInspection";
+import { followChain, makeInitialStorageArea } from "../indexer/followChain";
+import { entityDefinitions, indexers } from "../indexer/contracts";
+import { LevelEntityStore } from "../indexer/storage/level/levelEntityStore";
+import { LevelReader } from "../indexer/storage/level/levelReader";
+import { timeout } from "../indexer/utils/asyncUtils";
+import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
+
+// p0
+// todo: where are delegate statements going to be stored?
+// todo: replicate and deploy
+// todo: snapshot votes, delegate statements, cached ens name lookups
+
+// todo: to load up a replica, have the durable object pull from an initial file from r2 using streams
+
+// p1
+// todo: derived state
+// todo: joins
+// todo: some cleanup in the governance folder
 
 async function main() {
   const schema = makeGatewaySchema();
-  const baseProvider = new ethers.providers.CloudflareProvider();
+  const store = await LevelEntityStore.open();
 
-  const snapshot = parseStorage(
-    JSON.parse(await fs.readFile("snapshot.json", { encoding: "utf-8" }))
+  const baseProvider = new ethers.providers.AlchemyProvider(
+    "mainnet",
+    process.env.ALCHEMY_API_KEY
   );
+
+  const storageArea = await makeInitialStorageArea(store);
+  const iter = followChain(store, indexers, baseProvider, storageArea);
+  const _ = (async () => {
+    while (true) {
+      const value = await iter();
+      console.log({ value });
+      switch (value.type) {
+        case "TIP": {
+          await timeout(1000);
+        }
+      }
+    }
+  })();
+
+  const reader = new LevelReader(entityDefinitions, store.level, storageArea);
 
   const dynamoDb = new DynamoDB({});
 
   const server = createServer({
     schema,
-    context(): AgoraContextType {
+    async context(): Promise<AgoraContextType> {
       const provider = new TransparentMultiCallProvider(baseProvider);
 
       return {
+        ethProvider: new TransparentMultiCallProvider(
+          new ethers.providers.AlchemyProvider(
+            "mainnet",
+            process.env.ALCHEMY_API_KEY
+          )
+        ),
         provider,
-        snapshot,
-        chainVoteStorage: makeChainVotesStorage(dynamoDb),
+        reader,
         snapshotVoteStorage: makeSnapshotVoteStorage(dynamoDb),
-        delegateStorage: makeDynamoDelegateStore(dynamoDb),
         statementStorage: makeDynamoStatementStorage(dynamoDb),
+        delegateStorage: makeDynamoDelegateStore(dynamoDb),
 
         cache: {
           span: makeFakeSpan(),
@@ -56,21 +92,6 @@ async function main() {
     plugins: [useTiming(), useApolloTracing(), useErrorInspection()],
   });
   await server.start();
-}
-
-function useErrorInspection(): Plugin<AgoraContextType> {
-  return {
-    onResolverCalled({ info, context }) {
-      return ({ result }) => {
-        if (result instanceof Error) {
-          console.log(result, info.path);
-          return result;
-        }
-
-        return result;
-      };
-    },
-  };
 }
 
 main();

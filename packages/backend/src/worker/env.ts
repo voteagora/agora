@@ -4,11 +4,11 @@ export interface Env {
   SENTRY_DSN: string;
   ALCHEMY_API_KEY: string;
   GITHUB_SHA: string;
+  ADMIN_API_KEY: string;
 
   EMAILS: KVNamespace;
-  INDEXER: KVNamespace;
   __STATIC_CONTENT: KVNamespace;
-
+  STORAGE_OBJECT: DurableObjectNamespace;
   AWS_ACCESS_KEY_ID: string;
   AWS_SECRET_ACCESS_KEY: string;
 }

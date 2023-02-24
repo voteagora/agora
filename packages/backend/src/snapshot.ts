@@ -4,7 +4,7 @@ import { ENSGovernorInterface } from "./contracts/generated/ENSGovernor";
 import { ENSTokenInterface } from "./contracts/generated/ENSToken";
 import { BigNumber } from "ethers";
 import { ToucanInterface, withSentryScope } from "./sentry";
-import { getAllLogs } from "./events";
+import { getAllLogsGenerator } from "./events";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { isEqual, chunk } from "lodash";
 import { makeUpdateForAccount } from "./store/dynamo/delegates";
@@ -610,7 +610,7 @@ export async function getTypedLogs<
 ): Promise<TypedLogEvent<InterfaceType, SignaturesType>[]> {
   let allLogs = [];
 
-  for await (const logs of getAllLogs(
+  for await (const logs of getAllLogsGenerator(
     provider,
     eventFilter.filter,
     latestBlockNumber,
@@ -664,7 +664,7 @@ async function updateSnapshotForIndexers<Snapshot extends any>(
     })();
 
     let idx = 0;
-    for await (const logs of getAllLogs(
+    for await (const logs of getAllLogsGenerator(
       provider,
       filter,
       latestBlockNumber,

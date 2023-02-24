@@ -1,25 +1,25 @@
 import { ethers } from "ethers";
 
-export async function* getAllLogs(
+// todo: use other logs endpoint for this stuff and delete this
+export async function* getAllLogsGenerator(
   provider: ethers.providers.Provider,
   filter: ethers.EventFilter,
-  toBlockInclusive: number,
-  fromBlockInclusive: number
+  latestBlockNumber: number,
+  startBlock: number
 ) {
-  let fromBlock = fromBlockInclusive;
+  let fromBlock = startBlock;
 
-  while (fromBlock <= toBlockInclusive) {
-    console.log({ fromBlock, toBlockInclusive });
-    const { lastBlockFetched, logs } = await getLogPage(
+  while (fromBlock < latestBlockNumber) {
+    console.log({ fromBlock, latestBlockNumber });
+    const { toBlock, logs } = await getLogPage(
       provider,
       filter,
       fromBlock,
-      toBlockInclusive + 1
+      latestBlockNumber
     );
-
     yield logs;
 
-    fromBlock = lastBlockFetched + 1;
+    fromBlock = toBlock + 1;
   }
 }
 
@@ -28,51 +28,50 @@ const maxBlocksPerPage = 10_000;
 async function getLogPage(
   provider: ethers.providers.Provider,
   filter: ethers.EventFilter,
-  fromBlockInclusive: number,
-  toBlockExclusive: number
+  fromBlock: number,
+  latestBlockNumber: number
 ): Promise<{
   logs: ethers.providers.Log[];
 
   // The last block fetched.
-  lastBlockFetched: number;
+  toBlock: number;
 }> {
+  if (fromBlock >= latestBlockNumber) {
+    return {
+      toBlock: fromBlock,
+      logs: [],
+    };
+  }
+
   let pageSize = maxBlocksPerPage;
   while (true) {
     if (pageSize === 0) {
+      // todo: this does not account for a boundary condition
       throw new Error("failed to retrieve many pages");
     }
 
-    // at this point:
-    // * toBlockExclusive > fromBlockInclusive
-    // * pageSize > 0
-    const toBlock = Math.min(fromBlockInclusive + pageSize, toBlockExclusive);
-
-    // for:
-    //   rangeSize = toBlock - fromBlockInclusive
-    // then:
-    //  rangeSize is always >= 1
-
+    const toBlock = Math.min(fromBlock + pageSize, latestBlockNumber);
     try {
       const logs = await provider.getLogs({
         ...filter,
-        fromBlock: fromBlockInclusive,
-        toBlock: toBlock - 1,
+        fromBlock,
+        toBlock,
       });
 
       return {
         logs,
-        lastBlockFetched: toBlock - 1,
+        toBlock,
       };
     } catch (e) {
-      if (
-        !e.message.includes("response size exceeded") &&
-        !e.message.includes("Consider reducing your block range")
-      ) {
+      if (!(e instanceof Error)) {
+        throw e;
+      }
+
+      if (!e.message.includes("response size exceeded")) {
         throw e;
       }
 
       pageSize = Math.floor(pageSize / 2);
-      console.log({ pageSize });
     }
   }
 }

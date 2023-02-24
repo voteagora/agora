@@ -1,19 +1,7 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import {
-  UpdateExpression,
-  AttributeValue,
-  ExpressionAttributes,
-} from "@aws/dynamodb-expressions";
-
-import { StatementStorage, StoredStatement } from "../../model";
-import {
-  makeKey,
-  marshaller,
-  PartitionKey__MergedDelegatesStatementHolders,
-  setFields,
-  TableName,
-  withAttributes,
-} from "./utils";
+import { StatementStorage, StoredStatement } from "../../schema/model";
+import { makeKey, marshaller, TableName } from "./utils";
+import DataLoader from "dataloader";
 
 export function makeDelegateStatementKey(address: string) {
   return makeKey({
@@ -23,14 +11,34 @@ export function makeDelegateStatementKey(address: string) {
 }
 
 export function makeDynamoStatementStorage(client: DynamoDB): StatementStorage {
-  return {
-    async getStatement(address: string): Promise<StoredStatement | null> {
-      const result = await client.getItem({
-        TableName,
-        Key: makeDelegateStatementKey(address.toLowerCase()),
+  const getStatementDataloader = new DataLoader<string, StoredStatement | null>(
+    async (keys) => {
+      const results = await client.batchGetItem({
+        RequestItems: {
+          [TableName]: {
+            Keys: keys.map((address) =>
+              makeDelegateStatementKey(address)
+            ) as any,
+          },
+        },
       });
 
-      return marshaller.unmarshallItem(result.Item) as any;
+      const statements = new Map(
+        Object.values(results.Responses![TableName])
+          .map((value) => marshaller.unmarshallItem(value) as StoredStatement)
+          .map((statement) => {
+            return [statement.address, statement];
+          })
+      );
+
+      return keys.map((key) => statements.get(key) ?? null);
+    },
+    { batch: true, maxBatchSize: 100 }
+  );
+
+  return {
+    async getStatement(address: string): Promise<StoredStatement | null> {
+      return await getStatementDataloader.load(address.toLowerCase());
     },
     async addStatement(statement: StoredStatement): Promise<void> {
       const marshalledStatement = marshaller.marshallItem({
@@ -45,35 +53,7 @@ export function makeDynamoStatementStorage(client: DynamoDB): StatementStorage {
               Item: {
                 ...makeDelegateStatementKey(statement.address.toLowerCase()),
                 ...marshalledStatement,
-              },
-            },
-          },
-          {
-            Update: {
-              Key: makeKey({
-                PartitionKey: `MergedDelegate`,
-                SortKey: statement.address.toLowerCase(),
-              }),
-              TableName,
-
-              ...(() => {
-                const attributes = new ExpressionAttributes();
-
-                const updateExpression = new UpdateExpression();
-                updateExpression.set(
-                  "statement",
-                  new AttributeValue(marshalledStatement)
-                );
-
-                setFields(updateExpression, {
-                  address: statement.address.toLowerCase(),
-                });
-
-                return {
-                  UpdateExpression: updateExpression.serialize(attributes),
-                  ...withAttributes(attributes),
-                };
-              })(),
+              } as any,
             },
           },
         ],

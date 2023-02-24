@@ -3,3 +3,4 @@ src/contracts/generated
 build
 __generated__
 
+yarn.lock

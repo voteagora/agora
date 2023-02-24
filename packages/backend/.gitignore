@@ -2,3 +2,10 @@ src/generated
 src/contracts/generated
 dist
 .serverless
+
+data/logs
+data/snapshot
+data/state
+
+yarn.lock
+yarn-error.log

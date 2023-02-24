@@ -5,7 +5,7 @@ import {
   GetDelegatesParams,
   StoredStatement,
 } from "../../model";
-import { DynamoDB, Update } from "@aws-sdk/client-dynamodb";
+import { AttributeValue, DynamoDB, Update } from "@aws-sdk/client-dynamodb";
 import {
   ConditionExpression,
   attributeExists,
@@ -42,7 +42,7 @@ export function makeMergedDelegateKey(address: string) {
   return makeKey({
     PartitionKey: "MergedDelegate",
     SortKey: address.toLowerCase(),
-  });
+  }) as Record<string, AttributeValue>;
 }
 
 export function makeDynamoDelegateStore(client: DynamoDB): DelegateStorage {

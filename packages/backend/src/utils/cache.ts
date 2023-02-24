@@ -1,4 +1,4 @@
-import { makeNopSpanMap, TracingContext } from "../model";
+import { makeNopSpanMap, TracingContext } from "../schema/transformers/tracingContext";
 
 export type Span = {
   startChildSpan(name: string): Span;
@@ -25,7 +25,7 @@ export function makeFakeSpan() {
 
 export function makeEmptyTracingContext(): TracingContext {
   return {
-    rootSpan: makeFakeSpan(),
+    rootSpan: makeFakeSpan() as any,
     spanMap: makeNopSpanMap(),
   };
 }
