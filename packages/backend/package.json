@@ -30,6 +30,7 @@
     "fetch-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph > ./src/schemas/nouns-subgraph.graphql",
     "build": "yarn build-generate-schema && yarn build-server",
     "start": "yarn build && yarn run generate && yarn run server",
+    "stream": "ts-node --transpileOnly src/indexer/ops/bin/stream.ts",
     "test": "jest",
     "loadSnapshotVotes": "ts-node --transpileOnly src/bin/scripts/loadSnapshotVotes/run.ts",
     "writeSnapshotVotesToDynamo": "ts-node --transpileOnly src/bin/scripts/writeSnapshotVotesToDynamo.ts"
