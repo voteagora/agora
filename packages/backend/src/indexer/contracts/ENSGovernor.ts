@@ -103,7 +103,6 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
       signature:
         "ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)",
       async handle(handle, event) {
-
         handle.saveEntity("Proposal", event.args.proposalId.toString(), {
           proposalId: event.args.proposalId,
           proposer: event.args.proposer,
@@ -136,12 +135,16 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
       async handle(handle, event) {
         const proposal = (await handle.loadEntity(
           "Proposal",
-          event.args.id.toString()
+          event.args.proposalId.toString()
         ))!;
 
         proposal.status = "CANCELLED";
 
-        handle.saveEntity("Proposal", event.args.id.toString(), proposal);
+        handle.saveEntity(
+          "Proposal",
+          event.args.proposalId.toString(),
+          proposal
+        );
       },
     },
     {
@@ -154,7 +157,11 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
 
         proposal.status = "EXECUTED";
 
-        handle.saveEntity("Proposal", event.args.proposalId.toString(), proposal);
+        handle.saveEntity(
+          "Proposal",
+          event.args.proposalId.toString(),
+          proposal
+        );
       },
     },
     {
