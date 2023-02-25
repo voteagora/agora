@@ -7,7 +7,7 @@ import {
   QueryResolvers,
   VoteResolvers,
   VotingPowerResolvers,
-} from "../generated/types";
+} from "./generated/types";
 import { BigNumber, ethers } from "ethers";
 import {
   governanceAggregatesKey,
