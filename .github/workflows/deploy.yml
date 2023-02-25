@@ -109,8 +109,6 @@ jobs:
       - name: Copy Resources
         run: |
           mkdir -p packages/frontend/build/worker-assets
-          cp packages/render-opengraph/resources/* packages/frontend/build/worker-assets
-          cp node_modules/@nouns/assets/dist/image-data.json packages/frontend/build/worker-assets/image-data.json
 
       - name: Publish
         uses: cloudflare/wrangler-action@2.0.0
