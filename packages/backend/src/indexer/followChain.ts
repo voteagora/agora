@@ -177,7 +177,7 @@ export function followChain(
 
     return {
       type: "MORE" as const,
-      depth: latestBlock.number - nextBlockNumber,
+      depth: latestBlock.number - nextBlock.number,
       nextBlock: nextBlockNumber,
     };
   };
