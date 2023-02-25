@@ -1,4 +1,4 @@
-import { Env, mustGetAlchemyApiKey, safelyLoadBlockStepSize } from "./env";
+import { Env, mustGetAlchemyApiKey } from "./env";
 import { StoredEntry } from "../indexer/storage/dump";
 import { readableStreamFromGenerator } from "../utils/readableStream";
 import { getGraphQLCallingContext } from "./graphql";
@@ -12,11 +12,6 @@ import { DurableObjectEntityStore } from "../indexer/storage/durableObjects/dura
 import { AdminMessage } from "../indexer/ops/adminMessage";
 import { indexers } from "../indexer/contracts";
 import { listEntries } from "../indexer/storage/durableObjects/storageInterface";
-import {
-  collectGenerator,
-  limitGenerator,
-} from "../indexer/utils/generatorUtils";
-import { AnalyticsEngineReporter } from "../indexer/storage/durableObjects/analyticsEngineReporter";
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 
@@ -144,7 +139,7 @@ export class StorageDurableObjectV1 {
       }
 
       case "STEP": {
-        await this.stepChainForward(message.blockStepSize);
+        await this.stepChainForward();
         break;
       }
 
@@ -175,9 +170,7 @@ export class StorageDurableObjectV1 {
     return new Response();
   }
 
-  async stepChainForward(blockStepSize?: number) {
-    const resolvedStepSize = blockStepSize ?? safelyLoadBlockStepSize(this.env);
-
+  async stepChainForward() {
     await this.entityStore.ensureConsistentState();
 
     const iter =
@@ -196,7 +189,7 @@ export class StorageDurableObjectV1 {
       })());
 
     try {
-      return await iter(resolvedStepSize);
+      return await iter();
     } finally {
     }
   }

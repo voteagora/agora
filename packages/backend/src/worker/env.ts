@@ -26,10 +26,6 @@ export interface Env {
   AWS_SECRET_ACCESS_KEY: string;
 }
 
-export function safelyLoadBlockStepSize(env: Env): number | undefined {
-  return safelyLoadValueFromEnv(env.BLOCK_STEP_SIZE);
-}
-
 export function shouldUseCache(env: Env) {
   return shouldAllow(env.USE_CACHE_PERCENTAGE);
 }
