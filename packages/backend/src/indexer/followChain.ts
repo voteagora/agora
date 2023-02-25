@@ -142,7 +142,7 @@ export function followChain(
 
   let nextBlockNumber = storageArea.finalizedBlock.blockNumber + 1;
 
-  return async (maxStepSize: number = maxBlockRange) => {
+  return async () => {
     const latestBlock = await blockProvider.getLatestBlock();
 
     if (nextBlockNumber > latestBlock.number) {
@@ -151,47 +151,29 @@ export function followChain(
       };
     }
 
-    // stepSize will be 1 <= stepSize <= maxBlockRange
-    const stepSize = Math.max(1, Math.min(maxStepSize, maxBlockRange));
+    const nextBlock = await blockProvider.getBlockByNumber(nextBlockNumber);
 
-    const fetchTill = Math.min(latestBlock.number, nextBlockNumber + stepSize);
+    await ensureParentsAvailable(blockIdentifierFromParentBlock(nextBlock));
 
-    const blocks = await blockProvider.getBlockRange(
-      nextBlockNumber,
-      fetchTill
+    addToParents(storageArea.parents, nextBlock);
+
+    await processBlock(nextBlock);
+
+    await promoteFinalizedBlocks(
+      latestBlock.number,
+      blockIdentifierFromBlock(nextBlock),
+      storageArea.finalizedBlock
     );
 
-    const logs = await logProvider.getLogs({
-      ...filter,
-      fromBlock: nextBlockNumber,
-      toBlock: fetchTill,
-    });
-
-    const logsCache = await makeLogsCache(logs, blocks);
-
-    for (const nextBlock of blocks) {
-      await ensureParentsAvailable(blockIdentifierFromParentBlock(nextBlock));
-
-      addToParents(storageArea.parents, nextBlock);
-
-      await processBlock(nextBlock, logsCache);
-
-      await promoteFinalizedBlocks(
-        latestBlock.number,
-        blockIdentifierFromBlock(nextBlock),
-        storageArea.finalizedBlock
-      );
-
-      // update storageArea.tipBlock
-      if (
-        !storageArea.tipBlock ||
-        nextBlock.number > storageArea.tipBlock.blockNumber
-      ) {
-        storageArea.tipBlock = blockIdentifierFromBlock(nextBlock);
-      }
-
-      nextBlockNumber = nextBlock.number + 1;
+    // update storageArea.tipBlock
+    if (
+      !storageArea.tipBlock ||
+      nextBlock.number > storageArea.tipBlock.blockNumber
+    ) {
+      storageArea.tipBlock = blockIdentifierFromBlock(nextBlock);
     }
+
+    nextBlockNumber = nextBlock.number + 1;
 
     return {
       type: "MORE" as const,

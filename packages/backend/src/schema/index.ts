@@ -1,4 +1,4 @@
-import { Resolvers } from "./resolvers/generated/types";
+import { Resolvers } from "./generated/types";
 import * as snapshotResolvers from "./resolvers/snapshot";
 import * as scalars from "./resolvers/scalars";
 import * as commonResolvers from "./resolvers/common";

@@ -4,7 +4,7 @@ generates:
       - src/lambdas/loadSnapshotVotes/**/*.ts
     schema: src/lambdas/loadSnapshotVotes/schema.graphql
     preset: client
-  src/schema/generated/types.ts:
+  src/schema/resolvers/generated/types.ts:
     schema: ./src/schema/schema.graphql
     plugins:
       - "@graphql-codegen/typescript"
