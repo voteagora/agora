@@ -49,6 +49,7 @@ export function SuspenseImage({ className, src }: Props) {
       >
         {!isHidden && src && (
           <img
+            alt="ENS Avatar"
             className={css`
               @keyframes fade-in {
                 from {

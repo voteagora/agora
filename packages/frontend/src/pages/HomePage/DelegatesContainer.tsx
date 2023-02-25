@@ -335,6 +335,9 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
 
               case "LOAD_MORE_SENTINEL":
                 return null;
+
+              default:
+                throw new Error("unknown");
             }
           })}
         </div>

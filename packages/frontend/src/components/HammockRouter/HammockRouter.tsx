@@ -71,7 +71,12 @@ type NavigateUpdate = {
 };
 
 const NavigateContext = createContext<
-  ((update: NavigateUpdate, asTransition?: boolean) => void) | null
+  | ((
+      update: NavigateUpdate,
+      asTransition?: boolean,
+      afterUpdate?: () => void
+    ) => void)
+  | null
 >(null);
 const IsPendingContext = createContext<boolean | null>(null);
 const StartTransitionContext = createContext<TransitionStartFunction | null>(
@@ -229,7 +234,11 @@ export function HammockRouter({ children }: Props) {
   const relayEnvironment = useRelayEnvironment();
 
   const navigate = useCallback(
-    (update: NavigateUpdate, asTransition: boolean = true) => {
+    (
+      update: NavigateUpdate,
+      asTransition: boolean = true,
+      afterUpdate = () => {}
+    ) => {
       const configureUpdateContext = (() => {
         if (!asTransition) {
           return (callback: () => void): void => {
@@ -255,6 +264,8 @@ export function HammockRouter({ children }: Props) {
             );
             return routingStateForLocation(nextLocation, relayEnvironment);
           });
+
+          afterUpdate?.();
         } catch (e) {
           if (e instanceof BlockNavigationError) {
             return;
@@ -264,7 +275,7 @@ export function HammockRouter({ children }: Props) {
         }
       });
     },
-    [setCurrentRoute, currentRoute, startTransition]
+    [setCurrentRoute, currentRoute, startTransition, relayEnvironment]
   );
 
   return (

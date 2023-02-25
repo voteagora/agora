@@ -29,7 +29,7 @@ export function TokenAmountDisplay({
 
     const numberFormat = new Intl.NumberFormat("en", {
       style: "currency",
-      currency,
+      currency: "USD",
       currencyDisplay: "code",
       compactDisplay: "short",
       notation: "compact",
@@ -41,7 +41,7 @@ export function TokenAmountDisplay({
       .filter((part) => part.type !== "currency" && part.type !== "literal")
       .map((part) => part.value)
       .join("");
-  }, [amount, decimals]);
+  }, [amount, decimals, maximumSignificantDigits]);
 
   return (
     <>
