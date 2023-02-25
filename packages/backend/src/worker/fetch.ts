@@ -1,27 +1,44 @@
-import { Env } from "./env";
+import { Env, shouldUseCache } from "./env";
 import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
+import { fetchThroughCache } from "./cache";
 
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
 const assetManifest = JSON.parse(manifestJSON);
 
 export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
   const url = new URL(request.url);
+  const name =
+    request.headers.get("x-durable-object-instance-name") ||
+    env.PRIMARY_DURABLE_OBJECT_INSTANCE_NAME;
+
   if (
     url.pathname === "/graphql" ||
     url.pathname === "/inspect" ||
     url.pathname.startsWith("/admin/")
   ) {
-    const object = env.STORAGE_OBJECT.get(
-      env.STORAGE_OBJECT.idFromName("stable")
-    );
+    const object = env.STORAGE_OBJECT.get(env.STORAGE_OBJECT.idFromName(name));
 
-    return await object.fetch(request);
+    if (url.pathname !== "/graphql") {
+      return await object.fetch(request);
+    }
+
+    if (shouldUseCache(env)) {
+      const graphqlCache = await caches.open("graphql");
+      return await fetchThroughCache(
+        graphqlCache,
+        request.clone(),
+        () => object.fetch(request),
+        ctx
+      );
+    } else {
+      return await object.fetch(request);
+    }
   }
 
   if (isStaticFile(request)) {
-    return await getAssetFromKV(
+    return (await getAssetFromKV(
       {
-        request,
+        request: request as any,
         waitUntil(promise) {
           return ctx.waitUntil(promise);
         },
@@ -30,7 +47,7 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
         ASSET_NAMESPACE: env.__STATIC_CONTENT,
         ASSET_MANIFEST: assetManifest,
       }
-    );
+    )) as any as Response;
   }
 
   const content = await env.__STATIC_CONTENT.get(assetManifest["index.html"]);

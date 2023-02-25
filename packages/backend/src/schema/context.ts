@@ -5,7 +5,6 @@ import { EmailStorage, StatementStorage } from "./model";
 import { ethers } from "ethers";
 import { TracingContext } from "./transformers/tracingContext";
 import { SnapshotVoteModel } from "./resolvers/snapshot";
-import { DelegateStorage } from "../model";
 
 export type AgoraContextType = {
   reader: Reader<typeof entityDefinitions>;
@@ -14,7 +13,6 @@ export type AgoraContextType = {
   snapshotVoteStorage: SnapshotVoteStorage;
   tracingContext: TracingContext;
   statementStorage: StatementStorage;
-  delegateStorage: DelegateStorage;
   cache: CacheDependencies;
   emailStorage: EmailStorage;
 };

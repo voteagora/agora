@@ -68,8 +68,8 @@ export class TransparentMultiCallProvider extends ethers.providers
 
       if (callParams.blockTag === "latest") {
         const result = await this.callDataLoader.load({
-          data: ethers.utils.hexlify(callParams.transaction.data),
-          target: callParams.transaction.to,
+          data: ethers.utils.hexlify(callParams.transaction.data!),
+          target: callParams.transaction.to!,
         });
 
         if (!result.success) {

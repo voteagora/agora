@@ -1,17 +1,31 @@
 import { ethers } from "ethers";
 import { loadLastLog, pathForLogs, pathForLogsIndex } from "../logStorage";
-import { getAllLogsGenerator } from "../../events";
 import { promises as fs } from "fs";
 import { BlockIdentifier } from "../storageHandle";
 import { filterForEventHandlers } from "../../contracts";
 import { indexers } from "../contracts";
 import { maxReorgBlocksDepth } from "../process";
+import { getAllLogsInRange } from "../logProvider/getAllLogsInRange";
+import { EthersLogProvider } from "../logProvider/logProvider";
+import ProgressBar from "progress";
+import { createParentDirectory } from "../utils/pathUtils";
+
+function makeFetchProgressBar(total: number) {
+  return new ProgressBar(
+    ":elapseds [:current/:total] :bar :percent @ :rate/s (:pageSize pp) :etas remaining",
+    {
+      total,
+    }
+  );
+}
 
 async function main() {
   const provider = new ethers.providers.AlchemyProvider(
     "mainnet",
     process.env.ALCHEMY_API_KEY
   );
+
+  const logProvider = new EthersLogProvider(provider, true);
 
   const indexer = indexers.find((it) => it.name === process.argv[2]);
   if (!indexer) {
@@ -34,16 +48,27 @@ async function main() {
 
   const highestLog = await loadLastLog(indexer);
 
-  const logsGenerator = getAllLogsGenerator(
-    provider,
+  const fromBlock = highestLog
+    ? highestLog.blockNumber + 1
+    : indexer.startingBlock;
+
+  const logsGenerator = getAllLogsInRange(
+    logProvider,
     filter,
-    lastSafeBlockNumber,
-    highestLog ? highestLog.blockNumber + 1 : indexer.startingBlock
+    fromBlock,
+    lastSafeBlockNumber
   );
 
-  const logFile = await fs.open(pathForLogs(indexer), "a+");
+  const path = pathForLogs(indexer);
+  await createParentDirectory(path);
+  const logFile = await fs.open(path, "a+");
 
-  for await (const logs of logsGenerator) {
+  const progressBar = makeFetchProgressBar(lastSafeBlockNumber);
+
+  for await (const { logs, fromBlock, toBlock } of logsGenerator) {
+    const pageSize = toBlock - fromBlock + 1;
+    progressBar.tick(toBlock - progressBar.curr + 1, { pageSize });
+
     for (const log of logs) {
       await logFile.write(JSON.stringify(log) + "\n");
     }

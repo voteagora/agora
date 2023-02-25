@@ -16,7 +16,7 @@ import { BlockIdentifier } from "../../storageHandle";
 export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
   implements Reader<EntityDefinitionsType>
 {
-  readonly entityDefinitions: EntityDefinitionsType;
+  private readonly entityDefinitions: EntityDefinitionsType;
 
   private readonly level: Level;
 

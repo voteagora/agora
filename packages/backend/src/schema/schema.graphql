@@ -25,7 +25,7 @@ type Delegate {
 
   # Delegate where voting power has been delegated. Can be delegated to a
   # delegate with the same address as the account.
-  # delegatingTo: Delegate!
+  delegatingTo: Delegate!
 
   statement: DelegateStatement
 
@@ -117,6 +117,7 @@ type VotingPower {
   amount: TokenAmount!
 
   bpsOfQuorum: Int!
+  bpsOfDelegatedSupply: Int!
   bpsOfTotal: Int!
 }
 
@@ -230,7 +231,7 @@ type Proposal {
 
   voteEndsAt: Timestamp!
   voteStartsAt: Timestamp!
-  quorumVotes: BigInt!
+  quorumVotes: TokenAmount!
   totalVotes: BigInt!
 
   targets: [Bytes!]
@@ -251,6 +252,7 @@ enum ProposalStatus {
   CANCELLED
   VETOED
   QUEUED
+  SUCCEEDED
   EXECUTED
   DEFEATED
   EXPIRED

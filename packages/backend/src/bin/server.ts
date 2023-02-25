@@ -1,6 +1,6 @@
 import "isomorphic-fetch";
 import { createServer } from "@graphql-yoga/node";
-import { makeGatewaySchema } from "../schema/index";
+import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
 import { AgoraContextType } from "../schema/context";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
@@ -17,7 +17,8 @@ import { entityDefinitions, indexers } from "../indexer/contracts";
 import { LevelEntityStore } from "../indexer/storage/level/levelEntityStore";
 import { LevelReader } from "../indexer/storage/level/levelReader";
 import { timeout } from "../indexer/utils/asyncUtils";
-import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
+import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
+import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 
 // p0
 // todo: where are delegate statements going to be stored?
@@ -41,7 +42,15 @@ async function main() {
   );
 
   const storageArea = await makeInitialStorageArea(store);
-  const iter = followChain(store, indexers, baseProvider, storageArea);
+  const blockProvider = new EthersBlockProvider(baseProvider);
+  const logProvider = new EthersLogProvider(baseProvider);
+  const iter = followChain(
+    store,
+    indexers,
+    blockProvider,
+    logProvider,
+    storageArea
+  );
   const _ = (async () => {
     while (true) {
       const value = await iter();
@@ -74,7 +83,6 @@ async function main() {
         reader,
         snapshotVoteStorage: makeSnapshotVoteStorage(dynamoDb),
         statementStorage: makeDynamoStatementStorage(dynamoDb),
-        delegateStorage: makeDynamoDelegateStore(dynamoDb),
 
         cache: {
           span: makeFakeSpan(),

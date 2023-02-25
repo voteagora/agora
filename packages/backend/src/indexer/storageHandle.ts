@@ -1,5 +1,8 @@
 import { EntityWithMetadata, ReadOnlyEntityStore } from "./storage/entityStore";
-import { blockIdentifierFromBlock, BlockProviderBlock } from "./blockProvider";
+import {
+  blockIdentifierFromBlock,
+  BlockProviderBlock,
+} from "./blockProvider/blockProvider";
 import { getOrInsert } from "./utils/mapUtils";
 import { makeEntityKey } from "./entityKey";
 import { StorageArea } from "./followChain";

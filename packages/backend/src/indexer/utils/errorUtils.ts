@@ -2,7 +2,7 @@
  * An error for wrapping other errors and adding metadata.
  */
 export class StructuredError extends Error {
-  private readonly values: any;
+  readonly values: any;
   constructor(values: any, cause: unknown) {
     super("StructuredError", { cause });
 

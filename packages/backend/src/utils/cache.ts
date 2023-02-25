@@ -1,8 +1,11 @@
-import { makeNopSpanMap, TracingContext } from "../schema/transformers/tracingContext";
+import {
+  makeNopSpanMap,
+  TracingContext,
+} from "../schema/transformers/tracingContext";
 
 export type Span = {
   startChildSpan(name: string): Span;
-  addData(data: any);
+  addData(data: any): void;
   finish(): void;
 };
 

@@ -9,22 +9,22 @@ import {
 import { StorageArea } from "../../followChain";
 import { RuntimeType } from "../../serde";
 import { makeEntityKey } from "../../entityKey";
-import { listEntries } from "./storageInterface";
+import { listEntries, StorageInterface } from "./storageInterface";
 import { BlockIdentifier } from "../../storageHandle";
 
 export class DurableObjectReader<
   EntityDefinitionsType extends EntityDefinitions
 > implements Reader<EntityDefinitionsType>
 {
-  readonly entityDefinitions: EntityDefinitionsType;
+  private readonly entityDefinitions: EntityDefinitionsType;
 
-  private readonly storage: DurableObjectStorage;
+  private readonly storage: StorageInterface;
 
   private readonly storageArea: StorageArea;
 
   constructor(
     entityDefinitions: EntityDefinitionsType,
-    storage: DurableObjectStorage,
+    storage: StorageInterface,
     storageArea: StorageArea
   ) {
     this.entityDefinitions = entityDefinitions;

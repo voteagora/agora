@@ -78,12 +78,11 @@ async function main() {
       try {
         await eventHandler.handle(storageHandle, event as any, log);
       } catch (e) {
-        console.log(event.args)
         throw new StructuredError(
           {
             log,
             event,
-            loaded: JSON.stringify(loadedEntities),
+            loaded: loadedEntities,
           },
           e
         );

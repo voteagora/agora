@@ -1,6 +1,7 @@
 import { Toucan, Options } from "toucan-js";
 import { Env } from "./env";
 import { RewriteFrames } from "@sentry/integrations";
+import { StructuredError } from "../indexer/utils/errorUtils";
 
 export type MakeOptionsParams = {
   env: Env;
@@ -19,6 +20,16 @@ export function makeToucanOptions({ env, ctx }: MakeOptionsParams): Options {
   };
 }
 
+export function captureException(sentry: Toucan, e: any) {
+  if (e instanceof StructuredError) {
+    sentry.setExtras({
+      ...e.values,
+    });
+  }
+
+  return sentry.captureException(e);
+}
+
 export async function runReportingException<T>(
   sentry: Toucan,
   fn: () => Promise<T>
@@ -26,7 +37,7 @@ export async function runReportingException<T>(
   try {
     return await fn();
   } catch (e) {
-    sentry.captureException(e);
+    captureException(sentry, e);
     throw e;
   }
 }
@@ -35,16 +46,12 @@ export function wrapModuleSentry(
   generateHandlers: (sentry: Toucan) => ExportedHandler<Env>
 ): ExportedHandler<Env> {
   return {
-    async fetch(...args): Promise<Response> {
+    async fetch(...args) {
       const [request, env, ctx] = args;
-
-      request.tracer.addData({
-        deployment: env.DEPLOYMENT,
-      });
 
       const sentry = new Toucan({
         ...makeOptions({ env, ctx }),
-        request,
+        request: request,
       });
 
       sentry.setTags({

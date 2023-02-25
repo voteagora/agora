@@ -1,4 +1,4 @@
-import { Env } from "./env";
+import { Env, safelyLoadBlockStepSize } from "./env";
 import { StoredEntry } from "../indexer/storage/dump";
 import { readableStreamFromGenerator } from "../utils/readableStream";
 import { getGraphQLCallingContext } from "./graphql";
@@ -12,6 +12,15 @@ import { DurableObjectEntityStore } from "../indexer/storage/durableObjects/dura
 import { AdminMessage } from "../indexer/ops/adminMessage";
 import { indexers } from "../indexer/contracts";
 import { listEntries } from "../indexer/storage/durableObjects/storageInterface";
+import {
+  collectGenerator,
+  limitGenerator,
+} from "../indexer/utils/generatorUtils";
+import { AnalyticsEngineReporter } from "../indexer/storage/durableObjects/analyticsEngineReporter";
+import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
+import { EthersLogProvider } from "../indexer/logProvider/logProvider";
+
+export const blockUpdateIntervalSeconds = 10;
 
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
@@ -31,6 +40,7 @@ export class StorageDurableObjectV1 {
       "mainnet",
       env.ALCHEMY_API_KEY
     );
+
     this.entityStore = new DurableObjectEntityStore(this.state.storage);
   }
 
@@ -73,6 +83,10 @@ export class StorageDurableObjectV1 {
         const entityStore = new DurableObjectEntityStore(this.state.storage);
         return new Response(
           JSON.stringify({
+            id: {
+              name: this.state.id.name,
+              id: this.state.id.toString(),
+            },
             alarm: await this.state.storage.getAlarm(),
             stopSentinel:
               (await this.state.storage.get(stopSentinel)) ?? "empty",
@@ -84,25 +98,31 @@ export class StorageDurableObjectV1 {
 
       case "/graphql": {
         const isProduction = this.env.ENVIRONMENT === "prod";
-        const entityStore = new DurableObjectEntityStore(this.state.storage);
+        const storage = this.state.storage;
+        const entityStore = new DurableObjectEntityStore(storage);
+
         const storageArea = await makeInitialStorageArea(entityStore);
         const { schema, context } = await getGraphQLCallingContext(
           request,
           this.env,
-          this.state.storage,
+          storage,
           this.provider,
           storageArea
         );
 
-        const server = createServer({
-          schema,
-          context,
-          maskedErrors: isProduction,
-          graphiql: !isProduction,
-          plugins: [useSentry(sentry)],
-        });
+        try {
+          const server = createServer({
+            schema,
+            context,
+            maskedErrors: isProduction,
+            graphiql: !isProduction,
+            plugins: [useSentry(sentry)],
+          });
 
-        return server.handleRequest(request);
+          const response = await server.handleRequest(request);
+          return response;
+        } finally {
+        }
       }
 
       default: {
@@ -124,7 +144,7 @@ export class StorageDurableObjectV1 {
       }
 
       case "STEP": {
-        await this.stepChainForward();
+        await this.stepChainForward(message.blockStepSize);
         break;
       }
 
@@ -155,22 +175,30 @@ export class StorageDurableObjectV1 {
     return new Response();
   }
 
-  async stepChainForward() {
+  async stepChainForward(blockStepSize?: number) {
+    const resolvedStepSize = blockStepSize ?? safelyLoadBlockStepSize(this.env);
+
     await this.entityStore.ensureConsistentState();
 
     const iter =
       this.iter ??
       (await (async () => {
         const storageArea = await makeInitialStorageArea(this.entityStore);
+        const blockProvider = new EthersBlockProvider(this.provider);
+        const logProvider = new EthersLogProvider(this.provider);
         return followChain(
           this.entityStore,
           indexers,
-          this.provider,
+          blockProvider,
+          logProvider,
           storageArea
         );
       })());
 
-    return await iter();
+    try {
+      return await iter(resolvedStepSize);
+    } finally {
+    }
   }
 
   async alarmWithSentry() {
@@ -188,7 +216,7 @@ export class StorageDurableObjectV1 {
           result.type === "TIP" ||
           (result.type === "MORE" && result.depth <= 0)
         ) {
-          return Date.now() + 1000 * 10;
+          return Date.now() + 1000 * blockUpdateIntervalSeconds;
         }
 
         return Date.now();
