@@ -8,6 +8,7 @@ import { maxReorgBlocksDepth } from "../process";
 import { getAllLogsInRange } from "../logProvider/getAllLogsInRange";
 import { EthersLogProvider } from "../logProvider/logProvider";
 import ProgressBar from "progress";
+import { createParentDirectory } from "../utils/pathUtils";
 
 function makeFetchProgressBar(total: number) {
   return new ProgressBar(
@@ -58,7 +59,9 @@ async function main() {
     lastSafeBlockNumber
   );
 
-  const logFile = await fs.open(pathForLogs(indexer), "a+");
+  const path = pathForLogs(indexer);
+  await createParentDirectory(path);
+  const logFile = await fs.open(path, "a+");
 
   const progressBar = makeFetchProgressBar(lastSafeBlockNumber);
 
