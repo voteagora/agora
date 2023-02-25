@@ -190,7 +190,7 @@ const rateLimiter = new RateLimiter({
 
 export async function* getAllFromQuery<
   Query extends DocumentNode<
-    { items?: ({ created: number, id: string } | null)[] | undefined | null },
+    { items?: ({ created: number; id: string } | null)[] | undefined | null },
     any
   >
 >(

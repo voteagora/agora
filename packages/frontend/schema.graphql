@@ -4,7 +4,12 @@ scalar Timestamp
 
 type Query {
   delegate(addressOrEnsName: String!): Delegate
-  delegates(where: DelegatesWhere, orderBy: DelegatesOrder!, first: Int!, after: String): DelegatesConnection!
+  delegates(
+    where: DelegatesWhere
+    orderBy: DelegatesOrder!
+    first: Int!
+    after: String
+  ): DelegatesConnection!
   proposals: [Proposal!]!
   metrics: Metrics!
 }
@@ -102,7 +107,12 @@ type SnapshotVote {
   reason: String!
 }
 
-union SnapshotVoteChoice = SnapshotVoteChoiceApproval | SnapshotVoteChoiceRanked | SnapshotVoteChoiceSingle | SnapshotVoteChoiceQuadratic | SnapshotVoteChoiceWeighted
+union SnapshotVoteChoice =
+    SnapshotVoteChoiceApproval
+  | SnapshotVoteChoiceRanked
+  | SnapshotVoteChoiceSingle
+  | SnapshotVoteChoiceQuadratic
+  | SnapshotVoteChoiceWeighted
 
 type SnapshotVoteChoiceApproval {
   approvedChoices: [Int!]!

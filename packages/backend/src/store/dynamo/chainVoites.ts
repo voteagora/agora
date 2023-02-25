@@ -41,7 +41,7 @@ export function makeChainVotesStorage(dynamo: DynamoDB): ChainVoteStorage {
 export async function writeVotesToDynamoDb(
   dynamo: DynamoDB,
   votes: Array<VoteRaw>,
-  proposals: Array<[string, ProposalRaw]>,
+  proposals: Array<[string, ProposalRaw]>
 ) {
   let i = 0;
   const batchSize = 25;
@@ -68,16 +68,19 @@ export async function writeVotesToDynamoDb(
                       }),
                       ...marshaller.marshallItem({
                         ...item,
-                        
-                        proposal: proposals.find( proposal => proposal[0] === item.proposalId.toString())[1],
+
+                        proposal: proposals.find(
+                          (proposal) =>
+                            proposal[0] === item.proposalId.toString()
+                        )[1],
                       }),
                     } as any,
                   },
                 },
               ];
-            })
+            }),
           },
-        }),
+        })
       )
     );
 

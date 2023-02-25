@@ -31,9 +31,12 @@ async function main() {
       // write delegates
       reducer.dumpChangesToDynamo?.(dynamoDb, initialState, currentState),
       // write votes & proposals
-      writeVotesToDynamoDb(dynamoDb, currentState.votes, currentState.proposals)
+      writeVotesToDynamoDb(
+        dynamoDb,
+        currentState.votes,
+        currentState.proposals
+      ),
     ]);
-
   }
 
   await updateSnapshotUpdateStatus(snapshotLatestBlock, dynamoDb);

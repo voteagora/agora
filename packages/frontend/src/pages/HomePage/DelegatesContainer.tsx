@@ -51,7 +51,7 @@ const pulseAnimation = keyframes`
   0%   {opacity: 0.2;}
   50%  {opacity: 0.8;}
   100% {opacity: 0.2;}
-`
+`;
 
 export function parseOrderName(orderName: string): DelegatesOrder | null {
   if (orderName in orderNames) {

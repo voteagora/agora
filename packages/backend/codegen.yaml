@@ -39,4 +39,3 @@ generates:
         SnapshotVoteChoiceApproval: ../model#SnapshotVoteChoice as SnapshotVoteChoiceModel
         SnapshotVoteChoiceWeighted: ../model#SnapshotVoteChoice as SnapshotVoteChoiceModel
         WeightedSelectedChoice: ../model#WeightedSelectedChoice as WeightedSelectedChoiceModel
-

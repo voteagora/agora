@@ -3,7 +3,7 @@ service: lambdas
 plugins:
   - serverless-esbuild
 
-frameworkVersion: '3'
+frameworkVersion: "3"
 
 provider:
   name: aws
@@ -14,7 +14,7 @@ provider:
 functions:
   loadSnapshotVotes:
     role: !Sub arn:aws:iam::${AWS::AccountId}:role/FetchSnapshotExecutionRole
-    name: 'load-snapshot-votes'
+    name: "load-snapshot-votes"
     handler: src/lambdas/loadSnapshotVotes/handler.run
     memorySize: 2048
     timeout: 300
@@ -25,7 +25,7 @@ functions:
 
   ingestUpdatesFromChain:
     role: !Sub arn:aws:iam::${AWS::AccountId}:role/IngestUpdatesFromChainExecutionRole
-    name: 'ingest-updates-from-chain'
+    name: "ingest-updates-from-chain"
     handler: src/lambdas/ingestUpdatesFromChain/handler.run
     memorySize: 2048
     timeout: 600

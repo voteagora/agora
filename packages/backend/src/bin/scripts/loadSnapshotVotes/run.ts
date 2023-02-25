@@ -1,4 +1,8 @@
-import { getAllFromQuery, proposalsQuery, votesQuery } from "../../../lambdas/loadSnapshotVotes/queries";
+import {
+  getAllFromQuery,
+  proposalsQuery,
+  votesQuery,
+} from "../../../lambdas/loadSnapshotVotes/queries";
 import { promises as fs } from "fs";
 import { loadJsonLines } from "../../../utils/jsonLines";
 import { takeLast } from "../../../indexer/utils/generatorUtils";
@@ -41,7 +45,6 @@ async function main() {
   let hasSeenLastEntry = false;
 
   for await (const vote of (async function* () {
-
     let votes = getAllFromQuery(
       query as any,
       { space: spaceId },
@@ -49,7 +52,6 @@ async function main() {
     );
 
     for await (const voteBatch of votes) {
-
       for (const item of voteBatch) {
         if (!lastEntry || hasSeenLastEntry) {
           yield item;
@@ -61,7 +63,6 @@ async function main() {
       }
     }
   })()) {
-
     await votesFile.write(JSON.stringify(vote) + "\n");
   }
 }
