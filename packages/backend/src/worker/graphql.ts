@@ -1,4 +1,4 @@
-import { Env, shouldAllowRead } from "./env";
+import { Env, mustGetAlchemyApiKey, shouldAllowRead } from "./env";
 import { makeGatewaySchema } from "../schema";
 import { AgoraContextType } from "../schema/context";
 import { makeEmailStorage } from "./storage";
@@ -44,7 +44,7 @@ export async function getGraphQLCallingContext(
     ethProvider: (() => {
       const baseProvider = new ethers.providers.AlchemyProvider(
         "mainnet",
-        env.ALCHEMY_API_KEY
+        mustGetAlchemyApiKey(env)
       );
       return new TransparentMultiCallProvider(baseProvider);
     })(),

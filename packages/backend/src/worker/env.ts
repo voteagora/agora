@@ -38,6 +38,14 @@ export function shouldAllowRead(env: Env) {
   return shouldAllow(env.ALLOW_READS_PERCENTAGE);
 }
 
+export function mustGetAlchemyApiKey(env: Env) {
+  if (!env.ALCHEMY_API_KEY) {
+    throw new Error("ALCHEMY_API_KEY missing");
+  }
+
+  return env.ALCHEMY_API_KEY;
+}
+
 function safelyLoadValueFromEnv(value?: string) {
   if (!value) {
     return;

@@ -1,4 +1,4 @@
-import { Env, safelyLoadBlockStepSize } from "./env";
+import { Env, mustGetAlchemyApiKey, safelyLoadBlockStepSize } from "./env";
 import { StoredEntry } from "../indexer/storage/dump";
 import { readableStreamFromGenerator } from "../utils/readableStream";
 import { getGraphQLCallingContext } from "./graphql";
@@ -38,7 +38,7 @@ export class StorageDurableObjectV1 {
     this.env = env;
     this.provider = new ethers.providers.AlchemyProvider(
       "mainnet",
-      env.ALCHEMY_API_KEY
+      mustGetAlchemyApiKey(env)
     );
 
     this.entityStore = new DurableObjectEntityStore(this.state.storage);
