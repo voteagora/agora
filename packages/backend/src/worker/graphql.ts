@@ -14,6 +14,7 @@ import { StorageInterface } from "../indexer/storage/durableObjects/storageInter
 import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
 import { NopReader } from "../indexer/storage/nopReader";
 import { Reader } from "../indexer/storage/reader";
+import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
 
 // Initializing the schema takes about 250ms. We should avoid doing it once
 // per request. We need to move this calculation into some kind of compile time
@@ -49,6 +50,7 @@ export async function getGraphQLCallingContext(
     })(),
     provider,
     reader,
+    delegateStorage: makeDynamoDelegateStore(dynamoClient),
     snapshotVoteStorage: makeSnapshotVoteStorage(dynamoClient),
     statementStorage: makeDynamoStatementStorage(dynamoClient),
     emailStorage: makeEmailStorage(env.EMAILS),

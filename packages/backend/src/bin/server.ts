@@ -19,6 +19,7 @@ import { LevelReader } from "../indexer/storage/level/levelReader";
 import { timeout } from "../indexer/utils/asyncUtils";
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
+import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
 
 // p0
 // todo: where are delegate statements going to be stored?
@@ -83,6 +84,7 @@ async function main() {
         reader,
         snapshotVoteStorage: makeSnapshotVoteStorage(dynamoDb),
         statementStorage: makeDynamoStatementStorage(dynamoDb),
+        delegateStorage: makeDynamoDelegateStore(dynamoDb),
 
         cache: {
           span: makeFakeSpan(),

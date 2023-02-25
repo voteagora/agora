@@ -5,8 +5,10 @@ import { EmailStorage, StatementStorage } from "./model";
 import { ethers } from "ethers";
 import { TracingContext } from "./transformers/tracingContext";
 import { SnapshotVoteModel } from "./resolvers/snapshot";
+import { DelegateStorage } from "../model";
 
 export type AgoraContextType = {
+  delegateStorage: DelegateStorage;
   reader: Reader<typeof entityDefinitions>;
   ethProvider: ethers.providers.BaseProvider;
   provider: ethers.providers.BaseProvider;
