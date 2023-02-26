@@ -25,7 +25,11 @@ export function makeSnapshotVoteStorage(dynamo: DynamoDB): SnapshotVoteStorage {
 
       return result.Items.map((it) => marshaller.unmarshallItem(it)).flatMap(
         (it) => {
-          if (!it.proposal) {
+          let sortKey = it.SortKey.toString().split("#");
+
+          console.log({ sortKey });
+
+          if (!it.proposal || sortKey[1] == undefined) {
             return [];
           }
 

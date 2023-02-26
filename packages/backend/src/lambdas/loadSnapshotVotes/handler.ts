@@ -1,5 +1,4 @@
 import { S3 } from "@aws-sdk/client-s3";
-import { chunk } from "lodash";
 import {
   getAllFromQuery,
   GetAllFromQueryResult,
@@ -12,25 +11,44 @@ import {
 import request from "graphql-request";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { makeKey, marshaller } from "../../store/dynamo/utils";
+import {
+  batch,
+  collectGenerator,
+  flatten,
+  indexed,
+} from "../../indexer/utils/generatorUtils";
+import {
+  fetchSnapshotSyncStatus,
+  updateSnapshotSyncStatus,
+} from "./snapshotSyncStatus";
+import { chunk } from "lodash";
 
 const spaceId = "ens.eth";
 
 export async function run() {
-  const Bucket = process.env.S3_BUCKET!;
-
-  const s3 = new S3({});
-
   const dynamo = new DynamoDB({
     retryMode: "standard",
   });
 
+  const last = await fetchSnapshotSyncStatus(dynamo);
+
+  console.log(last && last.latestTSSynced);
+
   const [proposals, votes, space] = await Promise.all([
-    getAllFromQuery(proposalsQuery, {
-      space: spaceId,
-    }),
-    getAllFromQuery(votesQuery, {
-      space: spaceId,
-    }),
+    collectGenerator(
+      flatten(
+        getAllFromQuery(proposalsQuery, {
+          space: spaceId,
+        })
+      )
+    ),
+    getAllFromQuery(
+      votesQuery,
+      {
+        space: spaceId,
+      },
+      last?.latestTSSynced
+    ),
     request({
       url,
       document: spaceQuery,
@@ -41,42 +59,35 @@ export async function run() {
   ]);
 
   await Promise.all([
-    s3.putObject({
-      Bucket,
-      Key: `${spaceId}/votes.json`,
-      Body: JSON.stringify(votes),
-    }),
-    s3.putObject({
-      Bucket,
-      Key: `${spaceId}/space.json`,
-      Body: JSON.stringify(space),
-    }),
-    s3.putObject({
-      Bucket,
-      Key: `${spaceId}/proposals.json`,
-      Body: JSON.stringify(proposals),
-    }),
-    writeVotesToDynamoDb(dynamo, votes as any, space, proposals as any),
+    writeVotesToDynamoDb(dynamo, votes, proposals, last?.latestTSSynced),
   ]);
 }
 
 async function writeVotesToDynamoDb(
   dynamo: DynamoDB,
-  votes: GetAllFromQueryResult<typeof votesQuery>,
-  space: ResultOf<typeof spaceQuery>,
-  proposals: GetAllFromQueryResult<typeof proposalsQuery>
+  votePages: AsyncGenerator<GetAllFromQueryResult<typeof votesQuery>>,
+  proposals: GetAllFromQueryResult<typeof proposalsQuery>,
+  latestTSSynced?: number
 ) {
-  let i = 0;
   const batchSize = 25;
   const pageSize = 5;
-  for (const items of chunk(votes, batchSize * pageSize)) {
+
+  for await (const [idx, items] of indexed(
+    batch(flatten(votePages), batchSize * pageSize)
+  )) {
     await Promise.all(
-      chunk(items, batchSize).map((items) =>
+      chunk(items, batchSize).map((itemsChunk) =>
         dynamo.batchWriteItem({
           RequestItems: {
-            ApplicationData: items.flatMap((item) => {
+            ApplicationData: itemsChunk.flatMap((item) => {
               if (!item) {
                 return [];
+              }
+
+              if (item.created) {
+                latestTSSynced = latestTSSynced
+                  ? Math.max(latestTSSynced, item.created)
+                  : item.created;
               }
 
               return [
@@ -106,11 +117,12 @@ async function writeVotesToDynamoDb(
       )
     );
 
-    console.log(
-      `put batch completed: ${i} of ${
-        (votes?.length ?? 0) / (batchSize * pageSize)
-      }`
-    );
-    i++;
+    console.log(`put batch completed: ${idx}`);
+  }
+
+  console.log({ latestTSSynced });
+
+  if (latestTSSynced) {
+    await updateSnapshotSyncStatus(latestTSSynced, dynamo);
   }
 }

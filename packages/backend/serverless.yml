@@ -23,19 +23,6 @@ functions:
     events:
       - schedule: rate(1 hour)
 
-  ingestUpdatesFromChain:
-    role: !Sub arn:aws:iam::${AWS::AccountId}:role/IngestUpdatesFromChainExecutionRole
-    name: "ingest-updates-from-chain"
-    handler: src/lambdas/ingestUpdatesFromChain/handler.run
-    memorySize: 2048
-    timeout: 600
-    environment:
-      S3_BUCKET: ${ssm:/ingestUpdatesFromChain/s3Bucket}
-      CF_KV_NAMESPACE: ${ssm:/ingestUpdatesFromChain/cfKvNamespace}
-      CF_ACCOUNT: ${ssm:/ingestUpdatesFromChain/cfAccount}
-    events:
-      - schedule: rate(15 minutes)
-
 custom:
   esbuild:
     packager: yarn
