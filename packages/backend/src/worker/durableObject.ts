@@ -14,6 +14,7 @@ import { indexers } from "../indexer/contracts";
 import { listEntries } from "../indexer/storage/durableObjects/storageInterface";
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
+import { maxReorgBlocksDepth } from "../indexer/process";
 
 export const blockUpdateIntervalSeconds = 10;
 
@@ -207,7 +208,7 @@ export class StorageDurableObjectV1 {
       (() => {
         if (
           result.type === "TIP" ||
-          (result.type === "MORE" && result.depth <= 0)
+          (result.type === "MORE" && result.depth <= maxReorgBlocksDepth)
         ) {
           return Date.now() + 1000 * blockUpdateIntervalSeconds;
         }
