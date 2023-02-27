@@ -22,7 +22,6 @@
     "generate": "yarn run generate-typechain && yarn run generate-schema-types",
     "build-worker": "node scripts/buildWorker.js",
     "visualize-worker-bundle": "esbuild-visualizer ---metadata ./dist/meta.json",
-    "fetch-schema": "get-graphql-schema https://api.thegraph.com/subgraphs/name/nounsdao/nouns-subgraph > ./src/schemas/nouns-subgraph.graphql",
     "stream": "ts-node src/indexer/ops/bin/stream.ts",
     "start": "yarn run generate && yarn run server",
     "consistency-test": "ts-node src/bin/scripts/consistencyTest.ts",
