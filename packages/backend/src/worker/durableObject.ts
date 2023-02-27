@@ -180,6 +180,7 @@ export class StorageDurableObjectV1 {
       }
 
       case "WRITE_BATCH": {
+        // todo: write sequentially, Promise.all is not able to handle backpressure
         await Promise.all(
           message.items.map((items) =>
             this.state.storage.put(
