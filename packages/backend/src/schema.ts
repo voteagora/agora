@@ -714,6 +714,8 @@ export function makeGatewaySchema() {
         { statementStorage, emailStorage },
         info
       ) {
+        throw new Error("delegate statement updates disabled");
+
         const updatedAt = Date.now();
         const validated = await validateSigned(provider, args.data.statement);
 
