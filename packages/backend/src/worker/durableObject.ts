@@ -248,7 +248,7 @@ export class StorageDurableObjectV1 {
       (() => {
         if (
           result.type === "TIP" ||
-          (result.type === "MORE" && result.depth <= 0)
+          (result.type === "MORE" && result.depth <= 10)
         ) {
           return Date.now() + 1000 * blockUpdateIntervalSeconds;
         }
