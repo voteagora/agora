@@ -2,7 +2,7 @@ import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { parseCreatedAt, VoteDetails } from "./VoteDetails";
+import { VoteDetails } from "./VoteDetails";
 import { PastVotesFragment$key } from "./__generated__/PastVotesFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { PropHouseVoteDetails } from "./PropHouseVoteDetails";
@@ -23,9 +23,10 @@ export function PastVotes({ fragment }: Props) {
   const { votes, propHouseVotes } = useFragment(
     graphql`
       fragment PastVotesFragment on Delegate {
-        votes(orderBy: blockNumber, orderDirection: desc) {
+        votes {
           id
-          createdAt
+          approximateTimestamp
+
           proposal {
             totalValue
           }
@@ -55,13 +56,13 @@ export function PastVotes({ fragment }: Props) {
     () => [
       ...votes.map((vote) => ({
         type: "ON_CHAIN" as const,
-        createdAt: parseCreatedAt(vote.createdAt),
+        createdAt: new Date(vote.approximateTimestamp),
         amountEth: BigNumber.from(vote.proposal.totalValue),
         vote,
       })),
       ...propHouseVotes.map((vote) => ({
         type: "PROP_HOUSE" as const,
-        createdAt: new Date(Number(vote.createdAt)),
+        createdAt: new Date(vote.createdAt),
         amountEth:
           vote.round.currencyType === "ETH"
             ? utils.parseEther(vote.round.fundingAmount)

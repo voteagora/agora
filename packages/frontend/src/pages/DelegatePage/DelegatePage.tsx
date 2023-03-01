@@ -3,14 +3,13 @@ import graphql from "babel-plugin-relay/macro";
 import { DelegatePageQuery } from "./__generated__/DelegatePageQuery.graphql";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { VoterPanel } from "./VoterPanel";
 import { PastVotes } from "./PastVotes";
 import { Markdown } from "../../components/Markdown";
 import { HStack, VStack } from "../../components/VStack";
 import { ImpactfulProposals } from "./ImpactfulProposals";
 import { useParams } from "../../components/HammockRouter/HammockRouter";
-import { Navigate } from "../../components/HammockRouter/Navigate";
 import { TopIssues } from "./TopIssues";
+import { VoterPanel } from "../../components/VoterPanel/VoterPanel";
 
 export function DelegatePage() {
   const { delegateId } = useParams();
@@ -18,23 +17,16 @@ export function DelegatePage() {
   const query = useLazyLoadQuery<DelegatePageQuery>(
     graphql`
       query DelegatePageQuery($addressOrEnsName: String!) {
-        ...VoterPanelQueryFragment
+        delegate(addressOrEnsName: $addressOrEnsName) {
+          ...VoterPanelFragment
+          ...PastVotesFragment
 
-        address(addressOrEnsName: $addressOrEnsName) {
-          wrappedDelegate {
-            delegate {
-              ...PastVotesFragment
-            }
+          statement {
+            statement
 
-            statement {
-              statement
-
-              ...ImpactfulProposalsFragment
-              ...TopIssuesFragment
-            }
+            ...ImpactfulProposalsFragment
+            ...TopIssuesFragment
           }
-
-          ...VoterPanelDelegateFragment
         }
       }
     `,
@@ -42,17 +34,6 @@ export function DelegatePage() {
       addressOrEnsName: delegateId ?? "",
     }
   );
-
-  if (!query.address) {
-    return <Navigate to="/" />;
-  }
-
-  const wrappedDelegate = query.address.wrappedDelegate;
-
-  if (!wrappedDelegate.delegate && !wrappedDelegate.statement) {
-    // todo: handle delegate not found
-    return <Navigate to="/" />;
-  }
 
   return (
     <>
@@ -90,9 +71,9 @@ export function DelegatePage() {
             }
           `}
         >
-          <VoterPanel delegateFragment={query.address} queryFragment={query} />
+          <VoterPanel fragment={query.delegate} />
 
-          {!wrappedDelegate.statement && (
+          {!query.delegate.statement && (
             <div
               className={css`
                 color: #66676b;
@@ -115,9 +96,9 @@ export function DelegatePage() {
             flex: 1;
           `}
         >
-          {!!wrappedDelegate.statement && (
+          {!!query.delegate.statement && (
             <>
-              {wrappedDelegate.statement.statement && (
+              {query.delegate.statement.statement && (
                 <VStack gap="4">
                   <h2
                     className={css`
@@ -128,18 +109,16 @@ export function DelegatePage() {
                     Delegate statement
                   </h2>
 
-                  <Markdown markdown={wrappedDelegate.statement.statement} />
+                  <Markdown markdown={query.delegate.statement.statement} />
                 </VStack>
               )}
 
-              <TopIssues fragment={wrappedDelegate.statement} />
-              <ImpactfulProposals fragment={wrappedDelegate.statement} />
+              <TopIssues fragment={query.delegate.statement} />
+              <ImpactfulProposals fragment={query.delegate.statement} />
             </>
           )}
 
-          {wrappedDelegate.delegate && (
-            <PastVotes fragment={wrappedDelegate.delegate} />
-          )}
+          <PastVotes fragment={query.delegate} />
         </VStack>
       </HStack>
     </>

@@ -2,12 +2,12 @@ import { z } from "zod";
 import { groupBy } from "lodash";
 import { auction } from "./fetchAuction";
 import { fetchVotesResponse } from "./fetchVotes";
-import { fetchAuctionsResponse } from "./fetchAuctions";
+import { auctionsAuction, fetchAuctionsResponse } from "./fetchAuctions";
 import { proposal } from "./common";
-import { PropHouseAuctionStatus } from "../generated/types";
+import { PropHouseAuctionStatus } from "../schema/resolvers/generated/types";
 
 export function statusForAuction(
-  a: z.infer<typeof auction>
+  a: z.infer<typeof auctionsAuction>
 ): PropHouseAuctionStatus {
   const currentTime = new Date().toISOString();
   if (currentTime < a.startTime) {
@@ -25,7 +25,7 @@ export function groupVotesByAuction(
   votes: z.infer<typeof fetchVotesResponse>,
   auctions: z.infer<typeof fetchAuctionsResponse>
 ): {
-  auction: z.infer<typeof auction>;
+  auction: z.infer<typeof auctionsAuction>;
   createdAt: string;
   votes: { proposal: z.infer<typeof proposal>; weight: number }[];
 }[] {

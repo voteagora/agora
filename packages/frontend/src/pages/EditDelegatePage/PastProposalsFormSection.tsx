@@ -12,6 +12,7 @@ import useClickOutside from "@restart/ui/useClickOutside";
 import { CloseButton } from "./CloseButton";
 import { Form } from "./DelegateStatementForm";
 import { VStack } from "../../components/VStack";
+import { BigNumber } from "ethers";
 
 type Props = {
   queryFragment: PastProposalsFormSectionProposalListFragment$key;
@@ -71,11 +72,8 @@ function ProposalList({
   const { allProposals } = useFragment(
     graphql`
       fragment PastProposalsFormSectionProposalListFragment on Query {
-        allProposals: proposals(
-          first: 1000
-          orderDirection: desc
-          orderBy: createdBlock
-        ) {
+        allProposals: proposals {
+          # eslint-disable-next-line relay/unused-fields
           id
           number
           title
@@ -93,7 +91,7 @@ function ProposalList({
         const title = proposal.title;
 
         return {
-          number: proposal.number,
+          number: BigNumber.from(proposal.number).toNumber(),
           title,
           searchValue: `#${proposal.number} ${title ?? ""}`.toLowerCase(),
         };

@@ -8,6 +8,7 @@ import {
   NounGridFragment$key,
 } from "./__generated__/NounGridFragment.graphql";
 import { HStack } from "./VStack";
+import { BigNumber } from "ethers";
 
 type Props = {
   dense?: boolean;
@@ -174,22 +175,30 @@ export function NounsRepresentedGrid({
   dense,
   ...layoutProps
 }: NounsRepresentedGridProps) {
-  const { nounsRepresented, delegatedVotesRaw } =
-    useFragment<NounGridFragment$key>(
-      graphql`
-        fragment NounGridFragment on Delegate {
-          delegatedVotesRaw
-
-          nounsRepresented {
-            id
-            ...NounImageFragment
+  const {
+    nounsRepresented,
+    tokensRepresented: {
+      amount: { amount: tokensRepresentedRaw },
+    },
+  } = useFragment<NounGridFragment$key>(
+    graphql`
+      fragment NounGridFragment on Delegate {
+        tokensRepresented {
+          amount {
+            amount
           }
         }
-      `,
-      fragmentKey
-    );
 
-  const totalNouns = Number(delegatedVotesRaw);
+        nounsRepresented {
+          id
+          ...NounImageFragment
+        }
+      }
+    `,
+    fragmentKey
+  );
+
+  const totalNouns = BigNumber.from(tokensRepresentedRaw).toNumber();
 
   if (!dense && nounsRepresented.length < layoutProps.columns) {
     return (

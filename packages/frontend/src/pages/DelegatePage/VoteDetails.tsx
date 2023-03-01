@@ -21,10 +21,6 @@ type Props = {
   voteFragment: VoteDetailsFragment$key;
 };
 
-export function parseCreatedAt(raw: string) {
-  return new Date(Number(raw) * 1000);
-}
-
 export function VoteDetails({ voteFragment }: Props) {
   const vote = useFragment(
     graphql`
@@ -32,8 +28,13 @@ export function VoteDetails({ voteFragment }: Props) {
         reason
         ...VoteReasonFragment
         supportDetailed
-        votes
-        createdAt
+        votes {
+          amount {
+            amount
+          }
+        }
+
+        approximateTimestamp
 
         proposal {
           number
@@ -42,11 +43,6 @@ export function VoteDetails({ voteFragment }: Props) {
           ...ProposalLinkFragment
 
           totalValue
-          proposer {
-            resolvedName {
-              ...NounResolvedLinkFragment
-            }
-          }
         }
       }
     `,
@@ -85,9 +81,8 @@ export function VoteDetails({ voteFragment }: Props) {
             <ProposalLink fragmentRef={vote.proposal}>
               Prop {vote.proposal.number}
             </ProposalLink>
-            <ValuePart value={vote.proposal.totalValue} />
-            {vote.createdAt &&
-              ` - ${formatDistanceToNow(parseCreatedAt(vote.createdAt))} ago`}
+            <ValuePart value={vote.proposal.totalValue} />-{" "}
+            {formatDistanceToNow(new Date(vote.approximateTimestamp))} ago
           </div>
 
           <VoteTitle>
@@ -110,7 +105,7 @@ export function VoteDetails({ voteFragment }: Props) {
             >
               {supportType.toLowerCase()}
             </span>{" "}
-            with {pluralizeVote(BigNumber.from(vote.votes))}
+            with {pluralizeVote(BigNumber.from(vote.votes.amount.amount))}
           </span>
         </VStack>
 

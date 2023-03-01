@@ -1,1 +1,4 @@
-snapshot.json
+src/schema/resolvers/generated
+src/contracts/generated
+dist
+.serverless

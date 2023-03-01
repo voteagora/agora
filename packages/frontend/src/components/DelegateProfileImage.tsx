@@ -4,9 +4,10 @@ import { css } from "@emotion/css";
 import { DelegateProfileImageFragment$key } from "./__generated__/DelegateProfileImageFragment.graphql";
 import { NounsRepresentedGrid } from "./NounGrid";
 import * as theme from "../theme";
-import { HStack, VStack } from "./VStack";
+import { HStack } from "./VStack";
 import { useEnsAvatar } from "wagmi";
 import { icons } from "../icons/icons";
+import { BigNumber } from "ethers";
 
 type Props = {
   fragment: DelegateProfileImageFragment$key;
@@ -16,19 +17,19 @@ type Props = {
 export function DelegateProfileImage({ fragment, dense }: Props) {
   const delegate = useFragment(
     graphql`
-      fragment DelegateProfileImageFragment on WrappedDelegate {
+      fragment DelegateProfileImageFragment on Delegate {
         address {
           resolvedName {
             address
           }
         }
-        delegate {
-          nounsRepresented {
-            id
+        tokensRepresented {
+          amount {
+            amount
           }
-
-          ...NounGridFragment
         }
+
+        ...NounGridFragment
       }
     `,
     fragment
@@ -38,7 +39,7 @@ export function DelegateProfileImage({ fragment, dense }: Props) {
     address: delegate.address.resolvedName.address as any,
   });
 
-  return !delegate.delegate ? (
+  return BigNumber.from(delegate.tokensRepresented.amount.amount).isZero() ? (
     <HStack
       alignItems="center"
       className={css`
@@ -67,24 +68,6 @@ export function DelegateProfileImage({ fragment, dense }: Props) {
         Currently seeking delegation
       </div>
     </HStack>
-  ) : !delegate.delegate.nounsRepresented.length ? (
-    <VStack
-      justifyContent="center"
-      alignItems="center"
-      className={css`
-        color: #afafaf;
-        min-height: 44px;
-        font-size: ${theme.fontSize.sm};
-        margin: 0 ${theme.spacing["10"]};
-        border-radius: ${theme.borderRadius.full};
-        border: 1px solid ${theme.colors.gray.eb};
-        box-shadow: ${theme.boxShadow.newDefault};
-        margin: ${theme.spacing["4"]} 0;
-        width: 100%;
-      `}
-    >
-      No longer has votes
-    </VStack>
   ) : (
     <NounsRepresentedGrid
       rows={3}
@@ -92,7 +75,7 @@ export function DelegateProfileImage({ fragment, dense }: Props) {
       gap={dense ? "2" : "4"}
       imageSize={dense ? "10" : "12"}
       overflowFontSize="base"
-      fragmentKey={delegate.delegate}
+      fragmentKey={delegate}
     />
   );
 }

@@ -12,34 +12,47 @@ import {
 } from "./ProposalListPanel/ProposalsListPanel";
 import { useState, useTransition } from "react";
 import { motion } from "framer-motion";
-import { useAccount } from "wagmi";
 import {
   useNavigate,
   useParams,
 } from "../../components/HammockRouter/HammockRouter";
+import { useAccount } from "wagmi";
 
 export function ProposalsPage() {
   const { proposalId } = useParams();
+  const { address } = useAccount();
+
   const [isPending, startTransition] = useTransition();
   const navigate = useNavigate();
 
   const [proposalsListExpanded, setExpanded] = useState<boolean>(!proposalId);
-  const { address: accountAddress } = useAccount();
 
   const result = useLazyLoadQuery<ProposalsPageDetailQuery>(
     graphql`
-      query ProposalsPageDetailQuery($proposalID: ID!, $address: String!) {
-        firstProposal: proposal(id: $proposalID) {
+      query ProposalsPageDetailQuery(
+        $proposalId: ID!
+        $address: String!
+        $skipAddress: Boolean!
+      ) {
+        firstProposal: proposal(id: $proposalId) {
           number
           ...ProposalDetailPanelFragment
-          ...VotesCastPanelFragment @arguments(address: $address)
+          ...VotesCastPanelFragment
         }
         ...ProposalsListPanelFragment
+
+        ...VotesCastPanelQueryFragment
+          @arguments(
+            address: $address
+            skipAddress: $skipAddress
+            proposalId: $proposalId
+          )
       }
     `,
     {
-      proposalID: proposalId,
-      address: accountAddress ?? "",
+      proposalId,
+      address: address ?? "",
+      skipAddress: !address,
     }
   );
 
@@ -122,6 +135,7 @@ export function ProposalsPage() {
           />
           <VotesCastPanel
             fragmentRef={result.firstProposal}
+            queryFragmentRef={result}
             expanded={proposalsListExpanded}
           />
         </VStack>

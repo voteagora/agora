@@ -3,14 +3,18 @@ import {
   ENSAddressResolver__factory,
   ENSRegistryWithFallback,
   ENSRegistryWithFallback__factory,
-  NNSENSReverseResolver,
+  NNSENSReverseResolver__factory,
 } from "../contracts/generated";
 
 export async function resolveNameFromAddress(
   address: string,
-  resolver: NNSENSReverseResolver,
   provider: ethers.providers.Provider
 ): Promise<string | null> {
+  const resolver = NNSENSReverseResolver__factory.connect(
+    "0x5982cE3554B18a5CF02169049e81ec43BFB73961",
+    provider
+  );
+
   const resolved = await resolver.resolve(address);
   if (!resolved) {
     return null;

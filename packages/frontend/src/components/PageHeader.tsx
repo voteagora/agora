@@ -15,6 +15,7 @@ import { ReactNode, Suspense, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
 import { icons } from "../icons/icons";
 import { PROPOSALS_ENABLED, useLocation } from "./HammockRouter/HammockRouter";
+import { BigNumber } from "ethers";
 
 export function PageHeader() {
   const location = useLocation();
@@ -230,14 +231,12 @@ function PageHeaderContents() {
     });
   }, [accountAddress]);
 
-  const { address } = useLazyLoadQuery<PageHeaderQuery>(
+  const { delegate } = useLazyLoadQuery<PageHeaderQuery>(
     graphql`
       query PageHeaderQuery($address: String!, $skip: Boolean!) {
-        address(addressOrEnsName: $address) @skip(if: $skip) {
-          wrappedDelegate {
-            statement {
-              __typename
-            }
+        delegate(addressOrEnsName: $address) @skip(if: $skip) {
+          statement {
+            __typename
           }
 
           ...PageHeaderFragment
@@ -252,7 +251,7 @@ function PageHeaderContents() {
 
   return (
     <HStack gap="2" justifyContent="center">
-      {address && (
+      {delegate && (
         <Link
           to="/create"
           className={css`
@@ -270,11 +269,11 @@ function PageHeaderContents() {
             }
           `}
         >
-          <div>{!!address.wrappedDelegate.statement ? "Edit" : "Create"}</div>
+          <div>{!!delegate.statement ? "Edit" : "Create"}</div>
         </Link>
       )}
 
-      {address && <OwnedNounsPanel fragment={address} />}
+      {delegate && <OwnedNounsPanel fragment={delegate} />}
     </HStack>
   );
 }
@@ -284,25 +283,25 @@ type OwnedNounsPanelProps = {
 };
 
 function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
-  const { account } = useFragment(
+  const { tokensOwned, nounsOwned } = useFragment(
     graphql`
-      fragment PageHeaderFragment on Address {
-        account {
-          tokenBalance
-
-          nouns {
-            id
-            ...NounImageFragment
+      fragment PageHeaderFragment on Delegate {
+        tokensOwned {
+          amount {
+            amount
           }
+        }
+
+        nounsOwned {
+          # eslint-disable-next-line relay/unused-fields
+          id
+          # eslint-disable-next-line relay/must-colocate-fragment-spreads
+          ...NounImageFragment
         }
       }
     `,
     fragment
   );
-
-  if (!account || !account.nouns.length) {
-    return null;
-  }
 
   return (
     <HStack
@@ -324,8 +323,8 @@ function OwnedNounsPanel({ fragment }: OwnedNounsPanelProps) {
       >
         <NounGridChildren
           count={4}
-          totalNouns={Number(account.tokenBalance)}
-          nouns={account.nouns}
+          totalNouns={BigNumber.from(tokensOwned.amount.amount).toNumber()}
+          nouns={nounsOwned}
           imageSize={"5"}
           overflowFontSize={"sm"}
         />

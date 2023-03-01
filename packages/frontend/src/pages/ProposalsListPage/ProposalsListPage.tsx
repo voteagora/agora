@@ -24,23 +24,25 @@ export function ProposalsListPage() {
   const result = useLazyLoadQuery<ProposalsListPageQuery>(
     graphql`
       query ProposalsListPageQuery {
-        proposals(first: 1000, orderDirection: desc, orderBy: createdBlock) {
-          id
-          number
-          actualStatus
-          createdTimestamp
+        proposals {
+          # eslint-disable-next-line relay/unused-fields
+          status
+          # eslint-disable-next-line relay/unused-fields
+          voteStartsAt
 
           ...OnChainProposalRowFragment
         }
 
         propHouseAuctions {
+          # eslint-disable-next-line relay/unused-fields
           startTime
+          # eslint-disable-next-line relay/unused-fields
           status
 
           ...PropHouseAuctionRowFragment
         }
 
-        ...OverviewMetricsContainer
+        ...OverviewMetricsContainerFragment
       }
     `,
     {}

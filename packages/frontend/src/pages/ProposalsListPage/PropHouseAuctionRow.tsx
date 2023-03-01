@@ -19,7 +19,6 @@ export function PropHouseAuctionRow({
   const auction = useFragment(
     graphql`
       fragment PropHouseAuctionRowFragment on PropHouseAuction {
-        id
         number
         title
         status

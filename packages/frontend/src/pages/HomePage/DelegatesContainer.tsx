@@ -7,10 +7,6 @@ import { VoterTabular } from "./VoterTabular";
 import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { useCallback, useState, useTransition } from "react";
-import {
-  WrappedDelegatesOrder,
-  WrappedDelegatesWhere,
-} from "./__generated__/DelegatesContainerPaginationQuery.graphql";
 import { Selector, SelectorItem } from "./Selector";
 import { motion } from "framer-motion";
 import InfiniteScroll from "react-infinite-scroller";
@@ -19,13 +15,14 @@ import {
   useLocation,
   useNavigate,
 } from "../../components/HammockRouter/HammockRouter";
-import { locationToVariables } from "./HomePage";
+import type { LocationVariables } from "./HomePage";
 import { Tab } from "@headlessui/react";
 import { icons } from "../../icons/icons";
+import { DelegatesOrder } from "./__generated__/DelegatesContainerPaginationQuery.graphql";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
-  variables: ReturnType<typeof locationToVariables>;
+  variables: LocationVariables;
 };
 
 const layoutModeValidValues = ["card", "tabular"] as const;
@@ -49,10 +46,8 @@ const layoutModeSelectorSelectedStyles = css`
   opacity: 1;
 `;
 
-const orderNames: { [K in WrappedDelegatesOrder]?: string } = {
-  mostRelevant: "Most relevant",
-  mostNounsRepresented: "Most nouns represented",
-  mostRecentlyActive: "Most recently active",
+const orderNames: { [K in DelegatesOrder]?: string } = {
+  mostVotingPower: "Most nouns represented",
   mostVotesCast: "Most votes cast",
   leastVotesCast: "Least votes cast",
 };
@@ -67,12 +62,9 @@ function layoutModeFromLocation(location: Location): LayoutMode {
 
 export function DelegatesContainer({ fragmentKey, variables }: Props) {
   const [isPending, startTransition] = useTransition();
-  const [localOrderBy, setLocalOrderBy] = useState<WrappedDelegatesOrder>(
+  const [localOrderBy, setLocalOrderBy] = useState<DelegatesOrder>(
     variables.orderBy
   );
-
-  const [localFilterBy, setLocalFilterBy] =
-    useState<WrappedDelegatesWhere | null>(variables.filterBy);
 
   const location = useLocation();
   const layoutMode = layoutModeFromLocation(location);
@@ -98,19 +90,11 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
       @argumentDefinitions(
         first: { type: "Int", defaultValue: 30 }
         after: { type: "String" }
-        orderBy: {
-          type: "WrappedDelegatesOrder"
-          defaultValue: mostNounsRepresented
-        }
-        filterBy: { type: "WrappedDelegatesWhere" }
+        orderBy: { type: "DelegatesOrder", defaultValue: mostVotingPower }
       )
       @refetchable(queryName: "DelegatesContainerPaginationQuery") {
-        voters: wrappedDelegates(
-          first: $first
-          after: $after
-          orderBy: $orderBy
-          where: $filterBy
-        ) @connection(key: "DelegatesContainerFragment_voters") {
+        voters: delegates(first: $first, after: $after, orderBy: $orderBy)
+          @connection(key: "DelegatesContainerFragment_voters") {
           edges {
             node {
               id
@@ -128,19 +112,12 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
     loadNext(30);
   }, [loadNext]);
 
-  function setFilterBy(filterBy: WrappedDelegatesWhere | null) {
-    setLocalFilterBy(filterBy);
-    startTransition(() => {
-      navigate({ search: { filterBy: filterBy ?? null } });
-    });
-  }
-
-  function setOrderBy(orderBy: WrappedDelegatesOrder) {
+  function setOrderBy(orderBy: DelegatesOrder) {
     setLocalOrderBy(orderBy);
     startTransition(() => {
       navigate({
         search: {
-          orderBy: orderBy === "mostNounsRepresented" ? null : orderBy ?? null,
+          orderBy: orderBy === "mostDelegates" ? null : orderBy ?? null,
         },
       });
     });
@@ -242,32 +219,10 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
               </Tab.Group>
             </HStack>
             <Selector
-              items={
-                [
-                  {
-                    title: "All",
-                    value: null,
-                  },
-                  {
-                    title: "With statement",
-                    value: "withStatement" as const,
-                  },
-                  {
-                    title: "Seeking delegation",
-                    value: "seekingDelegation" as const,
-                  },
-                ] as SelectorItem<WrappedDelegatesWhere | null>[]
-              }
-              value={isPending ? localFilterBy : variables.filterBy}
-              onChange={(filterBy) => setFilterBy(filterBy)}
-              size={"l"}
-            />
-
-            <Selector
               items={Object.entries(orderNames).map(
-                ([value, title]): SelectorItem<WrappedDelegatesOrder> => ({
+                ([value, title]): SelectorItem<DelegatesOrder> => ({
                   title,
-                  value: value as WrappedDelegatesOrder,
+                  value: value as DelegatesOrder,
                 })
               )}
               value={isPending ? localOrderBy : variables.orderBy}

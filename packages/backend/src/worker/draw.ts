@@ -1,7 +1,7 @@
 import { DrawDependencies, initSync } from "../../../render-opengraph/pkg";
 import wasm from "../../../render-opengraph/pkg/render_opengraph_bg.wasm";
 
-let drawDependenciesPromise = null;
+let drawDependenciesPromise: Promise<DrawDependencies> | null = null;
 
 export function getDrawDependencies(
   kv: KVNamespace,
@@ -22,10 +22,10 @@ export function getDrawDependencies(
     ]);
 
     return DrawDependencies.create(
-      imagesRaw,
-      new Uint8Array(interMedium),
-      new Uint8Array(interBlack),
-      new Uint8Array(dejavuBold)
+      imagesRaw!,
+      new Uint8Array(interMedium!),
+      new Uint8Array(interBlack!),
+      new Uint8Array(dejavuBold!)
     );
   })();
 

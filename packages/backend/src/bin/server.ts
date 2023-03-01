@@ -2,70 +2,107 @@ import "isomorphic-fetch";
 import { createServer } from "@graphql-yoga/node";
 import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
-import { AgoraContextType, StatementStorage, StoredStatement } from "../model";
-import { presetDelegateStatements } from "../presetStatements";
-import { makeNounsExecutor } from "../schemas/nouns-subgraph";
+import { AgoraContextType } from "../schema/context";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { ValidatedMessage } from "../utils/signing";
-import {
-  makeEmptyTracingContext,
-  makeFakeSpan,
-  makeNoOpCache,
-} from "../utils/cache";
+import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
 import { useApolloTracing } from "@envelop/apollo-tracing";
-import { promises as fs } from "fs";
-import { parseStorage } from "../snapshot";
+import { ethers } from "ethers";
+import { TransparentMultiCallProvider } from "../multicall";
+import { useErrorInspection } from "../schema/plugins/useErrorInspection";
+import { followChain, makeInitialStorageArea } from "../indexer/followChain";
+import { indexers } from "../indexer/contracts";
+import { LevelEntityStore } from "../indexer/storage/level/levelEntityStore";
+import { LevelReader } from "../indexer/storage/level/levelReader";
+import { timeout } from "../indexer/utils/asyncUtils";
+import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
+import { EthersLogProvider } from "../indexer/logProvider/logProvider";
+import { StoredStatement } from "../schema/model";
+import { makeLatestBlockFetcher } from "../schema/latestBlockFetcher";
+import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
+import { makeDynamoStatementStorage } from "../store/dynamo/statement";
+
+// p0
+// todo: where are delegate statements going to be stored?
+// todo: replicate and deploy
+// todo: snapshot votes, delegate statements, cached ens name lookups
+
+// todo: to load up a replica, have the durable object pull from an initial file from r2 using streams
+
+// p1
+// todo: derived state
+// todo: joins
+// todo: some cleanup in the governance folder
 
 async function main() {
-  const delegateStatements = new Map(presetDelegateStatements);
   const schema = makeGatewaySchema();
+  const store = await LevelEntityStore.open();
 
-  const snapshot = parseStorage(
-    JSON.parse(await fs.readFile("snapshot.json", { encoding: "utf-8" }))
+  const baseProvider = new ethers.providers.AlchemyProvider(
+    "mainnet",
+    process.env.ALCHEMY_API_KEY
   );
 
-  const context: AgoraContextType = {
-    snapshot,
-    statementStorage: makeStatementStorageFromMap(delegateStatements),
-    nounsExecutor: makeNounsExecutor(),
-    cache: {
-      cache: makeNoOpCache(),
-      waitUntil: () => {},
-      span: makeFakeSpan(),
-    },
-    emailStorage: {
-      async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
-        console.log({ verifiedEmail });
-      },
-    },
-    tracingContext: makeEmptyTracingContext(),
-  };
+  const storageArea = await makeInitialStorageArea(store);
+  const blockProvider = new EthersBlockProvider(baseProvider);
+  const logProvider = new EthersLogProvider(baseProvider);
+  const iter = followChain(
+    store,
+    indexers,
+    entityDefinitions,
+    blockProvider,
+    logProvider,
+    storageArea
+  );
+  const _ = (async () => {
+    while (true) {
+      const value = await iter();
+      console.log({ value });
+      switch (value.type) {
+        case "TIP": {
+          await timeout(1000);
+        }
+      }
+    }
+  })();
+
+  const reader = new LevelReader(entityDefinitions, store.level, storageArea);
+
+  const dynamoDb = new DynamoDB({});
 
   const server = createServer({
     schema,
-    context,
+    async context(): Promise<AgoraContextType> {
+      const provider = new TransparentMultiCallProvider(baseProvider);
+
+      return {
+        ethProvider: new TransparentMultiCallProvider(
+          new ethers.providers.AlchemyProvider(
+            "mainnet",
+            process.env.ALCHEMY_API_KEY
+          )
+        ),
+        provider,
+        reader,
+        statementStorage: makeDynamoStatementStorage(dynamoDb),
+
+        cache: {
+          span: makeFakeSpan(),
+        },
+        emailStorage: {
+          async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
+            console.log({ verifiedEmail });
+          },
+        },
+        tracingContext: makeEmptyTracingContext(),
+        latestBlockFetcher: makeLatestBlockFetcher(baseProvider),
+      };
+    },
     port: 4001,
     maskedErrors: false,
-    plugins: [useTiming(), useApolloTracing()],
+    plugins: [useTiming(), useApolloTracing(), useErrorInspection()],
   });
   await server.start();
-}
-
-function makeStatementStorageFromMap(
-  delegateStatements: Map<string, StoredStatement>
-): StatementStorage {
-  return {
-    async getStatement(address: string): Promise<StoredStatement> {
-      return delegateStatements.get(address.toLowerCase()) ?? null;
-    },
-    async addStatement(statement: StoredStatement): Promise<void> {
-      delegateStatements.set(statement.address.toLowerCase(), statement);
-    },
-    async listStatements(): Promise<string[]> {
-      return Array.from(delegateStatements.keys()).map((it) =>
-        it.toLowerCase()
-      );
-    },
-  };
 }
 
 main();

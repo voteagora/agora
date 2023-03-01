@@ -1,32 +1,42 @@
 import { ethers } from "ethers";
-import {
-  NounsDAOLogicV1__factory,
-  NounsToken__factory,
-} from "./contracts/generated";
+import { TopicFilter } from "./indexer/logProvider/logProvider";
 
 export type ContractInstance<InterfaceType extends TypedInterface> = {
   iface: InterfaceType;
   address: string;
   startingBlock: number;
 };
+
 export interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
 }
 
-function makeContractInstance<InterfaceType extends TypedInterface>(
+export function makeContractInstance<InterfaceType extends TypedInterface>(
   t: ContractInstance<InterfaceType>
 ): ContractInstance<InterfaceType> {
   return t;
 }
 
-export const nounsToken = makeContractInstance({
-  iface: NounsToken__factory.createInterface(),
-  address: "0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03",
-  startingBlock: 12985438,
-});
+export type Signatures<InterfaceType extends TypedInterface> = {
+  [K in keyof InterfaceType["events"] & string]: K;
+}[keyof InterfaceType["events"] & string][];
 
-export const nounsDao = makeContractInstance({
-  iface: NounsDAOLogicV1__factory.createInterface(),
-  address: "0x6f3E6272A167e8AcCb32072d08E0957F9c79223d",
-  startingBlock: 12985453,
-});
+export function filterForEventHandlers<InterfaceType extends TypedInterface>(
+  instance: ContractInstance<InterfaceType>,
+  signatures: Signatures<InterfaceType>
+): TopicFilter {
+  return {
+    address: [instance.address],
+    topics: [topicsForSignatures(instance.iface, signatures)],
+  };
+}
+
+export function topicsForSignatures<InterfaceType extends TypedInterface>(
+  iface: InterfaceType,
+  signatures: Signatures<InterfaceType>
+) {
+  return signatures.map((signature) => {
+    const fragment = ethers.utils.EventFragment.fromString(signature);
+    return ethers.utils.Interface.getEventTopic(fragment);
+  });
+}

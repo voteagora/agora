@@ -49,14 +49,16 @@ export function ProposalsListPanel({
   const result = useFragment(
     graphql`
       fragment ProposalsListPanelFragment on Query {
-        proposals(orderBy: createdBlock, orderDirection: desc, first: 1000) {
+        # eslint-disable-next-line relay/unused-fields
+        proposals {
           id
           number
-          actualStatus
-          createdTimestamp
+          status
+          voteStartsAt
 
           ...OnChainProposalRowListFragment
         }
+        # eslint-disable-next-line relay/unused-fields
         propHouseAuctions {
           startTime
           status

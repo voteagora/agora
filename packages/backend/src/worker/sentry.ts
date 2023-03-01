@@ -1,33 +1,57 @@
-import Toucan, { Options } from "toucan-js";
+import { Toucan, Options } from "toucan-js";
 import { Env } from "./env";
+import { RewriteFrames } from "@sentry/integrations";
+import { StructuredError } from "../indexer/utils/errorUtils";
 
-export function wrapModuleSentry(
-  makeOptions: (params: { env: Env; ctx: ExecutionContext }) => Options,
-  generateHandlers: (sentry: Toucan) => ExportedHandler<Env>
-): ExportedHandler<Env> {
-  async function runReportingException<T>(
-    sentry: Toucan,
-    fn: () => Promise<T>
-  ): Promise<T> {
-    try {
-      return await fn();
-    } catch (e) {
-      sentry.captureException(e);
-      throw e;
-    }
+export type MakeOptionsParams = {
+  env: Env;
+  ctx: {
+    waitUntil: (promise: Promise<any>) => void;
+  };
+};
+
+export function makeToucanOptions({ env, ctx }: MakeOptionsParams): Options {
+  return {
+    dsn: env.SENTRY_DSN,
+    environment: env.ENVIRONMENT,
+    release: env.GITHUB_SHA,
+    context: ctx,
+    integrations: [new RewriteFrames({ root: "/" })],
+  };
+}
+
+export function captureException(sentry: Toucan, e: any) {
+  if (e instanceof StructuredError) {
+    sentry.setExtras({
+      ...e.values,
+    });
   }
 
-  return {
-    async fetch(...args): Promise<Response> {
-      const [request, env, ctx] = args;
+  return sentry.captureException(e);
+}
 
-      request.tracer.addData({
-        deployment: env.DEPLOYMENT,
-      });
+export async function runReportingException<T>(
+  sentry: Toucan,
+  fn: () => Promise<T>
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    captureException(sentry, e);
+    throw e;
+  }
+}
+export function wrapModuleSentry(
+  makeOptions: (params: MakeOptionsParams) => Options,
+  generateHandlers: (sentry: Toucan) => ExportedHandler<Env>
+): ExportedHandler<Env> {
+  return {
+    async fetch(...args) {
+      const [request, env, ctx] = args;
 
       const sentry = new Toucan({
         ...makeOptions({ env, ctx }),
-        request,
+        request: request,
       });
 
       sentry.setTags({
@@ -38,7 +62,10 @@ export function wrapModuleSentry(
 
       return await runReportingException(sentry, async () => {
         sentry.setTag("entrypoint", "fetch");
-        return handlers.fetch?.(...args);
+        return (
+          handlers.fetch?.(...args) ??
+          new Response("not found", { status: 404 })
+        );
       });
     },
     async scheduled(...args) {
@@ -52,6 +79,11 @@ export function wrapModuleSentry(
       });
 
       const handlers = generateHandlers(sentry);
+      const scheduleHandler = handlers.scheduled;
+
+      if (!scheduleHandler) {
+        return;
+      }
 
       return await runReportingException(sentry, async () => {
         sentry.setTag("entrypoint", "scheduled");
@@ -61,7 +93,7 @@ export function wrapModuleSentry(
             cron: event.cron,
           },
         });
-        return handlers.scheduled?.(...args);
+        return scheduleHandler(...args);
       });
     },
   };

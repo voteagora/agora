@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { formSchema } from "./formSchema";
-import { StoredStatement } from "./model";
+import { StoredStatement } from "./schema/model";
 
 export function initialFields(): z.TypeOf<typeof formSchema> {
   return {
@@ -15,22 +15,27 @@ export function initialFields(): z.TypeOf<typeof formSchema> {
   };
 }
 
+export function makeStoredStatement(
+  address: string,
+  fields: Partial<z.TypeOf<typeof formSchema>>
+): StoredStatement {
+  return {
+    address: address,
+    updatedAt: Date.now(),
+    signature: "",
+    signedPayload: JSON.stringify({
+      ...initialFields(),
+      ...fields,
+    }),
+  };
+}
+
 function makeStoredStatementEntry(
   address: string,
   fields: Partial<z.TypeOf<typeof formSchema>>
 ): [string, StoredStatement] {
-  return [
-    address.toLowerCase(),
-    {
-      address: address.toLowerCase(),
-      updatedAt: Date.now(),
-      signature: "",
-      signedPayload: JSON.stringify({
-        ...initialFields(),
-        ...fields,
-      }),
-    },
-  ];
+  const normalizedAddress = address.toLowerCase();
+  return [normalizedAddress, makeStoredStatement(normalizedAddress, fields)];
 }
 
 export const presetDelegateStatements = new Map<string, StoredStatement>([
@@ -40,17 +45,7 @@ export const presetDelegateStatements = new Map<string, StoredStatement>([
   makeStoredStatementEntry("0xf1544ba9a1ad3c8c8b507de3e1f5243c3697e367", {
     delegateStatement:
       "I'm optimistic on the future and believe all spending is useful.",
-    mostValuableProposals: [
-      {
-        number: 121,
-      },
-      {
-        number: 87,
-      },
-      {
-        number: 77,
-      },
-    ],
+    mostValuableProposals: [],
   }),
   makeStoredStatementEntry("0xa1e4f7dc1983fefe37e2175524ebad87f1c78c3c", {
     delegateStatement: "Just a guy with a few nouns.",
@@ -59,18 +54,8 @@ export const presetDelegateStatements = new Map<string, StoredStatement>([
     delegateStatement:
       "We are a group of Nounish builders and representatives from launched Nounish NFT extension projects, coming together to participate in Nouns DAO governance.",
     twitter: "nouncil",
-    mostValuableProposals: [
-      {
-        number: 121,
-      },
-      {
-        number: 87,
-      },
-      {
-        number: 77,
-      },
-    ],
-    leastValuableProposals: [{ number: 127 }, { number: 122 }, { number: 74 }],
+    mostValuableProposals: [],
+    leastValuableProposals: [],
     topIssues: [
       {
         type: "proliferation",
@@ -91,18 +76,8 @@ export const presetDelegateStatements = new Map<string, StoredStatement>([
     twitter: "zhayitong",
     discord: "yitong#9038",
 
-    mostValuableProposals: [
-      {
-        number: 121,
-      },
-      {
-        number: 87,
-      },
-      {
-        number: 77,
-      },
-    ],
-    leastValuableProposals: [{ number: 127 }, { number: 122 }, { number: 74 }],
+    mostValuableProposals: [],
+    leastValuableProposals: [],
     topIssues: [
       {
         type: "proliferation",

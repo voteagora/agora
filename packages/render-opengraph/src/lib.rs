@@ -107,13 +107,13 @@ pub fn draw_opengraph_image_inner(
     let content_width = width - gap * 3f32;
     let max_text_width = content_width * (4f32 / 10f32);
 
-    let address = data.address;
+    let delegate = data.delegate;
 
     let address_text_fonts = [&dependencies.inter_black, &dependencies.dejavu_sans_bold];
 
     let mut address_text_layout = largest_text_layout_fitting(
         max_text_width * scale,
-        &display_text(&address.resolved_name),
+        &display_text(&delegate.address.resolved_name),
         (14f32 * scale) as u32,
         (10f32 * scale) as u32,
         &address_text_fonts[..],
@@ -183,11 +183,8 @@ pub fn draw_opengraph_image_inner(
 
     dt.set_transform(&Transform2D::identity());
 
-    let nouns = address
-        .wrapped_delegate
-        .delegate
-        .map(|delegate| delegate.nouns_represented)
-        .unwrap_or_else(|| vec![]);
+    let nouns = delegate
+        .nouns_represented;
 
     let nouns_container_max_width = content_width - max_text_width;
     let nouns_container_max_height = height - gap - gap;
@@ -250,10 +247,6 @@ pub fn draw_opengraph_image_inner(
         let column = index % columns;
         let row = index / columns;
 
-        let seed = match noun.seed.as_ref() {
-            Some(seed) => seed,
-            None => continue,
-        };
 
         let scale_factor = noun_size / 32.0;
         dt.set_transform(
@@ -277,7 +270,7 @@ pub fn draw_opengraph_image_inner(
 
         let path = path_builder.finish();
         dt.push_clip(&path);
-        dependencies.images.draw_noun(&mut dt, &seed.try_into()?);
+        dependencies.images.draw_noun(&mut dt, &noun.try_into()?);
 
         dt.pop_clip();
     }
@@ -288,21 +281,21 @@ pub fn draw_opengraph_image_inner(
     Ok(Some(output))
 }
 
-impl TryFrom<&open_graph_render_query::OpenGraphRenderQueryAddressWrappedDelegateDelegateNounsRepresentedSeed> for NounSeed {
+impl TryFrom<&open_graph_render_query::OpenGraphRenderQueryDelegateNounsRepresented> for NounSeed {
     type Error = Error;
 
-    fn try_from(value: &open_graph_render_query::OpenGraphRenderQueryAddressWrappedDelegateDelegateNounsRepresentedSeed) -> Result<NounSeed> {
+    fn try_from(value: &open_graph_render_query::OpenGraphRenderQueryDelegateNounsRepresented) -> Result<NounSeed> {
                     Ok(NounSeed {
-                background: value.background.parse::<u8>()?,
-                body: value.body.parse::<u8>()?,
-                accessory: value.accessory.parse::<u8>()?,
-                head: value.head.parse::<u8>()?,
-                glasses: value.glasses.parse::<u8>()?,
+                background: value.background as u8,
+                body: value.body as u8,
+                accessory: value.accessory as u8,
+                head: value.head as u8,
+                glasses: value.glasses as u8,
             })
     }
 }
 
-fn display_text(name: &open_graph_render_query::OpenGraphRenderQueryAddressResolvedName) -> String {
+fn display_text(name: &open_graph_render_query::OpenGraphRenderQueryDelegateAddressResolvedName) -> String {
     name.name
         .as_ref()
         .map(|str| str.to_string())

@@ -18,12 +18,15 @@ export function OnChainProposalRow({
     graphql`
       fragment OnChainProposalRowListFragment on Proposal {
         number
-        actualStatus
+        status
         title
         totalValue
         proposer {
-          resolvedName {
-            ...NounResolvedLinkFragment
+          address {
+            resolvedName {
+              # eslint-disable-next-line relay/must-colocate-fragment-spreads
+              ...NounResolvedLinkFragment
+            }
           }
         }
       }
@@ -33,14 +36,14 @@ export function OnChainProposalRow({
 
   return (
     <ProposalRow
-      proposerResolvedName={proposal.proposer.resolvedName}
+      proposerResolvedName={proposal.proposer.address.resolvedName}
       onClick={onClick}
       selected={selected}
       typeTitle={`Prop ${proposal.number} for ${utils.formatEther(
         proposal.totalValue
       )} ETH`}
-      status={proposal.actualStatus}
-      statusColor={colorForOnChainProposalStatus(proposal.actualStatus)}
+      status={proposal.status}
+      statusColor={colorForOnChainProposalStatus(proposal.status)}
       title={proposal.title}
     />
   );

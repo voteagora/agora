@@ -44,32 +44,33 @@ export function AuctionCastVoteDialog({
   pendingVotes: Record<number, number>;
   closeDialog: () => void;
 }) {
-  const { propHouseAuction: auction, address: resolvedAddress } =
-    useLazyLoadQuery<AuctionCastVoteDialogQuery>(
-      graphql`
-        query AuctionCastVoteDialogQuery(
-          $auctionId: String!
-          $address: String!
-        ) {
-          address(addressOrEnsName: $address) {
+  const {
+    propHouseAuction: auction,
+    delegate: { address: resolvedAddress },
+  } = useLazyLoadQuery<AuctionCastVoteDialogQuery>(
+    graphql`
+      query AuctionCastVoteDialogQuery($auctionId: String!, $address: String!) {
+        delegate(addressOrEnsName: $address) {
+          address {
             resolvedName {
               ...NounResolvedNameFragment
             }
           }
+        }
 
-          propHouseAuction(auctionId: $auctionId) {
-            proposals {
-              number
-              title
-            }
+        propHouseAuction(auctionId: $auctionId) {
+          proposals {
+            number
+            title
           }
         }
-      `,
-      {
-        auctionId: auctionId.toString(),
-        address,
       }
-    );
+    `,
+    {
+      auctionId: auctionId.toString(),
+      address,
+    }
+  );
 
   const provider = useProvider();
   const { data: signer } = useSigner();

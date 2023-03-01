@@ -64,7 +64,7 @@ export function useProposals<
 
         switch (proposal.type) {
           case "ON_CHAIN":
-            return proposal.proposal.actualStatus === status;
+            return proposal.proposal.status === status;
 
           case "PROP_HOUSE_AUCTION":
             return proposal.auction.status === status;
@@ -83,7 +83,7 @@ export function useProposals<
             return new Date(it.auction.startTime);
 
           case "ON_CHAIN":
-            return new Date(it.proposal.createdTimestamp * 1000);
+            return new Date(it.proposal.voteStartsAt);
         }
       })
     );
@@ -105,11 +105,9 @@ function useProposalsInnerFragmentHolder(
   return useFragment(
     graphql`
       fragment useProposalsInnerFragment on Query {
-        proposals(first: 1000, orderDirection: desc, orderBy: createdBlock) {
-          id
-          number
-          actualStatus
-          createdTimestamp
+        proposals {
+          status
+          voteStartsAt
         }
 
         propHouseAuctions {

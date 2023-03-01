@@ -7,13 +7,13 @@ import { VoterTabularFragment$key } from "./__generated__/VoterTabularFragment.g
 import { NounResolvedName } from "../../components/NounResolvedName";
 import { NounsRepresentedGrid } from "../../components/NounGrid";
 import { HStack, VStack } from "../../components/VStack";
-import { DelegateButton } from "../DelegatePage/VoterPanel";
 import { Link } from "../../components/HammockRouter/Link";
 import { BigNumber } from "ethers";
 import { pluralizeNoun, pluralizeProb, pluralizeOther } from "../../words";
 import { descendingValueComparator } from "../../utils/sorting";
 import { icons } from "../../icons/icons";
 import toast from "react-hot-toast";
+import { DelegateButton } from "../../components/VoterPanel/VoterPanelActions";
 
 type VoterTabularProps = {
   fragmentRef: VoterTabularFragment$key;
@@ -22,9 +22,8 @@ type VoterTabularProps = {
 export function VoterTabular({ fragmentRef }: VoterTabularProps) {
   const delegate = useFragment(
     graphql`
-      fragment VoterTabularFragment on WrappedDelegate {
-        ...VoterPanelDelegateButtonFragment
-        ...DelegateProfileImageFragment
+      fragment VoterTabularFragment on Delegate {
+        ...VoterPanelActionsDelegateButtonFragment
 
         address {
           resolvedName {
@@ -42,28 +41,28 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
           discord
         }
 
-        delegate {
-          id
-          delegatedVotesRaw
-          nounsRepresented {
-            __typename
+        tokensRepresented {
+          amount {
+            amount
           }
+        }
 
-          ...NounGridFragment
+        ...NounGridFragment
 
-          voteSummary {
-            totalVotes
-          }
+        delegateMetrics {
+          totalVotes
+        }
 
-          tokenHoldersRepresented {
-            address {
-              resolvedName {
-                ...NounResolvedNameFragment
-              }
+        tokenHoldersRepresented {
+          address {
+            resolvedName {
+              ...NounResolvedNameFragment
             }
+          }
 
-            nouns {
-              id
+          tokensOwned {
+            amount {
+              amount
             }
           }
         }
@@ -73,18 +72,19 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
   );
 
   const nounsRepresented = BigNumber.from(
-    delegate.delegate?.delegatedVotesRaw ?? "0"
+    delegate.tokensRepresented.amount.amount
   );
 
-  const votesCast = BigNumber.from(
-    delegate.delegate?.voteSummary?.totalVotes ?? 0
-  );
+  const votesCast = BigNumber.from(delegate.delegateMetrics.totalVotes);
 
   const tokenHolders = useMemo(() => {
-    return delegate.delegate?.tokenHoldersRepresented
-      .filter((holder) => !!holder.nouns.length)
+    return delegate.tokenHoldersRepresented
+      .map((it) => ({
+        tokensOwned: BigNumber.from(it.tokensOwned.amount),
+        it,
+      }))
       .slice()
-      .sort(descendingValueComparator((item) => item.nouns.length));
+      .sort(descendingValueComparator((item) => item.tokensOwned.toNumber()));
   }, [delegate]);
 
   return (
@@ -145,17 +145,16 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
             >
               <NounResolvedName resolvedName={delegate.address.resolvedName} />
             </div>
-            {delegate.delegate && (
-              <NounsRepresentedGrid
-                fragmentKey={delegate.delegate}
-                dense
-                columns={20}
-                gap={"0"}
-                imageSize={"4"}
-                rows={1}
-                overflowFontSize="xs"
-              />
-            )}
+
+            <NounsRepresentedGrid
+              fragmentKey={delegate}
+              dense
+              columns={20}
+              gap={"0"}
+              imageSize={"4"}
+              rows={1}
+              overflowFontSize="xs"
+            />
           </VStack>
 
           <VStack gap="1" alignItems="normal">
@@ -226,7 +225,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
                     `}
                   >
                     <NounResolvedName
-                      resolvedName={tokenHolders[0].address.resolvedName}
+                      resolvedName={tokenHolders[0].it.address.resolvedName}
                     />
                     {tokenHolders.length > 1 &&
                       ` + ${pluralizeOther(tokenHolders.length - 1)}`}

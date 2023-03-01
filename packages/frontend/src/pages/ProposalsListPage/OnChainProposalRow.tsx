@@ -4,11 +4,11 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { HStack } from "../../components/VStack";
 import { NounResolvedName } from "../../components/NounResolvedName";
-import { utils } from "ethers";
+import { BigNumber, utils } from "ethers";
 import { formatDistanceToNow } from "date-fns";
 import {
-  ActualProposalStatus,
   OnChainProposalRowFragment$key,
+  ProposalStatus,
 } from "./__generated__/OnChainProposalRowFragment.graphql";
 import { OnChainProposalRowActivityFragment$key } from "./__generated__/OnChainProposalRowActivityFragment.graphql";
 import { StatusText } from "./StatusText";
@@ -22,20 +22,23 @@ export function OnChainProposalRow({
   const proposal = useFragment(
     graphql`
       fragment OnChainProposalRowFragment on Proposal {
-        id
         number
-        actualStatus
+        status
         title
         totalValue
-        forVotes
-        againstVotes
-        abstainVotes
-        totalVotes
+        forVotes {
+          amount
+        }
+        againstVotes {
+          amount
+        }
         voteStartsAt
         voteEndsAt
         proposer {
-          resolvedName {
-            ...NounResolvedNameFragment
+          address {
+            resolvedName {
+              ...NounResolvedNameFragment
+            }
           }
         }
 
@@ -52,7 +55,9 @@ export function OnChainProposalRow({
         title={
           <>
             Prop {proposal.number} – by{" "}
-            <NounResolvedName resolvedName={proposal.proposer.resolvedName} />
+            <NounResolvedName
+              resolvedName={proposal.proposer.address.resolvedName}
+            />
           </>
         }
       >
@@ -62,10 +67,10 @@ export function OnChainProposalRow({
       <RowValue title={"Status"}>
         <StatusText
           className={css`
-            color: ${colorForOnChainProposalStatus(proposal.actualStatus)};
+            color: ${colorForOnChainProposalStatus(proposal.status)};
           `}
         >
-          {proposal.actualStatus}
+          {proposal.status}
         </StatusText>
       </RowValue>
 
@@ -87,22 +92,26 @@ function Activity({
     graphql`
       fragment OnChainProposalRowActivityFragment on Proposal {
         voteEndsAt
-        actualStatus
+        status
         voteStartsAt
-        forVotes
-        againstVotes
+        forVotes {
+          amount
+        }
+        againstVotes {
+          amount
+        }
       }
     `,
     fragmentRef
   );
 
-  const voteEndsAt = new Date(proposal.voteEndsAt * 1000);
-  const voteStartsAt = new Date(proposal.voteStartsAt * 1000);
+  const voteEndsAt = new Date(proposal.voteEndsAt);
+  const voteStartsAt = new Date(proposal.voteStartsAt);
 
   return (
     <RowValue
       title={(() => {
-        switch (proposal.actualStatus) {
+        switch (proposal.status) {
           case "PENDING":
             return "Voting";
 
@@ -116,12 +125,14 @@ function Activity({
     >
       <HStack>
         {(() => {
-          if (proposal.actualStatus === "PENDING") {
+          if (proposal.status === "PENDING") {
             return `Starts in ${formatDistanceToNow(new Date(voteStartsAt))}`;
           } else {
             return (
               <HStack gap="1">
-                <span>{proposal.forVotes} For</span>
+                <span>
+                  {BigNumber.from(proposal.forVotes.amount).toString()} For
+                </span>
 
                 <span
                   className={css`
@@ -131,7 +142,10 @@ function Activity({
                   -
                 </span>
 
-                <span>{proposal.againstVotes} Against</span>
+                <span>
+                  {BigNumber.from(proposal.againstVotes.amount).toString()}{" "}
+                  Against
+                </span>
               </HStack>
             );
           }
@@ -141,7 +155,7 @@ function Activity({
   );
 }
 
-export function colorForOnChainProposalStatus(status: ActualProposalStatus) {
+export function colorForOnChainProposalStatus(status: ProposalStatus) {
   switch (status) {
     case "DEFEATED":
     case "CANCELLED":

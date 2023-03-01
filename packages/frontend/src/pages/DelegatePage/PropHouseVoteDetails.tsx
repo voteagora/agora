@@ -74,7 +74,7 @@ export function PropHouseVoteDetails({ voteFragment }: Props) {
           >
             Nouns Prop House funding {vote.round.fundingAmount} x{" "}
             {vote.round.currencyType} -{" "}
-            {formatDistanceToNow(Number(vote.createdAt))} ago
+            {formatDistanceToNow(new Date(vote.createdAt))} ago
           </div>
 
           <VoteTitle>

@@ -1,10 +1,9 @@
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
-import { inset0 } from "../theme";
+import { inset0, shadow } from "../theme";
 import * as theme from "../theme";
 import { HStack, VStack } from "./VStack";
 import { NounGridChildren } from "./NounGrid";
-import { shadow } from "../pages/DelegatePage/VoterPanel";
 import { useAccount } from "wagmi";
 import { ArrowDownIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
@@ -18,6 +17,8 @@ import { NounsToken } from "../contracts/generated";
 import { ReactNode } from "react";
 import { nounsToken } from "../contracts/contracts";
 import { useContractWrite } from "../hooks/useContractWrite";
+import { BigNumber } from "ethers";
+import { pluralizeVote } from "../words";
 
 export function DelegateDialog({
   targetAccountAddress,
@@ -68,15 +69,15 @@ function DelegateDialogContents({
   completeDelegation: () => void;
 }) {
   const { address: accountAddress } = useAccount();
-  const { wrappedDelegate, address } = useLazyLoadQuery<DelegateDialogQuery>(
-    graphql`
-      query DelegateDialogQuery(
-        $currentAccountAddress: String!
-        $targetAccountAddress: String!
-        $skip: Boolean!
-      ) {
-        wrappedDelegate: address(addressOrEnsName: $targetAccountAddress) {
-          wrappedDelegate {
+  const { targetDelegate, currentDelegate } =
+    useLazyLoadQuery<DelegateDialogQuery>(
+      graphql`
+        query DelegateDialogQuery(
+          $currentAccountAddress: String!
+          $targetAccountAddress: String!
+          $skip: Boolean!
+        ) {
+          targetDelegate: delegate(addressOrEnsName: $targetAccountAddress) {
             address {
               resolvedName {
                 address
@@ -84,45 +85,57 @@ function DelegateDialogContents({
               }
             }
 
-            delegate {
-              delegatedVotesRaw
-              nounsRepresented {
-                id
-                ...NounImageFragment
+            tokensRepresented {
+              amount {
+                amount
               }
+            }
 
-              tokenHoldersRepresented {
-                address {
-                  resolvedName {
-                    address
-                  }
+            nounsRepresented {
+              # eslint-disable-next-line relay/unused-fields
+              id
+              # eslint-disable-next-line relay/must-colocate-fragment-spreads
+              ...NounImageFragment
+            }
+
+            tokenHoldersRepresented {
+              address {
+                resolvedName {
+                  address
                 }
               }
             }
           }
-        }
 
-        address(addressOrEnsName: $currentAccountAddress) @skip(if: $skip) {
-          resolvedName {
-            address
-          }
+          currentDelegate: delegate(addressOrEnsName: $currentAccountAddress)
+            @skip(if: $skip) {
+            address {
+              resolvedName {
+                address
+              }
+            }
 
-          account {
-            tokenBalance
-            nouns {
+            tokensOwned {
+              amount {
+                amount
+              }
+            }
+
+            nounsOwned {
+              # eslint-disable-next-line relay/unused-fields
               id
+              # eslint-disable-next-line relay/must-colocate-fragment-spreads
               ...NounImageFragment
             }
           }
         }
+      `,
+      {
+        targetAccountAddress,
+        currentAccountAddress: accountAddress ?? "",
+        skip: !accountAddress,
       }
-    `,
-    {
-      targetAccountAddress,
-      currentAccountAddress: accountAddress ?? "",
-      skip: !accountAddress,
-    }
-  );
+    );
 
   const write = useContractWrite<NounsToken, "delegate">(
     nounsToken,
@@ -130,10 +143,6 @@ function DelegateDialogContents({
     [targetAccountAddress],
     () => completeDelegation()
   );
-
-  if (!wrappedDelegate) {
-    return null;
-  }
 
   return (
     <VStack gap="8" alignItems="stretch">
@@ -152,7 +161,7 @@ function DelegateDialogContents({
         `}
       >
         {(() => {
-          if (!address) {
+          if (!currentDelegate) {
             return (
               <VStack gap="3" alignItems="center">
                 <div>Delegating your nouns</div>
@@ -171,7 +180,7 @@ function DelegateDialogContents({
             );
           }
 
-          if (!address?.account?.nouns.length) {
+          if (!currentDelegate?.nounsOwned?.length) {
             return (
               <div
                 className={css`
@@ -188,8 +197,10 @@ function DelegateDialogContents({
                 <div>Delegating your nouns</div>
 
                 <NounsDisplay
-                  nouns={address.account.nouns}
-                  totalNouns={Number(address.account.tokenBalance)}
+                  nouns={currentDelegate.nounsOwned}
+                  totalNouns={BigNumber.from(
+                    currentDelegate.tokensOwned.amount.amount
+                  ).toNumber()}
                 />
               </VStack>
             );
@@ -241,33 +252,28 @@ function DelegateDialogContents({
 
         <NounsDisplay
           totalNouns={Number(
-            wrappedDelegate.wrappedDelegate.delegate?.delegatedVotesRaw ?? "0"
+            BigNumber.from(targetDelegate.tokensRepresented.amount.amount)
           )}
-          nouns={
-            wrappedDelegate.wrappedDelegate.delegate?.nounsRepresented ?? []
-          }
+          nouns={targetDelegate.nounsRepresented}
         />
 
-        <NounResolvedLink
-          resolvedName={wrappedDelegate.wrappedDelegate.address.resolvedName}
-        />
+        <NounResolvedLink resolvedName={targetDelegate.address.resolvedName} />
       </VStack>
 
       {(() => {
-        if (!address) {
+        if (!currentDelegate) {
           return <DelegateButton>Connect Wallet</DelegateButton>;
         }
 
-        if (!address?.account?.nouns.length) {
+        if (BigNumber.from(currentDelegate.tokensOwned.amount).eq(0)) {
           return null;
         }
 
-        const addressesRepresented =
-          wrappedDelegate?.wrappedDelegate?.delegate?.tokenHoldersRepresented.map(
-            (holder) => holder.address.resolvedName.address
-          ) ?? [];
+        const addressesRepresented = targetDelegate.tokenHoldersRepresented.map(
+          (it) => it.address.resolvedName.address
+        );
         const alreadyDelegated = addressesRepresented.includes(
-          address.resolvedName.address
+          currentDelegate.address.resolvedName.address
         );
 
         if (alreadyDelegated) {
@@ -276,8 +282,13 @@ function DelegateDialogContents({
 
         return (
           <DelegateButton onClick={write}>
-            {address ? (
-              <>Delegate {address?.account?.nouns?.length} votes</>
+            {currentDelegate ? (
+              <>
+                Delegate{" "}
+                {pluralizeVote(
+                  BigNumber.from(currentDelegate.tokensOwned.amount.amount)
+                )}
+              </>
             ) : (
               <>Delegate your nouns</>
             )}

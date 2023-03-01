@@ -6,7 +6,7 @@ import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql
 import { NounResolvedName } from "../../components/NounResolvedName";
 import { DelegateProfileImage } from "../../components/DelegateProfileImage";
 import { HStack, VStack } from "../../components/VStack";
-import { VoterPanelActions } from "../DelegatePage/VoterPanel";
+import { VoterPanelActions } from "../../components/VoterPanel/VoterPanelActions";
 import { Link } from "../../components/HammockRouter/Link";
 import {
   UserIcon,
@@ -19,12 +19,13 @@ import { pluralizeNoun, pluralizeVote } from "../../words";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
+  contentClassName?: string;
 };
 
-export function VoterCard({ fragmentRef }: VoterCardProps) {
+export function VoterCard({ fragmentRef, contentClassName }: VoterCardProps) {
   const delegate = useFragment(
     graphql`
-      fragment VoterCardFragment on WrappedDelegate {
+      fragment VoterCardFragment on Delegate {
         ...VoterPanelActionsFragment
 
         ...DelegateProfileImageFragment
@@ -43,23 +44,17 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
           summary
         }
 
-        delegate {
-          id
-          delegatedVotesRaw
-          nounsRepresented {
-            __typename
+        # eslint-disable-next-line relay/unused-fields
+        id
+        tokensRepresented {
+          amount {
+            amount
           }
-          votes {
-            id
+        }
 
-            proposal {
-              id
-              number
-            }
-          }
-          voteSummary {
-            totalVotes
-          }
+        delegateMetrics {
+          totalVotes
+          consecutiveVotes
         }
       }
     `,
@@ -67,30 +62,11 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
   );
 
   const nounsRepresented = BigNumber.from(
-    delegate.delegate?.delegatedVotesRaw ?? "0"
+    delegate.tokensRepresented.amount.amount
   );
 
-  const votesCast = BigNumber.from(
-    delegate.delegate?.voteSummary?.totalVotes ?? 0
-  );
-
-  const allVotesCast =
-    delegate.delegate?.votes
-      .map((vote) => +vote.proposal.number)
-      .sort((a, b) => b - a) ?? [];
-
-  let votingStreak = 0;
-
-  for (let i = 0; i < allVotesCast.length; i++) {
-    if (i === 0) {
-      votingStreak++;
-    }
-    if (allVotesCast[i] === allVotesCast[i + 1] + 1) {
-      votingStreak++;
-    } else {
-      break;
-    }
-  }
+  const votesCast = BigNumber.from(delegate.delegateMetrics.totalVotes);
+  const votingStreak = delegate.delegateMetrics.consecutiveVotes;
 
   return (
     <Link
@@ -117,77 +93,87 @@ export function VoterCard({ fragmentRef }: VoterCardProps) {
         `}
       >
         <VStack
-          justifyContent="center"
-          alignItems="center"
-          className={css`
-            flex: 1;
-          `}
+          gap="4"
+          className={cx(
+            contentClassName,
+            css`
+              height: 100%;
+            `
+          )}
         >
-          <DelegateProfileImage fragment={delegate} />
-        </VStack>
-
-        <HStack
-          justifyContent="space-between"
-          className={css`
-            margin-top: ${theme.spacing["2"]};
-          `}
-        >
-          <div
+          <VStack
+            justifyContent="center"
+            alignItems="center"
             className={css`
-              font-weight: ${theme.fontWeight.semibold};
+              flex: 1;
             `}
           >
-            <NounResolvedName resolvedName={delegate.address.resolvedName} />
-          </div>
+            <DelegateProfileImage fragment={delegate} />
+          </VStack>
 
           <HStack
-            gap="2"
+            justifyContent="space-between"
             className={css`
-              color: #66676b;
+              margin-top: ${theme.spacing["2"]};
             `}
           >
-            <TitleDetail
-              icon={<UserIcon />}
-              detail={`${pluralizeNoun(nounsRepresented)} represented`}
-              value={nounsRepresented.toString()}
-            />
+            <div
+              className={css`
+                font-weight: ${theme.fontWeight.semibold};
+              `}
+            >
+              <NounResolvedName resolvedName={delegate.address.resolvedName} />
+            </div>
 
-            <TitleDetail
-              icon={<ChatBubbleOvalLeftIcon />}
-              detail={`${pluralizeVote(votesCast)} cast`}
-              value={votesCast.toString()}
-            />
-            {votingStreak > 2 && (
+            <HStack
+              gap="2"
+              className={css`
+                color: #66676b;
+              `}
+            >
               <TitleDetail
-                icon={<FireIcon />}
-                detail={`Casted ` + votingStreak + ` votes consecutively`}
-                value={votingStreak.toString()}
-                streak={votingStreak}
+                icon={<UserIcon />}
+                detail={`${pluralizeNoun(nounsRepresented)} represented`}
+                value={nounsRepresented.toString()}
               />
-            )}
+
+              <TitleDetail
+                icon={<ChatBubbleOvalLeftIcon />}
+                detail={`${pluralizeVote(votesCast)} cast`}
+                value={votesCast.toString()}
+              />
+              {votingStreak > 2 && (
+                <TitleDetail
+                  icon={<FireIcon />}
+                  detail={`Casted ` + votingStreak + ` votes consecutively`}
+                  value={votingStreak.toString()}
+                  streak={votingStreak}
+                />
+              )}
+            </HStack>
           </HStack>
-        </HStack>
 
-        {!!delegate.statement?.summary && (
-          <div
-            className={css`
-              display: -webkit-box;
+          {!!delegate.statement?.summary && (
+            <div
+              className={css`
+                display: -webkit-box;
 
-              color: #66676b;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              line-clamp: 5;
-              -webkit-line-clamp: 5;
-              -webkit-box-orient: vertical;
-              font-size: ${theme.fontSize.base};
-              line-height: ${theme.lineHeight.normal};
-            `}
-          >
-            {delegate.statement.summary}
-          </div>
-        )}
+                color: #66676b;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                line-clamp: 5;
+                -webkit-line-clamp: 5;
+                -webkit-box-orient: vertical;
+                font-size: ${theme.fontSize.base};
+                line-height: ${theme.lineHeight.normal};
+              `}
+            >
+              {delegate.statement.summary}
+            </div>
+          )}
 
-        <VoterPanelActions fragment={delegate} />
+          <VoterPanelActions fragment={delegate} />
+        </VStack>
       </VStack>
     </Link>
   );

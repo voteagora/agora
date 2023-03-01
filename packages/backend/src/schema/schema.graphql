@@ -1,0 +1,291 @@
+scalar BigInt
+scalar Timestamp
+
+type Query {
+  delegate(addressOrEnsName: String!): Delegate!
+
+  delegates(
+    where: DelegatesWhere
+    orderBy: DelegatesOrder! = mostRelevant
+    first: Int!
+    after: String
+  ): DelegatesConnection!
+
+  votes(proposalId: ID!, first: Int!, after: String): VotesConnection!
+
+  proposal(id: ID!): Proposal!
+  proposals: [Proposal!]!
+
+  propHouseAuction(auctionId: String!): PropHouseAuction!
+  propHouseAuctions: [PropHouseAuction!]!
+
+  metrics: Metrics!
+}
+
+type PropHouseAuction {
+  id: ID!
+  title: String!
+  number: Int!
+  description: String!
+  startTime: String!
+  proposalEndTime: String!
+  votingEndTime: String!
+  status: PropHouseAuctionStatus!
+
+  numProposals: Int!
+  numWinners: Int!
+  fundingAmount: String!
+  currencyType: String!
+
+  proposals: [PropHouseProposal!]!
+  votes: [PropHouseAuctionVote!]!
+}
+
+type PropHouseAuctionVote {
+  address: Address!
+  proposal: PropHouseProposal!
+  weight: Int!
+}
+
+enum PropHouseAuctionStatus {
+  PENDING
+  PROPOSING
+  ACTIVE
+  EXECUTED
+}
+
+type PropHouseProposal {
+  id: ID!
+  number: Int!
+  title: String!
+  tldr: String!
+  voteCount: Int!
+  createdDate: String!
+
+  proposer: Address!
+}
+
+type Delegate {
+  id: ID!
+  address: Address!
+
+  # Delegate where voting power has been delegated. Can be delegated to a
+  # delegate with the same address as the account.
+  delegatingTo: Delegate!
+
+  statement: DelegateStatement
+
+  tokensOwned: VotingPower!
+  nounsOwned: [Noun!]!
+
+  tokensRepresented: VotingPower!
+  tokenHoldersRepresented: [Delegate!]!
+  nounsRepresented: [Noun!]!
+
+  delegateMetrics: DelegateMetrics!
+  proposed: [Proposal!]!
+
+  votes: [Vote!]!
+  propHouseVotes: [PropHouseAuctionVotes!]!
+}
+
+type Address {
+  address: String!
+  resolvedName: ResolvedName!
+  isContract: Boolean!
+}
+
+type DelegateStatement {
+  statement: String!
+  summary: String
+  topIssues: [TopIssue!]!
+  mostValuableProposals: [Proposal!]!
+  leastValuableProposals: [Proposal!]!
+  twitter: String!
+  discord: String!
+  openToSponsoringProposals: Boolean
+}
+
+type ResolvedName {
+  address: ID!
+  name: String
+}
+
+type DelegateMetrics {
+  totalVotes: Int!
+  forVotes: Int!
+  againstVotes: Int!
+  abstainVotes: Int!
+  ofLastTenProps: Int!
+  ofTotalProps: Int!
+  consecutiveVotes: Int!
+  proposalsCreated: Int!
+  tokenHoldersRepresentedCount: Int!
+}
+
+type Metrics {
+  delegatedSupply: TokenAmount!
+  totalSupply: TokenAmount!
+
+  # Count of unique addresses with a non-zero delegation power.
+  delegatesCount: Int!
+
+  # Count of unique addresses with non-zero ownership.
+  ownersCount: Int!
+
+  quorumFloor: VotingPower!
+  quorumCeiling: VotingPower!
+  proposalThreshold: VotingPower!
+
+  recentVoterTurnoutBps: Int!
+}
+
+type Vote {
+  id: ID!
+  reason: String!
+  # todo: this should be an enum
+  supportDetailed: Int!
+  votes: VotingPower!
+
+  proposal: Proposal!
+  voter: Delegate!
+  approximateTimestamp: Timestamp!
+}
+
+type Noun {
+  id: ID!
+  tokenId: BigInt!
+  accessory: Int!
+  background: Int!
+  body: Int!
+  glasses: Int!
+  head: Int!
+}
+
+type PropHouseAuctionVotes {
+  id: ID!
+  address: Address!
+  createdAt: Timestamp!
+
+  round: PropHouseAuction!
+  votes: [PropHouseAuctionVote!]!
+}
+
+type TokenAmount {
+  amount: BigInt!
+  currency: String!
+  decimals: Int!
+}
+
+type VotingPower {
+  amount: TokenAmount!
+
+  bpsOfQuorum: Int!
+  bpsOfDelegatedSupply: Int!
+  bpsOfTotal: Int!
+}
+
+type TopIssue {
+  type: String!
+  value: String!
+}
+
+enum DelegatesWhere {
+  withStatement
+  withoutStatement
+}
+
+enum DelegatesOrder {
+  mostVotingPower
+  mostDelegates
+  mostVotesCast
+  leastVotesCast
+}
+
+type DelegatesConnection {
+  pageInfo: PageInfo!
+  edges: [DelegatesEdge!]!
+}
+
+type DelegatesEdge {
+  node: Delegate!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type VotesConnection {
+  pageInfo: PageInfo!
+  edges: [VotesEdge!]!
+}
+
+type VotesEdge {
+  node: Vote!
+  cursor: String!
+}
+
+scalar Bytes
+
+type ProposalTransaction {
+  target: Address!
+  value: BigInt!
+  signature: String!
+  calldata: Bytes!
+}
+
+type Proposal {
+  id: ID!
+  number: BigInt!
+
+  forVotes: TokenAmount!
+  againstVotes: TokenAmount!
+  abstainVotes: TokenAmount!
+
+  title: String!
+  description: String!
+
+  voteEndsAt: Timestamp!
+  voteStartsAt: Timestamp!
+  quorumVotes: TokenAmount!
+  totalVotes: BigInt!
+
+  transactions: [ProposalTransaction!]!
+  status: ProposalStatus!
+
+  totalValue: BigInt!
+
+  proposer: Delegate!
+}
+
+enum ProposalStatus {
+  PENDING
+  ACTIVE
+  CANCELLED
+  VETOED
+  QUEUED
+  EXECUTED
+  DEFEATED
+  EXPIRED
+}
+
+type Mutation {
+  createNewDelegateStatement(data: CreateNewDelegateStatementData!): Delegate!
+}
+
+input CreateNewDelegateStatementData {
+  statement: ValueWithSignature!
+  email: ValueWithSignature
+}
+
+input ValueWithSignature {
+  # Address of the signer, this is used for logging and so we can implement
+  # gnosis wallet multi-sig signature verification.
+  signerAddress: String!
+  value: String!
+  signature: String!
+}

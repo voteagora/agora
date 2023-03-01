@@ -5,6 +5,15 @@ on:
   pull_request:
 
 jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    name: Formatting
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actionsx/prettier@v2
+        with:
+          args: --check .
+
   verify-frontend:
     runs-on: ubuntu-latest
     name: Build Frontend
@@ -18,9 +27,13 @@ jobs:
 
       - run: yarn install
 
-      - run: yarn prettier -- --check
+      # - name: Typescript
+      #   working-directory: ./packages/frontend
+      #   run: yarn check
 
-      - run: yarn workspace nouns-agora run build
+      - name: Build
+        working-directory: ./packages/frontend
+        run: yarn build
 
   build-backend:
     runs-on: ubuntu-latest

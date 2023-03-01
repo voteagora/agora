@@ -1,6 +1,9 @@
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
-import { HomePageQuery } from "./__generated__/HomePageQuery.graphql";
+import {
+  DelegatesOrder,
+  HomePageQuery,
+} from "./__generated__/HomePageQuery.graphql";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
@@ -12,29 +15,25 @@ import {
 } from "../../components/HammockRouter/HammockRouter";
 import { PageDivider } from "../../components/PageDivider";
 
-const filterByValidValues: HomePageQuery["variables"]["filterBy"][] = [
-  "seekingDelegation",
-  "withStatement",
-];
-
 const orderByValidValues: HomePageQuery["variables"]["orderBy"][] = [
-  "mostRelevant",
-  "mostNounsRepresented",
+  "mostVotingPower",
+  // "mostRelevant",
+  // "mostNounsRepresented",
   "leastVotesCast",
-  "mostRecentlyActive",
+  // "mostRecentlyActive",
   "mostVotesCast",
 ];
 
-export function locationToVariables(location: Location) {
+export type LocationVariables = {
+  orderBy: DelegatesOrder;
+};
+
+export function locationToVariables(location: Location): LocationVariables {
   return {
-    filterBy:
-      filterByValidValues.find(
-        (needle) => needle === location.search["filterBy"]
-      ) ?? null,
     orderBy:
       orderByValidValues.find(
         (needle) => needle === location.search["orderBy"]
-      ) ?? "mostNounsRepresented",
+      ) ?? "mostVotingPower",
   };
 }
 
@@ -44,13 +43,9 @@ export function HomePage() {
 
   const result = useLazyLoadQuery<HomePageQuery>(
     graphql`
-      query HomePageQuery(
-        $orderBy: WrappedDelegatesOrder!
-        $filterBy: WrappedDelegatesWhere
-      ) {
-        ...DelegatesContainerFragment
-          @arguments(orderBy: $orderBy, filterBy: $filterBy)
-        ...OverviewMetricsContainer
+      query HomePageQuery($orderBy: DelegatesOrder!) {
+        ...DelegatesContainerFragment @arguments(orderBy: $orderBy)
+        ...OverviewMetricsContainerFragment
       }
     `,
     {

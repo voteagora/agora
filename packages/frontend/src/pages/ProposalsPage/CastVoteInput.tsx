@@ -5,36 +5,30 @@ import {
   colorForSupportType,
   SupportTextProps,
 } from "../DelegatePage/VoteDetailsContainer";
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
-import { useAccount } from "wagmi";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 import { useState } from "react";
-import { CastVoteInputFragment$key } from "./__generated__/CastVoteInputFragment.graphql";
+import graphql from "babel-plugin-relay/macro";
+import { useFragment } from "react-relay/hooks";
 import { CastVoteInputVoteButtonsFragment$key } from "./__generated__/CastVoteInputVoteButtonsFragment.graphql";
-import { useLazyLoadQuery } from "react-relay/hooks";
-import { CastVoteInputQuery } from "./__generated__/CastVoteInputQuery.graphql";
+import { CastVoteInputVoteButtonsQueryFragment$key } from "./__generated__/CastVoteInputVoteButtonsQueryFragment.graphql";
 
 type Props = {
-  fragmentRef: CastVoteInputFragment$key;
   onVoteClick: (
     supportType: SupportTextProps["supportType"],
     reason: string
   ) => void;
   className: string;
+  framgnetRef: CastVoteInputVoteButtonsFragment$key;
+  queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
 };
 
-export function CastVoteInput({ fragmentRef, onVoteClick, className }: Props) {
+export function CastVoteInput({
+  onVoteClick,
+  className,
+  framgnetRef,
+  queryFragmentRef,
+}: Props) {
   const [reason, setReason] = useState<string>("");
-  const result = useFragment(
-    graphql`
-      fragment CastVoteInputFragment on Proposal
-      @argumentDefinitions(address: { type: "String!" }) {
-        ...CastVoteInputVoteButtonsFragment @arguments(address: $address)
-      }
-    `,
-    fragmentRef
-  );
 
   return (
     <VStack
@@ -42,9 +36,6 @@ export function CastVoteInput({ fragmentRef, onVoteClick, className }: Props) {
         css`
           border: 1px solid #e0e0e0;
           border-radius: ${theme.borderRadius.lg};
-          @media (max-width: ${theme.maxWidth["2xl"]}) {
-            display: none;
-          }
         `,
         className
       )}
@@ -53,9 +44,6 @@ export function CastVoteInput({ fragmentRef, onVoteClick, className }: Props) {
         className={css`
           padding: ${theme.spacing["4"]};
           resize: none;
-          ::-webkit-scrollbar {
-            display: none;
-          }
           border-radius: ${theme.borderRadius.lg};
           :focus {
             outline: 0px;
@@ -76,8 +64,9 @@ export function CastVoteInput({ fragmentRef, onVoteClick, className }: Props) {
         `}
       >
         <VoteButtons
-          fragmentRef={result}
           onClick={(supportType) => onVoteClick(supportType, reason)}
+          fragmentRef={framgnetRef}
+          queryFragmentRef={queryFragmentRef}
         />
       </VStack>
     </VStack>
@@ -85,74 +74,60 @@ export function CastVoteInput({ fragmentRef, onVoteClick, className }: Props) {
 }
 
 function VoteButtons({
-  fragmentRef,
   onClick,
+  fragmentRef,
+  queryFragmentRef,
 }: {
-  fragmentRef: CastVoteInputVoteButtonsFragment$key;
   onClick: (nextSupportType: SupportTextProps["supportType"]) => void;
+  fragmentRef: CastVoteInputVoteButtonsFragment$key;
+  queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
 }) {
-  // todo: check if voting open
-  // todo: check if already voted
-  // todo: we want to check this from the chain not from the subgraph
-  const { address: accountAddress } = useAccount();
-
-  const { address } = useLazyLoadQuery<CastVoteInputQuery>(
-    graphql`
-      query CastVoteInputQuery($accountAddress: String!, $skip: Boolean!) {
-        address(addressOrEnsName: $accountAddress) @skip(if: $skip) {
-          wrappedDelegate {
-            address {
-              resolvedName {
-                ...NounResolvedLinkFragment
-              }
-            }
-
-            delegate {
-              delegatedVotesRaw
-              nounsRepresented {
-                id
-                ...NounImageFragment
-              }
-            }
-          }
-        }
-      }
-    `,
-    {
-      accountAddress: accountAddress ?? "",
-      skip: !accountAddress,
-    }
-  );
-
   const result = useFragment(
     graphql`
-      fragment CastVoteInputVoteButtonsFragment on Proposal
-      @argumentDefinitions(address: { type: "String!" }) {
-        actualStatus
-        hasVoted: votes(where: { voter_contains_nocase: $address }) {
-          id
-        }
+      fragment CastVoteInputVoteButtonsFragment on Proposal {
+        id
+        status
       }
     `,
     fragmentRef
   );
 
-  const userVotes = address?.wrappedDelegate.delegate?.delegatedVotesRaw ?? 0;
+  const { delegate } = useFragment(
+    graphql`
+      fragment CastVoteInputVoteButtonsQueryFragment on Query
+      @argumentDefinitions(
+        address: { type: "String!" }
+        skipAddress: { type: "Boolean!" }
+      ) {
+        delegate(addressOrEnsName: $address) @skip(if: $skipAddress) {
+          votes {
+            proposal {
+              id
+            }
+          }
+        }
+      }
+    `,
+    queryFragmentRef
+  );
 
-  if (result.actualStatus !== "ACTIVE") {
+  if (result.status !== "ACTIVE") {
     return <DisabledVoteButton reason="Not open to voting" />;
-  } else if (!accountAddress) {
+  }
+
+  if (!delegate) {
     return <DisabledVoteButton reason="Connect wallet to vote" />;
-  } else if (result.hasVoted.length > 0) {
+  }
+
+  const hasVoted = !!delegate.votes.find((it) => it.proposal.id === result.id);
+  if (hasVoted) {
     return <DisabledVoteButton reason="Already voted" />;
-  } else if (userVotes === 0) {
-    return <DisabledVoteButton reason="No eligible votes" />; //no votes
-  } else {
-    return (
-      <HStack gap="2">
-        {(
-          ["FOR", "AGAINST", "ABSTAIN"] as SupportTextProps["supportType"][]
-        ).map((supportType) => (
+  }
+
+  return (
+    <HStack gap="2">
+      {(["FOR", "AGAINST", "ABSTAIN"] as SupportTextProps["supportType"][]).map(
+        (supportType) => (
           <VoteButton
             key={supportType}
             action={supportType}
@@ -160,10 +135,10 @@ function VoteButtons({
               onClick(supportType);
             }}
           />
-        ))}
-      </HStack>
-    );
-  }
+        )
+      )}
+    </HStack>
+  );
 }
 
 function VoteButton({

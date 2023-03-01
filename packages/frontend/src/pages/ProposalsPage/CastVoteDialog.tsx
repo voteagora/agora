@@ -19,6 +19,7 @@ import {
 import { CastVoteDialogQuery } from "./__generated__/CastVoteDialogQuery.graphql";
 import { useContractWrite } from "../../hooks/useContractWrite";
 import { nounsDao } from "../../contracts/contracts";
+import { BigNumber } from "ethers";
 
 type Props = {
   proposalId: number;
@@ -72,24 +73,27 @@ function CastVoteDialogContents({
 
   const { address: accountAddress } = useAccount();
 
-  const { address } = useLazyLoadQuery<CastVoteDialogQuery>(
+  const { delegate } = useLazyLoadQuery<CastVoteDialogQuery>(
     graphql`
       query CastVoteDialogQuery($accountAddress: String!, $skip: Boolean!) {
-        address(addressOrEnsName: $accountAddress) @skip(if: $skip) {
-          wrappedDelegate {
-            address {
-              resolvedName {
-                ...NounResolvedLinkFragment
-              }
+        delegate(addressOrEnsName: $accountAddress) @skip(if: $skip) {
+          address {
+            resolvedName {
+              ...NounResolvedLinkFragment
             }
+          }
 
-            delegate {
-              delegatedVotesRaw
-              nounsRepresented {
-                id
-                ...NounImageFragment
-              }
+          tokensRepresented {
+            amount {
+              amount
             }
+          }
+
+          nounsRepresented {
+            # eslint-disable-next-line relay/unused-fields
+            id
+            # eslint-disable-next-line relay/must-colocate-fragment-spreads
+            ...NounImageFragment
           }
         }
       }
@@ -131,10 +135,8 @@ function CastVoteDialogContents({
               color: ${theme.colors.black};
             `}
           >
-            {address?.wrappedDelegate.address.resolvedName ? (
-              <NounResolvedLink
-                resolvedName={address?.wrappedDelegate.address.resolvedName}
-              />
+            {delegate ? (
+              <NounResolvedLink resolvedName={delegate.address.resolvedName} />
             ) : (
               "anonymous"
             )}
@@ -152,7 +154,9 @@ function CastVoteDialogContents({
             `}
           >
             <div>
-              {address?.wrappedDelegate.delegate?.delegatedVotesRaw ?? "0"}
+              {delegate
+                ? BigNumber.from(delegate.tokensRepresented.amount).toString()
+                : "0"}
             </div>
             <div
               className={css`
@@ -185,10 +189,12 @@ function CastVoteDialogContents({
         alignItems="center"
       >
         <NounsDisplay
-          totalNouns={Number(
-            address?.wrappedDelegate.delegate?.delegatedVotesRaw ?? "0"
-          )}
-          nouns={address?.wrappedDelegate.delegate?.nounsRepresented ?? []}
+          totalNouns={
+            delegate
+              ? BigNumber.from(delegate.tokensRepresented.amount).toNumber()
+              : 0
+          }
+          nouns={delegate?.nounsRepresented ?? []}
         />
         {/* TODO: There are a lot of reasons why write is unavailable. We've captured
         most of them by disable the vote buttons in the VotesCastPanel, so we're assuming

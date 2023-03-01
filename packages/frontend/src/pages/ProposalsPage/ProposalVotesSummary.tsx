@@ -19,9 +19,15 @@ export function ProposalVotesSummary({
   const proposal = useFragment(
     graphql`
       fragment ProposalVotesSummaryFragment on Proposal {
-        forVotes
-        againstVotes
-        quorumVotes
+        forVotes {
+          amount
+        }
+        againstVotes {
+          amount
+        }
+        quorumVotes {
+          amount
+        }
 
         ...ProposalVotesSummaryVotesBarFragment
         ...ProposalVotesSummaryVoteTimeFragment
@@ -50,14 +56,14 @@ export function ProposalVotesSummary({
             color: ${colorForSupportType("FOR")};
           `}
         >
-          FOR {proposal.forVotes}
+          FOR {proposal.forVotes.amount}
         </div>
         <div
           className={css`
             color: ${colorForSupportType("AGAINST")};
           `}
         >
-          AGAINST {proposal.againstVotes}
+          AGAINST {proposal.againstVotes.amount}
         </div>
       </HStack>
       <VotesBar fragmentRef={proposal} />
@@ -67,7 +73,7 @@ export function ProposalVotesSummary({
           color: ${theme.colors.gray["4f"]};
         `}
       >
-        <div>QUORUM {proposal.quorumVotes}</div>
+        <div>QUORUM {proposal.quorumVotes.amount}</div>
         <VoteTime fragmentRef={proposal} />
       </HStack>
     </VStack>
@@ -88,16 +94,16 @@ function VoteTime({
     `,
     fragmentRef
   );
-  const now = Date.now() / 1000;
+  const now = Date.now();
 
   let voteTime;
   let voteTextPrefix;
   // Display time until vote start if vote hasn't started yet.
   if (result.voteStartsAt > now) {
     voteTextPrefix = "VOTE STARTS IN";
-    voteTime = result.voteStartsAt;
+    voteTime = new Date(result.voteStartsAt);
   } else {
-    voteTime = result.voteEndsAt;
+    voteTime = new Date(result.voteEndsAt);
     if (result.voteEndsAt > now) {
       voteTextPrefix = "VOTE ENDS IN";
     } else {
@@ -105,9 +111,9 @@ function VoteTime({
     }
   }
 
-  const ago = formatDistanceToNowStrict(voteTime * 1000, { addSuffix: true });
+  const ago = formatDistanceToNowStrict(voteTime, { addSuffix: true });
   const text = `${voteTextPrefix} ${ago}`;
-  return <span title={formatISO9075(voteTime * 1000)}>{text}</span>;
+  return <span title={formatISO9075(voteTime)}>{text}</span>;
 }
 
 function VotesBar({
@@ -118,9 +124,15 @@ function VotesBar({
   const { forVotes, againstVotes, abstainVotes } = useFragment(
     graphql`
       fragment ProposalVotesSummaryVotesBarFragment on Proposal {
-        forVotes
-        againstVotes
-        abstainVotes
+        forVotes {
+          amount
+        }
+        againstVotes {
+          amount
+        }
+        abstainVotes {
+          amount
+        }
       }
     `,
     fragmentRef
@@ -130,7 +142,10 @@ function VotesBar({
     colorForSupportType("ABSTAIN"),
     colorForSupportType("AGAINST"),
   ];
-  const bars = roundMaintainSum([forVotes, abstainVotes, againstVotes], 57);
+  const bars = roundMaintainSum(
+    [forVotes.amount, abstainVotes.amount, againstVotes.amount],
+    57
+  );
 
   return (
     <HStack justifyContent="space-between">

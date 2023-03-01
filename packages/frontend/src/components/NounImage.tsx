@@ -4,6 +4,7 @@ import graphql from "babel-plugin-relay/macro";
 import { useMemo } from "react";
 import { buildSVG } from "@nouns/sdk/dist/image/svg-builder";
 import { getNounData, ImageData } from "@nouns/assets";
+import { BigNumber } from "ethers";
 
 type Props = {
   className: string;
@@ -11,18 +12,15 @@ type Props = {
 };
 
 export function NounImage({ fragmentRef, className }: Props) {
-  const { number, seed } = useFragment<NounImageFragment$key>(
+  const { tokenId, ...seed } = useFragment<NounImageFragment$key>(
     graphql`
       fragment NounImageFragment on Noun {
-        number
-
-        seed {
-          accessory
-          background
-          body
-          glasses
-          head
-        }
+        tokenId
+        accessory
+        background
+        body
+        glasses
+        head
       }
     `,
     fragmentRef
@@ -50,12 +48,7 @@ export function NounImage({ fragmentRef, className }: Props) {
     return `data:image/svg+xml;base64,${btoa(imageRaw)}`;
   }, [seed]);
 
-  return (
-    <img
-      className={className}
-      src={nounSvg}
-      alt={`noun #${number}`}
-      title={`noun #${number}`}
-    />
-  );
+  const title = `noun #${BigNumber.from(tokenId).toString()}`;
+
+  return <img className={className} src={nounSvg} alt={title} title={title} />;
 }

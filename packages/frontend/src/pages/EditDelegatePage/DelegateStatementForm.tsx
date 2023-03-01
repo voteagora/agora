@@ -33,7 +33,7 @@ import {
   browserHistory,
   useNavigate,
 } from "../../components/HammockRouter/HammockRouter";
-import { ethers, Signer } from "ethers";
+import { BigNumber, ethers, Signer } from "ethers";
 import * as Sentry from "@sentry/react";
 import { GnosisSafe, GnosisSafe__factory } from "../../contracts/generated";
 
@@ -79,33 +79,35 @@ export function DelegateStatementForm({
     graphql`
       fragment DelegateStatementFormFragment on Query
       @argumentDefinitions(address: { type: "String!" }) {
-        address(addressOrEnsName: $address) {
-          isContract
-          resolvedName {
-            address
-            name
+        delegate(addressOrEnsName: $address) {
+          address {
+            isContract
+            resolvedName {
+              address
+              name
+            }
           }
 
-          wrappedDelegate {
-            statement {
-              statement
-              mostValuableProposals {
-                number
-              }
-
-              leastValuableProposals {
-                number
-              }
-
-              discord
-              twitter
-              topIssues {
-                type
-                value
-              }
-
-              openToSponsoringProposals
+          statement {
+            statement
+            mostValuableProposals {
+              number
             }
+
+            leastValuableProposals {
+              number
+            }
+
+            discord
+            twitter
+            topIssues {
+              # eslint-disable-next-line relay/unused-fields
+              type
+              # eslint-disable-next-line relay/unused-fields
+              value
+            }
+
+            openToSponsoringProposals
           }
         }
 
@@ -115,18 +117,24 @@ export function DelegateStatementForm({
     queryFragment
   );
 
+  const delegate = data.delegate;
+
   const initialFormValuesState = useMemo((): FormValues => {
-    if (!data.address?.wrappedDelegate?.statement) {
+    if (!delegate.statement) {
       return initialFormValues();
     }
 
-    const statement = data.address.wrappedDelegate.statement;
+    const statement = delegate.statement;
 
     return {
       discord: statement.discord,
       twitter: statement.twitter,
-      leastValuableProposals: statement.leastValuableProposals.slice(),
-      mostValuableProposals: statement.mostValuableProposals.slice(),
+      leastValuableProposals: statement.leastValuableProposals.map((it) => ({
+        number: BigNumber.from(it.number).toNumber(),
+      })),
+      mostValuableProposals: statement.mostValuableProposals.map((it) => ({
+        number: BigNumber.from(it.number).toNumber(),
+      })),
       topIssues: statement.topIssues.slice(),
       delegateStatement: statement.statement,
       email: "",
@@ -138,7 +146,7 @@ export function DelegateStatementForm({
         return statement.openToSponsoringProposals ? "yes" : "no";
       })(),
     };
-  }, [data]);
+  }, [delegate]);
 
   const form = useForm<FormValues>(() => initialFormValuesState);
 
@@ -171,7 +179,7 @@ export function DelegateStatementForm({
     useMutation<DelegateStatementFormMutation>(
       graphql`
         mutation DelegateStatementFormMutation(
-          $input: CreateNewDelegateStatementData
+          $input: CreateNewDelegateStatementData!
         ) {
           createNewDelegateStatement(data: $input) {
             statement {
@@ -272,13 +280,14 @@ export function DelegateStatementForm({
       );
 
       withIgnoringBlock(() => {
-        if (!data.address) {
+        if (!delegate.address) {
           return;
         }
 
         navigate({
           path: `/delegate/${
-            data.address.resolvedName.name ?? data.address.resolvedName.address
+            delegate.address.resolvedName.name ??
+            delegate.address.resolvedName.address
           }`,
         });
       });
@@ -353,7 +362,7 @@ export function DelegateStatementForm({
         </HStack>
       </VStack>
 
-      {data.address?.isContract && (
+      {delegate.address.isContract && (
         <VStack
           className={css`
             margin: ${theme.spacing["6"]} 0;

@@ -1,16 +1,32 @@
-schema: ./src/schemas/*.graphql
 generates:
-  src/generated/types.ts:
+  src/schema/resolvers/generated/types.ts:
+    schema: ./src/schema/schema.graphql
     plugins:
       - "@graphql-codegen/typescript"
       - "@graphql-codegen/typescript-resolvers"
+      - add:
+          content: "import { ethers } from 'ethers'"
     config:
-      contextType: ../model#AgoraContextType
+      avoidOptionals: false
+      contextType: ../../context#AgoraContextType
+      strictScalars: true
+      scalars:
+        BigInt: ethers.BigNumber
+        Timestamp: Date
+        Bytes: string
       mappers:
-        OverallMetrics: ../model#OverallMetrics as OverallMetricsModel
-        Address: ../model#Address as AddressModel
-        ResolvedName: ../model#ResolvedName as ResolvedNameModel
-        WrappedDelegate: ../model#WrappedDelegate as WrappedDelegateModel
-        DelegateStatement: ../model#DelegateStatement as DelegateStatementModel
-        PropHouseAuction: ../model#PropHouseAuction as PropHouseAuctionModel
-        PropHouseProposal: ../model#PropHouseProposal as PropHouseProposalModel
+        Address: ../common#AddressModel
+        ResolvedName: ../common#ResolvedNameModel
+
+        VotingPower: ../governance#VotingPowerModel
+        Metrics: ../governance#MetricsModel
+        Delegate: ../governance#DelegateModel
+        Proposal: ../governance#ProposalModel
+        Vote: ../governance#VoteModel
+        Noun: ../governance#NounModel
+        ProposalTransaction: ../governance#ProposalTransactionModel
+
+        PropHouseProposal: ../propHouse#PropHouseProposalModel
+        PropHouseAuction: ../propHouse#PropHouseAuctionModel
+
+        DelegateStatement: ../delegateStatement#DelegateStatementModel
