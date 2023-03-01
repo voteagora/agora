@@ -175,23 +175,7 @@ export const Metrics: MetricsResolvers = {
   },
 };
 
-const communityId = 1;
-
 export const Query: QueryResolvers = {
-  async propHouseAuction(_, { auctionId }) {
-    const auctions = await fetchAuctions({
-      communityId,
-    });
-
-    return auctions.find((it) => it.id.toString() === auctionId)!;
-  },
-
-  async propHouseAuctions() {
-    return await fetchAuctions({
-      communityId,
-    });
-  },
-
   async delegate(_, { addressOrEnsName }, { ethProvider, reader }) {
     const address = await resolveEnsOrNnsName(addressOrEnsName, ethProvider);
     if (!address) {
@@ -402,26 +386,6 @@ export const Delegate: DelegateResolvers = {
 
   async votes({ address }, _args, { reader }) {
     return await votesForAddress(reader, address);
-  },
-
-  async propHouseVotes({ address }) {
-    const votes = await fetchVotes({ voter: address });
-    const auctions = await fetchAuctions({ communityId });
-    const groupedVotes = groupVotesByAuction(votes, auctions);
-
-    return groupedVotes.map((vote) => {
-      return {
-        id: `PropHouseRoundVotes|${address}|${vote.auction.id}`,
-        address: { address },
-        createdAt: new Date(vote.createdAt),
-        round: vote.auction,
-        votes: vote.votes.map((vote) => ({
-          address: { address },
-          proposal: vote.proposal,
-          weight: vote.weight,
-        })),
-      };
-    });
   },
 };
 

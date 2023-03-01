@@ -1,15 +1,58 @@
 import {
+  DelegateResolvers,
   PropHouseAuctionResolvers,
   PropHouseProposalResolvers,
+  QueryResolvers,
 } from "./generated/types";
-import { auctionsAuction } from "../../propHouse/fetchAuctions";
+import { auctionsAuction, fetchAuctions } from "../../propHouse/fetchAuctions";
 import { z } from "zod";
 import { proposal } from "../../propHouse/common";
 import { fetchProposalsForAuction } from "../../propHouse/fetchProposalsForAuction";
 import { groupBy } from "lodash";
-import { statusForAuction } from "../../propHouse/helpers";
+import { groupVotesByAuction, statusForAuction } from "../../propHouse/helpers";
+import { fetchVotes } from "../../propHouse/fetchVotes";
 
 export type PropHouseAuctionModel = z.infer<typeof auctionsAuction>;
+
+const communityId = 1;
+
+export const Query: QueryResolvers = {
+  async propHouseAuction(_, { auctionId }) {
+    const auctions = await fetchAuctions({
+      communityId,
+    });
+
+    return auctions.find((it) => it.id.toString() === auctionId)!;
+  },
+
+  async propHouseAuctions() {
+    return await fetchAuctions({
+      communityId,
+    });
+  },
+};
+
+export const Delegate: DelegateResolvers = {
+  async propHouseVotes({ address }) {
+    const votes = await fetchVotes({ voter: address });
+    const auctions = await fetchAuctions({ communityId });
+    const groupedVotes = groupVotesByAuction(votes, auctions);
+
+    return groupedVotes.map((vote) => {
+      return {
+        id: `PropHouseRoundVotes|${address}|${vote.auction.id}`,
+        address: { address },
+        createdAt: new Date(vote.createdAt),
+        round: vote.auction,
+        votes: vote.votes.map((vote) => ({
+          address: { address },
+          proposal: vote.proposal,
+          weight: vote.weight,
+        })),
+      };
+    });
+  },
+};
 
 export const PropHouseAuction: PropHouseAuctionResolvers = {
   id({ id }) {

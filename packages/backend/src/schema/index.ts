@@ -7,18 +7,18 @@ import * as delegateStatement from "./resolvers/delegateStatement";
 import { attachTracingContextInjection } from "./transformers/tracingContext";
 import { applyIdPrefix } from "./transformers/applyIdPrefix";
 import { makeExecutableSchema } from "@graphql-tools/schema";
+import { mergeResolvers } from "@graphql-tools/merge";
 
 // @ts-ignore
 import schema from "./schema.graphql";
 
-// @ts-ignore
-export const resolvers: Resolvers = {
-  ...governanceResolvers,
-  ...propHouseResolvers,
-  ...scalars,
-  ...commonResolvers,
-  ...delegateStatement,
-};
+export const resolvers: Resolvers = mergeResolvers([
+  governanceResolvers,
+  propHouseResolvers,
+  scalars,
+  commonResolvers,
+  delegateStatement,
+]);
 
 export function makeGatewaySchema() {
   return attachTracingContextInjection(
