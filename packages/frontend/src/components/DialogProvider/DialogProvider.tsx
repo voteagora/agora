@@ -5,7 +5,7 @@ import { dialogs, DialogType } from "./dialogs";
 import { inset0 } from "../../theme";
 import { Dialog } from "@headlessui/react";
 
-type OpenDialogFn = (dialog: DialogType) => void;
+type OpenDialogFn = (dialog: DialogType | null) => void;
 
 const context = createContext<OpenDialogFn | null>(null);
 
@@ -22,7 +22,7 @@ export function DialogProvider({ children }: Props) {
     }
 
     const dialog = dialogs[contextValue.type];
-    return dialog(contextValue.params, () => setContextValue(null));
+    return dialog(contextValue.params as any, () => setContextValue(null));
   })();
 
   return (
@@ -73,4 +73,8 @@ export function useOpenDialog() {
   }
 
   return openDialog;
+}
+
+export function useOpenDialogOptional() {
+  return useContext(context);
 }

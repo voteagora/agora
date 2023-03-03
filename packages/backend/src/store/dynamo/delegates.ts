@@ -1,10 +1,3 @@
-import {
-  DelegateOverview,
-  DelegatesPage,
-  DelegateStorage,
-  GetDelegatesParams,
-  StoredStatement,
-} from "../../model";
 import { AttributeValue, DynamoDB, Update } from "@aws-sdk/client-dynamodb";
 import {
   ConditionExpression,
@@ -26,6 +19,8 @@ import {
   withAttributes,
 } from "./utils";
 import { ENSAccount } from "../../snapshot";
+import { DelegateStorage, StoredStatement } from "../../schema/model";
+import { DelegateOverview, DelegatesPage, GetDelegatesParams } from "../../schema/model";
 
 function loadDelegateOverview(item: any): DelegateOverview {
   return {

@@ -8,8 +8,3 @@ export const indexers: IndexerDefinition[] = [
   // @ts-ignore
   governorIndexer,
 ];
-
-export const entityDefinitions = {
-  ...governanceTokenIndexer.entities,
-  ...governorIndexer.entities,
-};

@@ -24,7 +24,7 @@ export type Variables = ReturnType<typeof locationToVariables>;
 function locationToVariables(location: Location) {
   return {
     filterBy: parseFilterName(location.search["filterBy"]),
-    orderBy: parseOrderName(location.search["orderBy"]) ?? "mostVotingPower",
+    orderBy: parseOrderName(location.search["orderBy"]) ?? "mostVotesMostPower",
   };
 }
 

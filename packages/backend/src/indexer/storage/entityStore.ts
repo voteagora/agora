@@ -1,5 +1,4 @@
 import { BlockIdentifier } from "../storageHandle";
-import { IndexerDefinition } from "../process";
 import { EntityDefinitions } from "./reader";
 
 export interface EntityStore extends ReadOnlyEntityStore {
@@ -8,15 +7,6 @@ export interface EntityStore extends ReadOnlyEntityStore {
     entityDefinitions: EntityDefinitions,
     updatedEntities: EntityWithMetadata[]
   ): Promise<void>;
-}
-
-export function combineEntities<Indexers extends IndexerDefinition[]>(
-  indexers: IndexerDefinition[]
-): EntityDefinitions {
-  return indexers.reduce(
-    (acc, indexer) => ({ ...acc, ...indexer.entities }),
-    {}
-  );
 }
 
 export type EntityWithMetadata<T = unknown> = {

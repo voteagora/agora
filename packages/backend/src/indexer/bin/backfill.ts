@@ -1,4 +1,4 @@
-import { combineEntities, EntityWithMetadata } from "../storage/entityStore";
+import { EntityWithMetadata } from "../storage/entityStore";
 import { IndexerDefinition } from "../process";
 import { groupBy } from "../utils/generatorUtils";
 import { loadLastLogIndex, loadMergedLogs } from "../logStorage";
@@ -11,6 +11,7 @@ import { StructuredError } from "../utils/errorUtils";
 import { ethers } from "ethers";
 import { LevelEntityStore } from "../storage/level/levelEntityStore";
 import { makeProgressBar } from "../utils/progressBarUtils";
+import { entityDefinitions } from "../contracts/entityDefinitions";
 
 /**
  * Backfills updates from fetched logs starting from the last finalized block
@@ -32,8 +33,6 @@ async function main() {
   ) {
     return;
   }
-
-  const entityDefinitions = combineEntities(indexers);
 
   const progressBar = makeProgressBar(highestCommonBlock.blockNumber);
 
@@ -72,7 +71,7 @@ async function main() {
       const [storageHandle, loadedEntities] = makeStorageHandleWithStagingArea(
         entityBlockStagingArea,
         store,
-        indexer.entities
+        entityDefinitions
       );
 
       try {

@@ -15,6 +15,7 @@ import { listEntries } from "../indexer/storage/durableObjects/storageInterface"
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 import { maxReorgBlocksDepth } from "../indexer/process";
+import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
 
 export const blockUpdateIntervalSeconds = 10;
 
@@ -183,6 +184,7 @@ export class StorageDurableObjectV1 {
         return followChain(
           this.entityStore,
           indexers,
+          entityDefinitions,
           blockProvider,
           logProvider,
           storageArea

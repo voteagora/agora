@@ -1,11 +1,10 @@
 import { Reader } from "../indexer/storage/reader";
-import { entityDefinitions } from "../indexer/contracts";
+import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
 import { CacheDependencies } from "../utils/cache";
-import { EmailStorage, StatementStorage } from "./model";
+import { DelegateStorage, EmailStorage, StatementStorage } from "./model";
 import { ethers } from "ethers";
 import { TracingContext } from "./transformers/tracingContext";
 import { SnapshotVoteModel } from "./resolvers/snapshot";
-import { DelegateStorage } from "../model";
 
 export type AgoraContextType = {
   delegateStorage: DelegateStorage;

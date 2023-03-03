@@ -19,6 +19,7 @@ export const spacing = {
   "4": "1rem",
   "5": "1.25rem",
   "6": "1.5rem",
+  "7": "1.75em",
   "8": "2rem",
   "10": "2.5rem",
   "12": "3rem",
@@ -63,9 +64,13 @@ export const colors = {
 
   black: "#000",
   white: "#fff",
+  partner: "#FF0420",
 
   gray: {
     eb: "#ebebeb",
+    "4f": "#4f4f4f",
+    af: "#afafaf",
+    fa: "#fafafa",
     100: "#f7fafc",
     200: "#edf2f7",
     300: "#e2e8f0",
@@ -183,6 +188,7 @@ export const borderRadius = {
   default: "0.25rem",
   md: "0.375rem",
   lg: "0.5rem",
+  xl: "0.75rem",
   full: "9999px",
 };
 
@@ -244,6 +250,7 @@ export const maxWidth = {
 
 export const fontFamily = {
   sans: makeFontString([
+    "Rubik",
     "system-ui",
     "-apple-system",
     "BlinkMacSystemFont",
@@ -273,6 +280,7 @@ export const fontFamily = {
     '"Courier New"',
     "monospace",
   ]),
+  partner: makeFontString(["Rubik"]),
 };
 
 function makeFontString(fonts: string[]): string {

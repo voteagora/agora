@@ -32,6 +32,8 @@ type Delegate {
   amountOwned: VotingPower!
   tokensRepresented: VotingPower!
 
+  votesCasted: BigInt!
+
   delegateMetrics: DelegateMetrics!
   proposed: [Proposal!]!
 
@@ -187,6 +189,8 @@ enum DelegatesWhere {
 enum DelegatesOrder {
   mostVotingPower
   mostDelegates
+  mostVotes
+  mostVotesMostPower
 }
 
 type DelegatesConnection {

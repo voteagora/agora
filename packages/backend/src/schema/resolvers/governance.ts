@@ -19,9 +19,11 @@ import {
   makeDefaultAggregate,
 } from "../../indexer/contracts/GovernanceToken";
 import { exactIndexValue, Reader } from "../../indexer/storage/reader";
-import { entityDefinitions } from "../../indexer/contracts";
+import { entityDefinitions } from "../../indexer/contracts/entityDefinitions";
 import { RuntimeType } from "../../indexer/serde";
-import { collectGenerator } from "../../indexer/utils/generatorUtils";
+import {
+  collectGenerator,
+} from "../../indexer/utils/generatorUtils";
 import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { driveReaderByIndex } from "../pagination";
 import { formSchema } from "../../formSchema";
@@ -48,6 +50,12 @@ export const VotingPower: VotingPowerResolvers = {
     return bpsOf(value, aggregate.totalSupply);
   },
 
+  async bpsOfDelegatedSupply(value, _args, { reader }) {
+    const aggregate = await getAggregate(reader);
+
+    return bpsOf(value, aggregate.delegatedSupply);
+  },
+
   async bpsOfQuorum(value, _args, { reader }) {
     const quorum = await getQuorum(reader);
     return bpsOf(value, quorum);
@@ -62,9 +70,6 @@ export const Metrics: MetricsResolvers = {
   },
   async delegatedSupply(_parent, _args, { reader }) {
     const aggregate = await getAggregate(reader);
-
-    console.log(aggregate);
-
     return asTokenAmount(aggregate.delegatedSupply);
   },
   async totalSupply(_parent, _args, { reader }) {
@@ -128,6 +133,12 @@ export const Query: QueryResolvers = {
 
           case DelegatesOrder.MostVotingPower:
             return "byTokensRepresented";
+
+          case DelegatesOrder.MostVotes:
+            return "byVotesCasted";
+
+          case DelegatesOrder.MostVotesMostPower:
+            return "byVotesCastedByTokensRepresented";
         }
       })(),
       first,
@@ -168,6 +179,17 @@ export const Delegate: DelegateResolvers = {
 
   tokensRepresented({ tokensRepresented }) {
     return tokensRepresented;
+  },
+
+  votesCasted({ votesCasted }) {
+    return votesCasted;
+  },
+
+  async delegatingTo({ delegatingTo }, _args, { reader }) {
+    return (
+      (await reader.getEntity("Address", delegatingTo)) ??
+      defaultAccount(delegatingTo)
+    );
   },
 
   async delegateMetrics(
@@ -267,6 +289,13 @@ export const Proposal: ProposalResolvers = {
     return approximateBlockTimestampForBlock(provider, endBlock.toNumber());
   },
 
+  async quorumVotes({}, _args, { reader }) {
+    return {
+      amount: await getQuorum(reader),
+      ...amountSpec,
+    };
+  },
+
   totalValue({ transactions }) {
     return transactions.reduce(
       (acc, tx) => acc.add(tx.value),
@@ -302,11 +331,11 @@ export const Proposal: ProposalResolvers = {
       }
 
       case "PROPOSED": {
-        if (startBlock.toNumber() >= latestBlock.blockNumber) {
+        if (latestBlock.blockNumber <= startBlock.toNumber()) {
           return ProposalStatus.Pending;
         }
 
-        if (endBlock.toNumber() >= latestBlock.blockNumber) {
+        if (latestBlock.blockNumber <= endBlock.toNumber()) {
           return ProposalStatus.Active;
         }
 
@@ -320,7 +349,7 @@ export const Proposal: ProposalResolvers = {
         }
 
         if (forVotes.gt(againstVotes)) {
-          return ProposalStatus.Defeated;
+          return ProposalStatus.Succeeded;
         }
 
         return ProposalStatus.Queued;

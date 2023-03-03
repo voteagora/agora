@@ -17,6 +17,11 @@ type Query {
 type Delegate {
   id: ID!
   address: Address!
+
+  # Delegate where voting power has been delegated. Can be delegated to a
+  # delegate with the same address as the account.
+  delegatingTo: Delegate!
+
   statement: DelegateStatement
   amountOwned: VotingPower!
   tokensRepresented: VotingPower!
@@ -164,6 +169,8 @@ enum DelegatesWhere {
 enum DelegatesOrder {
   mostVotingPower
   mostDelegates
+  mostVotes
+  mostVotesMostPower
 }
 
 type DelegatesConnection {

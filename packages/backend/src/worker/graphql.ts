@@ -8,7 +8,7 @@ import { ethers } from "ethers";
 import { TransparentMultiCallProvider } from "../multicall";
 import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
 import { DurableObjectReader } from "../indexer/storage/durableObjects/durableObjectReader";
-import { entityDefinitions } from "../indexer/contracts";
+import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
 import { StorageArea } from "../indexer/followChain";
 import { StorageInterface } from "../indexer/storage/durableObjects/storageInterface";
 import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";

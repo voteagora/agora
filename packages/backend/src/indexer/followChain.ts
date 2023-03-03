@@ -1,9 +1,9 @@
 import {
-  combineEntities,
   EntityStore,
   EntityWithMetadata,
 } from "./storage/entityStore";
 import {
+  EntitiesType,
   IndexerDefinition,
   isBlockDepthFinalized,
   maxReorgBlocksDepth,
@@ -13,7 +13,6 @@ import {
   blockIdentifierFromParentBlock,
   BlockProvider,
   BlockProviderBlock,
-  maxBlockRange,
 } from "./blockProvider/blockProvider";
 import { LogProvider, topicFilterForIndexers } from "./logProvider/logProvider";
 import {
@@ -32,11 +31,11 @@ import { StructuredError } from "./utils/errorUtils";
 export function followChain(
   store: EntityStore,
   indexers: IndexerDefinition[],
+  entityDefinitions: EntitiesType,
   blockProvider: BlockProvider,
   logProvider: LogProvider,
   storageArea: StorageArea
 ) {
-  const entityDefinitions = combineEntities(indexers);
 
   const filter = topicFilterForIndexers(indexers);
 

@@ -2,7 +2,6 @@ import "isomorphic-fetch";
 import { createServer } from "@graphql-yoga/node";
 import { makeGatewaySchema } from "../schema";
 import { useTiming } from "@envelop/core";
-import { AgoraContextType } from "../schema/context";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { ValidatedMessage } from "../utils/signing";
 import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
@@ -13,13 +12,15 @@ import { TransparentMultiCallProvider } from "../multicall";
 import { makeSnapshotVoteStorage } from "../store/dynamo/snapshotVotes";
 import { useErrorInspection } from "../schema/plugins/useErrorInspection";
 import { followChain, makeInitialStorageArea } from "../indexer/followChain";
-import { entityDefinitions, indexers } from "../indexer/contracts";
+import { indexers } from "../indexer/contracts";
+import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
 import { LevelEntityStore } from "../indexer/storage/level/levelEntityStore";
 import { LevelReader } from "../indexer/storage/level/levelReader";
 import { timeout } from "../indexer/utils/asyncUtils";
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 import { makeDynamoDelegateStore } from "../store/dynamo/delegates";
+import { AgoraContextType } from "../schema/context";
 
 // p0
 // todo: where are delegate statements going to be stored?
@@ -48,6 +49,7 @@ async function main() {
   const iter = followChain(
     store,
     indexers,
+    entityDefinitions,
     blockProvider,
     logProvider,
     storageArea

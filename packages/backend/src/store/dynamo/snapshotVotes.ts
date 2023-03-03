@@ -1,15 +1,16 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { SnapshotVote, SnapshotVoteStorage } from "../../model";
 import { marshaller, TableName, withAttributes } from "./utils";
 import {
   equals,
   ExpressionAttributes,
   serializeConditionExpression,
 } from "@aws/dynamodb-expressions";
+import { SnapshotVoteStorage } from "../../schema/context";
+import { SnapshotVoteModel } from "../../schema/resolvers/snapshot";
 
 export function makeSnapshotVoteStorage(dynamo: DynamoDB): SnapshotVoteStorage {
   return {
-    async getSnapshotVotesByVoter(address: string): Promise<SnapshotVote[]> {
+    async getSnapshotVotesByVoter(address: string): Promise<SnapshotVoteModel[]> {
       const expressionAttributes = new ExpressionAttributes();
       const result = await dynamo.query({
         TableName,
@@ -26,8 +27,6 @@ export function makeSnapshotVoteStorage(dynamo: DynamoDB): SnapshotVoteStorage {
       return result.Items.map((it) => marshaller.unmarshallItem(it)).flatMap(
         (it) => {
           let sortKey = it.SortKey.toString().split("#");
-
-          console.log({ sortKey });
 
           if (!it.proposal || sortKey[1] == undefined) {
             return [];
