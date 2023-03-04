@@ -259,8 +259,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                 startTransition(() => {
                   navigate({
                     search: {
-                      orderBy:
-                        orderBy === "mostVotingPower" ? null : orderBy ?? null,
+                      orderBy: orderBy ?? null
                     },
                   });
                 });
