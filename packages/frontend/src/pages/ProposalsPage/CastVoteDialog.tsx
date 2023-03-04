@@ -155,7 +155,9 @@ function CastVoteDialogContents({
           >
             <div>
               {delegate
-                ? BigNumber.from(delegate.tokensRepresented.amount).toString()
+                ? BigNumber.from(
+                    delegate.tokensRepresented.amount.amount
+                  ).toString()
                 : "0"}
             </div>
             <div
