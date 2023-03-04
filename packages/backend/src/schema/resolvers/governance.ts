@@ -21,9 +21,7 @@ import {
 import { exactIndexValue, Reader } from "../../indexer/storage/reader";
 import { entityDefinitions } from "../../indexer/contracts/entityDefinitions";
 import { RuntimeType } from "../../indexer/serde";
-import {
-  collectGenerator,
-} from "../../indexer/utils/generatorUtils";
+import { collectGenerator } from "../../indexer/utils/generatorUtils";
 import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { driveReaderByIndex } from "../pagination";
 import { formSchema } from "../../formSchema";

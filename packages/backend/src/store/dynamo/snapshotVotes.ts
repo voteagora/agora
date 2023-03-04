@@ -10,7 +10,9 @@ import { SnapshotVoteModel } from "../../schema/resolvers/snapshot";
 
 export function makeSnapshotVoteStorage(dynamo: DynamoDB): SnapshotVoteStorage {
   return {
-    async getSnapshotVotesByVoter(address: string): Promise<SnapshotVoteModel[]> {
+    async getSnapshotVotesByVoter(
+      address: string
+    ): Promise<SnapshotVoteModel[]> {
       const expressionAttributes = new ExpressionAttributes();
       const result = await dynamo.query({
         TableName,

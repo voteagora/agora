@@ -12,9 +12,7 @@ export type Handle = StorageHandleForEntityDefinition<typeof entityDefinitions>;
 export function saveAccount(
   // @ts-ignore
   handle: Handle,
-  entity: RuntimeType<
-    typeof entityDefinitions["Address"]["serde"]
-  >
+  entity: RuntimeType<typeof entityDefinitions["Address"]["serde"]>
 ) {
   return handle.saveEntity("Address", entity.address, entity);
 }
@@ -84,9 +82,7 @@ export const entityDefinitions = {
       {
         indexName: "byEndBlock",
         indexKey(entity) {
-          return efficientLengthEncodingNaturalNumbers(
-            entity.endBlock.mul(-1)
-          );
+          return efficientLengthEncodingNaturalNumbers(entity.endBlock.mul(-1));
         },
       },
       {
@@ -144,7 +140,9 @@ export const entityDefinitions = {
         indexKey(entity) {
           return makeCompoundKey(
             efficientLengthEncodingNaturalNumbers(entity.votesCasted.mul(-1)),
-            efficientLengthEncodingNaturalNumbers(entity.tokensRepresented.mul(-1))
+            efficientLengthEncodingNaturalNumbers(
+              entity.tokensRepresented.mul(-1)
+            )
           );
         },
       },

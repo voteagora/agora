@@ -1,8 +1,8 @@
-import { useFragment } from 'react-relay';
-import graphql from 'babel-plugin-relay/macro';
-import { PanelRow } from './PanelRow';
-import { DelegatingToRowFragment$key } from './__generated__/DelegatingToRowFragment.graphql';
-import { shortAddress } from '../../../utils/address';
+import { useFragment } from "react-relay";
+import graphql from "babel-plugin-relay/macro";
+import { PanelRow } from "./PanelRow";
+import { DelegatingToRowFragment$key } from "./__generated__/DelegatingToRowFragment.graphql";
+import { shortAddress } from "../../../utils/address";
 
 export function DelegatingTo({
   fragment,
@@ -33,7 +33,7 @@ export function DelegatingTo({
   return (
     <PanelRow
       title="Delegated to"
-      detail={delegatingTo.name || shortAddress(delegatingTo.address) || ''}
+      detail={delegatingTo.name || shortAddress(delegatingTo.address) || ""}
     />
   );
 }

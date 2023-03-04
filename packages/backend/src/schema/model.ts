@@ -21,7 +21,11 @@ export interface EmailStorage {
 
 export type GetDelegatesParams = {
   where?: "withStatement" | "withoutStatement";
-  orderBy: "mostVotingPower" | "mostDelegates" | "mostVotes" | "mostVotesMostPower";
+  orderBy:
+    | "mostVotingPower"
+    | "mostDelegates"
+    | "mostVotes"
+    | "mostVotesMostPower";
   first: number;
   after?: string;
 };

@@ -31,7 +31,7 @@ const orderNames: { [K in DelegatesOrder]?: string } = {
   mostVotingPower: "Most voting power",
   mostDelegates: "Most delegates",
   mostVotes: "Most votes",
-  mostVotesMostPower: "Most votes | Most voting power"
+  mostVotesMostPower: "Most votes | Most voting power",
 };
 
 const filterNames = [
@@ -259,7 +259,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                 startTransition(() => {
                   navigate({
                     search: {
-                      orderBy: orderBy ?? null
+                      orderBy: orderBy ?? null,
                     },
                   });
                 });

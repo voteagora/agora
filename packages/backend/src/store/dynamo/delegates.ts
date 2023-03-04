@@ -20,7 +20,11 @@ import {
 } from "./utils";
 import { ENSAccount } from "../../snapshot";
 import { DelegateStorage, StoredStatement } from "../../schema/model";
-import { DelegateOverview, DelegatesPage, GetDelegatesParams } from "../../schema/model";
+import {
+  DelegateOverview,
+  DelegatesPage,
+  GetDelegatesParams,
+} from "../../schema/model";
 
 function loadDelegateOverview(item: any): DelegateOverview {
   return {

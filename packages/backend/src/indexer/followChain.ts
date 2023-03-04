@@ -1,7 +1,4 @@
-import {
-  EntityStore,
-  EntityWithMetadata,
-} from "./storage/entityStore";
+import { EntityStore, EntityWithMetadata } from "./storage/entityStore";
 import {
   EntitiesType,
   IndexerDefinition,
@@ -36,7 +33,6 @@ export function followChain(
   logProvider: LogProvider,
   storageArea: StorageArea
 ) {
-
   const filter = topicFilterForIndexers(indexers);
 
   async function processBlock(
