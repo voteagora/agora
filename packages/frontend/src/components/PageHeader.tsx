@@ -202,17 +202,11 @@ export const MobileButton = () => {
               <img
                 src={icons.walletConnected}
                 alt="connect wallet button"
-                className={css`
-                  opacity: 1;
-                `}
               />
             ) : (
               <img
                 src={icons.wallet}
                 alt="connect wallet button"
-                className={css`
-                  opacity: 0.6;
-                `}
               />
             )}
           </div>

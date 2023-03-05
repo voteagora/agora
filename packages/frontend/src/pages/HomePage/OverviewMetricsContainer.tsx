@@ -61,13 +61,12 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
         @media (max-width: ${theme.maxWidth.lg}) {
           flex-direction: column;
           align-items: stretch;
-          gap: 0px;
-          background: ${theme.colors.white};
+          gap: ${theme.spacing["2"]};
+          background: transparent;
           border-radius: ${theme.spacing["3"]};
           padding: ${theme.spacing["3"]};
-          border-width: ${theme.spacing.px};
-          border-color: ${theme.colors.gray["300"]};
-          box-shadow: ${theme.boxShadow.newDefault};
+          border-width: 0px
+          box-shadow: ${theme.boxShadow.none};
         }
       `}
     >
