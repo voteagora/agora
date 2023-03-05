@@ -199,15 +199,9 @@ export const MobileButton = () => {
             onClick={show}
           >
             {isConnected ? (
-              <img
-                src={icons.walletConnected}
-                alt="connect wallet button"
-              />
+              <img src={icons.walletConnected} alt="connect wallet button" />
             ) : (
-              <img
-                src={icons.wallet}
-                alt="connect wallet button"
-              />
+              <img src={icons.wallet} alt="connect wallet button" />
             )}
           </div>
         );
