@@ -11,7 +11,7 @@ export const BigInt = new GraphQLScalarType<ethers.BigNumber, string>({
     return value.toString();
   },
   parseValue(raw) {
-    return ethers.BigNumber.from(raw);
+    return ethers.BigNumber.from(raw as any);
   },
 });
 

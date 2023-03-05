@@ -193,7 +193,9 @@ function CastVoteDialogContents({
         <NounsDisplay
           totalNouns={
             delegate
-              ? BigNumber.from(delegate.tokensRepresented.amount).toNumber()
+              ? BigNumber.from(
+                  delegate.tokensRepresented.amount.amount
+                ).toNumber()
               : 0
           }
           nouns={delegate?.nounsRepresented ?? []}

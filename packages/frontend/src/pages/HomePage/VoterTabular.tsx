@@ -80,7 +80,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
   const tokenHolders = useMemo(() => {
     return delegate.tokenHoldersRepresented
       .map((it) => ({
-        tokensOwned: BigNumber.from(it.tokensOwned.amount),
+        tokensOwned: BigNumber.from(it.tokensOwned.amount.amount),
         it,
       }))
       .slice()
