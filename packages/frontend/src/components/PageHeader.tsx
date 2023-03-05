@@ -199,21 +199,9 @@ export const MobileButton = () => {
             onClick={show}
           >
             {isConnected ? (
-              <img
-                src={icons.walletConnected}
-                alt="connect wallet button"
-                className={css`
-                  opacity: 1;
-                `}
-              />
+              <img src={icons.walletConnected} alt="connect wallet button" />
             ) : (
-              <img
-                src={icons.wallet}
-                alt="connect wallet button"
-                className={css`
-                  opacity: 0.6;
-                `}
-              />
+              <img src={icons.wallet} alt="connect wallet button" />
             )}
           </div>
         );
