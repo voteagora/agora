@@ -1,0 +1,13 @@
+diff --git a/node_modules/@ethersproject/bignumber/src.ts/bignumber.ts b/node_modules/@ethersproject/bignumber/src.ts/bignumber.ts
+index 31d4c44..44311e8 100644
+--- a/node_modules/@ethersproject/bignumber/src.ts/bignumber.ts
++++ b/node_modules/@ethersproject/bignumber/src.ts/bignumber.ts
+@@ -223,7 +223,7 @@ export class BigNumber implements Hexable {
+         return { type: "BigNumber", hex: this.toHexString() };
+     }
+ 
+-    static from(value: any): BigNumber {
++    static from(value: string | number | bigint | BigNumber): BigNumber {
+         if (value instanceof BigNumber) { return value; }
+ 
+         if (typeof(value) === "string") {
