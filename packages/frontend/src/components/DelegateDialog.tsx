@@ -265,7 +265,7 @@ function DelegateDialogContents({
           return <DelegateButton>Connect Wallet</DelegateButton>;
         }
 
-        if (BigNumber.from(currentDelegate.tokensOwned.amount).eq(0)) {
+        if (BigNumber.from(currentDelegate.tokensOwned.amount.amount).eq(0)) {
           return null;
         }
 
