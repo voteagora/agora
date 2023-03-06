@@ -73,7 +73,9 @@ type EventHandler<
   };
 }[keyof InterfaceType["events"] & string];
 
-type EventFragmentArg<T> = T extends ethers.utils.EventFragment<infer Args>
+export type EventFragmentArg<T> = T extends ethers.utils.EventFragment<
+  infer Args
+>
   ? Args
   : never;
 

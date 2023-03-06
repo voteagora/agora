@@ -3,7 +3,7 @@ import { loadLastLog, pathForLogs, pathForLogsIndex } from "../logStorage";
 import { promises as fs } from "fs";
 import { BlockIdentifier } from "../storageHandle";
 import { filterForEventHandlers } from "../../contracts";
-import { indexers } from "../contracts";
+import { getIndexerByName, indexers } from "../contracts";
 import { maxReorgBlocksDepth } from "../process";
 import { getAllLogsInRange } from "../logProvider/getAllLogsInRange";
 import { EthersLogProvider } from "../logProvider/logProvider";
@@ -26,14 +26,7 @@ async function main() {
 
   const logProvider = new EthersLogProvider(provider, true);
 
-  const indexer = indexers.find((it) => it.name === process.argv[2]);
-  if (!indexer) {
-    throw new Error(
-      `${indexer} not found, possible options ${indexers
-        .map((indexer) => indexer.name)
-        .join(", ")}`
-    );
-  }
+  const indexer = getIndexerByName(indexers, process.argv[2]);
 
   const filter = filterForEventHandlers(
     indexer,

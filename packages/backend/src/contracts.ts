@@ -1,5 +1,7 @@
 import { ethers } from "ethers";
 import { TopicFilter } from "./indexer/logProvider/logProvider";
+import { LogDescription } from "@ethersproject/abi/src.ts/interface";
+import { EventFragmentArg } from "./indexer/process";
 
 export type ContractInstance<InterfaceType extends TypedInterface> = {
   iface: InterfaceType;
@@ -8,7 +10,22 @@ export type ContractInstance<InterfaceType extends TypedInterface> = {
 };
 
 export interface TypedInterface extends ethers.utils.Interface {
-  events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
+  events: Record<string, ethers.utils.EventFragment<Record<any, any>>>;
+}
+
+export function parseLogTyped<InterfaceType extends TypedInterface>(
+  typedInterface: InterfaceType,
+  log: {
+    topics: Array<string>;
+    data: string;
+  }
+): {
+  [Signature in keyof InterfaceType["events"] & string]: LogDescription<
+    Signature,
+    EventFragmentArg<InterfaceType["events"][Signature]>
+  >;
+}[keyof InterfaceType["events"] & string] {
+  return typedInterface.parseLog(log) as any;
 }
 
 export function makeContractInstance<InterfaceType extends TypedInterface>(
