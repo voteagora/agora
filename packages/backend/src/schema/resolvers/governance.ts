@@ -502,10 +502,10 @@ export const Proposal: ProposalResolvers = {
         }
 
         if (forVotes.gt(againstVotes)) {
-          return ProposalStatus.Defeated;
+          return ProposalStatus.Queued;
         }
 
-        return ProposalStatus.Queued;
+        return ProposalStatus.Defeated;
       }
     }
   },
