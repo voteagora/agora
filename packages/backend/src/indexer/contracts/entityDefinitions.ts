@@ -11,7 +11,6 @@ export type Handle = StorageHandleForEntityDefinition<typeof entityDefinitions>;
 export const entityDefinitions = {
   GovernorAggregates: makeEntityDefinition({
     serde: serde.object({
-      quorumNumerator: serde.bigNumber,
       votingDelay: serde.bigNumber,
       votingPeriod: serde.bigNumber,
       totalProposals: serde.passthrough<number>(),

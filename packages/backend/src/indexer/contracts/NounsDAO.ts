@@ -38,6 +38,16 @@ export const governorIndexer = makeIndexerDefinition(
         },
       },
       {
+        signature: "MaxQuorumVotesBPSSet(uint16,uint16)",
+        async handle(handle, event) {
+          const agg = await loadGovernanceAggregate(handle);
+
+          agg.quorumCeilingBps = event.args.newMaxQuorumVotesBPS;
+
+          saveGovernanceAggregate(handle, agg);
+        },
+      },
+      {
         signature:
           "ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)",
         async handle(handle, event) {
@@ -162,7 +172,7 @@ export const governorIndexer = makeIndexerDefinition(
         async handle(handle, event) {
           const aggregate = await loadGovernanceAggregate(handle);
           if (!aggregate.votingDelay.eq(event.args.oldVotingDelay)) {
-            throw new Error("quorumNumerator wrong");
+            throw new Error("votingDelay wrong");
           }
 
           aggregate.votingDelay = event.args.newVotingDelay;
@@ -174,7 +184,7 @@ export const governorIndexer = makeIndexerDefinition(
         async handle(handle, event) {
           const aggregate = await loadGovernanceAggregate(handle);
           if (!aggregate.votingPeriod.eq(event.args.oldVotingPeriod)) {
-            throw new Error("quorumNumerator wrong");
+            throw new Error("votingPeriod wrong");
           }
 
           aggregate.votingPeriod = event.args.newVotingPeriod;
@@ -191,7 +201,6 @@ export function makeDefaultGovernanceAggregate(): RuntimeType<
   typeof entityDefinitions["GovernorAggregates"]["serde"]
 > {
   return {
-    quorumNumerator: BigNumber.from(0),
     votingDelay: BigNumber.from(0),
     votingPeriod: BigNumber.from(0),
     totalProposals: 0,

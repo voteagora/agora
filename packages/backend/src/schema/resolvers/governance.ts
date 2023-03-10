@@ -47,7 +47,7 @@ const amountSpec = {
   decimals: 0,
 };
 
-const quorumDenominator = BigNumber.from(100000);
+const quorumDenominator = BigNumber.from(100 * 100);
 
 export type VotingPowerModel = BigNumber;
 
@@ -611,7 +611,7 @@ async function getQuorum(
   const aggregate = await getAggregate(reader);
 
   return aggregate.totalSupply
-    .mul(governorAggregates.quorumNumerator)
+    .mul(governorAggregates.quorumFloorBps)
     .div(quorumDenominator);
 }
 
