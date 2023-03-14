@@ -1,16 +1,25 @@
 import { DialogDefinitions } from "./types";
 import { DelegateDialog } from "../DelegateDialog";
+import { FaqDialog } from "../../pages/HomePage/FaqDialog";
 import { SupportTextProps } from "../../pages/DelegatePage/VoteDetailsContainer";
 import React from "react";
 import { CastVoteDialog } from "../../pages/ProposalsPage/CastVoteDialog";
 
-export type DialogType = DelegateDialogType | CastVoteDialogType;
+export type DialogType =
+  | DelegateDialogType
+  | CastVoteDialogType
+  | FaqDialogType;
 
 export type DelegateDialogType = {
   type: "DELEGATE";
   params: {
     target: string;
   };
+};
+
+export type FaqDialogType = {
+  type: "FAQ";
+  params: {};
 };
 
 export type CastVoteDialogType = {
@@ -28,5 +37,8 @@ export const dialogs: DialogDefinitions<DialogType> = {
   },
   CAST_VOTE: ({ ...props }, closeDialog) => {
     return <CastVoteDialog {...props} closeDialog={closeDialog} />;
+  },
+  FAQ: () => {
+    return <FaqDialog />;
   },
 };
