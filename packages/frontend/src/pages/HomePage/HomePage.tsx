@@ -45,7 +45,7 @@ function Hero() {
       <VStack
         className={css`
           max-width: ${theme.maxWidth["xl"]};
-          margin-top: ${theme.spacing["12"]};
+          margin-top: ${theme.spacing["8"]};
           @media (max-width: ${theme.maxWidth.md}) {
             margin-top: 0;
             margin-bottom: ${theme.spacing["8"]};
@@ -75,7 +75,7 @@ function Hero() {
           >
             {orgName}
           </span>{" "}
-          voters
+          delegates
         </h1>
 
         <p
@@ -84,7 +84,8 @@ function Hero() {
             font-size: ${theme.fontSize.base};
           `}
         >
-          OP Delegates are the stewards of the Optimism Token House
+          OP Delegates are the stewards of the Optimism Token House, appointed
+          by token holders to make governance decisions on their behalf.
         </p>
       </VStack>
       <img

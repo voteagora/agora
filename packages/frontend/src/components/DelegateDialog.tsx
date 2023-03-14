@@ -18,6 +18,7 @@ import { useContractWrite } from "../hooks/useContractWrite";
 import { governanceTokenContract } from "../contracts/contracts";
 import { GovernanceToken } from "../contracts/generated";
 import { BigNumber } from "ethers";
+import { ConnectKitButton } from "connectkit";
 
 export function DelegateDialog({
   target,
@@ -267,7 +268,28 @@ function DelegateDialogContents({
         </VStack>
       </VStack>
       {!currentAccount && (
-        <DelegateButton disabled={false}>Connect Wallet</DelegateButton>
+        <ConnectKitButton.Custom>
+          {({ isConnected, show, address }) => {
+            return (
+              <button
+                onClick={show}
+                className={css`
+                  text-align: center;
+                  border-radius: ${theme.spacing["2"]};
+                  border: 1px solid ${theme.colors.gray.eb};
+                  font-weight: ${theme.fontWeight.semibold};
+                  padding: ${theme.spacing["4"]} 0;
+                  cursor: pointer;
+                  :hover {
+                    background: ${theme.colors.gray.eb};
+                  }
+                `}
+              >
+                {isConnected ? address : "Connect your wallet"}
+              </button>
+            );
+          }}
+        </ConnectKitButton.Custom>
       )}
       {isLoading && (
         <DelegateButton disabled={false}>
@@ -280,7 +302,7 @@ function DelegateDialogContents({
       {isError && (
         <DelegateButton disabled={false}>Delegation failed</DelegateButton>
       )}
-      {!isError && !isSuccess && !isLoading && (
+      {!isError && !isSuccess && !isLoading && currentAccount && (
         <DelegateButton disabled={false} onClick={() => delegateVotes()}>
           Delegate your votes
         </DelegateButton>

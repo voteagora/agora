@@ -9,6 +9,8 @@ import { OverviewMetricsContainerFragment$key } from "./__generated__/OverviewMe
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
 import { CalendarIcon } from "@heroicons/react/20/solid";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
+import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
+import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
 
 type Props = {
   fragmentRef: OverviewMetricsContainerFragment$key;
@@ -39,6 +41,8 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
     `,
     fragmentRef
   );
+  const openDialog = useOpenDialog();
+  const startTransition = useStartTransition();
   return (
     <HStack
       justifyContent="space-between"
@@ -64,7 +68,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
     >
       <MetricContainer
         icon="community"
-        title="Delegated token / Total supply"
+        title="Delegated / Total supply"
         body={
           <>
             <TokenAmountDisplay fragment={metrics.delegatedSupply} /> /{" "}
@@ -122,23 +126,26 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
             />
           </div>
           <VStack>
-            <div
+            <HStack
+              gap="1"
+              alignItems="center"
               className={css`
                 font-size: ${theme.fontSize.sm};
                 color: ${theme.colors.gray["700"]};
               `}
             >
-              Learn more
-            </div>
-            <HStack gap="2" alignItems="center">
-              <div>Operating manual</div>
+              Learn more{" "}
               <ArrowTopRightOnSquareIcon
                 className={css`
-                  width: 16px;
-                  height: 16px;
+                  width: 12px;
+                  height: 12px;
                   color: ${theme.colors.gray["500"]};
+                  diplsy: inline;
                 `}
-              ></ArrowTopRightOnSquareIcon>
+              />
+            </HStack>
+            <HStack gap="2" alignItems="center">
+              <div>Operating manual</div>
             </HStack>
           </VStack>
         </HStack>
@@ -182,27 +189,91 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
             ></CalendarIcon>
           </div>
           <VStack>
+            <HStack
+              gap="1"
+              alignItems="center"
+              className={css`
+                font-size: ${theme.fontSize.sm};
+                color: ${theme.colors.gray["700"]};
+              `}
+            >
+              Learn more{" "}
+              <ArrowTopRightOnSquareIcon
+                className={css`
+                  width: 12px;
+                  height: 12px;
+                  color: ${theme.colors.gray["500"]};
+                  diplsy: inline;
+                `}
+              />
+            </HStack>
+            <HStack gap="2" alignItems="center">
+              <div>Governance calendar</div>
+            </HStack>
+          </VStack>
+        </HStack>
+      </a>
+
+      <div
+        className={css`
+          cursor: pointer;
+        `}
+        onClick={(e) => {
+          startTransition(() =>
+            openDialog({
+              type: "FAQ",
+              params: {},
+            })
+          );
+        }}
+      >
+        <HStack
+          gap="3"
+          className={css`
+            background: ${theme.colors.white};
+            border-radius: ${theme.spacing["3"]};
+            padding: ${theme.spacing["3"]};
+            border-width: ${theme.spacing.px};
+            border-color: ${theme.colors.gray["300"]};
+            box-shadow: ${theme.boxShadow.newDefault};
+          `}
+        >
+          <div
+            className={css`
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: ${theme.spacing["2"]};
+              border-width: ${theme.spacing.px};
+              border-color: ${theme.colors.gray["300"]};
+              background: ${color};
+              flex-shrink: 0;
+              padding: ${theme.spacing["3"]};
+            `}
+          >
+            <CalendarIcon
+              className={css`
+                color: ${theme.colors.gray["700"]};
+                width: 24px;
+                height: 24px;
+              `}
+            ></CalendarIcon>
+          </div>
+          <VStack>
             <div
               className={css`
                 font-size: ${theme.fontSize.sm};
                 color: ${theme.colors.gray["700"]};
               `}
             >
-              Learn more
+              Delegation
             </div>
             <HStack gap="2" alignItems="center">
-              <div>Governance calendar</div>
-              <ArrowTopRightOnSquareIcon
-                className={css`
-                  width: 16px;
-                  height: 16px;
-                  color: ${theme.colors.gray["500"]};
-                `}
-              ></ArrowTopRightOnSquareIcon>
+              <div>FAQ</div>
             </HStack>
           </VStack>
         </HStack>
-      </a>
+      </div>
     </HStack>
   );
 }
