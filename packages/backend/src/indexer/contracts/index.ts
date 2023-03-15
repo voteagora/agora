@@ -1,12 +1,15 @@
 import { nounsTokenIndexer } from "./NounsToken";
 import { governorIndexer } from "./NounsDAO";
 import { IndexerDefinition } from "../process";
+import { alligatorIndexer } from "./Alligator";
 
 export const indexers: IndexerDefinition[] = [
   // @ts-ignore
   nounsTokenIndexer,
   // @ts-ignore
   governorIndexer,
+  // @ts-ignore
+  alligatorIndexer,
 ];
 
 export function getIndexerByName(indexers: IndexerDefinition[], name: string) {

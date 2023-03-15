@@ -5,9 +5,10 @@ type Props = {
   to: string;
   className?: string;
   children: ReactNode;
+  afterUpdate?: () => void;
 };
 
-export function Link({ to, className, children }: Props) {
+export function Link({ to, className, children, afterUpdate }: Props) {
   const navigate = useNavigate();
 
   return (
@@ -24,7 +25,7 @@ export function Link({ to, className, children }: Props) {
         }
 
         event.preventDefault();
-        navigate({ path: to }, true);
+        navigate({ path: to }, true, afterUpdate);
       }}
     >
       {children}

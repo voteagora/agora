@@ -7,14 +7,14 @@ import { StorageHandle } from "../storageHandle";
 import { loadAccount, loadAggregate, saveAccount } from "./NounsToken";
 import { entityDefinitions, Handle } from "./entityDefinitions";
 
-export const daoTokenContract = makeContractInstance({
+export const daoContract = makeContractInstance({
   iface: NounsDAOLogicV2__factory.createInterface(),
   address: "0x6f3E6272A167e8AcCb32072d08E0957F9c79223d",
   startingBlock: 12985453,
 });
 
 export const governorIndexer = makeIndexerDefinition(
-  daoTokenContract,
+  daoContract,
   entityDefinitions,
   {
     name: "NounsDAO",
@@ -146,7 +146,10 @@ export const governorIndexer = makeIndexerDefinition(
           voter.votesCast = voter.votesCast.add(1);
           saveAccount(handle, voter);
 
-          const voteId = [log.transactionHash, log.logIndex].join("|");
+          const voteId = [
+            event.args.proposalId.toString(),
+            event.args.voter,
+          ].join("-");
           handle.saveEntity("Vote", voteId, {
             id: voteId,
             voterAddress: event.args.voter,

@@ -14,6 +14,7 @@ import { DelegateProfileImage } from "../DelegateProfileImage";
 import { VoterPanelFragment$key } from "./__generated__/VoterPanelFragment.graphql";
 import { NameSection } from "./NameSection";
 import { TotalVotePowerRow } from "./Rows/TotalVotePowerRow";
+import { DelegatedToListRow } from "./Rows/DelegatedToListRow";
 
 type Props = {
   fragment: VoterPanelFragment$key;
@@ -23,11 +24,7 @@ export function VoterPanel({ fragment }: Props) {
   const delegate = useFragment(
     graphql`
       fragment VoterPanelFragment on Delegate {
-        address {
-          resolvedName {
-            ...NameSectionFragment
-          }
-        }
+        ...NameSectionFragment
 
         delegateMetrics {
           ...ProposalsCreatedRowFragment
@@ -35,6 +32,7 @@ export function VoterPanel({ fragment }: Props) {
         }
 
         ...DelegateFromListRowFragment
+        ...DelegatedToListRowFragment
         ...TotalVotePowerRowFragment
         ...ForAgainstAbstainRowFragment
         ...VotePowerRowFragment
@@ -77,7 +75,7 @@ export function VoterPanel({ fragment }: Props) {
         `}
       >
         <VStack gap="4">
-          <NameSection resolvedName={delegate.address.resolvedName} />
+          <NameSection resolvedName={delegate} />
 
           <VStack gap="2">
             <TotalVotePowerRow fragmentKey={delegate} />
@@ -87,6 +85,7 @@ export function VoterPanel({ fragment }: Props) {
             <RecentActivityRow fragment={delegate.delegateMetrics} />
             <ProposalsCreatedRow fragment={delegate.delegateMetrics} />
             <DelegateFromList fragment={delegate} />
+            <DelegatedToListRow fragmentRef={delegate} />
           </VStack>
 
           <VoterPanelActions fragment={delegate} />

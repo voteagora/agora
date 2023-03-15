@@ -32,7 +32,8 @@ export function followChain(
   entityDefinitions: EntitiesType,
   blockProvider: BlockProvider,
   logProvider: LogProvider,
-  storageArea: StorageArea
+  storageArea: StorageArea,
+  finalizationEnabled: boolean = true
 ) {
   const filter = topicFilterForIndexers(indexers);
 
@@ -166,11 +167,13 @@ export function followChain(
 
     await processBlock(nextBlock, logsCache);
 
-    await promoteFinalizedBlocks(
-      latestBlock.number,
-      blockIdentifierFromBlock(nextBlock),
-      storageArea.finalizedBlock
-    );
+    if (finalizationEnabled) {
+      await promoteFinalizedBlocks(
+        latestBlock.number,
+        blockIdentifierFromBlock(nextBlock),
+        storageArea.finalizedBlock
+      );
+    }
 
     // update storageArea.tipBlock
     if (

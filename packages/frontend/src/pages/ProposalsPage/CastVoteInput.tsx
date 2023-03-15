@@ -15,7 +15,8 @@ import { CastVoteInputVoteButtonsQueryFragment$key } from "./__generated__/CastV
 type Props = {
   onVoteClick: (
     supportType: SupportTextProps["supportType"],
-    reason: string
+    reason: string,
+    address: string
   ) => void;
   className: string;
   framgnetRef: CastVoteInputVoteButtonsFragment$key;
@@ -45,8 +46,9 @@ export function CastVoteInput({
           padding: ${theme.spacing["4"]};
           resize: none;
           border-radius: ${theme.borderRadius.lg};
+
           :focus {
-            outline: 0px;
+            outline: 0;
           }
         `}
         placeholder="I believe..."
@@ -64,7 +66,9 @@ export function CastVoteInput({
         `}
       >
         <VoteButtons
-          onClick={(supportType) => onVoteClick(supportType, reason)}
+          onClick={(supportType, address) =>
+            onVoteClick(supportType, reason, address)
+          }
           fragmentRef={framgnetRef}
           queryFragmentRef={queryFragmentRef}
         />
@@ -78,13 +82,17 @@ function VoteButtons({
   fragmentRef,
   queryFragmentRef,
 }: {
-  onClick: (nextSupportType: SupportTextProps["supportType"]) => void;
+  onClick: (
+    nextSupportType: SupportTextProps["supportType"],
+    address: string
+  ) => void;
   fragmentRef: CastVoteInputVoteButtonsFragment$key;
   queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
 }) {
   const result = useFragment(
     graphql`
       fragment CastVoteInputVoteButtonsFragment on Proposal {
+        # eslint-disable-next-line relay/unused-fields
         id
         status
       }
@@ -100,9 +108,37 @@ function VoteButtons({
         skipAddress: { type: "Boolean!" }
       ) {
         delegate(addressOrEnsName: $address) @skip(if: $skipAddress) {
-          votes {
-            proposal {
-              id
+          address {
+            address
+          }
+
+          delegateSnapshot(proposalId: $proposalId) {
+            nounsRepresented {
+              __typename
+            }
+          }
+
+          proposalVote(proposalId: $proposalId) {
+            __typename
+          }
+
+          liquidRepresentation(
+            filter: {
+              canVote: true
+              currentlyActive: true
+              forProposal: { proposalId: $proposalId }
+            }
+          ) {
+            proxy {
+              delegateSnapshot(proposalId: $proposalId) {
+                nounsRepresented {
+                  __typename
+                }
+              }
+
+              proposalVote(proposalId: $proposalId) {
+                __typename
+              }
             }
           }
         }
@@ -119,9 +155,46 @@ function VoteButtons({
     return <DisabledVoteButton reason="Connect wallet to vote" />;
   }
 
-  const hasVoted = !!delegate.votes.find((it) => it.proposal.id === result.id);
-  if (hasVoted) {
-    return <DisabledVoteButton reason="Already voted" />;
+  const proposalVoteLots = [
+    ...(() => {
+      const hasTokenVoted = !!delegate.proposalVote;
+      if (hasTokenVoted) {
+        return [];
+      }
+
+      if (!delegate.delegateSnapshot.nounsRepresented.length) {
+        return [];
+      }
+
+      return [
+        {
+          type: "TOKEN" as const,
+        },
+      ];
+    })(),
+    ...(() =>
+      delegate.liquidRepresentation.flatMap((liquidRepresentation) => {
+        if (
+          !liquidRepresentation.proxy.delegateSnapshot.nounsRepresented.length
+        ) {
+          return [];
+        }
+
+        if (liquidRepresentation.proxy.proposalVote) {
+          return [];
+        }
+
+        return [
+          {
+            type: "LIQUID" as const,
+            liquidRepresentation,
+          },
+        ];
+      }))(),
+  ];
+
+  if (!proposalVoteLots.length) {
+    return <DisabledVoteButton reason="No available lots" />;
   }
 
   return (
@@ -132,7 +205,7 @@ function VoteButtons({
             key={supportType}
             action={supportType}
             onClick={() => {
-              onClick(supportType);
+              onClick(supportType, delegate.address.address);
             }}
           />
         )

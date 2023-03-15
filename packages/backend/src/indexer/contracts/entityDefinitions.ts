@@ -5,8 +5,52 @@ import {
 import * as serde from "../serde";
 import { makeCompoundKey } from "../indexKey";
 import { efficientLengthEncodingNaturalNumbers } from "../utils/efficientLengthEncoding";
+import { RuntimeType } from "../serde";
+import { BigNumber, ethers } from "ethers";
 
 export type Handle = StorageHandleForEntityDefinition<typeof entityDefinitions>;
+
+const ordinal = serde.object({
+  blockNumber: serde.number,
+  transactionIndex: serde.number,
+  logIndex: serde.number,
+});
+
+function encodeOrdinal(ordinalValue: RuntimeType<typeof ordinal>) {
+  return [
+    BigNumber.from(ordinalValue.blockNumber),
+    BigNumber.from(ordinalValue.transactionIndex),
+    BigNumber.from(ordinalValue.logIndex),
+  ];
+}
+
+export function eventToOrdinal(
+  log: ethers.providers.Log
+): RuntimeType<typeof ordinal> {
+  return {
+    blockNumber: log.blockNumber,
+    transactionIndex: log.transactionIndex,
+    logIndex: log.logIndex,
+  };
+}
+
+export function saveAddressSnapshot(
+  handle: Handle,
+  account: RuntimeType<typeof entityDefinitions["Address"]["serde"]>,
+  log: ethers.providers.Log
+) {
+  const ordinal = eventToOrdinal(log);
+
+  handle.saveEntity(
+    "AddressSnapshot",
+    [account.address, ...encodeOrdinal(ordinal)].join("-"),
+    {
+      address: account.address,
+      ordinal,
+      tokensRepresentedIds: account.tokensRepresentedIds,
+    }
+  );
+}
 
 export const entityDefinitions = {
   GovernorAggregates: makeEntityDefinition({
@@ -114,11 +158,33 @@ export const entityDefinitions = {
     indexes: [],
   }),
 
+  AddressSnapshot: makeEntityDefinition({
+    serde: serde.object({
+      address: serde.string,
+      ordinal,
+      tokensRepresentedIds: serde.array(serde.bigNumber),
+    }),
+    indexes: [
+      {
+        indexName: "byDelegatingTo",
+        indexKey({ address, ordinal }) {
+          return makeCompoundKey(
+            address,
+            ...encodeOrdinal(ordinal).map((it) =>
+              efficientLengthEncodingNaturalNumbers(it.mul(-1))
+            )
+          );
+        },
+      },
+    ],
+  }),
+
   Address: makeEntityDefinition({
     serde: serde.object({
       address: serde.string,
       tokensOwned: serde.bigNumber,
       tokensOwnedIds: serde.array(serde.bigNumber),
+      tokensRepresentedIds: serde.array(serde.bigNumber),
       tokensRepresented: serde.bigNumber,
       delegatingTo: serde.string,
       accountsRepresentedCount: serde.bigNumber,
@@ -167,6 +233,50 @@ export const entityDefinitions = {
         indexName: "byVotesCastAsc",
         indexKey(entity) {
           return efficientLengthEncodingNaturalNumbers(entity.votesCast);
+        },
+      },
+    ],
+  }),
+
+  AlligatorProxy: makeEntityDefinition({
+    serde: serde.object({
+      owner: serde.string,
+      proxy: serde.string,
+    }),
+    indexes: [
+      {
+        indexName: "byOwner",
+        indexKey(entity) {
+          return entity.owner;
+        },
+      },
+    ],
+  }),
+
+  AlligatorSubDelegation: makeEntityDefinition({
+    serde: serde.object({
+      from: serde.string,
+      to: serde.string,
+      rules: serde.object({
+        permissions: serde.number,
+        maxRedelegations: serde.number,
+        notValidBefore: serde.number,
+        notValidAfter: serde.number,
+        blocksBeforeVoteCloses: serde.number,
+        customRule: serde.string,
+      }),
+    }),
+    indexes: [
+      {
+        indexName: "byFrom",
+        indexKey(entity) {
+          return entity.from;
+        },
+      },
+      {
+        indexName: "byTo",
+        indexKey(entity) {
+          return entity.to;
         },
       },
     ],

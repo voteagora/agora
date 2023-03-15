@@ -32,8 +32,8 @@ function App() {
           <WagmiConfig client={wagmiClient}>
             <ConnectKitProvider>
               <RelayEnvironmentProvider environment={relayEnvironment}>
-                <DialogProvider>
-                  <HammockRouter>
+                <HammockRouter>
+                  <DialogProvider>
                     <PageContainer>
                       <Toaster />
                       <Suspense fallback={<FullPageLoadingIndicator />}>
@@ -42,8 +42,8 @@ function App() {
                         <HammockRouterContents />
                       </Suspense>
                     </PageContainer>
-                  </HammockRouter>
-                </DialogProvider>
+                  </DialogProvider>
+                </HammockRouter>
               </RelayEnvironmentProvider>
             </ConnectKitProvider>
           </WagmiConfig>

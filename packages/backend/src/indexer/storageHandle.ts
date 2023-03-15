@@ -1,4 +1,9 @@
-import { EntityWithMetadata, ReadOnlyEntityStore } from "./storage/entityStore";
+import {
+  EntityWithMetadata,
+  mapEntriesForEntity,
+  ReadOnlyEntityStore,
+  setMapEntries,
+} from "./storage/entityStore";
 import {
   blockIdentifierFromBlock,
   BlockProviderBlock,
@@ -114,13 +119,9 @@ export function makeStorageHandleForStorageArea(
           })
         );
 
-        blockStagingArea.entities.set(
-          makeEntityKey(entity, id),
-          Object.freeze({
-            id,
-            entity,
-            value,
-          })
+        setMapEntries(
+          blockStagingArea.entities,
+          mapEntriesForEntity(Object.freeze({ id, entity, value }))
         );
       },
 
@@ -200,11 +201,14 @@ export function makeStorageHandleWithStagingArea(
   return [
     {
       saveEntity(entity: string, id: string, value: unknown): void {
-        stagingArea.set(makeEntityKey(entity, id), {
-          entity,
-          id,
-          value,
-        });
+        setMapEntries(
+          stagingArea,
+          mapEntriesForEntity({
+            entity,
+            id,
+            value,
+          })
+        );
       },
       async loadEntity(entity: string, id: string): Promise<any | null> {
         const value = await (async () => {

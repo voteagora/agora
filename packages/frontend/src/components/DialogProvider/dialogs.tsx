@@ -1,8 +1,12 @@
 import { DialogDefinitions } from "./types";
-import { DelegateDialog } from "../DelegateDialog";
+import { DelegateDialog } from "../DelegateDialog/DelegateDialog";
 import { SupportTextProps } from "../../pages/DelegatePage/VoteDetailsContainer";
 import { CastVoteDialog } from "../../pages/ProposalsPage/CastVoteDialog";
 import { AuctionCastVoteDialog } from "../../pages/PropHouseAuctionPage/AuctionCastVoteDialog";
+import {
+  AvailableVotingPower,
+  VotingAddress,
+} from "../../pages/PropHouseAuctionPage/usePropHouseAvailableVotingPower";
 
 export type DialogType =
   | DelegateDialogType
@@ -23,6 +27,7 @@ export type DelegateDialogType = {
 export type CastVoteDialogType = {
   type: "CAST_VOTE";
   params: {
+    address: string;
     proposalId: number;
     reason: string;
     supportType: SupportTextProps["supportType"];
@@ -34,7 +39,9 @@ export type CastAuctionVoteDialogType = {
   params: {
     address: string;
     auctionId: number;
-    pendingVotes: Record<number, number>;
+    pendingVotes: Map<number, number>;
+    votingPower: AvailableVotingPower[];
+    votingAddresses: VotingAddress[];
   };
 };
 

@@ -15,7 +15,7 @@ export function OopsPage() {
       <VStack alignItems="center">
         <img
           src={blink}
-          alt={blink}
+          alt="not found"
           className={css`
             width: 32px;
             margin-bottom: 8px;

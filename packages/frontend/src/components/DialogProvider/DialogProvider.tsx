@@ -4,6 +4,7 @@ import { createContext, ReactNode, useContext, useState } from "react";
 import { dialogs, DialogType } from "./dialogs";
 import { inset0 } from "../../theme";
 import { Dialog } from "@headlessui/react";
+import { useStartTransition } from "../HammockRouter/HammockRouter";
 
 type OpenDialogFn = (dialog: DialogType) => void;
 
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export function DialogProvider({ children }: Props) {
+  const startTransition = useStartTransition();
   const [contextValue, setContextValue] = useState<DialogType | null>();
 
   const renderedDialog = (() => {
@@ -26,7 +28,9 @@ export function DialogProvider({ children }: Props) {
   })();
 
   return (
-    <context.Provider value={(dialog) => setContextValue(dialog)}>
+    <context.Provider
+      value={(dialog) => startTransition(() => setContextValue(dialog))}
+    >
       <AnimatePresence>
         {!!renderedDialog && (
           <motion.div

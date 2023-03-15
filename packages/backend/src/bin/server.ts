@@ -17,31 +17,16 @@ import { LevelReader } from "../indexer/storage/level/levelReader";
 import { timeout } from "../indexer/utils/asyncUtils";
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
-import { StoredStatement } from "../schema/model";
 import { makeLatestBlockFetcher } from "../schema/latestBlockFetcher";
 import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
 import { makeDynamoStatementStorage } from "../store/dynamo/statement";
-
-// p0
-// todo: where are delegate statements going to be stored?
-// todo: replicate and deploy
-// todo: snapshot votes, delegate statements, cached ens name lookups
-
-// todo: to load up a replica, have the durable object pull from an initial file from r2 using streams
-
-// p1
-// todo: derived state
-// todo: joins
-// todo: some cleanup in the governance folder
+import { makeProvider } from "../provider";
 
 async function main() {
   const schema = makeGatewaySchema();
   const store = await LevelEntityStore.open();
 
-  const baseProvider = new ethers.providers.AlchemyProvider(
-    "mainnet",
-    process.env.ALCHEMY_API_KEY
-  );
+  const baseProvider = makeProvider();
 
   const storageArea = await makeInitialStorageArea(store);
   const blockProvider = new EthersBlockProvider(baseProvider);
@@ -76,12 +61,7 @@ async function main() {
       const provider = new TransparentMultiCallProvider(baseProvider);
 
       return {
-        ethProvider: new TransparentMultiCallProvider(
-          new ethers.providers.AlchemyProvider(
-            "mainnet",
-            process.env.ALCHEMY_API_KEY
-          )
-        ),
+        ethProvider: new TransparentMultiCallProvider(makeProvider()),
         provider,
         reader,
         statementStorage: makeDynamoStatementStorage(dynamoDb),

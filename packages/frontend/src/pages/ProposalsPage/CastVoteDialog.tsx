@@ -1,14 +1,12 @@
-import { useLazyLoadQuery } from "react-relay/hooks";
+import { useFragment, useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
 import { NounGridChildren } from "../../components/NounGrid";
-import { useAccount } from "wagmi";
 import { UserIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
 import { motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
-import { NounGridFragment$data } from "../../components/__generated__/NounGridFragment.graphql";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { NounsDAOLogicV2 } from "../../contracts/generated";
 import { ReactNode } from "react";
@@ -18,17 +16,19 @@ import {
 } from "../DelegatePage/VoteDetailsContainer";
 import { CastVoteDialogQuery } from "./__generated__/CastVoteDialogQuery.graphql";
 import { useContractWrite } from "../../hooks/useContractWrite";
-import { nounsDao } from "../../contracts/contracts";
-import { BigNumber } from "ethers";
+import { nounsAlligator, nounsDao } from "../../contracts/contracts";
+import { CastVoteDialogTokenDelegationLotVoteCellFragment$key } from "./__generated__/CastVoteDialogTokenDelegationLotVoteCellFragment.graphql";
+import { CastVoteDialogLiquidDelegationLotVoteCellFragment$key } from "./__generated__/CastVoteDialogLiquidDelegationLotVoteCellFragment.graphql";
+import { Alligator } from "../../contracts/generated/Alligator";
 
 type Props = {
   proposalId: number;
+  address: string;
   reason: string;
   supportType: SupportTextProps["supportType"];
   closeDialog: () => void;
 };
 
-// TODO: Better rendering for users with no voting power
 export function CastVoteDialog(props: Props) {
   return (
     <VStack
@@ -60,59 +60,71 @@ export function CastVoteDialog(props: Props) {
 
 function CastVoteDialogContents({
   proposalId,
+  address,
   reason,
   supportType,
   closeDialog,
 }: Props) {
-  // Ideal flow (not implemented yet):
-  // 1. Check that user doesn't have a delegate
-  // 2. Check that user has >0 Nouns
-  // 3. Check that user has not already voted
-  // Notes:
-  // If user has no nouns, fields are null
-
-  const { address: accountAddress } = useAccount();
+  const proposalIdRaw = proposalId.toString();
 
   const { delegate } = useLazyLoadQuery<CastVoteDialogQuery>(
     graphql`
-      query CastVoteDialogQuery($accountAddress: String!, $skip: Boolean!) {
-        delegate(addressOrEnsName: $accountAddress) @skip(if: $skip) {
+      query CastVoteDialogQuery(
+        $accountAddress: String!
+        $support: SupportType!
+        $proposalId: ID!
+      ) {
+        delegate(addressOrEnsName: $accountAddress) {
           address {
             resolvedName {
               ...NounResolvedLinkFragment
             }
           }
 
-          tokensRepresented {
-            amount {
-              amount
+          delegateSnapshot(proposalId: $proposalId) {
+            nounsRepresented {
+              __typename
             }
           }
 
-          nounsRepresented {
-            # eslint-disable-next-line relay/unused-fields
-            id
-            # eslint-disable-next-line relay/must-colocate-fragment-spreads
-            ...NounImageFragment
+          liquidRepresentation(
+            filter: {
+              currentlyActive: true
+              canVote: true
+              forProposal: { proposalId: $proposalId, support: $support }
+            }
+          ) {
+            proxy {
+              delegateSnapshot(proposalId: $proposalId) {
+                nounsRepresented {
+                  __typename
+                }
+              }
+            }
           }
+
+          ...CastVoteDialogTokenDelegationLotVoteCellFragment
+            @arguments(proposalId: $proposalId)
+
+          ...CastVoteDialogLiquidDelegationLotVoteCellFragment
+            @arguments(support: $support, proposalId: $proposalId)
         }
       }
     `,
     {
-      accountAddress: accountAddress ?? "",
-      skip: !accountAddress,
+      accountAddress: address,
+      support: supportType,
+      proposalId: proposalIdRaw,
     }
   );
 
-  const write = useContractWrite<
-    NounsDAOLogicV2,
-    "castRefundableVoteWithReason"
-  >(
-    nounsDao,
-    "castRefundableVoteWithReason",
-    [proposalId, ["AGAINST", "FOR", "ABSTAIN"].indexOf(supportType), reason],
-    () => closeDialog()
-  );
+  const totalVotes =
+    delegate.delegateSnapshot.nounsRepresented.length +
+    delegate.liquidRepresentation.flatMap(
+      (it) => it.proxy.delegateSnapshot.nounsRepresented
+    ).length;
+
+  const supportTypeRaw = ["AGAINST", "FOR", "ABSTAIN"].indexOf(supportType);
 
   return (
     <VStack
@@ -135,11 +147,8 @@ function CastVoteDialogContents({
               color: ${theme.colors.black};
             `}
           >
-            {delegate ? (
-              <NounResolvedLink resolvedName={delegate.address.resolvedName} />
-            ) : (
-              "anonymous"
-            )}
+            <NounResolvedLink resolvedName={delegate.address.resolvedName} />
+
             <div
               className={css`
                 color: ${colorForSupportType(supportType)};
@@ -153,13 +162,8 @@ function CastVoteDialogContents({
               color: #66676b;
             `}
           >
-            <div>
-              {delegate
-                ? BigNumber.from(
-                    delegate.tokensRepresented.amount.amount
-                  ).toString()
-                : "0"}
-            </div>
+            <div>{totalVotes}</div>
+
             <div
               className={css`
                 width: ${theme.spacing["4"]};
@@ -178,36 +182,220 @@ function CastVoteDialogContents({
           {reason ? reason : "No reason provided"}
         </div>
       </VStack>
-      <HStack
+
+      <VStack
         className={css`
-          width: 100%;
-          z-index: 1;
-          position: relative;
-          padding: ${theme.spacing["4"]};
           border-radius: ${theme.spacing["2"]};
           border: 1px solid ${theme.colors.gray.eb};
         `}
-        justifyContent="space-between"
-        alignItems="center"
       >
-        <NounsDisplay
-          totalNouns={
-            delegate
-              ? BigNumber.from(
-                  delegate.tokensRepresented.amount.amount
-                ).toNumber()
-              : 0
-          }
-          nouns={delegate?.nounsRepresented ?? []}
+        <TokenDelegationLotVoteCell
+          closeDialog={closeDialog}
+          supportType={supportTypeRaw}
+          proposalId={proposalIdRaw}
+          reason={reason}
+          fragment={delegate}
         />
-        {/* TODO: There are a lot of reasons why write is unavailable. We've captured
+
+        <LiquidDelegationLotVoteCell
+          reason={reason}
+          proposalId={proposalIdRaw}
+          supportType={supportTypeRaw}
+          closeDialog={closeDialog}
+          fragment={delegate}
+        />
+      </VStack>
+    </VStack>
+  );
+}
+
+function LiquidDelegationLotVoteCell({
+  proposalId,
+  supportType,
+  reason,
+  closeDialog,
+  fragment,
+}: {
+  proposalId: string;
+  supportType: number;
+  reason: string;
+  closeDialog: () => void;
+  fragment: CastVoteDialogLiquidDelegationLotVoteCellFragment$key;
+}) {
+  const { liquidRepresentation } = useFragment(
+    graphql`
+      fragment CastVoteDialogLiquidDelegationLotVoteCellFragment on Delegate
+      @argumentDefinitions(
+        support: { type: "SupportType!" }
+        proposalId: { type: "ID!" }
+      ) {
+        liquidRepresentation(
+          filter: {
+            currentlyActive: true
+            canVote: true
+            forProposal: { proposalId: $proposalId, support: $support }
+          }
+        ) {
+          lots {
+            authorityChain
+          }
+
+          proxy {
+            proposalVote(proposalId: $proposalId) {
+              __typename
+            }
+
+            delegateSnapshot(proposalId: $proposalId) {
+              nounsRepresented {
+                # eslint-disable-next-line relay/unused-fields
+                id
+                # eslint-disable-next-line relay/must-colocate-fragment-spreads
+                ...NounImageFragment
+              }
+            }
+          }
+        }
+      }
+    `,
+    fragment
+  );
+
+  const lots = liquidRepresentation.flatMap((lot) => {
+    if (!lot.proxy.delegateSnapshot.nounsRepresented.length) {
+      return [];
+    }
+
+    if (lot.proxy.proposalVote) {
+      return [];
+    }
+
+    return [
+      {
+        proxy: lot.proxy,
+        lot: lot.lots[0],
+      },
+    ];
+  });
+
+  const writeLiquid = useContractWrite<
+    Alligator,
+    "castRefundableVotesWithReasonBatched"
+  >(
+    nounsAlligator,
+    "castRefundableVotesWithReasonBatched",
+    [
+      lots.map((lot) => lot.lot.authorityChain.slice()),
+      proposalId,
+      supportType,
+      reason,
+    ],
+    () => closeDialog()
+  );
+
+  const nouns = lots.flatMap(
+    (lot) => lot.proxy.delegateSnapshot.nounsRepresented
+  );
+
+  if (!lots.length) {
+    return null;
+  }
+
+  return (
+    <HStack
+      className={css`
+        padding: ${theme.spacing["4"]};
+      `}
+      justifyContent="space-between"
+      alignItems="center"
+    >
+      <HStack alignItems="center">
+        <NounGridChildren
+          liquidRepresentation={[]}
+          totalNouns={nouns.length}
+          count={4}
+          nouns={nouns}
+          imageSize="8"
+          overflowFontSize="xs"
+        />
+      </HStack>
+
+      <VoteButton onClick={() => writeLiquid()}>Vote</VoteButton>
+    </HStack>
+  );
+}
+
+function TokenDelegationLotVoteCell({
+  closeDialog,
+  proposalId,
+  supportType,
+  reason,
+  fragment,
+}: {
+  proposalId: string;
+  supportType: number;
+  reason: string;
+  closeDialog: () => void;
+  fragment: CastVoteDialogTokenDelegationLotVoteCellFragment$key;
+}) {
+  const delegate = useFragment(
+    graphql`
+      fragment CastVoteDialogTokenDelegationLotVoteCellFragment on Delegate
+      @argumentDefinitions(proposalId: { type: "ID!" }) {
+        delegateSnapshot(proposalId: $proposalId) {
+          nounsRepresented {
+            # eslint-disable-next-line relay/unused-fields
+            id
+            # eslint-disable-next-line relay/must-colocate-fragment-spreads
+            ...NounImageFragment
+          }
+        }
+      }
+    `,
+    fragment
+  );
+
+  const writeTokenVote = useContractWrite<
+    NounsDAOLogicV2,
+    "castRefundableVoteWithReason"
+  >(
+    nounsDao,
+    "castRefundableVoteWithReason",
+    [proposalId, supportType, reason],
+    () => closeDialog()
+  );
+
+  // todo: casting from the same proxy multiple times isn't blocked in the ui
+  if (!delegate.delegateSnapshot.nounsRepresented.length) {
+    // todo: handle this at a higher level so the dialog means something
+    return null;
+  }
+
+  return (
+    <HStack
+      className={css`
+        padding: ${theme.spacing["4"]};
+      `}
+      justifyContent="space-between"
+      alignItems="center"
+    >
+      <HStack alignItems="center">
+        {/* TODO: These don't overlap like in the design */}
+        <NounGridChildren
+          nouns={delegate.delegateSnapshot.nounsRepresented}
+          liquidRepresentation={[]}
+          count={4}
+          imageSize="8"
+          overflowFontSize="xs"
+        />
+      </HStack>
+
+      {/* TODO: There are a lot of reasons why write is unavailable. We've captured
         most of them by disable the vote buttons in the VotesCastPanel, so we're assuming
         the user already voted if write is unavailable */}
-        {/* TODO: Make it obvious that the user already voted. Right now the button is just disabled
+      {/* TODO: Make it obvious that the user already voted. Right now the button is just disabled
         Haven't done-so yet because the text "Already Voted" makes the button look ugly*/}
-        <VoteButton onClick={write}>Vote</VoteButton>
-      </HStack>
-    </VStack>
+      <VoteButton onClick={() => writeTokenVote()}>Vote</VoteButton>
+    </HStack>
   );
 }
 
@@ -247,24 +435,3 @@ const VoteButton = ({
     </div>
   );
 };
-
-function NounsDisplay({
-  nouns,
-  totalNouns,
-}: {
-  totalNouns: number;
-  nouns: NounGridFragment$data["nounsRepresented"];
-}) {
-  return (
-    <HStack alignItems="center">
-      {/* TODO: These don't overlap like in the design */}
-      <NounGridChildren
-        totalNouns={totalNouns}
-        count={4}
-        nouns={nouns}
-        imageSize="8"
-        overflowFontSize="xs"
-      />
-    </HStack>
-  );
-}

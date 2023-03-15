@@ -6,6 +6,7 @@ import { timeout } from "../utils/asyncUtils";
 import { EthersBlockProvider } from "../blockProvider/blockProvider";
 import { EthersLogProvider } from "../logProvider/logProvider";
 import { entityDefinitions } from "../contracts/entityDefinitions";
+import { makeProvider } from "../../provider";
 
 /**
  * Processes and writes updates for finalized blocks from stored logs.
@@ -13,10 +14,7 @@ import { entityDefinitions } from "../contracts/entityDefinitions";
 async function main() {
   const store = await LevelEntityStore.open();
 
-  const provider = new ethers.providers.AlchemyProvider(
-    "mainnet",
-    process.env.ALCHEMY_API_KEY
-  );
+  const provider = makeProvider();
 
   const storageArea = await makeInitialStorageArea(store);
   const blockProvider = new EthersBlockProvider(provider);

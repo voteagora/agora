@@ -1,5 +1,6 @@
 import {
   DelegateResolvers,
+  DelegateSnapshotResolvers,
   DelegatesOrder,
   MetricsResolvers,
   NounResolvers,
@@ -28,6 +29,7 @@ import {
   countItems,
   filterGenerator,
   limitGenerator,
+  takeFirst,
 } from "../../indexer/utils/generatorUtils";
 import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { driveReaderByIndex } from "../pagination";
@@ -35,12 +37,10 @@ import { formSchema } from "../../formSchema";
 import { approximateTimeStampForBlock } from "../../utils/blockTimestamp";
 import { makeCompoundKey } from "../../indexer/indexKey";
 import { intersection } from "../../utils/set";
-import { fetchAuctions } from "../../propHouse/fetchAuctions";
 import { countConsecutiveValues } from "../../utils/array";
-import { fetchVotes } from "../../propHouse/fetchVotes";
-import { groupVotesByAuction } from "../../propHouse/helpers";
 import { entityDefinitions } from "../../indexer/contracts/entityDefinitions";
 import { resolveEnsOrNnsName } from "../../utils/resolveName";
+import { efficientLengthEncodingNaturalNumbers } from "../../indexer/utils/efficientLengthEncoding";
 
 const amountSpec = {
   currency: "NOUN",
@@ -301,6 +301,13 @@ export const Delegate: DelegateResolvers = {
     ).map((it) => it.value);
   },
 
+  async proposalVote({ address }, { proposalId }, { reader }) {
+    return await reader.getEntity(
+      "Vote",
+      [proposalId.toString(), address].join("-")
+    );
+  },
+
   // todo: limitGenerator
   async nounsRepresented({ address, tokensOwnedIds }, _args, { reader }) {
     const tokenIdsGenerator = (async function* () {
@@ -386,6 +393,15 @@ export const Delegate: DelegateResolvers = {
 
   async votes({ address }, _args, { reader }) {
     return await votesForAddress(reader, address);
+  },
+
+  async delegateSnapshot({ address }, { proposalId }, { reader }) {
+    const proposal = await reader.getEntity("Proposal", proposalId);
+    if (!proposal) {
+      throw new Error("invalid proposal id");
+    }
+
+    return await getSnapshotForAddress(address, proposal.startBlock, reader);
   },
 };
 
@@ -509,7 +525,41 @@ export const Proposal: ProposalResolvers = {
       }
     }
   },
+
+  async delegateSnapshot({ startBlock }, { address }, { reader }) {
+    return await getSnapshotForAddress(address, startBlock, reader);
+  },
 };
+
+async function getSnapshotForAddress(
+  address: string,
+  startBlock: BigNumber,
+  reader: Reader<typeof entityDefinitions>
+): Promise<DelegateSnapshotModel> {
+  const snapshot = await takeFirst(
+    reader.getEntitiesByIndex("AddressSnapshot", "byDelegatingTo", {
+      prefix: {
+        indexKey: makeCompoundKey(address, ""),
+      },
+      starting: {
+        indexKey: makeCompoundKey(
+          address,
+          efficientLengthEncodingNaturalNumbers(startBlock.mul(-1))
+        ),
+      },
+    })
+  );
+
+  if (!snapshot) {
+    return {
+      tokensRepresentedIds: [],
+    };
+  }
+
+  return {
+    tokensRepresentedIds: snapshot.value.tokensRepresentedIds,
+  };
+}
 
 export type ProposalTransactionModel = RuntimeType<
   typeof entityDefinitions["Proposal"]["serde"]
@@ -556,6 +606,27 @@ export const Vote: VoteResolvers = {
     return (
       (await reader.getEntity("Address", voterAddress)) ??
       defaultAccount(voterAddress)
+    );
+  },
+};
+
+export type DelegateSnapshotModel = {
+  tokensRepresentedIds: BigNumber[];
+};
+
+export const DelegateSnapshot: DelegateSnapshotResolvers = {
+  async nounsRepresented({ tokensRepresentedIds }, _args, { reader }) {
+    return await collectGenerator(
+      (async function* () {
+        for (const tokenId of tokensRepresentedIds.map((it) => it.toString())) {
+          const noun = await reader.getEntity("Noun", tokenId.toString());
+          if (!noun) {
+            continue;
+          }
+
+          yield noun;
+        }
+      })()
     );
   },
 };

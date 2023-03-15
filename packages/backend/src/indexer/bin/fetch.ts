@@ -8,6 +8,7 @@ import { maxReorgBlocksDepth } from "../process";
 import { getAllLogsInRange } from "../logProvider/getAllLogsInRange";
 import { EthersLogProvider } from "../logProvider/logProvider";
 import ProgressBar from "progress";
+import { makeProvider } from "../../provider";
 
 function makeFetchProgressBar(total: number) {
   return new ProgressBar(
@@ -19,10 +20,7 @@ function makeFetchProgressBar(total: number) {
 }
 
 async function main() {
-  const provider = new ethers.providers.AlchemyProvider(
-    "mainnet",
-    process.env.ALCHEMY_API_KEY
-  );
+  const provider = makeProvider();
 
   const logProvider = new EthersLogProvider(provider, true);
 

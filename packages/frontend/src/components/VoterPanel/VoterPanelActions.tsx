@@ -5,7 +5,6 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { icons } from "../../icons/icons";
 import toast from "react-hot-toast";
-import { useStartTransition } from "../HammockRouter/HammockRouter";
 import { buttonStyles } from "../../pages/EditDelegatePage/EditDelegatePage";
 import { VoterPanelActionsFragment$key } from "./__generated__/VoterPanelActionsFragment.graphql";
 import { VoterPanelActionsDelegateButtonFragment$key } from "./__generated__/VoterPanelActionsDelegateButtonFragment.graphql";
@@ -88,6 +87,10 @@ export function DelegateButton({
   const delegate = useFragment(
     graphql`
       fragment VoterPanelActionsDelegateButtonFragment on Delegate {
+        liquidDelegationProxy {
+          __typename
+        }
+
         address {
           resolvedName {
             address
@@ -98,22 +101,23 @@ export function DelegateButton({
     fragment
   );
 
-  const startTransition = useStartTransition();
   const openDialog = useOpenDialog();
+
+  if (delegate.liquidDelegationProxy) {
+    return null;
+  }
 
   return (
     <button
       onClick={(e) => {
         e.stopPropagation();
         e.preventDefault();
-        startTransition(() =>
-          openDialog({
-            type: "DELEGATE",
-            params: {
-              targetAccountAddress: delegate.address.resolvedName.address,
-            },
-          })
-        );
+        openDialog({
+          type: "DELEGATE",
+          params: {
+            targetAccountAddress: delegate.address.resolvedName.address,
+          },
+        });
       }}
       className={css`
         ${buttonStyles};

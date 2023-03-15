@@ -62,16 +62,75 @@ type Delegate {
   id: ID!
   address: Address!
   delegatingTo: Delegate!
+  liquidDelegationProxyAddress: Address!
+  liquidDelegationProxy: LiquidDelegationProxy
   statement: DelegateStatement
   tokensOwned: VotingPower!
   nounsOwned: [Noun!]!
   tokensRepresented: VotingPower!
   tokenHoldersRepresented: [Delegate!]!
   nounsRepresented: [Noun!]!
+  delegateSnapshot(proposalId: ID!): DelegateSnapshot!
+  liquidDelegations: [LiquidDelegationDelegation!]!
+  liquidRepresentation(
+    filter: LiquidRepresentationFilterArgs!
+  ): [LiquidDelegationRepresentation!]!
   delegateMetrics: DelegateMetrics!
   proposed: [Proposal!]!
+  proposalVote(proposalId: ID!): Vote
   votes: [Vote!]!
   propHouseVotes: [PropHouseAuctionVotes!]!
+}
+
+type LiquidDelegationProxy {
+  proxy: Delegate!
+  owner: Delegate!
+}
+
+input LiquidRepresentationFilterArgs {
+  currentlyActive: Boolean
+  forProposal: LiquidRepresentationProposalFilterArgs
+  canSign: Boolean
+  canVote: Boolean
+  canPropose: Boolean
+}
+
+input LiquidRepresentationProposalFilterArgs {
+  proposalId: ID!
+  support: SupportType
+}
+
+enum SupportType {
+  FOR
+  AGAINST
+  ABSTAIN
+}
+
+type LiquidDelegationRepresentation {
+  proxy: Delegate!
+  owner: Delegate!
+  lots: [LiquidDelegationLot!]!
+}
+
+type LiquidDelegationDelegation {
+  to: Address!
+  rules: LiquidDelegationRules!
+}
+
+type LiquidDelegationLot {
+  authorityChain: [String!]!
+  rules: LiquidDelegationRules!
+}
+
+type LiquidDelegationRules {
+  permissionVote: Boolean!
+  permissionSign: Boolean!
+  permissionPropose: Boolean!
+  notValidAfter: Timestamp
+  notValidBefore: Timestamp
+  blocksBeforeVoteCloses: Int!
+  customRules: [String!]!
+  maxRedelegations: Int!
 }
 
 type Address {
@@ -219,6 +278,7 @@ type Proposal {
   forVotes: TokenAmount!
   againstVotes: TokenAmount!
   abstainVotes: TokenAmount!
+  delegateSnapshot(address: String!): DelegateSnapshot!
   title: String!
   description: String!
   voteEndsAt: Timestamp!
@@ -229,6 +289,10 @@ type Proposal {
   status: ProposalStatus!
   totalValue: BigInt!
   proposer: Delegate!
+}
+
+type DelegateSnapshot {
+  nounsRepresented: [Noun!]!
 }
 
 enum ProposalStatus {

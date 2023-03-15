@@ -13,6 +13,8 @@ import cardView from "./cardView.svg";
 import wallet from "./wallet.svg";
 import walletConnected from "./walletConnected.svg";
 import vote from "./vote.svg";
+import liquid from "./liquid.svg";
+import power from "./power.svg";
 
 export const icons = {
   expand,
@@ -30,4 +32,6 @@ export const icons = {
   wallet,
   walletConnected,
   vote,
+  liquid,
+  power,
 };

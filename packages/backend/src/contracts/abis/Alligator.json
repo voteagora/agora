@@ -1,0 +1,755 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "contract INounsDAOV2",
+        "name": "_governor",
+        "type": "address"
+      },
+      { "internalType": "string", "name": "_ensName", "type": "string" },
+      { "internalType": "bytes32", "name": "_ensNameHash", "type": "bytes32" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  { "inputs": [], "name": "AlreadyRegistered", "type": "error" },
+  { "inputs": [], "name": "BadSignature", "type": "error" },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "from", "type": "address" },
+      { "internalType": "address", "name": "to", "type": "address" },
+      { "internalType": "address", "name": "customRule", "type": "address" }
+    ],
+    "name": "InvalidCustomRule",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "from", "type": "address" },
+      { "internalType": "address", "name": "to", "type": "address" },
+      {
+        "internalType": "uint256",
+        "name": "requiredPermissions",
+        "type": "uint256"
+      }
+    ],
+    "name": "NotDelegated",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "from", "type": "address" },
+      { "internalType": "address", "name": "to", "type": "address" },
+      { "internalType": "uint256", "name": "wasValidUntil", "type": "uint256" }
+    ],
+    "name": "NotValidAnymore",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "from", "type": "address" },
+      { "internalType": "address", "name": "to", "type": "address" },
+      {
+        "internalType": "uint256",
+        "name": "willBeValidFrom",
+        "type": "uint256"
+      }
+    ],
+    "name": "NotValidYet",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "from", "type": "address" },
+      { "internalType": "address", "name": "to", "type": "address" },
+      {
+        "internalType": "uint256",
+        "name": "blocksBeforeVoteCloses",
+        "type": "uint256"
+      }
+    ],
+    "name": "TooEarly",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "from", "type": "address" },
+      { "internalType": "address", "name": "to", "type": "address" }
+    ],
+    "name": "TooManyRedelegations",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "node",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "a",
+        "type": "address"
+      }
+    ],
+    "name": "AddrChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "Paused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "proxy",
+        "type": "address"
+      }
+    ],
+    "name": "ProxyDeployed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "voter",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "refundAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "refundSent",
+        "type": "bool"
+      }
+    ],
+    "name": "RefundableVote",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "proxy",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "authority",
+        "type": "address[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "messageHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "Signed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "components": [
+          { "internalType": "uint8", "name": "permissions", "type": "uint8" },
+          {
+            "internalType": "uint8",
+            "name": "maxRedelegations",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint32",
+            "name": "notValidBefore",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "notValidAfter",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint16",
+            "name": "blocksBeforeVoteCloses",
+            "type": "uint16"
+          },
+          { "internalType": "address", "name": "customRule", "type": "address" }
+        ],
+        "indexed": false,
+        "internalType": "struct Rules",
+        "name": "rules",
+        "type": "tuple"
+      }
+    ],
+    "name": "SubDelegation",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "to",
+        "type": "address[]"
+      },
+      {
+        "components": [
+          { "internalType": "uint8", "name": "permissions", "type": "uint8" },
+          {
+            "internalType": "uint8",
+            "name": "maxRedelegations",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint32",
+            "name": "notValidBefore",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "notValidAfter",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint16",
+            "name": "blocksBeforeVoteCloses",
+            "type": "uint16"
+          },
+          { "internalType": "address", "name": "customRule", "type": "address" }
+        ],
+        "indexed": false,
+        "internalType": "struct Rules[]",
+        "name": "rules",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "SubDelegations",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "Unpaused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "proxy",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "voter",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "authority",
+        "type": "address[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "proposalId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "support",
+        "type": "uint8"
+      }
+    ],
+    "name": "VoteCast",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "proxies",
+        "type": "address[]"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "voter",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address[][]",
+        "name": "authorities",
+        "type": "address[][]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "proposalId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "support",
+        "type": "uint8"
+      }
+    ],
+    "name": "VotesCast",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_REFUND_BASE_FEE",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_REFUND_GAS_USED",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_REFUND_PRIORITY_FEE",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "REFUND_BASE_GAS",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "_togglePause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "node", "type": "bytes32" }
+    ],
+    "name": "addr",
+    "outputs": [
+      { "internalType": "address payable", "name": "", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[][]",
+        "name": "authorities",
+        "type": "address[][]"
+      },
+      { "internalType": "uint256", "name": "proposalId", "type": "uint256" },
+      { "internalType": "uint8", "name": "support", "type": "uint8" },
+      { "internalType": "string", "name": "reason", "type": "string" }
+    ],
+    "name": "castRefundableVotesWithReasonBatched",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address[]", "name": "authority", "type": "address[]" },
+      { "internalType": "uint256", "name": "proposalId", "type": "uint256" },
+      { "internalType": "uint8", "name": "support", "type": "uint8" }
+    ],
+    "name": "castVote",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address[]", "name": "authority", "type": "address[]" },
+      { "internalType": "uint256", "name": "proposalId", "type": "uint256" },
+      { "internalType": "uint8", "name": "support", "type": "uint8" },
+      { "internalType": "uint8", "name": "v", "type": "uint8" },
+      { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+      { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+    ],
+    "name": "castVoteBySig",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address[]", "name": "authority", "type": "address[]" },
+      { "internalType": "uint256", "name": "proposalId", "type": "uint256" },
+      { "internalType": "uint8", "name": "support", "type": "uint8" },
+      { "internalType": "string", "name": "reason", "type": "string" }
+    ],
+    "name": "castVoteWithReason",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[][]",
+        "name": "authorities",
+        "type": "address[][]"
+      },
+      { "internalType": "uint256", "name": "proposalId", "type": "uint256" },
+      { "internalType": "uint8", "name": "support", "type": "uint8" },
+      { "internalType": "string", "name": "reason", "type": "string" }
+    ],
+    "name": "castVotesWithReasonBatched",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "owner", "type": "address" },
+      { "internalType": "bool", "name": "registerEnsName", "type": "bool" }
+    ],
+    "name": "create",
+    "outputs": [
+      { "internalType": "address", "name": "endpoint", "type": "address" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "ensName",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "governor",
+    "outputs": [
+      { "internalType": "contract INounsDAOV2", "name": "", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "proxy", "type": "address" },
+      { "internalType": "bytes32", "name": "hash", "type": "bytes32" },
+      { "internalType": "bytes", "name": "data", "type": "bytes" }
+    ],
+    "name": "isValidProxySignature",
+    "outputs": [
+      { "internalType": "bytes4", "name": "magicValue", "type": "bytes4" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+    "name": "nodehashToAddress",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paused",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address[]", "name": "authority", "type": "address[]" },
+      { "internalType": "address[]", "name": "targets", "type": "address[]" },
+      { "internalType": "uint256[]", "name": "values", "type": "uint256[]" },
+      { "internalType": "string[]", "name": "signatures", "type": "string[]" },
+      { "internalType": "bytes[]", "name": "calldatas", "type": "bytes[]" },
+      { "internalType": "string", "name": "description", "type": "string" }
+    ],
+    "name": "propose",
+    "outputs": [
+      { "internalType": "uint256", "name": "proposalId", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "owner", "type": "address" }
+    ],
+    "name": "proxyAddress",
+    "outputs": [
+      { "internalType": "address", "name": "endpoint", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "owner", "type": "address" }
+    ],
+    "name": "registerProxyDeployment",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "registeredProxyAddresses",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address[]", "name": "authority", "type": "address[]" },
+      { "internalType": "bytes32", "name": "hash", "type": "bytes32" }
+    ],
+    "name": "sign",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "to", "type": "address" },
+      {
+        "components": [
+          { "internalType": "uint8", "name": "permissions", "type": "uint8" },
+          {
+            "internalType": "uint8",
+            "name": "maxRedelegations",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint32",
+            "name": "notValidBefore",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "notValidAfter",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint16",
+            "name": "blocksBeforeVoteCloses",
+            "type": "uint16"
+          },
+          { "internalType": "address", "name": "customRule", "type": "address" }
+        ],
+        "internalType": "struct Rules",
+        "name": "rules",
+        "type": "tuple"
+      },
+      { "internalType": "bool", "name": "createProxy", "type": "bool" }
+    ],
+    "name": "subDelegate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address[]", "name": "targets", "type": "address[]" },
+      {
+        "components": [
+          { "internalType": "uint8", "name": "permissions", "type": "uint8" },
+          {
+            "internalType": "uint8",
+            "name": "maxRedelegations",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint32",
+            "name": "notValidBefore",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "notValidAfter",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint16",
+            "name": "blocksBeforeVoteCloses",
+            "type": "uint16"
+          },
+          { "internalType": "address", "name": "customRule", "type": "address" }
+        ],
+        "internalType": "struct Rules[]",
+        "name": "rules",
+        "type": "tuple[]"
+      },
+      { "internalType": "bool", "name": "createProxy", "type": "bool" }
+    ],
+    "name": "subDelegateBatched",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "", "type": "address" },
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
+    "name": "subDelegations",
+    "outputs": [
+      { "internalType": "uint8", "name": "permissions", "type": "uint8" },
+      { "internalType": "uint8", "name": "maxRedelegations", "type": "uint8" },
+      { "internalType": "uint32", "name": "notValidBefore", "type": "uint32" },
+      { "internalType": "uint32", "name": "notValidAfter", "type": "uint32" },
+      {
+        "internalType": "uint16",
+        "name": "blocksBeforeVoteCloses",
+        "type": "uint16"
+      },
+      { "internalType": "address", "name": "customRule", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes4", "name": "interfaceId", "type": "bytes4" }
+    ],
+    "name": "supportsInterface",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "newOwner", "type": "address" }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "sender", "type": "address" },
+      { "internalType": "address[]", "name": "authority", "type": "address[]" },
+      { "internalType": "uint256", "name": "permissions", "type": "uint256" },
+      { "internalType": "uint256", "name": "proposalId", "type": "uint256" },
+      { "internalType": "uint256", "name": "support", "type": "uint256" }
+    ],
+    "name": "validate",
+    "outputs": [],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  { "stateMutability": "payable", "type": "receive" }
+]

@@ -1,6 +1,4 @@
-import { useTotalVotingPower } from "./propHouse";
 import graphql from "babel-plugin-relay/macro";
-import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
 import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
 import { VStack } from "../../components/VStack";
 import * as theme from "../../theme";
@@ -8,18 +6,21 @@ import {
   DisabledVoteButton,
   voteButtonStyles,
 } from "../ProposalsPage/CastVoteInput";
-import { COMMUNITY_ADDRESS } from "./PropHouseAuctionPage";
-import { useAccount } from "wagmi";
 import { css } from "@emotion/css";
 import { useFragment } from "react-relay";
 import { ActionButtonFragment$key } from "./__generated__/ActionButtonFragment.graphql";
+import { useCallback } from "react";
+import { usePropHouseAvailableVotingPower } from "./usePropHouseAvailableVotingPower";
+import { ActionButtonVoteButtonDelegateFragment$key } from "./__generated__/ActionButtonVoteButtonDelegateFragment.graphql";
+import { ActionButtonVoteButtonAuctionFragment$key } from "./__generated__/ActionButtonVoteButtonAuctionFragment.graphql";
+import { usePendingVotes } from "./PendingVotesContext";
 
 export function ActionButton({
+  delegateFragmentRef,
   fragmentRef,
-  pendingVotes,
 }: {
+  delegateFragmentRef: ActionButtonVoteButtonDelegateFragment$key | undefined;
   fragmentRef: ActionButtonFragment$key;
-  pendingVotes: Record<number, number>;
 }) {
   const auction = useFragment(
     graphql`
@@ -31,15 +32,7 @@ export function ActionButton({
         proposalEndTime
         votingEndTime
 
-        votes {
-          address {
-            resolvedName {
-              address
-            }
-          }
-
-          weight
-        }
+        ...ActionButtonVoteButtonAuctionFragment
       }
     `,
     fragmentRef
@@ -49,105 +42,6 @@ export function ActionButton({
   const startTime = new Date(auction.startTime);
   const proposalEndTime = new Date(auction.proposalEndTime);
   const votingEndTime = new Date(auction.votingEndTime);
-  const { address } = useAccount();
-
-  const startTransition = useStartTransition();
-  const openDialog = useOpenDialog();
-
-  const totalVotingPower = useTotalVotingPower({
-    auctionId: auction.number.toString(),
-    address: address,
-    communityAddress: COMMUNITY_ADDRESS,
-  });
-
-  const addressVotes = auction.votes
-    .filter(
-      (it) =>
-        address &&
-        it.address?.resolvedName?.address?.toLowerCase() ===
-          address.toLowerCase()
-    )
-    .reduce((acc, it) => acc + it.weight, 0);
-
-  const pendingVotesCount = Object.values(pendingVotes).reduce(
-    (it, acc) => it + acc,
-    0
-  );
-
-  const availableVotingPower = Math.max(totalVotingPower - addressVotes, 0);
-
-  const votingPower = Math.max(availableVotingPower - pendingVotesCount, 0);
-
-  const castVotes = (address: string) => {
-    startTransition(() => {
-      openDialog({
-        type: "CAST_AUCTION_VOTE",
-        params: {
-          address,
-          auctionId: auction.number,
-          pendingVotes: pendingVotes,
-        },
-      });
-    });
-  };
-
-  const { onClick, buttonText }: { onClick?: () => void; buttonText?: string } =
-    (() => {
-      if (currentTime < startTime) {
-        return {
-          buttonText: "Proposal period has not started",
-        };
-      }
-
-      if (currentTime < proposalEndTime) {
-        return {
-          // TODO: Don't hard-code nouns here
-          onClick: () =>
-            window.open(
-              `https://prop.house/nouns/${nameToSlug(auction.title)}`,
-              "_blank"
-            ),
-          buttonText: "Submit a Proposal",
-        };
-      }
-
-      if (currentTime >= votingEndTime) {
-        return {
-          buttonText: "Voting period has ended",
-        };
-      }
-
-      if (!address) {
-        return {
-          buttonText: "Connect wallet to vote",
-        };
-      }
-
-      if (!availableVotingPower) {
-        return {
-          buttonText: "No Eligible Votes",
-        };
-      }
-
-      if (!pendingVotesCount) {
-        return {
-          buttonText: `Cast votes (${votingPower} left)`,
-        };
-      }
-
-      if (pendingVotesCount > availableVotingPower) {
-        return {
-          buttonText: `Not enough voting power (${
-            pendingVotesCount - availableVotingPower
-          } too many votes)`,
-        };
-      }
-
-      return {
-        onClick: () => castVotes(address),
-        buttonText: `Cast votes (${votingPower} left)`,
-      };
-    })();
 
   return (
     <VStack
@@ -156,19 +50,148 @@ export function ActionButton({
         padding-right: ${theme.spacing["4"]};
       `}
     >
-      {onClick && (
-        <button
-          onClick={onClick}
-          className={css`
-            ${voteButtonStyles}
-          `}
-        >
-          {buttonText}
-        </button>
-      )}
+      {(() => {
+        if (currentTime < startTime) {
+          return (
+            <DisabledVoteButton reason={`Proposal period has not started`} />
+          );
+        }
 
-      {!onClick && <DisabledVoteButton reason={buttonText} />}
+        if (currentTime < proposalEndTime) {
+          return (
+            <button
+              className={voteButtonStyles}
+              onClick={() => {
+                window.open(
+                  `https://prop.house/nouns/${nameToSlug(auction.title)}`,
+                  "_blank"
+                );
+              }}
+            >
+              Submit a Proposal
+            </button>
+          );
+        }
+
+        if (currentTime >= votingEndTime) {
+          return <DisabledVoteButton reason={`Voting period has ended`} />;
+        }
+
+        if (!delegateFragmentRef) {
+          return <DisabledVoteButton reason={`Connect wallet to vote`} />;
+        }
+
+        return (
+          <AuctionVoteButton
+            auctionFragmentRef={auction}
+            delegateFragmentRef={delegateFragmentRef}
+          />
+        );
+      })()}
     </VStack>
+  );
+}
+
+function AuctionVoteButton({
+  auctionFragmentRef,
+  delegateFragmentRef,
+}: {
+  auctionFragmentRef: ActionButtonVoteButtonAuctionFragment$key;
+  delegateFragmentRef: ActionButtonVoteButtonDelegateFragment$key;
+}) {
+  const auction = useFragment(
+    graphql`
+      fragment ActionButtonVoteButtonAuctionFragment on PropHouseAuction {
+        number
+
+        ...usePropHouseAvailableVotingPowerAuctionFragment
+      }
+    `,
+    auctionFragmentRef
+  );
+
+  const delegate = useFragment(
+    graphql`
+      fragment ActionButtonVoteButtonDelegateFragment on Delegate {
+        address {
+          resolvedName {
+            address
+          }
+        }
+
+        ...usePropHouseAvailableVotingPowerFragmentDelegateFragment
+      }
+    `,
+    delegateFragmentRef
+  );
+
+  const pendingVotes = usePendingVotes();
+
+  const pendingVotesCount = Object.values(pendingVotes).reduce(
+    (it, acc) => it + acc,
+    0
+  );
+
+  const { votingPower, votingAddresses } = usePropHouseAvailableVotingPower(
+    delegate,
+    auction
+  );
+
+  const openDialog = useOpenDialog();
+
+  const castVotes = useCallback(
+    () =>
+      openDialog({
+        type: "CAST_AUCTION_VOTE",
+        params: {
+          address: delegate.address.resolvedName.address,
+          auctionId: auction.number,
+          pendingVotes: pendingVotes,
+          votingPower,
+          votingAddresses,
+        },
+      }),
+    [
+      auction.number,
+      delegate.address.resolvedName.address,
+      openDialog,
+      pendingVotes,
+      votingAddresses,
+      votingPower,
+    ]
+  );
+
+  const availableVotingPower = votingPower.reduce(
+    (acc, it) => acc + it.availableVotingPower,
+    0
+  );
+
+  const votingPowerSum = Math.max(availableVotingPower - pendingVotesCount, 0);
+
+  if (!availableVotingPower) {
+    return <DisabledVoteButton reason={"No Eligible Votes"} />;
+  }
+
+  if (!pendingVotesCount) {
+    return (
+      <DisabledVoteButton reason={`Cast votes (${votingPowerSum} left)`} />
+    );
+  }
+
+  if (pendingVotesCount > availableVotingPower) {
+    return (
+      <DisabledVoteButton
+        reason={`Not enough voting power (${
+          pendingVotesCount - availableVotingPower
+        } too many votes)`}
+      />
+    );
+  }
+
+  return (
+    <button className={voteButtonStyles} onClick={() => castVotes()}>
+      Cast votes ({votingPowerSum} left)
+    </button>
   );
 }
 

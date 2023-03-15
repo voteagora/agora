@@ -164,6 +164,14 @@ export async function takeLast<T>(gen: AsyncIterable<T>): Promise<T | null> {
   return lastValue;
 }
 
+export async function takeFirst<T>(gen: AsyncIterable<T>): Promise<T | null> {
+  for await (const item of gen) {
+    return item;
+  }
+
+  return null;
+}
+
 export async function countItems<T>(
   generator: AsyncGenerator<T>
 ): Promise<number> {
@@ -181,5 +189,14 @@ export async function* mapGenerator<T, U>(
 ): AsyncGenerator<U> {
   for await (const item of generator) {
     yield mapper(item);
+  }
+}
+
+export async function* flatMapGenerator<T, U>(
+  generator: AsyncGenerator<T>,
+  mapper: (item: T) => AsyncGenerator<U>
+): AsyncGenerator<U> {
+  for await (const item of generator) {
+    yield* mapper(item);
   }
 }

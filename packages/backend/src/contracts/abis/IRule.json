@@ -1,0 +1,36 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "governor",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "voter",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "proposalId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "support",
+        "type": "uint8"
+      }
+    ],
+    "name": "validate",
+    "outputs": [
+      {
+        "internalType": "bytes4",
+        "name": "",
+        "type": "bytes4"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

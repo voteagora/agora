@@ -77,10 +77,18 @@
   },
   "eslintConfig": {
     "plugins": [
-      "relay"
+      "relay",
+      "ban"
     ],
     "rules": {
-      "relay/generated-flow-types": "off"
+      "relay/generated-flow-types": "off",
+      "ban/ban": [
+        2,
+        {
+          "name": "parseInt",
+          "message": "Use BigNumber.from(value).toNumber() instead, it throws when provided invalid values instead of coercing"
+        }
+      ]
     },
     "extends": [
       "react-app",
@@ -113,6 +121,7 @@
     "babel-plugin-relay": "^14.1.0",
     "eslint": "^8.34.0",
     "eslint-plugin-relay": "^1.8.3",
+    "eslint-plugin-ban": "^1.6.0",
     "postcss": "^8.4.16",
     "prettier": "^2.7.1",
     "relay-compiler": "^14.1.0",

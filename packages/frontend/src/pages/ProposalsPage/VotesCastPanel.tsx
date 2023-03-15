@@ -7,7 +7,6 @@ import { VotesCastPanelFragment$key } from "./__generated__/VotesCastPanelFragme
 import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
 import { CastVoteInput } from "./CastVoteInput";
 import { ProposalVotesSummary } from "./ProposalVotesSummary";
-import { useStartTransition } from "../../components/HammockRouter/HammockRouter";
 import { VoteRow } from "./VoteRow";
 import { VotesCastPanelVotesFragment$key } from "./__generated__/VotesCastPanelVotesFragment.graphql";
 import { makePaginationItems } from "../../hooks/pagination";
@@ -63,7 +62,6 @@ export function VotesCastPanel({
     };
   });
 
-  const startTransitionRoute = useStartTransition();
   const openDialog = useOpenDialog();
 
   const result = useFragment(
@@ -200,16 +198,15 @@ export function VotesCastPanel({
               margin-left: ${theme.spacing["4"]};
               margin-right: ${theme.spacing["4"]};
             `}
-            onVoteClick={(supportType, reason) => {
-              startTransitionRoute(() => {
-                openDialog({
-                  type: "CAST_VOTE",
-                  params: {
-                    reason,
-                    supportType,
-                    proposalId: BigNumber.from(result.number).toNumber(),
-                  },
-                });
+            onVoteClick={(supportType, reason, address) => {
+              openDialog({
+                type: "CAST_VOTE",
+                params: {
+                  address,
+                  reason,
+                  supportType,
+                  proposalId: BigNumber.from(result.number).toNumber(),
+                },
               });
             }}
           />
@@ -307,6 +304,7 @@ function VotesCastPanelVotes({
           case "LOAD_MORE_SENTINEL": {
             return (
               <LoadMoreSentinel
+                key={idx}
                 onVisible={() => {
                   loadNext(pageSize);
                 }}

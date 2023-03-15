@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/react";
+import { writeContract, prepareWriteContract } from "@wagmi/core";
 import { ethers } from "ethers";
 import {
   usePrepareContractWrite as usePrepareContractWriteUNSAFE,
@@ -88,4 +89,31 @@ export function useContractWrite<
   return useCallback(() => {
     write?.();
   }, [write]);
+}
+
+export function useContractWriteFn<
+  ContractType extends Contract<TypedInterface>,
+  Function extends keyof ContractType["functions"] & string
+>(
+  instance: ContractInstance<ContractInterfaceType<ContractType>>,
+  name: Function
+) {
+  return useCallback(
+    async (args: Parameters<ContractType["functions"][Function]>) => {
+      try {
+        const config = await prepareWriteContract({
+          address: instance.address as any,
+          abi: instance.factory.abi,
+          functionName: name,
+          args,
+        });
+
+        await writeContract(config);
+      } catch (e) {
+        const id = Sentry.captureException(e);
+        console.error(e, { id });
+      }
+    },
+    [instance, name]
+  );
 }

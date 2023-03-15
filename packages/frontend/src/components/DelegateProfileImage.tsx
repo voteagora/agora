@@ -28,6 +28,13 @@ export function DelegateProfileImage({ fragment, dense }: Props) {
             amount
           }
         }
+        liquidRepresentation(filter: { currentlyActive: true }) {
+          proxy {
+            nounsRepresented {
+              __typename
+            }
+          }
+        }
 
         ...NounGridFragment
       }
@@ -39,7 +46,15 @@ export function DelegateProfileImage({ fragment, dense }: Props) {
     address: delegate.address.resolvedName.address as any,
   });
 
-  return BigNumber.from(delegate.tokensRepresented.amount.amount).isZero() ? (
+  const liquidRepresentedNouns = delegate.liquidRepresentation.flatMap(
+    (liquidRepresentation) => liquidRepresentation.proxy.nounsRepresented
+  );
+
+  const totalNounsRepresented = BigNumber.from(
+    delegate.tokensRepresented.amount.amount
+  ).add(liquidRepresentedNouns.length);
+
+  return totalNounsRepresented.isZero() ? (
     <HStack
       alignItems="center"
       className={css`

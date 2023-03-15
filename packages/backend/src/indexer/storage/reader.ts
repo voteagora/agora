@@ -122,7 +122,7 @@ export async function* getEntitiesByIndexFromStorageArea<
   indexName: IndexName,
   args: IndexQueryArgs,
   storageArea: StorageArea,
-  makeGenerator: (
+  makeGenerator?: (
     indexPrefix: string,
     startingKey: string,
     visitedValues: Set<string>
@@ -191,11 +191,11 @@ export async function* getEntitiesByIndexFromStorageArea<
       }));
 
       for (const { indexKey, id, value } of entitiesWithIndexValue) {
+        visitedValues.add(id);
+
         if (indexKey < startingKey) {
           continue;
         }
-
-        visitedValues.add(id);
 
         heap.push({
           type: "VALUE",
@@ -212,15 +212,33 @@ export async function* getEntitiesByIndexFromStorageArea<
     }
   }
 
-  const generator = makeGenerator(indexPrefix, startingKey, visitedValues);
+  if (makeGenerator) {
+    const baseGenerator = makeGenerator(
+      indexPrefix,
+      startingKey,
+      visitedValues
+    );
 
-  const nextValue = await generator.next();
-  if (!nextValue.done) {
-    heap.push({
-      type: "GENERATOR",
-      value: nextValue.value,
-      generator: generator,
-    });
+    const generator = (async function* () {
+      for await (const item of baseGenerator) {
+        if (visitedValues.has(item.entityId)) {
+          continue;
+        }
+
+        visitedValues.add(item.entityId);
+
+        yield item;
+      }
+    })();
+
+    const nextValue = await generator.next();
+    if (!nextValue.done) {
+      heap.push({
+        type: "GENERATOR",
+        value: nextValue.value,
+        generator: generator,
+      });
+    }
   }
 
   while (true) {

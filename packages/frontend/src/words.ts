@@ -1,4 +1,5 @@
 import { BigNumber } from "ethers";
+import { format } from "date-fns";
 
 export function pluralizeNoun(count: BigNumber) {
   if (count.eq(1)) {
@@ -32,10 +33,22 @@ export function pluralizeAddresses(count: number) {
   }
 }
 
+export function pluralizeDelegations(count: number) {
+  if (count === 1) {
+    return `1 delegation`;
+  }
+
+  return `${count} delegations`;
+}
+
 export function pluralizeOther(count: number) {
   if (count === 1) {
     return "1 other";
   } else {
     return `${count} others`;
   }
+}
+
+export function formatDate(date: Date) {
+  return format(date, "Pp");
 }

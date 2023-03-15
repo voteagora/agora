@@ -8,14 +8,15 @@ import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { PropHousePastVotesFragment$key } from "./__generated__/PropHousePastVotesFragment.graphql";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
+import { ActionButtonVoteButtonDelegateFragment$key } from "./__generated__/ActionButtonVoteButtonDelegateFragment.graphql";
 
 export function PropHousePastVotes({
+  delegateFragmentRef,
   fragmentRef,
-  pendingVotes,
   expanded,
 }: {
+  delegateFragmentRef: ActionButtonVoteButtonDelegateFragment$key | undefined;
   fragmentRef: PropHousePastVotesFragment$key;
-  pendingVotes: Record<number, number>;
   expanded: boolean;
 }) {
   const result = useFragment(
@@ -128,7 +129,10 @@ export function PropHousePastVotes({
         </VStack>
       )}
 
-      <ActionButton fragmentRef={result} pendingVotes={pendingVotes} />
+      <ActionButton
+        delegateFragmentRef={delegateFragmentRef}
+        fragmentRef={result}
+      />
     </VStack>
   );
 }

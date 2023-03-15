@@ -2,6 +2,7 @@ import {
   NounsDAOLogicV2__factory,
   NounsToken__factory,
   ZoraAuctionHouse__factory,
+  Alligator__factory,
 } from "./generated";
 import { makeContractInstance } from "../hooks/useContractWrite";
 
@@ -21,4 +22,10 @@ export const zoraAuctionHouse = makeContractInstance({
   factory: ZoraAuctionHouse__factory,
   address: "0xE468cE99444174Bd3bBBEd09209577d25D1ad673",
   startingBlock: 12372205,
+});
+
+export const nounsAlligator = makeContractInstance({
+  factory: Alligator__factory,
+  address: "0x57aa7DeD5187C423AD8B3bd5c91f2211cD97b2A3",
+  startingBlock: 16750535,
 });

@@ -9,10 +9,12 @@ import {
 } from "./__generated__/NounGridFragment.graphql";
 import { HStack } from "./VStack";
 import { BigNumber } from "ethers";
+import { icons } from "../icons/icons";
 
 type Props = {
   dense?: boolean;
   nouns: NounGridFragment$data["nounsRepresented"];
+  liquidRepresentation: NounGridFragment$data["liquidRepresentation"];
   totalNouns?: number;
   rows?: number;
 } & LayoutProps;
@@ -27,6 +29,7 @@ type LayoutProps = {
 function NounGrid({
   dense,
   nouns,
+  liquidRepresentation,
   totalNouns,
   rows,
   columns,
@@ -34,6 +37,9 @@ function NounGrid({
   gap,
   overflowFontSize,
 }: Props) {
+  const liquidRepresentationNouns = liquidRepresentation.flatMap(
+    (liquidRepresentation) => liquidRepresentation.proxy.nounsRepresented
+  );
   const possibleSlots = rows ? rows * columns : nouns.length;
   const imageSizeResolved = theme.spacing[imageSize];
 
@@ -50,7 +56,9 @@ function NounGrid({
           ${dense &&
           css`
             max-width: calc(
-              ${imageSizeResolved} * ${(possibleSlots * 2) / 3 + 1}
+              ${imageSizeResolved} *
+                ${((possibleSlots + liquidRepresentationNouns.length) * 2) / 3 +
+                1}
             );
           `}
         `
@@ -61,6 +69,7 @@ function NounGrid({
         totalNouns={totalNouns}
         count={possibleSlots}
         nouns={nouns}
+        liquidRepresentation={liquidRepresentation}
         imageSize={imageSize}
         overflowFontSize={overflowFontSize}
       />
@@ -78,6 +87,7 @@ type NounGridChildrenProps = {
   dense?: boolean;
   count: number;
   nouns: NounGridFragment$data["nounsRepresented"];
+  liquidRepresentation: NounGridFragment$data["liquidRepresentation"];
   totalNouns?: number;
   imageSize?: keyof typeof theme.spacing;
   overflowFontSize: keyof typeof theme.fontSize;
@@ -89,26 +99,49 @@ export function NounGridChildren({
   imageSize,
   totalNouns,
   nouns,
+  liquidRepresentation,
   count,
   overflowFontSize,
   className,
 }: NounGridChildrenProps) {
   const imageSizeResolved = imageSize ? theme.spacing[imageSize] : undefined;
 
-  const length = totalNouns ?? nouns.length;
+  const liquidRepresentationNouns = liquidRepresentation.flatMap(
+    (liquidRepresentation) => liquidRepresentation.proxy.nounsRepresented
+  );
+
+  const length =
+    (totalNouns ?? nouns.length) + liquidRepresentationNouns.length;
 
   const overflowAmount = length - count;
 
   function nounImageForNoun(
-    noun: NounGridFragment$data["nounsRepresented"][0],
+    {
+      type,
+      noun,
+    }: {
+      type: "NOUN" | "LIQUID";
+      noun: NounGridFragment$data["nounsRepresented"][0];
+    },
     index: number,
     dense?: boolean
   ) {
+    const isLiquid = (() => {
+      switch (type) {
+        case "LIQUID":
+          return true;
+
+        case "NOUN":
+          return false;
+      }
+    })();
+
     return (
-      <NounImage
+      <div
+        key={index}
         className={cx(
           css`
-            border-radius: 50%;
+            position: relative;
             ${imageSizeResolved &&
             css`
               width: ${imageSizeResolved};
@@ -124,15 +157,44 @@ export function NounGridChildren({
           `,
           className
         )}
-        key={noun.id}
-        fragmentRef={noun}
-      />
+      >
+        {isLiquid && (
+          <img
+            className={css`
+              border-radius: ${theme.borderRadius.full};
+              border: 2px solid ${theme.colors.white};
+              position: absolute;
+              bottom: -2px;
+              right: -2px;
+              width: max(30%, 12px);
+            `}
+            src={icons.liquid}
+            alt="liquid noun symbol"
+          />
+        )}
+
+        <NounImage
+          className={css`
+            border-radius: 50%;
+          `}
+          key={noun.id}
+          fragmentRef={noun}
+        />
+      </div>
     );
   }
 
+  const displayedNouns = [
+    ...nouns.map((noun) => ({ type: "NOUN" as const, noun })),
+    ...liquidRepresentationNouns.map((noun) => ({
+      type: "LIQUID" as const,
+      noun,
+    })),
+  ];
+
   return overflowAmount > 0 ? (
     <>
-      {nouns
+      {displayedNouns
         .slice(0, count - 1)
         .map((noun, index) => nounImageForNoun(noun, index, dense))}
       <div
@@ -166,10 +228,13 @@ export function NounGridChildren({
       </div>
     </>
   ) : (
-    <>{nouns.map((noun, index) => nounImageForNoun(noun, index, dense))}</>
+    <>
+      {displayedNouns.map((displayedNoun, index) =>
+        nounImageForNoun(displayedNoun, index, dense)
+      )}
+    </>
   );
 }
-
 export function NounsRepresentedGrid({
   fragmentKey,
   dense,
@@ -177,6 +242,7 @@ export function NounsRepresentedGrid({
 }: NounsRepresentedGridProps) {
   const {
     nounsRepresented,
+    liquidRepresentation,
     tokensRepresented: {
       amount: { amount: tokensRepresentedRaw },
     },
@@ -186,6 +252,16 @@ export function NounsRepresentedGrid({
         tokensRepresented {
           amount {
             amount
+          }
+        }
+
+        liquidRepresentation(filter: { currentlyActive: true }) {
+          # eslint-disable-next-line relay/unused-fields
+          proxy {
+            nounsRepresented {
+              id
+              ...NounImageFragment
+            }
           }
         }
 
@@ -221,6 +297,7 @@ export function NounsRepresentedGrid({
           count={layoutProps.columns}
           totalNouns={totalNouns}
           nouns={nounsRepresented}
+          liquidRepresentation={liquidRepresentation}
           overflowFontSize={"base"}
         />
       </HStack>
@@ -231,6 +308,7 @@ export function NounsRepresentedGrid({
     <NounGrid
       dense={dense}
       nouns={nounsRepresented}
+      liquidRepresentation={liquidRepresentation}
       totalNouns={totalNouns}
       {...layoutProps}
     />

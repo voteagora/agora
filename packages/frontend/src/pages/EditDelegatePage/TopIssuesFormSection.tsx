@@ -1,5 +1,5 @@
 import { icons } from "../../icons/icons";
-import { ReactNode, useCallback } from "react";
+import { useCallback } from "react";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
@@ -7,7 +7,12 @@ import { CloseButton } from "./CloseButton";
 import { Form } from "./DelegateStatementForm";
 import { HStack, VStack } from "../../components/VStack";
 import { Menu } from "@headlessui/react";
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  dropdownContainerStyles,
+  dropdownItemActiveStyle,
+  DropdownItems,
+  dropdownItemStyle,
+} from "../../components/DelegateDialog/DropDown";
 
 type IssueTypeDefinition = {
   key: string;
@@ -185,73 +190,6 @@ export function TopIssuesFormSection({ form }: Props) {
 type DropdownProps = {
   addIssue: (key: string) => void;
 };
-
-export const dropdownContainerStyles = css`
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  position: relative;
-`;
-
-export const dropdownItemStyle = css`
-  white-space: nowrap;
-  border-radius: ${theme.spacing["3"]};
-  border: 1px solid transparent;
-  padding: ${theme.spacing["2"]} ${theme.spacing["3"]};
-  cursor: pointer;
-  color: #66676b;
-`;
-
-export const dropdownItemActiveStyle = css`
-  background: white;
-  color: black;
-  border-color: ${theme.colors.gray.eb};
-`;
-
-type DropdownItemsProps = {
-  open: boolean;
-  children: ReactNode;
-};
-
-export function DropdownItems({ open, children }: DropdownItemsProps) {
-  return (
-    <div
-      className={css`
-        position: absolute;
-        z-index: 3;
-        outline: none;
-
-        top: calc(100% + ${theme.spacing["2"]});
-        right: 0;
-      `}
-    >
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            style={{ originY: "-100%", originX: "100%" }}
-            initial={{ opacity: 0, scale: 0.9 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.15 }}
-          >
-            <VStack
-              gap="1"
-              className={css`
-                background: #f7f7f7;
-                box-shadow: ${theme.boxShadow.newDefault};
-                border: 1px solid ${theme.colors.gray.eb};
-                padding: ${theme.spacing["2"]};
-                border-radius: ${theme.spacing["4"]};
-              `}
-            >
-              {children}
-            </VStack>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 function Dropdown({ addIssue }: DropdownProps) {
   return (

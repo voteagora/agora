@@ -7,6 +7,7 @@ import {
 import { ContractInstance, TypedInterface } from "../contracts";
 import { ethers } from "ethers";
 import { blockIdentifierKey } from "./storage/entityStore";
+import { BlockStorageArea, StorageArea } from "./followChain";
 
 export type BlockWithLog = {
   block: BlockIdentifier;
@@ -121,5 +122,52 @@ export function makeBlockIdentifier(number: number): BlockIdentifier {
   return {
     hash: `0x${number.toString(16)}`,
     blockNumber: number,
+  };
+}
+
+/**
+ * Makes a storage area from a list of block storage areas sorted from most
+ * recent to least recent.
+ */
+export function makeStorageAreaFromBlockSequence(
+  blockStorageAreas: BlockStorageArea[]
+): StorageArea {
+  const blocks = Array.from([...blockStorageAreas, null].reverse().entries())
+    .reverse()
+    .map(([idx, storageArea]) => {
+      const blockIdentifier = makeBlockIdentifier(idx + 1);
+
+      return {
+        blockIdentifier,
+        storageArea,
+      };
+    });
+
+  const tipBlock = blocks[0];
+  const finalizedBlock = blocks[blocks.length - 1];
+  const parents = new Map(
+    blocks.flatMap((it, idx, arr) => {
+      const parentBlock = arr[idx + 1];
+      if (!parentBlock) {
+        return [];
+      }
+
+      return [[it.blockIdentifier.hash, parentBlock.blockIdentifier]];
+    })
+  );
+
+  return {
+    finalizedBlock: finalizedBlock.blockIdentifier,
+    tipBlock: tipBlock.blockIdentifier,
+    parents,
+    blockStorageAreas: new Map(
+      blocks.flatMap((block) => {
+        if (!block.storageArea) {
+          return [];
+        }
+
+        return [[block.blockIdentifier.hash, block.storageArea]];
+      })
+    ),
   };
 }

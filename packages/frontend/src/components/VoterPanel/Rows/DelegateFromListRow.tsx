@@ -12,15 +12,41 @@ import { NounResolvedLink } from "../../NounResolvedLink";
 import { NounGridChildren } from "../../NounGrid";
 import { descendingValueComparator } from "../../../utils/sorting";
 import { BigNumber } from "ethers";
+import { LiquidDelegationRules } from "../LiquidDelegationRules";
 
 export function DelegateFromList({
   fragment,
 }: {
   fragment: DelegateFromListRowFragment$key;
 }) {
-  const { tokenHoldersRepresented } = useFragment(
+  const { tokenHoldersRepresented, completeLiquidRepresentation } = useFragment(
     graphql`
       fragment DelegateFromListRowFragment on Delegate {
+        completeLiquidRepresentation: liquidRepresentation(filter: {}) {
+          owner {
+            address {
+              resolvedName {
+                ...NounResolvedLinkFragment
+              }
+            }
+          }
+
+          # eslint-disable-next-line relay/unused-fields
+          proxy {
+            nounsRepresented {
+              id
+              # eslint-disable-next-line relay/must-colocate-fragment-spreads
+              ...NounImageFragment
+            }
+          }
+
+          lots {
+            rules {
+              ...LiquidDelegationRulesFragment
+            }
+          }
+        }
+
         tokenHoldersRepresented {
           tokensOwned {
             amount {
@@ -55,6 +81,25 @@ export function DelegateFromList({
 
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const representations = [
+    ...tokenHolders.map((tokenHolder) => ({
+      type: "TOKEN_REPRESENTATION" as const,
+      tokenHolder,
+    })),
+    ...completeLiquidRepresentation.flatMap((liquidRepresentation) => {
+      if (!liquidRepresentation.proxy.nounsRepresented.length) {
+        return [];
+      }
+
+      return [
+        {
+          type: "LIQUID_REPRESENTATION" as const,
+          liquidRepresentation,
+        },
+      ];
+    }),
+  ];
+
   return (
     <VStack gap="1">
       <PanelRow
@@ -69,56 +114,118 @@ export function DelegateFromList({
                 user-select: none;
               `}
             >
-              <div>{pluralizeAddresses(tokenHolders.length)}</div>
-              <ChevronDownIcon
-                aria-hidden="true"
-                className={css`
-                  margin-bottom: -0.125rem;
-                  transition: transform 0.3s;
-                  width: ${theme.spacing["4"]};
-                  height: ${theme.spacing["4"]};
-                  ${isExpanded &&
-                  css`
-                    transform: rotateZ(180deg);
-                  `}
-                `}
-              />
+              <div>{pluralizeAddresses(representations.length)}</div>
+
+              <ExpandItemsArrow isExpanded={isExpanded} />
             </HStack>
           </div>
         }
       />
 
-      {isExpanded &&
-        tokenHolders.map((holder, idx) => (
-          <HStack key={idx} justifyContent="space-between">
-            <div
-              className={css`
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                overflow: hidden;
-              `}
-            >
-              <NounResolvedLink resolvedName={holder.address.resolvedName} />
-            </div>
+      {isExpanded && (
+        <VStack gap="1">
+          {representations.map((representation, idx) => {
+            return (
+              <VStack>
+                <HStack key={idx} justifyContent="space-between">
+                  <div
+                    className={css`
+                      text-overflow: ellipsis;
+                      white-space: nowrap;
+                      overflow: hidden;
+                    `}
+                  >
+                    <NounResolvedLink
+                      resolvedName={(() => {
+                        switch (representation.type) {
+                          case "TOKEN_REPRESENTATION": {
+                            return representation.tokenHolder.address
+                              .resolvedName;
+                          }
 
-            <HStack
-              gap="1"
-              className={css`
-                flex-shrink: 0;
-              `}
-            >
-              <NounGridChildren
-                totalNouns={BigNumber.from(
-                  holder.tokensOwned.amount.amount
-                ).toNumber()}
-                count={5}
-                nouns={holder.nounsOwned}
-                overflowFontSize="xs"
-                imageSize="6"
-              />
-            </HStack>
-          </HStack>
-        ))}
+                          case "LIQUID_REPRESENTATION": {
+                            return representation.liquidRepresentation.owner
+                              .address.resolvedName;
+                          }
+                        }
+                      })()}
+                    />
+                  </div>
+
+                  <HStack
+                    gap="1"
+                    className={css`
+                      flex-shrink: 0;
+                    `}
+                  >
+                    <NounGridChildren
+                      {...(() => {
+                        switch (representation.type) {
+                          case "TOKEN_REPRESENTATION": {
+                            return {
+                              liquidRepresentation: [],
+                              totalNouns: BigNumber.from(
+                                representation.tokenHolder.tokensOwned.amount
+                                  .amount
+                              ).toNumber(),
+                              nouns: representation.tokenHolder.nounsOwned,
+                            };
+                          }
+
+                          case "LIQUID_REPRESENTATION": {
+                            return {
+                              liquidRepresentation: [
+                                representation.liquidRepresentation,
+                              ],
+                              totalNouns: 0,
+                              nouns: [],
+                            };
+                          }
+                        }
+                      })()}
+                      count={5}
+                      overflowFontSize="xs"
+                      imageSize="6"
+                    />
+                  </HStack>
+                </HStack>
+
+                {(() => {
+                  if (representation.type !== "LIQUID_REPRESENTATION") {
+                    return null;
+                  }
+
+                  return (
+                    <VStack gap="1">
+                      {representation.liquidRepresentation.lots.map((lot) => (
+                        <LiquidDelegationRules fragmentRef={lot.rules} />
+                      ))}
+                    </VStack>
+                  );
+                })()}
+              </VStack>
+            );
+          })}
+        </VStack>
+      )}
     </VStack>
+  );
+}
+
+export function ExpandItemsArrow({ isExpanded }: { isExpanded: boolean }) {
+  return (
+    <ChevronDownIcon
+      aria-hidden="true"
+      className={css`
+        margin-bottom: -0.125rem;
+        transition: transform 0.3s;
+        width: ${theme.spacing["4"]};
+        height: ${theme.spacing["4"]};
+        ${isExpanded &&
+        css`
+          transform: rotateZ(180deg);
+        `}
+      `}
+    />
   );
 }

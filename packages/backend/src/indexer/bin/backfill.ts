@@ -21,20 +21,34 @@ import { entityDefinitions } from "../contracts/entityDefinitions";
 async function main() {
   const store = await LevelEntityStore.open();
 
+  const lastBlockToIndexArgument = (() => {
+    const rawValue = process.argv[2];
+    if (!rawValue) {
+      return null;
+    }
+
+    return ethers.BigNumber.from(rawValue).toNumber();
+  })();
+
   const highestCommonBlock = await calculateHighestCommonBlock(indexers);
   if (!highestCommonBlock) {
     return;
   }
 
+  const lastBlockToIndex = Math.min(
+    highestCommonBlock.blockNumber,
+    lastBlockToIndexArgument ?? Infinity
+  );
+
   const entityStoreFinalizedBlock = await store.getFinalizedBlock();
   if (
     entityStoreFinalizedBlock &&
-    entityStoreFinalizedBlock.blockNumber >= highestCommonBlock.blockNumber
+    entityStoreFinalizedBlock.blockNumber >= lastBlockToIndex
   ) {
     return;
   }
 
-  const progressBar = makeProgressBar(highestCommonBlock.blockNumber);
+  const progressBar = makeProgressBar(lastBlockToIndex);
 
   let idx = 0;
   const blockLogGenerator = groupBy(loadMergedLogs(indexers), (log) =>
@@ -52,7 +66,7 @@ async function main() {
       continue;
     }
 
-    if (firstLog.blockNumber > highestCommonBlock.blockNumber) {
+    if (firstLog.blockNumber > lastBlockToIndex) {
       break;
     }
 
@@ -97,7 +111,9 @@ async function main() {
     );
   }
 
-  await store.flushUpdates(highestCommonBlock, entityDefinitions, []);
+  if (lastBlockToIndex === highestCommonBlock.blockNumber) {
+    await store.flushUpdates(highestCommonBlock, entityDefinitions, []);
+  }
 }
 
 function blockIdentifierFromLog(log: ethers.providers.Log): BlockIdentifier {

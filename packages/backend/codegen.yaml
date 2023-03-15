@@ -25,8 +25,14 @@ generates:
         Vote: ../governance#VoteModel
         Noun: ../governance#NounModel
         ProposalTransaction: ../governance#ProposalTransactionModel
+        DelegateSnapshot: ../governance#DelegateSnapshotModel
 
         PropHouseProposal: ../propHouse#PropHouseProposalModel
         PropHouseAuction: ../propHouse#PropHouseAuctionModel
 
         DelegateStatement: ../delegateStatement#DelegateStatementModel
+
+        LiquidDelegationRules: ../liquidDelegation#LiquidDelegationRulesModel
+        LiquidDelegationRepresentation: ../liquidDelegation#LiquidDelegationRepresentationModel
+        LiquidDelegationDelegation: ../liquidDelegation#LiquidDelegationDelegationModel
+        LiquidDelegationProxy: ../liquidDelegation#LiquidDelegationProxyModel

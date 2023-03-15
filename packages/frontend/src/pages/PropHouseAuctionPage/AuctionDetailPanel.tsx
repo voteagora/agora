@@ -12,17 +12,15 @@ import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { AuctionDetailPanelAuctionProposalFragment$key } from "./__generated__/AuctionDetailPanelAuctionProposalFragment.graphql";
 import { compareBy, flipComparator } from "../../utils/sorting";
 import { icons } from "../../icons/icons";
+import { usePendingVotes, useUpdatePendingVotes } from "./PendingVotesContext";
+import { BigNumber } from "ethers";
 
 type Sort = "MOST VOTES" | "LEAST VOTES" | "NEWEST" | "OLDEST";
 
 export function AuctionDetailPanel({
   fragmentRef,
-  pendingVotes,
-  setPendingVotes,
 }: {
   fragmentRef: AuctionDetailPanelFragment$key;
-  pendingVotes: Record<number, number>;
-  setPendingVotes: (value: Record<number, number>) => void;
 }) {
   const auction = useFragment(
     graphql`
@@ -140,13 +138,6 @@ export function AuctionDetailPanel({
             <AuctionProposal
               key={idx}
               fragmentRef={proposal}
-              inputValue={pendingVotes[proposal.number]}
-              onChange={(value) =>
-                setPendingVotes({
-                  ...pendingVotes,
-                  [proposal.number]: value,
-                })
-              }
               votingEnabled={votingEnabled}
             />
           ))}
@@ -158,18 +149,15 @@ export function AuctionDetailPanel({
 
 function AuctionProposal({
   fragmentRef,
-  inputValue,
-  onChange,
   votingEnabled,
 }: {
   fragmentRef: AuctionDetailPanelAuctionProposalFragment$key;
-  inputValue: number;
-  onChange: (value: number) => void;
   votingEnabled: boolean;
 }) {
   const proposal = useFragment(
     graphql`
       fragment AuctionDetailPanelAuctionProposalFragment on PropHouseProposal {
+        number
         title
         tldr
         voteCount
@@ -183,6 +171,9 @@ function AuctionProposal({
     `,
     fragmentRef
   );
+
+  const pendingVotes = usePendingVotes();
+  const updatePendingVotes = useUpdatePendingVotes();
 
   return (
     <VStack
@@ -248,10 +239,21 @@ function AuctionProposal({
             {proposal.voteCount} +&nbsp;
             <input
               placeholder={"0"}
-              value={inputValue}
+              value={pendingVotes.get(proposal.number) ?? 0}
               type="number"
               min="0"
-              onChange={(event) => onChange(parseInt(event.target.value))}
+              onChange={(event) =>
+                updatePendingVotes(
+                  (oldValue) =>
+                    new Map([
+                      ...Array.from(oldValue.entries()),
+                      [
+                        proposal.number,
+                        BigNumber.from(event.target.value).toNumber(),
+                      ],
+                    ])
+                )
+              }
               className={css`
                 width: ${theme.spacing["8"]};
                 height: ${theme.spacing["6"]};

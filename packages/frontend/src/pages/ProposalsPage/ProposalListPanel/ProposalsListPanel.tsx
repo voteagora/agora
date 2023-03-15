@@ -186,11 +186,12 @@ export function ProposalsListPanel({
             padding-bottom: ${theme.spacing["4"]};
           `}
         >
-          {filteredProposals.map((proposal) => {
+          {filteredProposals.map((proposal, idx) => {
             switch (proposal.type) {
               case "ON_CHAIN": {
                 return (
                   <OnChainProposalRow
+                    key={idx}
                     fragmentRef={proposal.proposal}
                     selected={
                       selectedProposal.type === "ON_CHAIN" &&
@@ -210,6 +211,7 @@ export function ProposalsListPanel({
               case "PROP_HOUSE_AUCTION": {
                 return (
                   <ProposalRow
+                    key={idx}
                     selected={
                       selectedProposal.type === "PROP_HOUSE_AUCTION" &&
                       selectedProposal.identifier ===

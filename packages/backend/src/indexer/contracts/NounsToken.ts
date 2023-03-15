@@ -3,7 +3,12 @@ import { makeContractInstance } from "../../contracts";
 import { NounsToken__factory } from "../../contracts/generated";
 import { BigNumber, ethers } from "ethers";
 import { RuntimeType } from "../serde";
-import { entityDefinitions, Handle } from "./entityDefinitions";
+import {
+  entityDefinitions,
+  Handle,
+  saveAddressSnapshot,
+} from "./entityDefinitions";
+import { subtractItems, unionItems } from "../../utils/set";
 
 const nounsTokenContract = makeContractInstance({
   iface: NounsToken__factory.createInterface(),
@@ -35,37 +40,71 @@ export const nounsTokenIndexer = makeIndexerDefinition(
       },
       {
         signature: "Transfer(address,address,uint256)",
-        async handle(handle, event) {
+        async handle(handle, event, log) {
           const { from, to, tokenId } = event.args;
           if (from === to) {
             return;
           }
 
-          const aggregate = await loadAggregate(handle);
-          if (to === ethers.constants.AddressZero) {
-            aggregate.totalSupply = aggregate.totalSupply.sub(1);
-          }
+          await Promise.all([
+            (async () => {
+              const aggregate = await loadAggregate(handle);
+              if (to === ethers.constants.AddressZero) {
+                aggregate.totalSupply = aggregate.totalSupply.sub(1);
+              }
 
-          if (from === ethers.constants.AddressZero) {
-            aggregate.totalSupply = aggregate.totalSupply.add(1);
-          }
+              if (from === ethers.constants.AddressZero) {
+                aggregate.totalSupply = aggregate.totalSupply.add(1);
+              }
 
-          const [fromEntity, toEntity] = await Promise.all([
-            loadAccount(handle, from),
-            loadAccount(handle, to),
+              saveAggregate(handle, aggregate);
+            })(),
+            (async () => {
+              const fromEntity = await loadAccount(handle, from);
+
+              fromEntity.tokensOwned = fromEntity.tokensOwned.sub(1);
+              fromEntity.tokensOwnedIds = fromEntity.tokensOwnedIds.filter(
+                (it) => !it.eq(tokenId)
+              );
+
+              saveAccount(handle, fromEntity);
+
+              const fromEntityDelegate = await loadAccount(
+                handle,
+                fromEntity.delegatingTo
+              );
+
+              fromEntityDelegate.tokensRepresentedIds = unionItems(
+                fromEntityDelegate.tokensRepresentedIds,
+                fromEntity.tokensOwnedIds
+              );
+
+              saveAccount(handle, fromEntityDelegate);
+              saveAddressSnapshot(handle, fromEntityDelegate, log);
+            })(),
+
+            (async () => {
+              const toEntity = await loadAccount(handle, to);
+
+              toEntity.tokensOwned = toEntity.tokensOwned.add(1);
+              toEntity.tokensOwnedIds = [...toEntity.tokensOwnedIds, tokenId];
+
+              saveAccount(handle, toEntity);
+
+              const toEntityDelegate = await loadAccount(
+                handle,
+                toEntity.delegatingTo
+              );
+
+              toEntityDelegate.tokensRepresentedIds = subtractItems(
+                toEntityDelegate.tokensRepresentedIds,
+                toEntity.tokensOwnedIds
+              );
+
+              saveAccount(handle, toEntityDelegate);
+              saveAddressSnapshot(handle, toEntityDelegate, log);
+            })(),
           ]);
-
-          fromEntity.tokensOwned = fromEntity.tokensOwned.sub(1);
-          fromEntity.tokensOwnedIds = fromEntity.tokensOwnedIds.filter(
-            (it) => !it.eq(tokenId)
-          );
-
-          toEntity.tokensOwned = toEntity.tokensOwned.add(1);
-          toEntity.tokensOwnedIds = [...toEntity.tokensOwnedIds, tokenId];
-
-          saveAccount(handle, fromEntity);
-          saveAccount(handle, toEntity);
-          saveAggregate(handle, aggregate);
         },
       },
       {
@@ -92,7 +131,7 @@ export const nounsTokenIndexer = makeIndexerDefinition(
       },
       {
         signature: "DelegateChanged(address,address,address)",
-        async handle(handle, event) {
+        async handle(handle, event, log) {
           if (event.args.fromDelegate === event.args.toDelegate) {
             return;
           }
@@ -111,27 +150,46 @@ export const nounsTokenIndexer = makeIndexerDefinition(
 
           delegatorAccount.delegatingTo = event.args.toDelegate;
 
-          if (event.args.fromDelegate !== ethers.constants.AddressZero) {
-            const fromAccount = await loadAccount(
-              handle,
-              event.args.fromDelegate
-            );
-
-            fromAccount.accountsRepresentedCount =
-              fromAccount.accountsRepresentedCount.sub(1);
-            saveAccount(handle, fromAccount);
-          }
-
-          if (event.args.toDelegate !== ethers.constants.AddressZero) {
-            const toAccount = await loadAccount(handle, event.args.toDelegate);
-
-            toAccount.accountsRepresentedCount =
-              toAccount.accountsRepresentedCount.add(1);
-
-            saveAccount(handle, toAccount);
-          }
-
           saveAccount(handle, delegatorAccount);
+
+          await Promise.all([
+            (async () => {
+              if (event.args.fromDelegate !== ethers.constants.AddressZero) {
+                const fromAccount = await loadAccount(
+                  handle,
+                  event.args.fromDelegate
+                );
+
+                fromAccount.accountsRepresentedCount =
+                  fromAccount.accountsRepresentedCount.sub(1);
+                fromAccount.tokensRepresentedIds = subtractItems(
+                  fromAccount.tokensRepresentedIds,
+                  delegatorAccount.tokensOwnedIds
+                );
+
+                saveAccount(handle, fromAccount);
+                saveAddressSnapshot(handle, fromAccount, log);
+              }
+            })(),
+            (async () => {
+              if (event.args.toDelegate !== ethers.constants.AddressZero) {
+                const toAccount = await loadAccount(
+                  handle,
+                  event.args.toDelegate
+                );
+
+                toAccount.accountsRepresentedCount =
+                  toAccount.accountsRepresentedCount.add(1);
+                toAccount.tokensRepresentedIds = unionItems(
+                  toAccount.tokensRepresentedIds,
+                  delegatorAccount.tokensOwnedIds
+                );
+
+                saveAccount(handle, toAccount);
+                saveAddressSnapshot(handle, toAccount, log);
+              }
+            })(),
+          ]);
         },
       },
     ],
@@ -145,6 +203,7 @@ export function defaultAccount(
     address: from,
     tokensOwned: ethers.BigNumber.from(0),
     tokensRepresented: ethers.BigNumber.from(0),
+    tokensRepresentedIds: [],
     tokensOwnedIds: [],
     accountsRepresentedCount: BigNumber.from(1),
     delegatingTo: from,
