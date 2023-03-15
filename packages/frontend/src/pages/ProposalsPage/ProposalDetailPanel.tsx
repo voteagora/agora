@@ -191,10 +191,10 @@ function CodeChange({
       <br />
       {callData.map((content, idx) => {
         return (
-          <>
-            <span key={idx}>&emsp;{linkIfAddress(content)},</span>
+          <div key={idx}>
+            <span>&emsp;{linkIfAddress(content)},</span>
             <br />
-          </>
+          </div>
         );
       })}
       )

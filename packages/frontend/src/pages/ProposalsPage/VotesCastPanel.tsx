@@ -17,6 +17,8 @@ import { useLazyLoadQuery } from "react-relay/hooks";
 import { VotesCastPanelHoveredVoterQuery } from "./__generated__/VotesCastPanelHoveredVoterQuery.graphql";
 import { VoterCard } from "../HomePage/VoterCard";
 import { VotesCastPanelQueryFragment$key } from "./__generated__/VotesCastPanelQueryFragment.graphql";
+import { VotesCastPanelOwnVoteFragment$key } from "./__generated__/VotesCastPanelOwnVoteFragment.graphql";
+import { useAccount } from "wagmi";
 
 export function VotesCastPanel({
   fragmentRef,
@@ -37,6 +39,8 @@ export function VotesCastPanel({
       ) {
         ...VotesCastPanelVotesFragment @arguments(proposalId: $proposalId)
         ...CastVoteInputVoteButtonsQueryFragment
+          @arguments(address: $address, skipAddress: $skipAddress)
+        ...VotesCastPanelOwnVoteFragment
           @arguments(address: $address, skipAddress: $skipAddress)
       }
     `,
@@ -182,6 +186,11 @@ export function VotesCastPanel({
             `}
           />
 
+          <VotesCastPanelOwnVote
+            proposalId={result.number}
+            fragmentRef={queryResult}
+          />
+
           {!expanded && (
             <VotesCastPanelVotes
               onVoterHovered={(address) => setHoveredVoterAddress(address)}
@@ -216,6 +225,43 @@ export function VotesCastPanel({
       </VStack>
     </>
   );
+}
+
+function VotesCastPanelOwnVote({
+  proposalId,
+  fragmentRef,
+}: {
+  proposalId: string;
+  fragmentRef: VotesCastPanelOwnVoteFragment$key;
+}) {
+  const { delegate } = useFragment(
+    graphql`
+      fragment VotesCastPanelOwnVoteFragment on Query
+      @argumentDefinitions(
+        address: { type: "String!" }
+        skipAddress: { type: "Boolean!" }
+      ) {
+        delegate(addressOrEnsName: $address) @skip(if: $skipAddress) {
+          votes {
+            proposal {
+              id
+            }
+            ...VoteRowFragment
+          }
+        }
+      }
+    `,
+    fragmentRef
+  );
+
+  const ownVote =
+    delegate && delegate.votes.find((it) => it.proposal.id === proposalId);
+
+  if (ownVote) {
+    return <VoteRow isUser={true} fragmentRef={ownVote} />;
+  } else {
+    return null;
+  }
 }
 
 function VotesCastPanelVotes({
@@ -259,6 +305,8 @@ function VotesCastPanelVotes({
 
   const pageSize = 100;
 
+  const { address: accountAddress } = useAccount();
+
   const items = makePaginationItems(votes.edges, isLoadingNext, hasNext);
   const shimmer = keyframes`
   from {
@@ -291,21 +339,29 @@ function VotesCastPanelVotes({
           }
 
           case "ITEMS": {
-            return (
-              <div
-                key={idx}
-                onMouseEnter={() =>
-                  onVoterHovered(item.items.node.voter.address.address)
-                }
-              >
-                <VoteRow fragmentRef={item.items.node} />
-              </div>
-            );
+            if (
+              accountAddress &&
+              accountAddress === item.items.node.voter.address.address
+            ) {
+              return null;
+            } else {
+              return (
+                <div
+                  key={idx}
+                  onMouseEnter={() =>
+                    onVoterHovered(item.items.node.voter.address.address)
+                  }
+                >
+                  <VoteRow isUser={false} fragmentRef={item.items.node} />
+                </div>
+              );
+            }
           }
 
           case "LOAD_MORE_SENTINEL": {
             return (
               <LoadMoreSentinel
+                key={idx}
                 onVisible={() => {
                   loadNext(pageSize);
                 }}

@@ -14,7 +14,13 @@ import { VoteRowFragment$key } from "./__generated__/VoteRowFragment.graphql";
 import { VoteRowTextFragment$key } from "./__generated__/VoteRowTextFragment.graphql";
 import { css } from "@emotion/css";
 
-export function VoteRow({ fragmentRef }: { fragmentRef: VoteRowFragment$key }) {
+export function VoteRow({
+  isUser,
+  fragmentRef,
+}: {
+  isUser: boolean;
+  fragmentRef: VoteRowFragment$key;
+}) {
   const vote = useFragment(
     graphql`
       fragment VoteRowFragment on Vote {
@@ -52,10 +58,28 @@ export function VoteRow({ fragmentRef }: { fragmentRef: VoteRowFragment$key }) {
             font-size: ${theme.fontSize.xs};
           `}
         >
-          <HStack>
+          <HStack
+            gap="1"
+            alignItems="center"
+            className={css`
+              color: #66676b;
+              font-size: ${theme.fontSize.xs};
+            `}
+          >
             <NounResolvedLink resolvedName={vote.voter.address.resolvedName} />
 
             <VoteText fragmentRef={vote} />
+
+            {isUser && (
+              <div
+                className={css`
+                  width: ${theme.spacing["3"]};
+                  height: ${theme.spacing["3"]};
+                `}
+              >
+                <UserIcon />
+              </div>
+            )}
           </HStack>
 
           <HStack
@@ -67,15 +91,6 @@ export function VoteRow({ fragmentRef }: { fragmentRef: VoteRowFragment$key }) {
             `}
           >
             <TokenAmountDisplay fragment={vote.votes.amount} />
-
-            <div
-              className={css`
-                width: ${theme.spacing["3"]};
-                height: ${theme.spacing["3"]};
-              `}
-            >
-              <UserIcon />
-            </div>
           </HStack>
         </HStack>
       </VStack>
