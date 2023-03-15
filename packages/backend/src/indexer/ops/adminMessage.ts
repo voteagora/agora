@@ -29,7 +29,7 @@ export async function sendAdminMessage(message: AdminMessage) {
   while (true) {
     try {
       const response = await fetch(
-        "https://nouns-agora-prod.zha-yitong.workers.dev/admin/ops",
+        "https://nouns-agora-staging.act.workers.dev/admin/ops",
         {
           method: "POST",
           body: JSON.stringify(message),
