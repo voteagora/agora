@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 export function makeProvider() {
-  return makeLocalhostProvider();
+  return makeAlchemyProvider();
 }
 
 export function makeAlchemyProvider() {
