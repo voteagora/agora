@@ -163,9 +163,3 @@ export async function takeLast<T>(gen: AsyncIterable<T>): Promise<T | null> {
 
   return lastValue;
 }
-
-export function* range(startingInclusive: number, endingInclusive: number) {
-  for (let i = startingInclusive; i <= endingInclusive; i++) {
-    yield i;
-  }
-}
