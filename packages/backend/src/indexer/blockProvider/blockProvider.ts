@@ -2,8 +2,6 @@ import { ethers } from "ethers";
 import { BlockIdentifier } from "../storageHandle";
 import { compareBy } from "../utils/sortUtils";
 import { executeWithRetries } from "../utils/asyncUtils";
-import { range } from "../utils/generatorUtils";
-import { fetchBatch } from "./batch";
 
 export type BlockProviderBlock = {
   number: number;
@@ -50,31 +48,17 @@ export class EthersBlockProvider implements BlockProvider {
     fromBlockInclusive: number,
     toBlockInclusive: number
   ): Promise<BlockProviderBlock[]> {
-    const blocks = await executeWithRetries(async () => {
-      const response = await fetchBatch(
-        this.provider.connection,
-        Array.from(range(fromBlockInclusive, toBlockInclusive)).map((it) => ({
-          method: "eth_getBlockByNumber",
-          params: [ethers.BigNumber.from(it).toHexString(), false],
-        }))
-      );
+    const blocks: any[] = await executeWithRetries(() =>
+      this.provider.send("eth_getBlockRange", [
+        toHexNumber(fromBlockInclusive),
+        toHexNumber(toBlockInclusive),
+        false,
+      ])
+    );
 
-      const blocks = response.flatMap((it) => {
-        if ("result" in it) {
-          return [transformResponse(it.result)];
-        }
-
-        if ("error" in it) {
-          throw new Error(it.error.message);
-        }
-
-        return [];
-      });
-
-      return blocks;
-    });
-
-    return blocks.sort(compareBy((it) => it.number));
+    return blocks
+      .map((block) => transformResponse(block))
+      .sort(compareBy((it) => it.number));
   }
 
   async getBlockByNumber(number: number): Promise<BlockProviderBlock> {
