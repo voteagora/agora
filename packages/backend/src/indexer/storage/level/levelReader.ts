@@ -16,7 +16,6 @@ import { BlockIdentifier } from "../../storageHandle";
 
 import { coerceLevelDbNotfoundError } from "./utils";
 
-
 export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
   implements Reader<EntityDefinitionsType>
 {

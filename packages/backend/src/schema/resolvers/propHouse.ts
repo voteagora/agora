@@ -6,7 +6,6 @@ import { auctionsAuction, fetchAuctions } from "../../propHouse/fetchAuctions";
 import { proposal } from "../../propHouse/common";
 import { fetchProposalsForAuction } from "../../propHouse/fetchProposalsForAuction";
 
-
 import { groupVotesByAuction, statusForAuction } from "../../propHouse/helpers";
 import { fetchVotes } from "../../propHouse/fetchVotes";
 

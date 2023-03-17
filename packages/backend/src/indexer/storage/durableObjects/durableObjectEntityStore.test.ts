@@ -8,7 +8,6 @@ import { DurableObjectEntityStore } from "./durableObjectEntityStore";
 import { MemoryStorage } from "./memoryStorage";
 import { FailableStorage } from "./failableStorage";
 
-
 describe("durableObjectEntityStore", () => {
   const entityDefinitions: EntityDefinitions = {
     Entity: {

@@ -8,7 +8,6 @@ import { formSchema } from "../../formSchema";
 import { validateSigned } from "../../utils/signing";
 import { StoredStatement } from "../model";
 
-
 import {
   extractFirstParagraph,
   trimENSStatementHeader,

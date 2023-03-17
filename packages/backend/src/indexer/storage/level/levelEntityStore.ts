@@ -8,7 +8,6 @@ import {
   EntityWithMetadata,
 } from "../entityStore";
 
-
 import { StoredEntry } from "../dump";
 import { updatesForEntities } from "../updates";
 import { EntityDefinitions } from "../reader";

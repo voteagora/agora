@@ -9,7 +9,6 @@ import { EmailStorage, StatementStorage } from "./model";
 import { TracingContext } from "./transformers/tracingContext";
 import { LatestBlockFetcher } from "./latestBlockFetcher";
 
-
 export type AgoraContextType = {
   reader: Reader<typeof entityDefinitions>;
   ethProvider: ethers.providers.BaseProvider;

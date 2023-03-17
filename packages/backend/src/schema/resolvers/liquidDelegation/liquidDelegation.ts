@@ -12,7 +12,6 @@ import {
   LiquidDelegationRulesResolvers,
 } from "../generated/types";
 
-
 import { defaultAccount } from "../../../indexer/contracts/NounsToken";
 import { Alligator__factory } from "../../../contracts/generated";
 import { alligatorContract } from "../../../indexer/contracts/Alligator";

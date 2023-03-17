@@ -7,7 +7,6 @@ import { makeIndexKey } from "../indexKey";
 import { EntityDefinitions } from "./reader";
 import { blockIdentifierKey } from "./entityStore";
 
-
 export type EntityWithChange = {
   entity: string;
   id: string;

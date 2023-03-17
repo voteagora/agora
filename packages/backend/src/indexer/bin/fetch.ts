@@ -12,7 +12,6 @@ import { maxReorgBlocksDepth } from "../process";
 import { getAllLogsInRange } from "../logProvider/getAllLogsInRange";
 import { EthersLogProvider } from "../logProvider/logProvider";
 
-
 import { makeProvider } from "../../provider";
 
 function makeFetchProgressBar(total: number) {

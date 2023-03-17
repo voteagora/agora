@@ -19,7 +19,6 @@ import { EntityDefinitions } from "../reader";
 
 import { listEntries, StorageInterface } from "./storageInterface";
 
-
 type UndoLogEntry = {
   key: string;
   previousValue: unknown | null;

@@ -12,10 +12,8 @@ import { ethers } from "ethers";
 import { makeGatewaySchema } from "../schema";
 import { AgoraContextType } from "../schema/context";
 
-
 import { ValidatedMessage } from "../utils/signing";
 import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
-
 
 import { TransparentMultiCallProvider } from "../multicall";
 import { useErrorInspection } from "../schema/plugins/useErrorInspection";

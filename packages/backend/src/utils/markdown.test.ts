@@ -10,7 +10,6 @@ import {
   trimENSStatementHeader,
 } from "./markdown";
 
-
 describe("trimENSStatementHeader", () => {
   it("trims header for coinbase.eth", () => {
     expect(
