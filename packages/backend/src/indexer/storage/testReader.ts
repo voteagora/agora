@@ -1,3 +1,14 @@
+import { BlockIdentifier } from "../storageHandle";
+import { RuntimeType } from "../serde";
+import { StorageArea } from "../followChain";
+
+import { makeStorageAreaFromBlockSequence } from "../testUtils";
+
+import {
+  EntitiesWithMetadata,
+  EntityWithMetadata,
+  mapEntriesForEntity,
+} from "./entityStore";
 import {
   EntityDefinitions,
   getEntitiesByIndexFromStorageArea,
@@ -6,15 +17,6 @@ import {
   IndexQueryArgs,
   Reader,
 } from "./reader";
-import { BlockIdentifier } from "../storageHandle";
-import { RuntimeType } from "../serde";
-import { StorageArea } from "../followChain";
-import {
-  EntitiesWithMetadata,
-  EntityWithMetadata,
-  mapEntriesForEntity,
-} from "./entityStore";
-import { makeStorageAreaFromBlockSequence } from "../testUtils";
 
 export class TestReader<EntityDefinitionsType extends EntityDefinitions>
   implements Reader<EntityDefinitionsType>

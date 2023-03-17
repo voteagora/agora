@@ -1,10 +1,11 @@
+import lmdb from "lmdb";
+
 import {
   blockIdentifierKey,
   EntityStore,
   EntityWithMetadata,
 } from "../entityStore";
 import { BlockIdentifier } from "../../storageHandle";
-import lmdb from "lmdb";
 import { makeEntityKey } from "../../entityKey";
 import { updatesForEntities } from "../updates";
 import { EntityDefinitions } from "../reader";

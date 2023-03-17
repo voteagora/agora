@@ -1,7 +1,10 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { StatementStorage, StoredStatement } from "../../schema/model";
-import { makeKey, marshaller, TableName } from "./utils";
+
 import DataLoader from "dataloader";
+
+import { StatementStorage, StoredStatement } from "../../schema/model";
+
+import { makeKey, marshaller, TableName } from "./utils";
 
 export function makeDelegateStatementKey(address: string) {
   return makeKey({

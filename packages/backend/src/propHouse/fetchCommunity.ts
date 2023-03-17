@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { basePath } from "./common";
 
 type FetchCommunityArgs = {

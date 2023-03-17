@@ -1,7 +1,8 @@
 import { it, fc } from "@fast-check/jest";
 
-import { efficientLengthEncodingNaturalNumbers } from "./efficientLengthEncoding";
 import { ethers } from "ethers";
+
+import { efficientLengthEncodingNaturalNumbers } from "./efficientLengthEncoding";
 import { compareBy } from "./sortUtils";
 
 describe("efficientLengthEncoding", () => {

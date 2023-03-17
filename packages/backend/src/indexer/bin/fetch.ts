@@ -1,13 +1,18 @@
-import { ethers } from "ethers";
-import { loadLastLog, pathForLogs, pathForLogsIndex } from "../logStorage";
 import { promises as fs } from "fs";
+
+import { ethers } from "ethers";
+
+import ProgressBar from "progress";
+
+import { loadLastLog, pathForLogs, pathForLogsIndex } from "../logStorage";
 import { BlockIdentifier } from "../storageHandle";
 import { filterForEventHandlers } from "../../contracts";
 import { getIndexerByName, indexers } from "../contracts";
 import { maxReorgBlocksDepth } from "../process";
 import { getAllLogsInRange } from "../logProvider/getAllLogsInRange";
 import { EthersLogProvider } from "../logProvider/logProvider";
-import ProgressBar from "progress";
+
+
 import { makeProvider } from "../../provider";
 
 function makeFetchProgressBar(total: number) {

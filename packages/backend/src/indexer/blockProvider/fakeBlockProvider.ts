@@ -1,6 +1,8 @@
-import { BlockProvider, BlockProviderBlock } from "./blockProvider";
 import { ethers } from "ethers";
+
 import { findLastIndex } from "../../utils/array";
+
+import { BlockProvider, BlockProviderBlock } from "./blockProvider";
 
 export type FakeBlockProviderBlock = {
   block: BlockProviderBlock;

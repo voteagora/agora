@@ -1,13 +1,22 @@
 import "isomorphic-fetch";
 import { createServer } from "@graphql-yoga/node";
-import { makeGatewaySchema } from "../schema";
+
 import { useTiming } from "@envelop/core";
-import { AgoraContextType } from "../schema/context";
+
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
+
+import { useApolloTracing } from "@envelop/apollo-tracing";
+
+import { ethers } from "ethers";
+
+import { makeGatewaySchema } from "../schema";
+import { AgoraContextType } from "../schema/context";
+
+
 import { ValidatedMessage } from "../utils/signing";
 import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
-import { useApolloTracing } from "@envelop/apollo-tracing";
-import { ethers } from "ethers";
+
+
 import { TransparentMultiCallProvider } from "../multicall";
 import { useErrorInspection } from "../schema/plugins/useErrorInspection";
 import { followChain, makeInitialStorageArea } from "../indexer/followChain";

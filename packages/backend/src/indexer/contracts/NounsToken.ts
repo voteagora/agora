@@ -1,14 +1,17 @@
+import { BigNumber, ethers } from "ethers";
+
 import { makeIndexerDefinition } from "../process";
 import { makeContractInstance } from "../../contracts";
 import { NounsToken__factory } from "../../contracts/generated";
-import { BigNumber, ethers } from "ethers";
 import { RuntimeType } from "../serde";
+
+import { subtractItems, unionItems } from "../../utils/set";
+
 import {
   entityDefinitions,
   Handle,
   saveAddressSnapshot,
 } from "./entityDefinitions";
-import { subtractItems, unionItems } from "../../utils/set";
 
 const nounsTokenContract = makeContractInstance({
   iface: NounsToken__factory.createInterface(),

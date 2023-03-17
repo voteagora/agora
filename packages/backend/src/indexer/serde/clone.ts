@@ -1,5 +1,6 @@
-import { SerDe } from "./types";
 import { cloneDeep } from "lodash";
+
+import { SerDe } from "./types";
 
 /**
  * Type which can be safely JSON.stringify-ed and JSON.parsed without data being

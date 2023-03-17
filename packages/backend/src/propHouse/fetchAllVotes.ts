@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { basePath, signedData } from "./common";
 
 export const vote = z.object({

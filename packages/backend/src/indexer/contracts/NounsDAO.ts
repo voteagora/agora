@@ -1,9 +1,11 @@
 import { BigNumber } from "ethers";
+
 import { makeContractInstance } from "../../contracts";
 import { NounsDAOLogicV2__factory } from "../../contracts/generated";
 import { makeIndexerDefinition } from "../process";
 import { RuntimeType } from "../serde";
 import { StorageHandle } from "../storageHandle";
+
 import { loadAccount, loadAggregate, saveAccount } from "./NounsToken";
 import { entityDefinitions, Handle } from "./entityDefinitions";
 

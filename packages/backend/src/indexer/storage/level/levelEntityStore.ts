@@ -1,3 +1,5 @@
+import { Level } from "level";
+
 import { BlockIdentifier } from "../../storageHandle";
 import { makeEntityKey } from "../../entityKey";
 import {
@@ -5,11 +7,13 @@ import {
   EntityStore,
   EntityWithMetadata,
 } from "../entityStore";
-import { Level } from "level";
-import { coerceLevelDbNotfoundError } from "./utils";
+
+
 import { StoredEntry } from "../dump";
 import { updatesForEntities } from "../updates";
 import { EntityDefinitions } from "../reader";
+
+import { coerceLevelDbNotfoundError } from "./utils";
 
 export class LevelEntityStore implements EntityStore {
   readonly level: Level<string, any>;

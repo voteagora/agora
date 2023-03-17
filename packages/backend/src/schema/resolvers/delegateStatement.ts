@@ -1,17 +1,23 @@
+import { marked } from "marked";
+
+import { z } from "zod";
+
+import { ethers } from "ethers";
+
+import { formSchema } from "../../formSchema";
+import { validateSigned } from "../../utils/signing";
+import { StoredStatement } from "../model";
+
+
 import {
   extractFirstParagraph,
   trimENSStatementHeader,
 } from "../../utils/markdown";
-import { marked } from "marked";
+
 import {
   DelegateStatementResolvers,
   MutationResolvers,
 } from "./generated/types";
-import { formSchema } from "../../formSchema";
-import { z } from "zod";
-import { validateSigned } from "../../utils/signing";
-import { StoredStatement } from "../model";
-import { ethers } from "ethers";
 
 export type DelegateStatementModel = {
   address: string;

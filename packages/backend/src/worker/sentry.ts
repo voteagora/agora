@@ -1,7 +1,10 @@
 import { Toucan, Options } from "toucan-js";
-import { Env } from "./env";
+
 import { RewriteFrames } from "@sentry/integrations";
+
 import { StructuredError } from "../indexer/utils/errorUtils";
+
+import { Env } from "./env";
 
 export type MakeOptionsParams = {
   env: Env;

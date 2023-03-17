@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+
 import * as serde from "./index";
 
 describe("array", () => {

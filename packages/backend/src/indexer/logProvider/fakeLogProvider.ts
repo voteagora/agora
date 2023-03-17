@@ -1,10 +1,12 @@
-import { LogFilter, LogProvider, TopicFilter } from "./logProvider";
 import { ethers } from "ethers";
+
 import {
   getBlockByHash,
   getBlocksByRange,
   FakeBlockProviderBlock,
 } from "../blockProvider/fakeBlockProvider";
+
+import { LogFilter, LogProvider, TopicFilter } from "./logProvider";
 
 export function normalizeTopics(filter: TopicFilter) {
   if (!filter.topics) {

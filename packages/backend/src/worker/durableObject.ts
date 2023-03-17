@@ -1,12 +1,10 @@
-import { Env, safelyLoadBlockStepSize } from "./env";
-import { StoredEntry } from "../indexer/storage/dump";
-import { readableStreamFromGenerator } from "../utils/readableStream";
-import { getGraphQLCallingContext } from "./graphql";
-import { useSentry } from "./useSentry";
 import { createServer } from "@graphql-yoga/common";
 import { Toucan } from "toucan-js";
-import { makeToucanOptions, runReportingException } from "./sentry";
+
 import { ethers } from "ethers";
+
+import { readableStreamFromGenerator } from "../utils/readableStream";
+import { StoredEntry } from "../indexer/storage/dump";
 import { followChain, makeInitialStorageArea } from "../indexer/followChain";
 import { DurableObjectEntityStore } from "../indexer/storage/durableObjects/durableObjectEntityStore";
 import { AdminMessage } from "../indexer/ops/adminMessage";
@@ -20,6 +18,12 @@ import { AnalyticsEngineReporter } from "../indexer/storage/durableObjects/analy
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
+
+import { makeToucanOptions, runReportingException } from "./sentry";
+import { useSentry } from "./useSentry";
+import { getGraphQLCallingContext } from "./graphql";
+
+import { Env, safelyLoadBlockStepSize } from "./env";
 
 export const blockUpdateIntervalSeconds = 10;
 

@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+
 import { GnosisSafe__factory, GnosisSafe } from "../contracts/generated";
 import { ValueWithSignature } from "../schema/resolvers/generated/types";
 

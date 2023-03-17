@@ -1,3 +1,5 @@
+import { Level } from "level";
+
 import { StorageArea } from "../../followChain";
 import { RuntimeType } from "../../serde";
 import { makeEntityKey } from "../../entityKey";
@@ -9,9 +11,11 @@ import {
   IndexQueryArgs,
   Reader,
 } from "../reader";
-import { Level } from "level";
-import { coerceLevelDbNotfoundError } from "./utils";
+
 import { BlockIdentifier } from "../../storageHandle";
+
+import { coerceLevelDbNotfoundError } from "./utils";
+
 
 export class LevelReader<EntityDefinitionsType extends EntityDefinitions>
   implements Reader<EntityDefinitionsType>

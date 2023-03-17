@@ -1,6 +1,7 @@
+import { IndexerDefinition } from "../process";
+
 import { nounsTokenIndexer } from "./NounsToken";
 import { governorIndexer } from "./NounsDAO";
-import { IndexerDefinition } from "../process";
 import { alligatorIndexer } from "./Alligator";
 
 export const indexers: IndexerDefinition[] = [

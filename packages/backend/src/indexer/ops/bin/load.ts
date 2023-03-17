@@ -1,6 +1,7 @@
 import "isomorphic-fetch";
-import { sendAdminMessage } from "../adminMessage";
 import { promises as fs } from "fs";
+
+import { sendAdminMessage } from "../adminMessage";
 
 async function main() {
   const durableObjectInstanceName = process.env.DURABLE_OBJECT_INSTANCE_NAME!;

@@ -1,3 +1,5 @@
+import { BigNumber } from "ethers";
+
 import {
   blockIdentifierKey,
   EntityStore,
@@ -12,9 +14,11 @@ import {
   collectGenerator,
 } from "../../utils/generatorUtils";
 import { efficientLengthEncodingNaturalNumbers } from "../../utils/efficientLengthEncoding";
-import { BigNumber } from "ethers";
-import { listEntries, StorageInterface } from "./storageInterface";
+
 import { EntityDefinitions } from "../reader";
+
+import { listEntries, StorageInterface } from "./storageInterface";
+
 
 type UndoLogEntry = {
   key: string;

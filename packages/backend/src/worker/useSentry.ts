@@ -11,8 +11,10 @@ import {
   handleStreamOrSingleExecutionResult,
   Plugin,
 } from "@graphql-yoga/common";
+
 import { withSentryScope } from "../sentry";
 import { AgoraContextType } from "../schema/context";
+
 import { captureException } from "./sentry";
 
 export function useSentry(sentry: Toucan): Plugin<AgoraContextType> {

@@ -1,3 +1,7 @@
+import { makeContractInstance } from "../contracts";
+
+import { EventsExample__factory } from "../contracts/generated";
+
 import { followChain, makeInitialStorageArea } from "./followChain";
 import { DurableObjectEntityStore } from "./storage/durableObjects/durableObjectEntityStore";
 import { MemoryStorage } from "./storage/durableObjects/memoryStorage";
@@ -11,8 +15,7 @@ import {
   makeIndexerDefinition,
   maxReorgBlocksDepth,
 } from "./process";
-import { makeContractInstance } from "../contracts";
-import { EventsExample__factory } from "../contracts/generated";
+
 import * as serde from "./serde";
 import { countingStream } from "./utils/generatorUtils";
 import {

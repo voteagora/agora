@@ -1,11 +1,15 @@
+import exp from "constants";
+
+import { marked } from "marked";
+
+import dedent from "dedent";
+
 import {
   extractFirstParagraph,
   getTitleFromProposalDescription,
   trimENSStatementHeader,
 } from "./markdown";
-import { marked } from "marked";
-import dedent from "dedent";
-import exp from "constants";
+
 
 describe("trimENSStatementHeader", () => {
   it("trims header for coinbase.eth", () => {

@@ -4,6 +4,7 @@ import {
   GraphQLSchema,
   responsePathAsArray,
 } from "graphql";
+
 import { AgoraContextType } from "../context";
 import { Span } from "../../utils/cache";
 

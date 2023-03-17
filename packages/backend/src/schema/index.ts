@@ -1,3 +1,7 @@
+import { makeExecutableSchema } from "@graphql-tools/schema";
+
+import { mergeResolvers } from "@graphql-tools/merge";
+
 import { Resolvers } from "./resolvers/generated/types";
 
 import * as scalars from "./resolvers/scalars";
@@ -9,8 +13,6 @@ import * as liquidDelegation from "./resolvers/liquidDelegation";
 
 import { attachTracingContextInjection } from "./transformers/tracingContext";
 import { applyIdPrefix } from "./transformers/applyIdPrefix";
-import { makeExecutableSchema } from "@graphql-tools/schema";
-import { mergeResolvers } from "@graphql-tools/merge";
 
 // @ts-ignore
 import schema from "./schema.graphql";

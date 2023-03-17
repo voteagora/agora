@@ -1,5 +1,6 @@
-import { De, SerDe } from "./types";
 import { ethers } from "ethers";
+
+import { De, SerDe } from "./types";
 
 export const bigNumber: SerDe<ethers.BigNumber, string> = {
   serialize(item) {

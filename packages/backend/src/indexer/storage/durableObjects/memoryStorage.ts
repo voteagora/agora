@@ -1,6 +1,8 @@
-import { StorageInterface, StorageInterfaceLeaf } from "./storageInterface";
-import { compareBy } from "../../utils/sortUtils";
 import { cloneDeep } from "lodash";
+
+import { compareBy } from "../../utils/sortUtils";
+
+import { StorageInterface, StorageInterfaceLeaf } from "./storageInterface";
 
 class MemoryStorageLeaf implements StorageInterfaceLeaf {
   values: Map<string, unknown>;

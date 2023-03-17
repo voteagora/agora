@@ -1,11 +1,13 @@
-import { getEntitiesByIndexFromStorageArea, IndexedValue } from "./reader";
 import * as serde from "../serde";
 import { makeEntityDefinition } from "../process";
 import { RuntimeType } from "../serde";
 import { collectGenerator } from "../utils/generatorUtils";
 import { makeStorageAreaFromBlockSequence } from "../testUtils";
-import { mapEntriesForEntity } from "./entityStore";
+
 import { makeIndexKey } from "../indexKey";
+
+import { mapEntriesForEntity } from "./entityStore";
+import { getEntitiesByIndexFromStorageArea, IndexedValue } from "./reader";
 
 describe("getEntitiesByIndexFromStorageArea", () => {
   const TestEntity = makeEntityDefinition({

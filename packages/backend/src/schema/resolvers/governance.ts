@@ -1,17 +1,5 @@
-import {
-  DelegateResolvers,
-  DelegateSnapshotResolvers,
-  DelegatesOrder,
-  MetricsResolvers,
-  NounResolvers,
-  ProposalResolvers,
-  ProposalStatus,
-  ProposalTransactionResolvers,
-  QueryResolvers,
-  VoteResolvers,
-  VotingPowerResolvers,
-} from "./generated/types";
 import { BigNumber, ethers } from "ethers";
+
 import {
   governanceAggregatesKey,
   makeDefaultGovernanceAggregate,
@@ -41,6 +29,20 @@ import { countConsecutiveValues } from "../../utils/array";
 import { entityDefinitions } from "../../indexer/contracts/entityDefinitions";
 import { resolveEnsOrNnsName } from "../../utils/resolveName";
 import { efficientLengthEncodingNaturalNumbers } from "../../indexer/utils/efficientLengthEncoding";
+
+import {
+  DelegateResolvers,
+  DelegateSnapshotResolvers,
+  DelegatesOrder,
+  MetricsResolvers,
+  NounResolvers,
+  ProposalResolvers,
+  ProposalStatus,
+  ProposalTransactionResolvers,
+  QueryResolvers,
+  VoteResolvers,
+  VotingPowerResolvers,
+} from "./generated/types";
 
 const amountSpec = {
   currency: "NOUN",

@@ -1,6 +1,8 @@
-import { StorageInterface, StorageInterfaceLeaf } from "./storageInterface";
 import { AnalyticsEngineDataset } from "@cloudflare/workers-types";
+
 import { getOrInsert } from "../../utils/mapUtils";
+
+import { StorageInterface, StorageInterfaceLeaf } from "./storageInterface";
 
 class AnalyticsEngineReporterLeaf implements StorageInterfaceLeaf {
   protected readonly analyticsEngineDataset: AnalyticsEngineDataset;

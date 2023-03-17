@@ -1,5 +1,6 @@
-import { makeGatewaySchema } from "../../schema";
 import { printSchema } from "graphql";
+
+import { makeGatewaySchema } from "../../schema";
 
 async function main() {
   const schema = makeGatewaySchema();

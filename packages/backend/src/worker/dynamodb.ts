@@ -1,4 +1,5 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
+
 import { Env } from "./env";
 
 export function makeDynamoClient(env: Env) {

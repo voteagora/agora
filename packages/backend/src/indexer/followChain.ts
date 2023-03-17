@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 import { EntityStore, EntityWithMetadata } from "./storage/entityStore";
 import {
   EntitiesType,
@@ -23,7 +25,6 @@ import {
   collectGenerator,
   groupBy,
 } from "./utils/generatorUtils";
-import { ethers } from "ethers";
 import { StructuredError } from "./utils/errorUtils";
 
 export function followChain(

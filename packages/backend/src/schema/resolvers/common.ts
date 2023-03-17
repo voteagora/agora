@@ -1,6 +1,8 @@
-import { AddressResolvers, ResolvedNameResolvers } from "./generated/types";
 import { ethers } from "ethers";
+
 import { resolveNameFromAddress } from "../../utils/resolveName";
+
+import { AddressResolvers, ResolvedNameResolvers } from "./generated/types";
 
 export type AddressModel = {
   address: string;

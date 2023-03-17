@@ -9,8 +9,10 @@ import {
 import { StorageArea } from "../../followChain";
 import { RuntimeType } from "../../serde";
 import { makeEntityKey } from "../../entityKey";
-import { listEntries, StorageInterface } from "./storageInterface";
+
 import { BlockIdentifier } from "../../storageHandle";
+
+import { listEntries, StorageInterface } from "./storageInterface";
 
 export class DurableObjectReader<
   EntityDefinitionsType extends EntityDefinitions

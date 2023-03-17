@@ -1,16 +1,21 @@
+import { z } from "zod";
+
+import { groupBy } from "lodash";
+
+import { auctionsAuction, fetchAuctions } from "../../propHouse/fetchAuctions";
+import { proposal } from "../../propHouse/common";
+import { fetchProposalsForAuction } from "../../propHouse/fetchProposalsForAuction";
+
+
+import { groupVotesByAuction, statusForAuction } from "../../propHouse/helpers";
+import { fetchVotes } from "../../propHouse/fetchVotes";
+
 import {
   DelegateResolvers,
   PropHouseAuctionResolvers,
   PropHouseProposalResolvers,
   QueryResolvers,
 } from "./generated/types";
-import { auctionsAuction, fetchAuctions } from "../../propHouse/fetchAuctions";
-import { z } from "zod";
-import { proposal } from "../../propHouse/common";
-import { fetchProposalsForAuction } from "../../propHouse/fetchProposalsForAuction";
-import { groupBy } from "lodash";
-import { groupVotesByAuction, statusForAuction } from "../../propHouse/helpers";
-import { fetchVotes } from "../../propHouse/fetchVotes";
 
 export type PropHouseAuctionModel = z.infer<typeof auctionsAuction>;
 

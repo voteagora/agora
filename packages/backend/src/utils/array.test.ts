@@ -1,5 +1,6 @@
-import { countConsecutiveValues } from "./array";
 import { BigNumber } from "ethers";
+
+import { countConsecutiveValues } from "./array";
 
 describe("countConsecutiveValues", () => {
   it("works with no items", () => {

@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 import { EntityWithMetadata } from "../storage/entityStore";
 import { IndexerDefinition } from "../process";
 import { groupBy } from "../utils/generatorUtils";
@@ -8,7 +10,6 @@ import {
 } from "../storageHandle";
 import { indexers } from "../contracts";
 import { StructuredError } from "../utils/errorUtils";
-import { ethers } from "ethers";
 import { LevelEntityStore } from "../storage/level/levelEntityStore";
 import { makeProgressBar } from "../utils/progressBarUtils";
 import { entityDefinitions } from "../contracts/entityDefinitions";

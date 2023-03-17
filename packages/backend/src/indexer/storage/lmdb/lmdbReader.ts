@@ -8,9 +8,11 @@ import {
 } from "../reader";
 import { StorageArea } from "../../followChain";
 import { RuntimeType } from "../../serde";
-import { LmdbEntityStore } from "./lmdbEntityStore";
+
 import { makeEntityKey } from "../../entityKey";
 import { BlockIdentifier } from "../../storageHandle";
+
+import { LmdbEntityStore } from "./lmdbEntityStore";
 
 export class LmdbReader<EntityDefinitionsType extends EntityDefinitions>
   implements Reader<EntityDefinitionsType>

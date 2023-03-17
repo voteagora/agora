@@ -1,5 +1,6 @@
-import { basePath, proposal } from "./common";
 import { z } from "zod";
+
+import { basePath, proposal } from "./common";
 import { vote } from "./fetchAllVotes";
 
 const fetchVotesResponseVote = vote.extend({

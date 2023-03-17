@@ -1,7 +1,9 @@
 import { ethers } from "ethers";
 import { TransactionRequest } from "@ethersproject/abstract-provider";
-import { Multicall2__factory } from "./contracts/generated";
+
 import DataLoader from "dataloader";
+
+import { Multicall2__factory } from "./contracts/generated";
 
 type CallRequest = {
   target: string;

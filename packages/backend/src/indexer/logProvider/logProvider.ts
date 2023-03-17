@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+
 import { IndexerDefinition } from "../process";
 import { topicsForSignatures } from "../../contracts";
 import { compareByTuple } from "../utils/sortUtils";

@@ -1,9 +1,11 @@
 import { makeIndexerDefinition } from "../process";
 import { makeContractInstance } from "../../contracts";
 import { Alligator__factory } from "../../contracts/generated";
-import { entityDefinitions } from "./entityDefinitions";
+
 import { RuntimeType } from "../serde";
 import { RulesStructOutput } from "../../contracts/generated/Alligator";
+
+import { entityDefinitions } from "./entityDefinitions";
 
 export const alligatorContract = makeContractInstance({
   iface: Alligator__factory.createInterface(),

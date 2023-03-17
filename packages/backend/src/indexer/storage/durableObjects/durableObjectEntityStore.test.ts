@@ -1,9 +1,13 @@
+import { fc, it } from "@fast-check/jest";
+
+import * as serde from "../../serde";
+
+import { EntityDefinitions } from "../reader";
+
 import { DurableObjectEntityStore } from "./durableObjectEntityStore";
 import { MemoryStorage } from "./memoryStorage";
 import { FailableStorage } from "./failableStorage";
-import * as serde from "../../serde";
-import { EntityDefinitions } from "../reader";
-import { fc, it } from "@fast-check/jest";
+
 
 describe("durableObjectEntityStore", () => {
   const entityDefinitions: EntityDefinitions = {

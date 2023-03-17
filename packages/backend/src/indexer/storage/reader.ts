@@ -1,3 +1,5 @@
+import Heap from "heap";
+
 import { EntityDefinition } from "../process";
 import * as serde from "../serde";
 import { RuntimeType } from "../serde";
@@ -10,7 +12,6 @@ import {
   makeIndexPrefix,
   serializeIndexKey,
 } from "../indexKey";
-import Heap from "heap";
 import { compareBy } from "../utils/sortUtils";
 
 export type EntityDefinitions = {

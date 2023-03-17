@@ -1,5 +1,7 @@
-import { ContractInstance, TypedInterface } from "../contracts";
 import { ethers } from "ethers";
+
+import { ContractInstance, TypedInterface } from "../contracts";
+
 import { StorageHandle } from "./storageHandle";
 import { RuntimeType, SerDe } from "./serde";
 

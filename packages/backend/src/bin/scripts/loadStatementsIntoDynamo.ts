@@ -1,4 +1,5 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
+
 import { loadJsonLines } from "../../utils/jsonLines";
 import { marshaller, TableName } from "../../store/dynamo/utils";
 import { makeDelegateStatementKey } from "../../store/dynamo/statement";

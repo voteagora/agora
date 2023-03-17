@@ -1,5 +1,6 @@
 import { exactIndexValue, Reader } from "../../../indexer/storage/reader";
 import { entityDefinitions } from "../../../indexer/contracts/entityDefinitions";
+
 import { calculateResolvedRules, ResolvedRules, Rules } from "./rules";
 
 export type LiquidDelegatedVotesLot = {

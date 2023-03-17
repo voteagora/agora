@@ -1,6 +1,7 @@
+import { ethers } from "ethers";
+
 import { RuntimeType } from "../../../indexer/serde";
 import { entityDefinitions } from "../../../indexer/contracts/entityDefinitions";
-import { ethers } from "ethers";
 import { IRule__factory } from "../../../contracts/generated/factories/IRule__factory";
 import { daoContract } from "../../../indexer/contracts/NounsDAO";
 

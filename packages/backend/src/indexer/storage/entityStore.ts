@@ -1,7 +1,9 @@
 import { BlockIdentifier } from "../storageHandle";
-import { EntityDefinitions } from "./reader";
+
 import { makeEntityKey } from "../entityKey";
 import { RuntimeType } from "../serde";
+
+import { EntityDefinitions } from "./reader";
 
 export interface EntityStore extends ReadOnlyEntityStore {
   flushUpdates(

@@ -1,6 +1,8 @@
 import { ethers } from "ethers";
-import { TopicFilter } from "./indexer/logProvider/logProvider";
+
 import { LogDescription } from "@ethersproject/abi";
+
+import { TopicFilter } from "./indexer/logProvider/logProvider";
 import { EventFragmentArg } from "./indexer/process";
 
 export type ContractInstance<InterfaceType extends TypedInterface> = {
