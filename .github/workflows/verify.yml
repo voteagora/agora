@@ -73,6 +73,10 @@ jobs:
         working-directory: ./packages/backend
         run: yarn tsc --noEmit
 
+      - name: Lint
+        working-directory: ./packages/backend
+        run: yarn lint
+
       - name: Run Test
         working-directory: ./packages/backend
         run: yarn test

@@ -23,7 +23,7 @@
     "stream": "ts-node src/indexer/ops/bin/stream.ts",
     "start": "yarn run generate && yarn run server",
     "test": "jest",
-    "lint": "eslint --fix '**/*.ts'"
+    "lint": "eslint '**/*.ts'"
   },
   "eslintConfig": {
     "overrides": [],
