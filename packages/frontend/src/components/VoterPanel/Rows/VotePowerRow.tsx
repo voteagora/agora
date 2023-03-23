@@ -26,7 +26,7 @@ export function VotePowerRow({
       title="Vote Power"
       detail={
         !tokensRepresented ? (
-          "N/A"
+          "None"
         ) : (
           <>
             {bpsToString(tokensRepresented.bpsOfDelegatedSupply)} all /{" "}

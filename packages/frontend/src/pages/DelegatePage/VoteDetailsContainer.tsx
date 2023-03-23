@@ -55,7 +55,9 @@ export function ValuePart({ value }: ValuePartProps) {
 
   return (
     <>
-      {!amount.isZero() ? <> asking {utils.formatEther(amount)} ETH</> : null}{" "}
+      {!amount.isZero() ? (
+        <> requesting {parseFloat(utils.formatEther(amount)).toFixed(1)} ETH</>
+      ) : null}{" "}
     </>
   );
 }

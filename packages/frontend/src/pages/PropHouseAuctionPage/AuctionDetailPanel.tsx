@@ -255,7 +255,7 @@ function AuctionProposal({
                 )
               }
               className={css`
-                width: ${theme.spacing["8"]};
+                width: ${theme.spacing["12"]};
                 height: ${theme.spacing["6"]};
                 -webkit-outer-spin-button,
                 -webkit-inner-spin-button {

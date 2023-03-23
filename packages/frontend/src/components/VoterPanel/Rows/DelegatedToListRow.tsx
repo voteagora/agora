@@ -125,7 +125,6 @@ export function DelegatedToListRow({
     nounsToken,
     "delegate"
   );
-
   return (
     <VStack gap="1">
       <PanelRow
@@ -140,8 +139,14 @@ export function DelegatedToListRow({
                 user-select: none;
               `}
             >
-              <div>{pluralizeDelegations(delegations.length)}</div>
-              <ExpandItemsArrow isExpanded={isExpanded} />
+              {delegate.nounsOwned.length ? (
+                <HStack gap="1" alignItems="center">
+                  <div>{pluralizeDelegations(delegations.length)}</div>{" "}
+                  <ExpandItemsArrow isExpanded={isExpanded} />
+                </HStack>
+              ) : (
+                <div>{pluralizeDelegations(0)}</div>
+              )}
             </HStack>
           </div>
         }
@@ -173,11 +178,13 @@ export function DelegatedToListRow({
 
                       case "TOKEN_DELEGATION": {
                         return (
-                          <NounResolvedLink
-                            resolvedName={
-                              delegation.delegate.address.resolvedName
-                            }
-                          />
+                          delegate.nounsOwned.length > 0 && (
+                            <NounResolvedLink
+                              resolvedName={
+                                delegation.delegate.address.resolvedName
+                              }
+                            />
+                          )
                         );
                       }
                     }

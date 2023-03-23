@@ -32,48 +32,73 @@ export function CastVoteInput({
   const [reason, setReason] = useState<string>("");
 
   return (
-    <VStack
-      className={cx(
-        css`
-          border: 1px solid #e0e0e0;
-          border-radius: ${theme.borderRadius.lg};
-        `,
-        className
-      )}
+    <div
+      className={css`
+        position: relative;
+      `}
     >
-      <textarea
+      <div
         className={css`
-          padding: ${theme.spacing["4"]};
-          resize: none;
-          border-radius: ${theme.borderRadius.lg};
-
-          :focus {
-            outline: 0;
+          @media (max-width: ${theme.maxWidth["2xl"]}) {
+            display: none;
           }
+          width: 100%;
+          height: ${theme.spacing["12"]};
+          position: absolute;
+          top: -64px;
+          background: linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 1) 0%,
+            rgba(255, 255, 255, 0) 100%
+          );
         `}
-        placeholder="I believe..."
-        value={reason}
-        onChange={(e) => setReason(e.target.value)}
-      />
+      ></div>
       <VStack
-        justifyContent="stretch"
-        alignItems="stretch"
-        className={css`
-          padding-top: ${theme.spacing["1"]};
-          padding-bottom: ${theme.spacing["3"]};
-          padding-left: ${theme.spacing["3"]};
-          padding-right: ${theme.spacing["3"]};
-        `}
+        className={cx(
+          css`
+            border: 1px solid #e0e0e0;
+            border-radius: ${theme.borderRadius.lg};
+            @media (max-width: ${theme.maxWidth["2xl"]}) {
+              margin-top: ${theme.spacing["1"]};
+            }
+          `,
+          className
+        )}
       >
-        <VoteButtons
-          onClick={(supportType, address) =>
-            onVoteClick(supportType, reason, address)
-          }
-          fragmentRef={framgnetRef}
-          queryFragmentRef={queryFragmentRef}
+        <textarea
+          className={css`
+            padding: ${theme.spacing["4"]};
+            resize: none;
+            border-radius: ${theme.borderRadius.lg};
+
+            :focus {
+              outline: 0;
+            }
+          `}
+          placeholder="I believe..."
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
         />
+        <VStack
+          justifyContent="stretch"
+          alignItems="stretch"
+          className={css`
+            padding-top: ${theme.spacing["1"]};
+            padding-bottom: ${theme.spacing["3"]};
+            padding-left: ${theme.spacing["3"]};
+            padding-right: ${theme.spacing["3"]};
+          `}
+        >
+          <VoteButtons
+            onClick={(supportType, address) =>
+              onVoteClick(supportType, reason, address)
+            }
+            fragmentRef={framgnetRef}
+            queryFragmentRef={queryFragmentRef}
+          />
+        </VStack>
       </VStack>
-    </VStack>
+    </div>
   );
 }
 

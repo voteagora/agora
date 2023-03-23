@@ -162,6 +162,8 @@ function DesktopButton() {
             background-color: ${theme.colors.gray.fa};
             border-radius: ${theme.borderRadius.full};
             transition: 0.3s background-color;
+            position: relative;
+            top: 10px;
 
             :hover {
               background: ${theme.colors.gray.eb};

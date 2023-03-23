@@ -25,7 +25,7 @@ export function ProposalsVotedRow({
       title="Proposals voted"
       detail={
         !delegateMetrics
-          ? "N/A"
+          ? "None"
           : `${delegateMetrics.totalVotes} (${delegateMetrics.ofTotalProps}%)`
       }
     />

@@ -58,6 +58,24 @@ export function OnChainProposalRow({
             <NounResolvedName
               resolvedName={proposal.proposer.address.resolvedName}
             />
+            <span
+              className={css`
+                @media (min-width: ${theme.maxWidth["2xl"]}) {
+                  display: none;
+                }
+              `}
+            >
+              {" "}
+              –{" "}
+              <span
+                className={css`
+                  text-transform: lowercase;
+                  color: ${colorForOnChainProposalStatus(proposal.status)};
+                `}
+              >
+                {proposal.status}
+              </span>
+            </span>
           </>
         }
       >
