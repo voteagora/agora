@@ -125,6 +125,9 @@ export function VoteDetails({ voteFragment }: Props) {
             <VStack
               className={css`
                 overflow-y: scroll;
+                ::-webkit-scrollbar {
+                  display: none;
+                }
                 padding: ${theme.spacing["4"]} ${theme.spacing["6"]};
 
                 @media (max-width: ${theme.maxWidth["2xl"]}) {

@@ -27,7 +27,7 @@ export function ForAgainstAbstainRow({
       detail={
         delegateMetrics
           ? `${delegateMetrics.forVotes} / ${delegateMetrics.againstVotes} / ${delegateMetrics.abstainVotes}`
-          : "N/A"
+          : "None"
       }
     />
   );

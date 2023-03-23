@@ -14,11 +14,11 @@ export function ProposalTypeSelector(
           value: "ALL" as const,
         },
         {
-          title: "On-chain",
+          title: "Onchain",
           value: "ON_CHAIN" as const,
         },
         {
-          title: "PropHouse",
+          title: "Prop House",
           value: "PROP_HOUSE_AUCTION" as const,
         },
       ]}

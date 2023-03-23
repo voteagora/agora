@@ -71,7 +71,9 @@ export function ProposalTransactionDisplay({
     >
       <a
         className={css`
-          text-decoration: underline;
+          :hover {
+            text-decoration: underline;
+          }
         `}
         href={etherscanAddressUrl(
           proposalTransaction.target.resolvedName.address
@@ -155,7 +157,9 @@ function EncodedValueDisplay({
       return (
         <a
           className={css`
-            text-decoration: underline;
+            :hover {
+              text-decoration: underline;
+            }
           `}
           href={etherscanAddressUrl(value)}
         >

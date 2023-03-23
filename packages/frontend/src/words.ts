@@ -28,6 +28,8 @@ export function pluralizeProb(count: BigNumber) {
 export function pluralizeAddresses(count: number) {
   if (count === 1) {
     return "1 address";
+  } else if (count === 0) {
+    return "None";
   } else {
     return `${count} addresses`;
   }
@@ -36,6 +38,8 @@ export function pluralizeAddresses(count: number) {
 export function pluralizeDelegations(count: number) {
   if (count === 1) {
     return `1 delegation`;
+  } else if (count === 0) {
+    return `None`;
   }
 
   return `${count} delegations`;

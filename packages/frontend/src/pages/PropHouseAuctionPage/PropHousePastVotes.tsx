@@ -71,6 +71,9 @@ export function PropHousePastVotes({
             padding: ${theme.spacing["6"]};
             padding-top: 0;
             overflow-y: scroll;
+            ::-webkit-scrollbar {
+              display: none;
+            }
           `}
         >
           <VStack gap="4">
@@ -83,6 +86,9 @@ export function PropHousePastVotes({
                     font-size: ${theme.fontSize.xs};
                     line-height: ${theme.lineHeight.tight};
                     overflow-x: scroll;
+                    ::-webkit-scrollbar {
+                      display: none;
+                    }
                   `}
                 >
                   <VStack

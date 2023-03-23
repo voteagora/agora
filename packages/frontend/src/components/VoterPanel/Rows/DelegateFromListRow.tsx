@@ -114,9 +114,14 @@ export function DelegateFromList({
                 user-select: none;
               `}
             >
-              <div>{pluralizeAddresses(representations.length)}</div>
-
-              <ExpandItemsArrow isExpanded={isExpanded} />
+              {representations.length ? (
+                <HStack gap="1" alignItems="center">
+                  <div>{pluralizeAddresses(representations.length)}</div>{" "}
+                  <ExpandItemsArrow isExpanded={isExpanded} />
+                </HStack>
+              ) : (
+                <div>{pluralizeAddresses(representations.length)}</div>
+              )}
             </HStack>
           </div>
         }

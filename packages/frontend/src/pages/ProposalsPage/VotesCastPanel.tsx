@@ -88,6 +88,9 @@ export function VotesCastPanel({
           padding-bottom: ${theme.spacing["6"]};
           font-size: ${theme.fontSize.xs};
           min-height: 0;
+          @media (max-width: ${theme.maxWidth["2xl"]}) {
+            gap:0;
+          }
         `}
       >
         <VStack
@@ -98,6 +101,9 @@ export function VotesCastPanel({
             padding-left: ${theme.spacing["4"]};
             padding-right: ${theme.spacing["4"]};
             overflow-y: scroll;
+            ::-webkit-scrollbar {
+              display: none;
+            }
           `}
         >
           {hoveredVoterAddress && (

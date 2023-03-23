@@ -30,15 +30,18 @@ export function Selector<T>({
 }: SelectorProps<T>) {
   const sizeM = css`
     background: #f7f7f7;
+    gap: 0;
     font-size: ${theme.fontSize.xs};
+    white-space: nowrap;
     font-weight: ${theme.fontWeight.medium};
     border-radius: ${theme.borderRadius.full};
-    padding: ${theme.spacing["1"]} ${theme.spacing["3"]};
+    padding: ${theme.spacing["1"]} ${theme.spacing["2"]} ${theme.spacing["1"]} ${theme.spacing["3"]};
   `;
 
   const sizeL = css`
     background: #f7f7f7;
     border-radius: ${theme.borderRadius.full};
+    white-space: nowrap;
     padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
   `;
 

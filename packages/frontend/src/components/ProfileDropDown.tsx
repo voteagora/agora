@@ -85,7 +85,8 @@ function ProfileDropDownContents({
   );
 
   const hasDelegateStatement = !!delegate.statement;
-
+  const totalNounsDelegated = delegate.liquidRepresentation.length + delegate.nounsRepresented.length;
+  
   return (
     <div
       className={css`
@@ -114,6 +115,7 @@ function ProfileDropDownContents({
                 <span
                   className={css`
                     font-size: ${theme.fontSize.base};
+                    font-weight: ${theme.fontWeight.medium};
                   `}
                 >
                   {delegate.address.resolvedName.name}
@@ -121,7 +123,8 @@ function ProfileDropDownContents({
                 <span
                   className={css`
                     font-size: ${theme.fontSize.xs};
-                    color: #4f4f4f;
+                    font-weight: ${theme.fontWeight.medium};
+                    color: ${theme.colors.gray[700]};
                   `}
                 >
                   {shortAddress(delegate.address.resolvedName.address)}
@@ -156,6 +159,7 @@ function ProfileDropDownContents({
           <PanelRow
             title="My nouns"
             detail={
+              BigNumber.from(delegate.tokensOwned.amount.amount).toNumber() ? (
               <ValueWrapper>
                 <HStack gap="1">
                   <NounGridChildren
@@ -169,13 +173,19 @@ function ProfileDropDownContents({
                     imageSize="6"
                   />
                 </HStack>
-              </ValueWrapper>
+              </ValueWrapper>):(
+                <div className={css`
+                  color: ${theme.colors.gray[700]};
+                  font-size: ${theme.fontSize.base};
+                `}>None</div>
+              )
             }
           />
 
           <PanelRow
             title="My voting power"
             detail={
+              totalNounsDelegated ?(
               <ValueWrapper>
                 <HStack gap="1">
                   <NounGridChildren
@@ -189,7 +199,12 @@ function ProfileDropDownContents({
                     imageSize="6"
                   />
                 </HStack>
-              </ValueWrapper>
+              </ValueWrapper>):(
+                <div className={css`
+                  color: ${theme.colors.gray[700]};
+                  font-size: ${theme.fontSize.base};
+                `}>None</div>
+              )
             }
           />
         </VStack>
@@ -248,10 +263,13 @@ function ProfileDropDownButton({
       <HStack alignItems="center" gap="1">
         <div
           className={css`
-            width: ${theme.spacing[1]};
-            height: ${theme.spacing[1]};
+            width: 6px;
+            height: 6px;
             border-radius: ${theme.borderRadius.full};
             background-color: #23b100;
+            position: relative;
+            top: 1px;
+            margin-right: ${theme.spacing[1]};
           `}
         />
 
