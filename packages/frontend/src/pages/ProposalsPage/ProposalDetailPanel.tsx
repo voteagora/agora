@@ -1,6 +1,6 @@
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { HStack, VStack } from "../../components/VStack";
+import { VStack } from "../../components/VStack";
 import { Markdown } from "../../components/Markdown";
 import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay";
