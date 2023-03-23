@@ -53,10 +53,11 @@ export type ValuePartProps = {
 export function ValuePart({ value }: ValuePartProps) {
   const amount = useMemo(() => BigNumber.from(value), [value]);
 
-  
   return (
     <>
-      {!amount.isZero() ? <> requesting {parseFloat(utils.formatEther(amount)).toFixed(1)} ETH</> : null}{" "}
+      {!amount.isZero() ? (
+        <> requesting {parseFloat(utils.formatEther(amount)).toFixed(1)} ETH</>
+      ) : null}{" "}
     </>
   );
 }

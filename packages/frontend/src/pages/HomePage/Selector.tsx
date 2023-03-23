@@ -35,7 +35,8 @@ export function Selector<T>({
     white-space: nowrap;
     font-weight: ${theme.fontWeight.medium};
     border-radius: ${theme.borderRadius.full};
-    padding: ${theme.spacing["1"]} ${theme.spacing["2"]} ${theme.spacing["1"]} ${theme.spacing["3"]};
+    padding: ${theme.spacing["1"]} ${theme.spacing["2"]} ${theme.spacing["1"]}
+      ${theme.spacing["3"]};
   `;
 
   const sizeL = css`

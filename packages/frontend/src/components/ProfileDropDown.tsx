@@ -85,8 +85,9 @@ function ProfileDropDownContents({
   );
 
   const hasDelegateStatement = !!delegate.statement;
-  const totalNounsDelegated = delegate.liquidRepresentation.length + delegate.nounsRepresented.length;
-  
+  const totalNounsDelegated =
+    delegate.liquidRepresentation.length + delegate.nounsRepresented.length;
+
   return (
     <div
       className={css`
@@ -160,24 +161,29 @@ function ProfileDropDownContents({
             title="My nouns"
             detail={
               BigNumber.from(delegate.tokensOwned.amount.amount).toNumber() ? (
-              <ValueWrapper>
-                <HStack gap="1">
-                  <NounGridChildren
-                    liquidRepresentation={[]}
-                    totalNouns={BigNumber.from(
-                      delegate.tokensOwned.amount.amount
-                    ).toNumber()}
-                    count={5}
-                    nouns={delegate.nounsOwned}
-                    overflowFontSize="xs"
-                    imageSize="6"
-                  />
-                </HStack>
-              </ValueWrapper>):(
-                <div className={css`
-                  color: ${theme.colors.gray[700]};
-                  font-size: ${theme.fontSize.base};
-                `}>None</div>
+                <ValueWrapper>
+                  <HStack gap="1">
+                    <NounGridChildren
+                      liquidRepresentation={[]}
+                      totalNouns={BigNumber.from(
+                        delegate.tokensOwned.amount.amount
+                      ).toNumber()}
+                      count={5}
+                      nouns={delegate.nounsOwned}
+                      overflowFontSize="xs"
+                      imageSize="6"
+                    />
+                  </HStack>
+                </ValueWrapper>
+              ) : (
+                <div
+                  className={css`
+                    color: ${theme.colors.gray[700]};
+                    font-size: ${theme.fontSize.base};
+                  `}
+                >
+                  None
+                </div>
               )
             }
           />
@@ -185,25 +191,30 @@ function ProfileDropDownContents({
           <PanelRow
             title="My voting power"
             detail={
-              totalNounsDelegated ?(
-              <ValueWrapper>
-                <HStack gap="1">
-                  <NounGridChildren
-                    liquidRepresentation={delegate.liquidRepresentation}
-                    totalNouns={BigNumber.from(
-                      delegate.tokensRepresented.amount.amount
-                    ).toNumber()}
-                    count={5}
-                    nouns={delegate.nounsRepresented}
-                    overflowFontSize="xs"
-                    imageSize="6"
-                  />
-                </HStack>
-              </ValueWrapper>):(
-                <div className={css`
-                  color: ${theme.colors.gray[700]};
-                  font-size: ${theme.fontSize.base};
-                `}>None</div>
+              totalNounsDelegated ? (
+                <ValueWrapper>
+                  <HStack gap="1">
+                    <NounGridChildren
+                      liquidRepresentation={delegate.liquidRepresentation}
+                      totalNouns={BigNumber.from(
+                        delegate.tokensRepresented.amount.amount
+                      ).toNumber()}
+                      count={5}
+                      nouns={delegate.nounsRepresented}
+                      overflowFontSize="xs"
+                      imageSize="6"
+                    />
+                  </HStack>
+                </ValueWrapper>
+              ) : (
+                <div
+                  className={css`
+                    color: ${theme.colors.gray[700]};
+                    font-size: ${theme.fontSize.base};
+                  `}
+                >
+                  None
+                </div>
               )
             }
           />

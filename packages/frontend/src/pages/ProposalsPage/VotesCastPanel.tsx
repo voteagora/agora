@@ -89,7 +89,7 @@ export function VotesCastPanel({
           font-size: ${theme.fontSize.xs};
           min-height: 0;
           @media (max-width: ${theme.maxWidth["2xl"]}) {
-            gap:0;
+            gap: 0;
           }
         `}
       >

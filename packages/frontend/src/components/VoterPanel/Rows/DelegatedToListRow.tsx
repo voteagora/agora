@@ -125,7 +125,6 @@ export function DelegatedToListRow({
     nounsToken,
     "delegate"
   );
-  console.log();
   return (
     <VStack gap="1">
       <PanelRow
