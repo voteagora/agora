@@ -31,7 +31,7 @@ type Props = {
 
 const orderNames: { [K in DelegatesOrder]?: string } = {
   mostVotingPower: "Most voting power",
-  mostDelegates: "Most delegates",
+  mostDelegates: "Most delegators",
 };
 
 const pulseAnimation = keyframes`
