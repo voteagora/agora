@@ -52,6 +52,18 @@ export function VoteDetails({ voteFragment }: Props) {
 
   const supportType = toSupportType(vote.supportDetailed);
 
+  // This is a hack to hide a proposal formatting mistake from the OP Foundation
+  const proposalsWithBadFormatting = [
+    "114732572201709734114347859370226754519763657304898989580338326275038680037913",
+    "27878184270712708211495755831534918916136653803154031118511283847257927730426",
+    "90839767999322802375479087567202389126141447078032129455920633707568400402209",
+  ];
+
+  // This is a hack to hide a proposal formatting mistake from the OP Foundation
+  const shortTitle = proposalsWithBadFormatting.includes(vote.proposal.number)
+    ? vote.proposal.title.split("-")[0].split("(")[0]
+    : vote.proposal.title;
+
   return (
     <VoteDetailsContainer>
       <div
@@ -90,7 +102,7 @@ export function VoteDetails({ voteFragment }: Props) {
           </div>
 
           <VoteTitle>
-            <a href={proposalHref}>{vote.proposal.title}</a>
+            <a href={proposalHref}>{shortTitle}</a>
           </VoteTitle>
 
           <span
