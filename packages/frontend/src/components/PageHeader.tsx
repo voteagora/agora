@@ -57,7 +57,7 @@ export function PageHeader() {
         <span>
           Hack Week is here! Nouns is giving 99 ETH in prizes to builders and
           creators of all backgrounds.
-        </span> {" "}
+        </span>{" "}
         <a
           href="https://hackweek.wtf/"
           target="_BLANK"
