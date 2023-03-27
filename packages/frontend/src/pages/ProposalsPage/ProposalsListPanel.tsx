@@ -65,7 +65,8 @@ export function ProposalsListPanel({
   const displayedProposals = useMemo(() => {
     if (!expanded) {
       return result.proposals.filter(
-        (proposal) => proposal.number === selectedProposalId
+        // Is a hack until we ship proposals list page
+        (proposal) => proposal.status === "ACTIVE" || proposal.number === selectedProposalId
       );
     }
 
