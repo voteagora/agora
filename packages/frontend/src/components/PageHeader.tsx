@@ -39,88 +39,121 @@ export function PageHeader() {
   })();
 
   return (
-    <HStack
-      justifyContent="space-between"
+    <div
       className={css`
         width: 100%;
-        max-width: ${theme.maxWidth["6xl"]};
-        margin: ${theme.spacing["8"]} auto;
-        gap: ${theme.spacing["2"]};
-        padding-left: ${theme.spacing["4"]};
-        padding-right: ${theme.spacing["4"]};
       `}
     >
-      <Link
+      <div
         className={css`
-          display: flex;
-          flex-direction: row;
-          justify-content: center;
+          padding: ${theme.spacing["2"]};
+          background-color: ${theme.colors.purple["200"]};
+          color: ${theme.colors.purple["700"]};
+          width: 100%;
+          text-align: center;
+          font-size: ${theme.fontSize["sm"]};
         `}
-        to="/"
       >
-        <HStack gap="2" alignItems="center" className={css``}>
-          <img
-            alt="logo"
-            src={logo}
-            className={css`
-              height: 16px;
-              width: 16px;
-            `}
-          />
+        <span>
+          Hack Week is here! Nouns is giving 99 ETH in prizes to builders and
+          creators of all backgrounds.
+        </span> {" "}
+        <a
+          href="https://hackweek.wtf/"
+          target="_BLANK"
+          rel="noreferrer"
+          className={css`
+            font-weight: ${theme.fontWeight.semibold};
+          `}
+        >
+          Make something Nounish this week →
+        </a>
+      </div>
+      <HStack
+        justifyContent="space-between"
+        className={css`
+          width: 100%;
+          max-width: ${theme.maxWidth["6xl"]};
+          margin: ${theme.spacing["8"]} auto;
+          gap: ${theme.spacing["2"]};
+          padding-left: ${theme.spacing["4"]};
+          padding-right: ${theme.spacing["4"]};
+        `}
+      >
+        <Link
+          className={css`
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+          `}
+          to="/"
+        >
+          <HStack gap="2" alignItems="center" className={css``}>
+            <img
+              alt="logo"
+              src={logo}
+              className={css`
+                height: 16px;
+                width: 16px;
+              `}
+            />
 
-          <span
-            className={css`
-              white-space: nowrap;
-              font-size: ${theme.fontSize.base};
-              font-weight: ${theme.fontWeight.semibold};
-              color: ${theme.colors.gray["800"]};
-              @media (max-width: ${theme.maxWidth.md}) {
-                display: none;
-              }
-            `}
-          >
-            Nouns Agora
-          </span>
+            <span
+              className={css`
+                white-space: nowrap;
+                font-size: ${theme.fontSize.base};
+                font-weight: ${theme.fontWeight.semibold};
+                color: ${theme.colors.gray["800"]};
+                @media (max-width: ${theme.maxWidth.md}) {
+                  display: none;
+                }
+              `}
+            >
+              Nouns Agora
+            </span>
+          </HStack>
+        </Link>
+
+        <HStack
+          className={css`
+            background-color: ${theme.colors.white};
+            border-radius: ${theme.borderRadius.full};
+            border: 1px solid ${theme.colors.gray.eb};
+            padding: ${theme.spacing[1]};
+            font-weight: ${theme.fontWeight.medium};
+            box-shadow: ${theme.boxShadow.newDefault};
+          `}
+        >
+          <Link to="/voters">
+            <LinkContents isActive={activePage === "VOTERS"}>
+              Voters
+            </LinkContents>
+          </Link>
+
+          <Link to="/proposals">
+            <LinkContents isActive={activePage === "PROPOSALS"}>
+              Proposals
+            </LinkContents>
+          </Link>
+
+          <Link to="/voteauction">
+            <LinkContents isActive={activePage === "AUCTION"}>
+              Auction
+            </LinkContents>
+          </Link>
         </HStack>
-      </Link>
 
-      <HStack
-        className={css`
-          background-color: ${theme.colors.white};
-          border-radius: ${theme.borderRadius.full};
-          border: 1px solid ${theme.colors.gray.eb};
-          padding: ${theme.spacing[1]};
-          font-weight: ${theme.fontWeight.medium};
-          box-shadow: ${theme.boxShadow.newDefault};
-        `}
-      >
-        <Link to="/voters">
-          <LinkContents isActive={activePage === "VOTERS"}>Voters</LinkContents>
-        </Link>
-
-        <Link to="/proposals">
-          <LinkContents isActive={activePage === "PROPOSALS"}>
-            Proposals
-          </LinkContents>
-        </Link>
-
-        <Link to="/voteauction">
-          <LinkContents isActive={activePage === "AUCTION"}>
-            Auction
-          </LinkContents>
-        </Link>
+        <HStack
+          alignItems="center"
+          gap="3"
+          className={css`
+            height: ${theme.spacing["6"]};
+          `}
+        >
+          <ConnectWalletButton />
+        </HStack>
       </HStack>
-
-      <HStack
-        alignItems="center"
-        gap="3"
-        className={css`
-          height: ${theme.spacing["6"]};
-        `}
-      >
-        <ConnectWalletButton />
-      </HStack>
-    </HStack>
+    </div>
   );
 }
 
