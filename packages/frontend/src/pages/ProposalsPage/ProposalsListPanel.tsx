@@ -66,7 +66,8 @@ export function ProposalsListPanel({
     if (!expanded) {
       return result.proposals.filter(
         // Is a hack until we ship proposals list page
-        (proposal) => proposal.status === "ACTIVE" || proposal.number === selectedProposalId
+        (proposal) =>
+          proposal.status === "ACTIVE" || proposal.number === selectedProposalId
       );
     }
 
