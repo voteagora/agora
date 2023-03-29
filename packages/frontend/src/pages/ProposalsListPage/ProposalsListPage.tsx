@@ -8,6 +8,7 @@ import { startTransition, useState } from "react";
 import { PropHouseAuctionRow } from "./PropHouseAuctionRow";
 import { OnChainProposalRow } from "./OnChainProposalRow";
 import { PageDivider } from "../../components/PageDivider";
+import NounsPics from "./NounsPics.png";
 import { ProposalsListPageQuery } from "./__generated__/ProposalsListPageQuery.graphql";
 import {
   ProposalStatusFilter,
@@ -65,6 +66,71 @@ export function ProposalsListPage() {
           }
         `}
       >
+        <a
+          href="https://prop.house/noun-40/noun-40-looking-for-prop-house-delegate"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <HStack
+            justifyContent="space-between"
+            className={css`
+              background-color: ${theme.colors.white};
+              border-radius: ${theme.borderRadius["xl"]};
+              box-shadow: ${theme.boxShadow["newDefault"]};
+              margin: 0 ${theme.spacing["4"]};
+              border: 1px solid ${theme.colors.gray["300"]};
+              margin-bottom: ${theme.spacing["8"]};
+              padding: ${theme.spacing["8"]};
+              transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+              :hover{ 
+                transform: scale(1.005);
+                transform: translateY(-1px);
+                box-shadow: ${theme.boxShadow["md"]};
+              }
+            `}
+          >
+            <VStack
+              justifyContent="center"
+              className={css`
+                max-width: ${theme.maxWidth["lg"]};
+              `}
+            >
+              <div
+                className={css`
+                  font-size: ${theme.fontSize.sm};
+                  color: ${theme.colors.teal["600"]};
+                  font-weight: ${theme.fontWeight["medium"]};
+                `}
+              >
+                Submit your profile to
+              </div>
+              <div
+                className={css`
+                  font-size: ${theme.fontSize["2xl"]};
+                  font-weight: ${theme.fontWeight["extrabold"]};
+                `}
+              >
+                Be the delegate for 22 nouns on Prop House
+              </div>
+              <div
+                className={css`
+                  color: ${theme.colors.gray["700"]};
+                `}
+              >
+                Noun 40 is looking for a Prop-House-only delegate for 22 nouns
+                currently represented by vote.noun40.eth. Will you be the one?
+              </div>
+            </VStack>
+            <img
+              src={NounsPics}
+              alt="Noun 40's nouns"
+              className={css`
+                height: ${theme.spacing["32"]};
+                max-width: 45%;
+              `}
+            />
+          </HStack>
+        </a>
         <h1
           className={css`
             font-size: ${theme.fontSize["2xl"]};
