@@ -244,7 +244,7 @@ function VotesCastPanelOwnVote({
         delegate(addressOrEnsName: $address) @skip(if: $skipAddress) {
           votes {
             proposal {
-              id
+              number
             }
             ...VoteRowFragment
           }
@@ -255,7 +255,7 @@ function VotesCastPanelOwnVote({
   );
 
   const ownVote =
-    delegate && delegate.votes.find((it) => it.proposal.id === proposalId);
+    delegate && delegate.votes.find((it) => it.proposal.number === proposalId);
 
   if (ownVote) {
     return <VoteRow isUser={true} fragmentRef={ownVote} />;
