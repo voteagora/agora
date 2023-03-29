@@ -2,7 +2,6 @@ import { HStack, VStack } from "../../components/VStack";
 import * as theme from "../../theme";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
-import { UserIcon } from "@heroicons/react/20/solid";
 import { VoteReason } from "../../components/VoteReason";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
