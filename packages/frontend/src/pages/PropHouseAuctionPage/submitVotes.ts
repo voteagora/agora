@@ -10,12 +10,14 @@ import {
   signTokenDelegationVotes,
 } from "./signVotes";
 import { submitVote } from "./propHouse";
+import { TypedDataSigner } from "@ethersproject/abstract-signer";
 
 export async function submitVotes(
   pendingVotesRaw: Map<number, number>,
   availableVotingPower: AvailableVotingPower[],
   votingAddresses: VotingAddress[],
-  provider: ethers.providers.Provider
+  provider: ethers.providers.Provider,
+  typedSigner: ethers.Signer & TypedDataSigner
 ) {
   const assignments = Array.from(
     assignPendingVotes(
@@ -50,7 +52,7 @@ export async function submitVotes(
               address: assignment.votingAddress.address,
             },
             blockNumber,
-            provider
+            typedSigner
           );
         }
 

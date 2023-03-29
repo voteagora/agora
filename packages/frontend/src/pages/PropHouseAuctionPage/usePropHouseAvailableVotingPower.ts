@@ -113,7 +113,10 @@ export function usePropHouseAvailableVotingPower(
   });
 
   const consumedVotingPowers = Object.entries(
-    groupBy(auctionVotes, (auctionVote) => auctionVote.address)
+    groupBy(
+      auctionVotes,
+      (auctionVote) => auctionVote.address.resolvedName.address
+    )
   )
     .map(([address, votes]) => ({
       address,

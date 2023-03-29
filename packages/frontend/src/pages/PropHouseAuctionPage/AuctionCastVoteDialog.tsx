@@ -1,4 +1,4 @@
-import { useProvider } from "wagmi";
+import { useProvider, useSigner } from "wagmi";
 import graphql from "babel-plugin-relay/macro";
 import { HStack, VStack } from "../../components/VStack";
 import { css } from "@emotion/css";
@@ -66,10 +66,21 @@ export function AuctionCastVoteDialog({
   );
 
   const provider = useProvider();
+  const { data: signer } = useSigner();
 
   // todo: loading state
   const onClick = async () => {
-    await submitVotes(pendingVotes, votingPower, votingAddresses, provider);
+    if (!signer) {
+      return;
+    }
+
+    await submitVotes(
+      pendingVotes,
+      votingPower,
+      votingAddresses,
+      provider,
+      signer as any
+    );
     closeDialog();
   };
 

@@ -127,7 +127,7 @@ function AuctionVoteButton({
 
   const pendingVotes = usePendingVotes();
 
-  const pendingVotesCount = Object.values(pendingVotes).reduce(
+  const pendingVotesCount = Array.from(pendingVotes.values()).reduce(
     (it, acc) => it + acc,
     0
   );

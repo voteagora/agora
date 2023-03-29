@@ -31,10 +31,9 @@ const VoteMessageTypes: Record<string, TypedDataField[]> = {
 export async function* signTokenDelegationVotes(
   assignment: AddressVoteAssignment,
   blockNumber: number,
-  provider: ethers.providers.Provider
+  typedSigner: ethers.Signer & TypedDataSigner
 ) {
   const payload = makePayload(assignment.votes, blockNumber);
-  const typedSigner = provider as any as ethers.Signer & TypedDataSigner;
 
   const shared = {
     signedData: {
