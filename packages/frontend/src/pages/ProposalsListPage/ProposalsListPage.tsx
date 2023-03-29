@@ -88,6 +88,9 @@ export function ProposalsListPage() {
                 transform: translateY(-1px);
                 box-shadow: ${theme.boxShadow["md"]};
               }
+              @media (max-width: ${theme.maxWidth.lg}) {
+                flex-direction: column;
+              }
             `}
           >
             <VStack
@@ -126,8 +129,10 @@ export function ProposalsListPage() {
               src={NounsPics}
               alt="Noun 40's nouns"
               className={css`
-                height: ${theme.spacing["32"]};
-                max-width: 45%;
+                max-height: ${theme.spacing["32"]};
+                @media (max-width: ${theme.maxWidth.lg}) {
+                  margin-top: ${theme.spacing["4"]};
+                }
               `}
             />
           </HStack>
