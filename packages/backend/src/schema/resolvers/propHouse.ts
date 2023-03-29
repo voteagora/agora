@@ -18,7 +18,10 @@ import {
 
 export type PropHouseAuctionModel = z.infer<typeof auctionsAuction>;
 
-const communityId = 1;
+const stagingCommunityId = 15;
+const productionCommunityId = 1;
+
+const communityId = productionCommunityId;
 
 export const Query: QueryResolvers = {
   async propHouseAuction(_, { auctionId }) {
@@ -134,7 +137,7 @@ export const PropHouseProposal: PropHouseProposalResolvers = {
   },
 
   voteCount({ voteCount }) {
-    return parseInt(voteCount);
+    return voteCount;
   },
 
   proposer({ address }) {

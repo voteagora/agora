@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-export const basePath = "https://prod.backend.prop.house/";
+const productionBasePath = "https://prod.backend.prop.house/";
+const stagingBasePath = "https://communities-preview.backend.prop.house/";
+
+export const basePath = productionBasePath;
 
 export const signedData = z.union([
   z.object({
@@ -29,5 +32,5 @@ export const proposal = z.object({
   createdDate: z.string(),
   lastUpdatedDate: z.string().or(z.null()),
   visible: z.boolean(),
-  voteCount: z.string(),
+  voteCount: z.number(),
 });

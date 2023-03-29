@@ -20,7 +20,10 @@ import { useAccount } from "wagmi";
 import { PendingVotesProvider } from "./PendingVotesContext";
 
 // nouns
-export const COMMUNITY_ADDRESS = "0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03";
+const stagingCommunityAddress = "0x0000000000000000000000000000000000000000";
+const productionCommunityAddress = "0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03";
+
+export const COMMUNITY_ADDRESS = productionCommunityAddress;
 
 export function PropHouseAuctionPage() {
   const { auctionId } = useParams();

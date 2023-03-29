@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { ethers, BigNumber } from "ethers";
 
-export const basePath = "https://prod.backend.prop.house/";
+const productionBasePath = "https://prod.backend.prop.house/";
+const stagingBasePath = "https://communities-preview.backend.prop.house/";
+
+export const basePath = productionBasePath;
 
 type FetchVotingPowerForAddressArgs = {
   address: string;
