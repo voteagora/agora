@@ -81,8 +81,9 @@ export function ProposalsListPage() {
               border: 1px solid ${theme.colors.gray["300"]};
               margin-bottom: ${theme.spacing["8"]};
               padding: ${theme.spacing["8"]};
-              transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-              :hover{ 
+              transition: transform 0.2s ease-in-out,
+                box-shadow 0.2s ease-in-out;
+              :hover {
                 transform: scale(1.005);
                 transform: translateY(-1px);
                 box-shadow: ${theme.boxShadow["md"]};
