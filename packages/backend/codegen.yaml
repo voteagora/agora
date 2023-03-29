@@ -5,6 +5,8 @@ generates:
       - "@graphql-codegen/typescript"
       - "@graphql-codegen/typescript-resolvers"
       - add:
+          content: "/* eslint-disable */"
+      - add:
           content: "import { ethers } from 'ethers'"
     config:
       avoidOptionals: false
