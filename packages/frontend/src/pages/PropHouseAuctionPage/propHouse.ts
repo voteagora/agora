@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ethers, BigNumber } from "ethers";
 
 const productionBasePath = "https://prod.backend.prop.house/";
-const stagingBasePath = "https://communities-preview.backend.prop.house/";
+// const stagingBasePath = "https://communities-preview.backend.prop.house/";
 
 export const basePath = productionBasePath;
 
