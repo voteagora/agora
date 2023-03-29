@@ -67,19 +67,8 @@ export function VoteRow({
             `}
           >
             <NounResolvedLink resolvedName={vote.voter.address.resolvedName} />
-
+            {isUser && <span>(you)</span>}
             <VoteText fragmentRef={vote} />
-
-            {isUser && (
-              <div
-                className={css`
-                  width: ${theme.spacing["3"]};
-                  height: ${theme.spacing["3"]};
-                `}
-              >
-                <UserIcon />
-              </div>
-            )}
           </HStack>
 
           <HStack
