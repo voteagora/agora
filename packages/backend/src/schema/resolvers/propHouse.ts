@@ -137,7 +137,7 @@ export const PropHouseProposal: PropHouseProposalResolvers = {
   },
 
   voteCount({ voteCount }) {
-    return voteCount;
+    return parseInt(voteCount);
   },
 
   proposer({ address }) {
