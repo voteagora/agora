@@ -69,7 +69,11 @@ export function ProposalDetailPanel({
             />
           </div>
         </HStack>
-        <VStack gap="2">
+        <VStack gap="2" className={css`
+        @media (max-width: ${theme.maxWidth["2xl"]}) {
+          margin-bottom: ${theme.spacing["48"]};
+        }
+        `}>
           <VStack
             gap="1"
             className={css`
