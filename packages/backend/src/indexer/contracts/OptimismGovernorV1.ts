@@ -10,6 +10,7 @@ import * as serde from "../serde";
 import { RuntimeType } from "../serde";
 import { efficientLengthEncodingNaturalNumbers } from "../utils/efficientLengthEncoding";
 import { makeCompoundKey } from "../indexKey";
+import { encodeOrdinal, logToOrdinal, ordinal } from "./ordinal";
 
 export const governorTokenContract = makeContractInstance({
   iface: OptimismGovernorV1__factory.createInterface(),
@@ -20,9 +21,26 @@ export const governorTokenContract = makeContractInstance({
 export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
   name: "OptimismGovernorV1",
   entities: {
+    QuorumNumeratorSnapshot: makeEntityDefinition({
+      serde: serde.object({
+        ordinal,
+        quorumNumerator: serde.bigNumber,
+      }),
+      indexes: [
+        {
+          indexName: "byOrdinal",
+          indexKey({ ordinal }) {
+            return makeCompoundKey(
+              ...encodeOrdinal(ordinal).map((it) =>
+                efficientLengthEncodingNaturalNumbers(it.mul(-1))
+              )
+            );
+          },
+        },
+      ],
+    }),
     GovernorAggregates: makeEntityDefinition({
       serde: serde.object({
-        quorumNumerator: serde.bigNumber,
         votingDelay: serde.bigNumber,
         votingPeriod: serde.bigNumber,
         proposalThreshold: serde.bigNumber,
@@ -246,14 +264,17 @@ export const governorIndexer = makeIndexerDefinition(governorTokenContract, {
     },
     {
       signature: "QuorumNumeratorUpdated(uint256,uint256)",
-      async handle(handle, event) {
-        const aggregate = await loadAggregate(handle);
-        if (!aggregate.quorumNumerator.eq(event.args.oldQuorumNumerator)) {
-          throw new Error("quorumNumerator wrong");
-        }
+      async handle(handle, event, log) {
+        const ordinal = logToOrdinal(log);
 
-        aggregate.quorumNumerator = event.args.newQuorumNumerator;
-        saveAggregate(handle, aggregate);
+        handle.saveEntity(
+          "QuorumNumeratorSnapshot",
+          encodeOrdinal(ordinal).join("-"),
+          {
+            ordinal,
+            quorumNumerator: event.args.newQuorumNumerator,
+          }
+        );
       },
     },
     {

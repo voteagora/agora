@@ -25,6 +25,7 @@ import {
   collectGenerator,
   filterGenerator,
   limitGenerator,
+  takeLast,
 } from "../../indexer/utils/generatorUtils";
 import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { driveReaderByIndex } from "../pagination";
@@ -32,6 +33,7 @@ import { formSchema } from "../../formSchema";
 import { approximateBlockTimestampForBlock } from "../../utils/blockTimestamp";
 import { makeCompoundKey } from "../../indexer/indexKey";
 import { intersection } from "../../utils/set";
+import { efficientLengthEncodingNaturalNumbers } from "../../indexer/utils/efficientLengthEncoding";
 
 const amountSpec = {
   currency: "OP",
@@ -60,7 +62,7 @@ export const VotingPower: VotingPowerResolvers = {
   },
 
   async bpsOfQuorum(value, _args, { reader }) {
-    const quorum = await getQuorum(reader);
+    const quorum = await getQuorum(reader, null);
     return bpsOf(value, quorum);
   },
 };
@@ -81,7 +83,7 @@ export const Metrics: MetricsResolvers = {
     return asTokenAmount(aggregate.totalSupply);
   },
   quorum(_parent, _args, { reader }) {
-    return getQuorum(reader);
+    return getQuorum(reader, null);
   },
 };
 
@@ -298,9 +300,9 @@ export const Proposal: ProposalResolvers = {
     return approximateBlockTimestampForBlock(provider, endBlock.toNumber());
   },
 
-  async quorumVotes({}, _args, { reader }) {
+  async quorumVotes({ startBlock }, _args, { reader }) {
     return {
-      amount: await getQuorum(reader),
+      amount: await getQuorum(reader, startBlock),
       ...amountSpec,
     };
   },
@@ -348,7 +350,7 @@ export const Proposal: ProposalResolvers = {
           return ProposalStatus.Active;
         }
 
-        const quorum = await getQuorum(reader);
+        const quorum = await getQuorum(reader, startBlock);
         const { forVotes, abstainVotes, againstVotes } = aggregates;
 
         const proposalQuorumVotes = forVotes.add(abstainVotes);
@@ -445,15 +447,70 @@ async function proposedByAddress(
   );
 }
 
-async function getQuorum(
-  reader: Reader<typeof entityDefinitions>
-): Promise<BigNumber> {
-  const governorAggregates = await getGovernanceAggregate(reader);
-  const aggregate = await getAggregate(reader);
+async function getQuorumNumeratorSnapshot(
+  reader: Reader<typeof entityDefinitions>,
+  blockNumber: BigNumber | null
+) {
+  return await takeLast(
+    reader.getEntitiesByIndex("QuorumNumeratorSnapshot", "byOrdinal", {
+      ...(() => {
+        if (!blockNumber) {
+          return;
+        }
 
-  return aggregate.totalSupply
-    .mul(governorAggregates.quorumNumerator)
-    .div(quorumDenominator);
+        return {
+          starting: {
+            indexKey: makeCompoundKey(
+              efficientLengthEncodingNaturalNumbers(blockNumber.mul(-1)),
+              ""
+            ),
+          },
+        };
+      })(),
+    })
+  );
+}
+
+async function getTotalSupplySnapshot(
+  reader: Reader<typeof entityDefinitions>,
+  blockNumber: BigNumber | null
+) {
+  return await takeLast(
+    reader.getEntitiesByIndex("TotalSupplySnapshot", "byOrdinal", {
+      ...(() => {
+        if (!blockNumber) {
+          return;
+        }
+
+        return {
+          starting: {
+            indexKey: makeCompoundKey(
+              efficientLengthEncodingNaturalNumbers(blockNumber.mul(-1)),
+              ""
+            ),
+          },
+        };
+      })(),
+    })
+  );
+}
+
+async function getQuorum(
+  reader: Reader<typeof entityDefinitions>,
+  blockNumber: BigNumber | null
+): Promise<BigNumber> {
+  const quorumNumeratorSnapshot = await getQuorumNumeratorSnapshot(
+    reader,
+    blockNumber
+  );
+  const quorumNumerator =
+    quorumNumeratorSnapshot?.value.quorumNumerator ?? BigNumber.from(0);
+
+  const totalSupplySnapshot = await getTotalSupplySnapshot(reader, blockNumber);
+  const totalSupply =
+    totalSupplySnapshot?.value?.totalSupply ?? BigNumber.from(0);
+
+  return totalSupply.mul(quorumNumerator).div(quorumDenominator);
 }
 
 async function getAggregate(reader: Reader<typeof entityDefinitions>) {

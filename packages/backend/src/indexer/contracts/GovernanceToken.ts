@@ -9,6 +9,7 @@ import { GovernanceToken__factory } from "../../contracts/generated";
 import { BigNumber, ethers } from "ethers";
 import * as serde from "../serde";
 import { RuntimeType } from "../serde";
+import { encodeOrdinal, logToOrdinal, ordinal } from "./ordinal";
 
 const governanceTokenContract = makeContractInstance({
   iface: GovernanceToken__factory.createInterface(),
@@ -22,6 +23,22 @@ export const governanceTokenIndexer = makeIndexerDefinition(
     name: "GovernanceToken",
 
     entities: {
+      TotalSupplySnapshot: makeEntityDefinition({
+        serde: serde.object({
+          ordinal,
+          totalSupply: serde.bigNumber,
+        }),
+        indexes: [
+          {
+            indexName: "byOrdinal",
+            indexKey({ ordinal }) {
+              return encodeOrdinal(ordinal)
+                .map((it) => efficientLengthEncodingNaturalNumbers(it.mul(-1)))
+                .join("-");
+            },
+          },
+        ],
+      }),
       Aggregates: makeEntityDefinition({
         serde: serde.object({
           totalSupply: serde.bigNumber,
@@ -69,19 +86,37 @@ export const governanceTokenIndexer = makeIndexerDefinition(
     eventHandlers: [
       {
         signature: "Transfer(address,address,uint256)",
-        async handle(handle, event) {
+        async handle(handle, event, log) {
           const { from, to, value } = event.args;
           if (from === to) {
             return;
           }
 
-          const aggregate = await loadAggregate(handle);
-          if (to === ethers.constants.AddressZero) {
-            aggregate.totalSupply = aggregate.totalSupply.sub(value);
-          }
+          {
+            const aggregate = await loadAggregate(handle);
+            const previousTotalSupply = aggregate.totalSupply;
+            if (to === ethers.constants.AddressZero) {
+              aggregate.totalSupply = aggregate.totalSupply.sub(value);
+            }
 
-          if (from === ethers.constants.AddressZero) {
-            aggregate.totalSupply = aggregate.totalSupply.add(value);
+            if (from === ethers.constants.AddressZero) {
+              aggregate.totalSupply = aggregate.totalSupply.add(value);
+            }
+
+            if (!previousTotalSupply.eq(aggregate.totalSupply)) {
+              const ordinal = logToOrdinal(log);
+
+              handle.saveEntity(
+                "TotalSupplySnapshot",
+                encodeOrdinal(ordinal).join("-"),
+                {
+                  ordinal,
+                  totalSupply: aggregate.totalSupply,
+                }
+              );
+            }
+
+            saveAggregate(handle, aggregate);
           }
 
           const [fromEntity, toEntity] = await Promise.all([
@@ -94,7 +129,6 @@ export const governanceTokenIndexer = makeIndexerDefinition(
 
           saveAccount(handle, fromEntity);
           saveAccount(handle, toEntity);
-          saveAggregate(handle, aggregate);
         },
       },
       {
