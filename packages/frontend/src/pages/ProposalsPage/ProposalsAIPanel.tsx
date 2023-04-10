@@ -15,8 +15,6 @@ import * as theme from "../../theme";
 import { ProposalsAIPanelFragment$key } from "./__generated__/ProposalsAIPanelFragment.graphql";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 
-const apiKey = process.env.REACT_APP_OPENAI_KEY;
-
 export const generateUserView = (
   statement: {
     readonly statement: string;
@@ -52,7 +50,7 @@ export const generateChatGpt = async (
         temperature: 0.7,
         messages,
       },
-      { apiKey: apiKey }
+      { apiKey: process.env.REACT_APP_OPENAI_KEY }
     );
 
     const abortController = new AbortController();
@@ -154,7 +152,7 @@ export function ProposalsAIPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [report]);
 
-  return apiKey && userView ? (
+  return userView ? (
     <VStack
       gap="4"
       className={css`
@@ -216,7 +214,7 @@ export function ProposalsAIPanel({
             statement &&
             (await generateChatGpt(messages, setReport, setIsPending))
           }
-          disabled={!process.env.REACT_APP_OPENAI_KEY || isPending}
+          disabled={isPending}
         >
           Generate AI Report ✨
         </button>
