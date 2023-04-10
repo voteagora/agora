@@ -3,9 +3,10 @@ import * as theme from "../../src/theme";
 
 type TooltipProps = {
   text: string;
+  className?: string;
 };
 
-export function Tooltip({ text }: TooltipProps) {
+export function Tooltip({ text, className }: TooltipProps) {
   return (
     <div
       className={cx(
@@ -23,6 +24,7 @@ export function Tooltip({ text }: TooltipProps) {
 
           padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
         `,
+        className,
         "test"
       )}
     >
