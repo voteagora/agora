@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react";
 import { useFragment, useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { useAccount } from "wagmi";
@@ -15,6 +16,8 @@ import * as theme from "../../theme";
 import { ProposalsAIPanelFragment$key } from "./__generated__/ProposalsAIPanelFragment.graphql";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 
+const DECODER = new TextDecoder();
+
 export const generateUserView = (
   statement: {
     readonly statement: string;
@@ -23,17 +26,16 @@ export const generateUserView = (
       readonly value: string;
     }[];
   } | null
-) => `This is my statement: ${statement?.statement}
-
-${
-  statement?.topIssues?.length !== 0 &&
-  statement?.topIssues
-    .map(
-      ({ type, value }) =>
-        `On the topic of ${type}, my view is: ${value.trim()}`
-    )
-    .join(".\n")
-}`;
+) =>
+  `This is my statement: ${statement?.statement}\n\n${
+    statement?.topIssues?.length !== 0 &&
+    statement?.topIssues
+      .map(
+        ({ type, value }) =>
+          `On the topic of ${type}, my view is: ${value.trim()}`
+      )
+      .join(".\n")
+  }`;
 
 export const generateChatGpt = async (
   messages: ChatCompletionRequestMessage[],
@@ -53,12 +55,7 @@ export const generateChatGpt = async (
       { apiKey: process.env.REACT_APP_OPENAI_KEY }
     );
 
-    const abortController = new AbortController();
-    const DECODER = new TextDecoder();
-
-    for await (const chunk of yieldStream(stream, abortController)) {
-      if (abortController.signal.aborted) break;
-
+    for await (const chunk of yieldStream(stream)) {
       try {
         const decoded: ChatCompletionResponseMessage = JSON.parse(
           DECODER.decode(chunk)
@@ -75,8 +72,9 @@ export const generateChatGpt = async (
         console.error(err);
       }
     }
-  } catch (err) {
-    console.error(err);
+  } catch (e) {
+    const id = Sentry.captureException(e);
+    console.error(e, { id });
   }
 
   setIsPending(false);
