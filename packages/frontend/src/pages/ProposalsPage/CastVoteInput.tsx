@@ -1,35 +1,98 @@
-import { css, cx } from "@emotion/css";
-import * as theme from "../../theme";
-import { HStack, VStack } from "../../components/VStack";
+import { css, cx } from "@emotion/css"
+import * as theme from "../../theme"
+import { HStack, VStack } from "../../components/VStack"
 import {
   colorForSupportType,
-  SupportTextProps,
-} from "../DelegatePage/VoteDetailsContainer";
-import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
-import { useState } from "react";
-import graphql from "babel-plugin-relay/macro";
-import { useFragment } from "react-relay/hooks";
-import { CastVoteInputVoteButtonsFragment$key } from "./__generated__/CastVoteInputVoteButtonsFragment.graphql";
-import { CastVoteInputVoteButtonsQueryFragment$key } from "./__generated__/CastVoteInputVoteButtonsQueryFragment.graphql";
+  SupportTextProps
+} from "../DelegatePage/VoteDetailsContainer"
+import { buttonStyles } from "../EditDelegatePage/EditDelegatePage"
+import { useState } from "react"
+import graphql from "babel-plugin-relay/macro"
+import { useFragment, useLazyLoadQuery } from "react-relay/hooks"
+import {
+  CastVoteInputVoteButtonsFragment$data,
+  CastVoteInputVoteButtonsFragment$key
+} from "./__generated__/CastVoteInputVoteButtonsFragment.graphql"
+import { CastVoteInputVoteButtonsQueryFragment$key } from "./__generated__/CastVoteInputVoteButtonsQueryFragment.graphql"
+import { useAccount } from "wagmi"
+import { CastVoteInputQuery } from "./__generated__/CastVoteInputQuery.graphql"
+import { generateChatGpt, generateUserView } from "./ProposalsAIPanel"
+import { ChatCompletionRequestMessage } from "openai-streams"
+import {
+  CastVoteInputFragment$data,
+  CastVoteInputFragment$key
+} from "./__generated__/CastVoteInputFragment.graphql"
 
 type Props = {
   onVoteClick: (
     supportType: SupportTextProps["supportType"],
     reason: string,
     address: string
-  ) => void;
-  className: string;
-  framgnetRef: CastVoteInputVoteButtonsFragment$key;
-  queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
-};
+  ) => void
+  className: string
+  fragmentRef: CastVoteInputFragment$key | CastVoteInputVoteButtonsFragment$key
+  queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key
+}
 
 export function CastVoteInput({
   onVoteClick,
   className,
-  framgnetRef,
-  queryFragmentRef,
+  fragmentRef,
+  queryFragmentRef
 }: Props) {
-  const [reason, setReason] = useState<string>("");
+  const [reason, setReason] = useState<string>("")
+  const [isPending, setIsPending] = useState(false)
+
+  const { address } = useAccount()
+
+  const query = useLazyLoadQuery<CastVoteInputQuery>(
+    graphql`
+      query CastVoteInputQuery($addressOrEnsName: String!, $skip: Boolean!) {
+        delegate(addressOrEnsName: $addressOrEnsName) @skip(if: $skip) {
+          statement {
+            statement
+            # eslint-disable-next-line relay/unused-fields
+            topIssues {
+              type
+              value
+            }
+          }
+        }
+      }
+    `,
+    {
+      addressOrEnsName: address ?? "",
+      skip: !address
+    }
+  )
+
+  const proposal = useFragment(
+    graphql`
+      fragment CastVoteInputFragment on Proposal {
+        description
+      }
+    `,
+    fragmentRef
+  ) as CastVoteInputFragment$data
+
+  const statement = query?.delegate?.statement
+
+  const userView = statement ? generateUserView(statement) : ""
+
+  const messages: ChatCompletionRequestMessage[] = [
+    {
+      role: "system",
+      content: `You are a governance assistant that helps voting on DAO proposals. Impersonate the user and reply with a reason to vote. Do not exceed 400 characters and always break lines between paragraphs.`
+    },
+    {
+      role: "user",
+      content: userView
+    },
+    {
+      role: "user",
+      content: `Starting with "I am voting", explain why I'm for, against or abstaining from voting on this proposal. Write as if you were the user. Do it mentioning how my statement and views align or are in conflict with the following proposal:\n\n${proposal.description}`
+    }
+  ]
 
   return (
     <div
@@ -52,7 +115,7 @@ export function CastVoteInput({
             rgba(255, 255, 255, 0) 100%
           );
         `}
-      ></div>
+      />
       <VStack
         className={cx(
           css`
@@ -79,6 +142,31 @@ export function CastVoteInput({
           value={reason}
           onChange={(e) => setReason(e.target.value)}
         />
+
+        <button
+          className={
+            buttonStyles +
+            " " +
+            css`
+              position: absolute;
+              top: -18px;
+              right: 16px;
+              font-size: x-small;
+              width: fit-content;
+              padding: ${theme.spacing["1"]} ${theme.spacing["3"]};
+              @media (max-width: ${theme.maxWidth["2xl"]}) {
+                top: -30px;
+              }
+            `
+          }
+          onClick={async () =>
+            statement &&
+            (await generateChatGpt(messages, setReason, setIsPending))
+          }
+          disabled={!userView || !statement || isPending}
+        >
+          Auto-generate ✨
+        </button>
         <VStack
           justifyContent="stretch"
           alignItems="stretch"
@@ -93,26 +181,26 @@ export function CastVoteInput({
             onClick={(supportType, address) =>
               onVoteClick(supportType, reason, address)
             }
-            fragmentRef={framgnetRef}
+            fragmentRef={fragmentRef}
             queryFragmentRef={queryFragmentRef}
           />
         </VStack>
       </VStack>
     </div>
-  );
+  )
 }
 
 function VoteButtons({
   onClick,
   fragmentRef,
-  queryFragmentRef,
+  queryFragmentRef
 }: {
   onClick: (
     nextSupportType: SupportTextProps["supportType"],
     address: string
-  ) => void;
-  fragmentRef: CastVoteInputVoteButtonsFragment$key;
-  queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
+  ) => void
+  fragmentRef: CastVoteInputFragment$key | CastVoteInputVoteButtonsFragment$key
+  queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key
 }) {
   const result = useFragment(
     graphql`
@@ -123,7 +211,7 @@ function VoteButtons({
       }
     `,
     fragmentRef
-  );
+  ) as CastVoteInputVoteButtonsFragment$data
 
   const { delegate } = useFragment(
     graphql`
@@ -170,56 +258,56 @@ function VoteButtons({
       }
     `,
     queryFragmentRef
-  );
+  )
 
   if (result.status !== "ACTIVE") {
-    return <DisabledVoteButton reason="Not open to voting" />;
+    return <DisabledVoteButton reason="Not open to voting" />
   }
 
   if (!delegate) {
-    return <DisabledVoteButton reason="Connect wallet to vote" />;
+    return <DisabledVoteButton reason="Connect wallet to vote" />
   }
 
   const proposalVoteLots = [
     ...(() => {
-      const hasTokenVoted = !!delegate.proposalVote;
+      const hasTokenVoted = !!delegate.proposalVote
       if (hasTokenVoted) {
-        return [];
+        return []
       }
 
       if (!delegate.delegateSnapshot.nounsRepresented.length) {
-        return [];
+        return []
       }
 
       return [
         {
-          type: "TOKEN" as const,
-        },
-      ];
+          type: "TOKEN" as const
+        }
+      ]
     })(),
     ...(() =>
       delegate.liquidRepresentation.flatMap((liquidRepresentation) => {
         if (
           !liquidRepresentation.proxy.delegateSnapshot.nounsRepresented.length
         ) {
-          return [];
+          return []
         }
 
         if (liquidRepresentation.proxy.proposalVote) {
-          return [];
+          return []
         }
 
         return [
           {
             type: "LIQUID" as const,
-            liquidRepresentation,
-          },
-        ];
-      }))(),
-  ];
+            liquidRepresentation
+          }
+        ]
+      }))()
+  ]
 
   if (!proposalVoteLots.length) {
-    return <DisabledVoteButton reason="No available lots" />;
+    return <DisabledVoteButton reason="No available lots" />
   }
 
   return (
@@ -230,21 +318,21 @@ function VoteButtons({
             key={supportType}
             action={supportType}
             onClick={() => {
-              onClick(supportType, delegate.address.address);
+              onClick(supportType, delegate.address.address)
             }}
           />
         )
       )}
     </HStack>
-  );
+  )
 }
 
 function VoteButton({
   action,
-  onClick,
+  onClick
 }: {
-  action: SupportTextProps["supportType"];
-  onClick: () => void;
+  action: SupportTextProps["supportType"]
+  onClick: () => void
 }) {
   return (
     <button
@@ -257,7 +345,7 @@ function VoteButton({
     >
       {action.toLowerCase()}
     </button>
-  );
+  )
 }
 
 export function DisabledVoteButton({ reason }: { reason: string }) {
@@ -272,7 +360,7 @@ export function DisabledVoteButton({ reason }: { reason: string }) {
     >
       {reason}
     </button>
-  );
+  )
 }
 
 export const voteButtonStyles = css`
@@ -283,4 +371,4 @@ export const voteButtonStyles = css`
   justify-content: center;
   align-items: center;
   border-radius: ${theme.borderRadius.md};
-`;
+`

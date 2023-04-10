@@ -17,6 +17,7 @@ import {
   useParams,
 } from "../../components/HammockRouter/HammockRouter";
 import { useAccount } from "wagmi";
+import { ProposalsAIPanel } from "./ProposalsAIPanel";
 
 export function ProposalsPage() {
   const { proposalId } = useParams();
@@ -37,6 +38,7 @@ export function ProposalsPage() {
         firstProposal: proposal(id: $proposalId) {
           number
           ...ProposalDetailPanelFragment
+          ...ProposalsAIPanelFragment
           ...VotesCastPanelFragment
         }
         ...ProposalsListPanelFragment
@@ -106,13 +108,11 @@ export function ProposalsPage() {
             @media (max-width: ${theme.maxWidth["2xl"]}) {
               position: fixed;
               left: 16px;
-              top: calc(100% - 168px);
-              max-height: 152px;
-              height: 152px;
+              top: calc(100% - 204px);
+              height: 188px;
               align-items: stretch;
               justify-content: flex-end;
               width: calc(100% - 32px);
-              height: auto;
             }
           `}
         >
@@ -138,6 +138,7 @@ export function ProposalsPage() {
             queryFragmentRef={result}
             expanded={proposalsListExpanded}
           />
+          <ProposalsAIPanel fragmentRef={result.firstProposal} />
         </VStack>
       </HStack>
     </motion.div>

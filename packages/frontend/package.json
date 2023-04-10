@@ -30,6 +30,8 @@
     "ethers": "^5.7.2",
     "framer-motion": "^7.2.1",
     "lodash": "^4.17.21",
+    "openai": "^3.1.0",
+    "openai-streams": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-ga": "^3.3.1",
@@ -52,6 +54,7 @@
     "sanitize-html": "^2.9.0",
     "source-map-explorer": "^2.5.2",
     "typescript": "^4.9.5",
+    "yield-stream": "^2.3.0",
     "wagmi": "^0.10.15",
     "web-vitals": "^2.1.0"
   },

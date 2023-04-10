@@ -17,6 +17,7 @@ import { VotesCastPanelHoveredVoterQuery } from "./__generated__/VotesCastPanelH
 import { VoterCard } from "../HomePage/VoterCard";
 import { VotesCastPanelQueryFragment$key } from "./__generated__/VotesCastPanelQueryFragment.graphql";
 import { BigNumber } from "ethers";
+import { ProposalsAIPanel } from "./ProposalsAIPanel";
 
 export function VotesCastPanel({
   fragmentRef,
@@ -70,6 +71,7 @@ export function VotesCastPanel({
         number
 
         ...ProposalVotesSummaryFragment
+        ...CastVoteInputFragment
         ...CastVoteInputVoteButtonsFragment
       }
     `,
@@ -102,6 +104,9 @@ export function VotesCastPanel({
             padding-right: ${theme.spacing["4"]};
             overflow-y: scroll;
             ::-webkit-scrollbar {
+              display: none;
+            }
+            @media (max-width: ${theme.maxWidth["2xl"]}) {
               display: none;
             }
           `}
@@ -198,9 +203,10 @@ export function VotesCastPanel({
         {!expanded && (
           <CastVoteInput
             queryFragmentRef={queryResult}
-            framgnetRef={result}
+            fragmentRef={result}
             className={css`
               flex-shrink: 0;
+              margin-top: ${theme.spacing["4"]};
               margin-left: ${theme.spacing["4"]};
               margin-right: ${theme.spacing["4"]};
             `}
