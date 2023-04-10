@@ -6,7 +6,7 @@ import {
   SupportTextProps
 } from "../DelegatePage/VoteDetailsContainer"
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import graphql from "babel-plugin-relay/macro"
 import { useFragment, useLazyLoadQuery } from "react-relay/hooks"
 import {
@@ -40,7 +40,6 @@ export function CastVoteInput({
   fragmentRef,
   queryFragmentRef
 }: Props) {
-  const [reason, setReason] = useState<string>("")
   const [isPending, setIsPending] = useState(false)
 
   const { address } = useAccount()
@@ -69,11 +68,18 @@ export function CastVoteInput({
   const proposal = useFragment(
     graphql`
       fragment CastVoteInputFragment on Proposal {
+        id
         description
       }
     `,
     fragmentRef
   ) as CastVoteInputFragment$data
+
+  const proposalId = proposal.id.split("|").pop()
+
+  const [reason, setReason] = useState<string>(
+    localStorage.getItem(`${address}-${proposalId}-reason`)!
+  )
 
   const statement = query?.delegate?.statement
 
@@ -82,7 +88,7 @@ export function CastVoteInput({
   const messages: ChatCompletionRequestMessage[] = [
     {
       role: "system",
-      content: `You are a governance assistant that helps voting on DAO proposals. Impersonate the user and reply with a reason to vote. Do not exceed 400 characters and always break lines between paragraphs.`
+      content: `You are a governance assistant that helps voting on DAO proposals. Impersonate the user and reply with a reason to vote. Do not exceed 40 characters in total. Always break lines between paragraphs.`
     },
     {
       role: "user",
@@ -93,6 +99,12 @@ export function CastVoteInput({
       content: `Starting with "I am voting", explain why I'm for, against or abstaining from voting on this proposal. Write as if you were the user. Do it mentioning how my statement and views align or are in conflict with the following proposal:\n\n${proposal.description}`
     }
   ]
+
+  useEffect(() => {
+    if (address && proposalId) {
+      localStorage.setItem(`${address}-${proposalId}-reason`, reason)
+    }
+  }, [reason])
 
   return (
     <div
@@ -139,8 +151,9 @@ export function CastVoteInput({
             }
           `}
           placeholder="I believe..."
-          value={reason}
+          value={reason ?? undefined}
           onChange={(e) => setReason(e.target.value)}
+          disabled={isPending}
         />
 
         <button
@@ -163,12 +176,7 @@ export function CastVoteInput({
             statement &&
             (await generateChatGpt(messages, setReason, setIsPending))
           }
-          disabled={
-            !process.env.REACT_APP_OPENAI_KEY ||
-            !userView ||
-            !statement ||
-            isPending
-          }
+          disabled={!process.env.REACT_APP_OPENAI_KEY || !userView || isPending}
         >
           Auto-generate ✨
         </button>

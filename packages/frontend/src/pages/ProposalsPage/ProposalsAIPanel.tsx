@@ -7,7 +7,7 @@ import {
   ChatCompletionResponseMessage,
   OpenAI
 } from "openai-streams"
-import { Dispatch, SetStateAction, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import { yieldStream } from "yield-stream"
 import { VStack } from "../../components/VStack"
 import { css } from "@emotion/css"
@@ -44,7 +44,6 @@ export const generateChatGpt = async (
 ) => {
   setIsPending(true)
   setText("")
-
   try {
     const stream = await OpenAI(
       "chat",
@@ -90,7 +89,6 @@ export function ProposalsAIPanel({
 }: {
   fragmentRef: ProposalsAIPanelFragment$key
 }) {
-  const [report, setReport] = useState("")
   const [isPending, setIsPending] = useState(false)
   const { address } = useAccount()
 
@@ -117,10 +115,17 @@ export function ProposalsAIPanel({
   const proposal = useFragment(
     graphql`
       fragment ProposalsAIPanelFragment on Proposal {
+        id
         description
       }
     `,
     fragmentRef
+  )
+
+  const proposalId = proposal.id.split("|").pop()
+
+  const [report, setReport] = useState<string>(
+    localStorage.getItem(`${address}-${proposalId}-report`)!
   )
 
   const statement = query?.delegate?.statement
@@ -130,7 +135,7 @@ export function ProposalsAIPanel({
   const messages: ChatCompletionRequestMessage[] = [
     {
       role: "system",
-      content: `You are a governance assistant that helps voting on DAO proposals. Impersonate the user and reply with a reason to vote. Do not exceed 600 characters. Break lines between paragraphs and use bullet lists. Start with "The aim of this proposal is to".`
+      content: `You are a governance assistant that helps voting on DAO proposals. Impersonate the user and reply with a reason to vote. Do not exceed 400 characters. Break lines between paragraphs and use bullet lists. Start with "The aim of this proposal is to".`
     },
     {
       role: "user",
@@ -141,6 +146,12 @@ export function ProposalsAIPanel({
       content: `Based on how my statement and views align or are in conflict with the proposal, explain why I should vote for, against or abstain. Here is the proposal:\n\n${proposal.description}`
     }
   ]
+
+  useEffect(() => {
+    if (address && proposalId) {
+      localStorage.setItem(`${address}-${proposalId}-report`, report)
+    }
+  }, [report])
 
   return apiKey && userView ? (
     <VStack
@@ -180,7 +191,7 @@ export function ProposalsAIPanel({
               outline: 0;
             }
           `}
-          value={report}
+          value={report ?? undefined}
           placeholder="The aim of this proposal is to ..."
         />
         <button
@@ -204,7 +215,7 @@ export function ProposalsAIPanel({
             statement &&
             (await generateChatGpt(messages, setReport, setIsPending))
           }
-          disabled={!statement || isPending}
+          disabled={!process.env.REACT_APP_OPENAI_KEY || isPending}
         >
           Generate AI Report ✨
         </button>
