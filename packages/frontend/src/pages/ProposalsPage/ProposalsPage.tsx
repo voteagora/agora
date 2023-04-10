@@ -138,7 +138,7 @@ export function ProposalsPage() {
             queryFragmentRef={result}
             expanded={proposalsListExpanded}
           />
-          <ProposalsAIPanel fragmentRef={result.firstProposal} />
+          {/* <ProposalsAIPanel fragmentRef={result.firstProposal} /> */}
         </VStack>
       </HStack>
     </motion.div>
