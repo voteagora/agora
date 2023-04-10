@@ -17,7 +17,6 @@ import {
   useParams,
 } from "../../components/HammockRouter/HammockRouter";
 import { useAccount } from "wagmi";
-import { ProposalsAIPanel } from "./ProposalsAIPanel";
 
 export function ProposalsPage() {
   const { proposalId } = useParams();
@@ -38,7 +37,6 @@ export function ProposalsPage() {
         firstProposal: proposal(id: $proposalId) {
           number
           ...ProposalDetailPanelFragment
-          ...ProposalsAIPanelFragment
           ...VotesCastPanelFragment
         }
         ...ProposalsListPanelFragment
