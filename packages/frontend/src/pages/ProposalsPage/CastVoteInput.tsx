@@ -22,6 +22,7 @@ import {
   CastVoteInputFragment$data,
   CastVoteInputFragment$key,
 } from "./__generated__/CastVoteInputFragment.graphql";
+import { Tooltip } from "../../components/Tooltip";
 
 type Props = {
   onVoteClick: (
@@ -107,6 +108,14 @@ export function CastVoteInput({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reason]);
 
+  const aiGenerationDisabled = !userView || isPending;
+
+  const tooltipText = !address
+    ? "Connect your wallet"
+    : !userView
+    ? "Delegate statement required to generate reason"
+    : "Generation in progress";
+
   return (
     <div
       className={css`
@@ -171,15 +180,31 @@ export function CastVoteInput({
               @media (max-width: ${theme.maxWidth["2xl"]}) {
                 top: -30px;
               }
+              :disabled {
+                cursor: not-allowed;
+              }
+
+              &:hover .test {
+                visibility: visible;
+              }
             `
           }
           onClick={async () =>
             statement &&
             (await generateChatGpt(messages, setReason, setIsPending))
           }
-          disabled={!process.env.REACT_APP_OPENAI_KEY || !userView || isPending}
+          disabled={aiGenerationDisabled}
         >
           Auto-generate ✨
+          {aiGenerationDisabled && (
+            <Tooltip
+              text={tooltipText}
+              className={css`
+                right: 0;
+                font-size: ${theme.fontSize.xs};
+              `}
+            />
+          )}
         </button>
         <VStack
           justifyContent="stretch"
