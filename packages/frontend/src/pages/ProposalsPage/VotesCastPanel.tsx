@@ -36,6 +36,8 @@ export function VotesCastPanel({
         skipAddress: { type: "Boolean!" }
       ) {
         ...VotesCastPanelVotesFragment @arguments(proposalId: $proposalId)
+        ...CastVoteInputQueryFragment
+          @arguments(address: $address, skipAddress: $skipAddress)
         ...CastVoteInputVoteButtonsQueryFragment
           @arguments(address: $address, skipAddress: $skipAddress)
       }
@@ -203,6 +205,8 @@ export function VotesCastPanel({
           <CastVoteInput
             queryFragmentRef={queryResult}
             fragmentRef={result}
+            delegateFragmentRef={queryResult}
+            proposalFragmentRef={result}
             className={css`
               flex-shrink: 0;
               margin-top: ${theme.spacing["4"]};

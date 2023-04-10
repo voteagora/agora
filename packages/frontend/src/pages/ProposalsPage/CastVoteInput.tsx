@@ -8,21 +8,15 @@ import {
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 import { useEffect, useState } from "react";
 import graphql from "babel-plugin-relay/macro";
-import { useFragment, useLazyLoadQuery } from "react-relay/hooks";
-import {
-  CastVoteInputVoteButtonsFragment$data,
-  CastVoteInputVoteButtonsFragment$key,
-} from "./__generated__/CastVoteInputVoteButtonsFragment.graphql";
+import { useFragment } from "react-relay/hooks";
+import { CastVoteInputVoteButtonsFragment$key } from "./__generated__/CastVoteInputVoteButtonsFragment.graphql";
 import { CastVoteInputVoteButtonsQueryFragment$key } from "./__generated__/CastVoteInputVoteButtonsQueryFragment.graphql";
 import { useAccount } from "wagmi";
-import { CastVoteInputQuery } from "./__generated__/CastVoteInputQuery.graphql";
 import { generateChatGpt, generateUserView } from "./ProposalsAIPanel";
 import { ChatCompletionRequestMessage } from "openai-streams";
-import {
-  CastVoteInputFragment$data,
-  CastVoteInputFragment$key,
-} from "./__generated__/CastVoteInputFragment.graphql";
+import { CastVoteInputFragment$key } from "./__generated__/CastVoteInputFragment.graphql";
 import { Tooltip } from "../../components/Tooltip";
+import { CastVoteInputQueryFragment$key } from "./__generated__/CastVoteInputQueryFragment.graphql";
 
 type Props = {
   onVoteClick: (
@@ -31,8 +25,10 @@ type Props = {
     address: string
   ) => void;
   className: string;
-  fragmentRef: CastVoteInputFragment$key | CastVoteInputVoteButtonsFragment$key;
+  fragmentRef: CastVoteInputVoteButtonsFragment$key;
   queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
+  delegateFragmentRef: CastVoteInputQueryFragment$key;
+  proposalFragmentRef: CastVoteInputFragment$key;
 };
 
 export function CastVoteInput({
@@ -40,15 +36,21 @@ export function CastVoteInput({
   className,
   fragmentRef,
   queryFragmentRef,
+  delegateFragmentRef,
+  proposalFragmentRef,
 }: Props) {
   const [isPending, setIsPending] = useState(false);
 
   const { address } = useAccount();
 
-  const query = useLazyLoadQuery<CastVoteInputQuery>(
+  const { delegate } = useFragment(
     graphql`
-      query CastVoteInputQuery($addressOrEnsName: String!, $skip: Boolean!) {
-        delegate(addressOrEnsName: $addressOrEnsName) @skip(if: $skip) {
+      fragment CastVoteInputQueryFragment on Query
+      @argumentDefinitions(
+        address: { type: "String!" }
+        skipAddress: { type: "Boolean!" }
+      ) {
+        delegate(addressOrEnsName: $address) @skip(if: $skipAddress) {
           statement {
             statement
             # eslint-disable-next-line relay/unused-fields
@@ -60,10 +62,7 @@ export function CastVoteInput({
         }
       }
     `,
-    {
-      addressOrEnsName: address ?? "",
-      skip: !address,
-    }
+    delegateFragmentRef
   );
 
   const proposal = useFragment(
@@ -73,8 +72,8 @@ export function CastVoteInput({
         description
       }
     `,
-    fragmentRef
-  ) as CastVoteInputFragment$data;
+    proposalFragmentRef
+  );
 
   const proposalId = proposal.id.split("|").pop();
 
@@ -82,7 +81,7 @@ export function CastVoteInput({
     localStorage.getItem(`${address}-${proposalId}-reason`)!
   );
 
-  const statement = query?.delegate?.statement;
+  const statement = delegate?.statement;
 
   const userView = statement ? generateUserView(statement) : "";
 
@@ -238,7 +237,7 @@ function VoteButtons({
     nextSupportType: SupportTextProps["supportType"],
     address: string
   ) => void;
-  fragmentRef: CastVoteInputFragment$key | CastVoteInputVoteButtonsFragment$key;
+  fragmentRef: CastVoteInputVoteButtonsFragment$key;
   queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
 }) {
   const result = useFragment(
@@ -250,7 +249,7 @@ function VoteButtons({
       }
     `,
     fragmentRef
-  ) as CastVoteInputVoteButtonsFragment$data;
+  );
 
   const { delegate } = useFragment(
     graphql`
