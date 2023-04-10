@@ -1,29 +1,29 @@
-import { useFragment, useLazyLoadQuery } from "react-relay/hooks"
-import graphql from "babel-plugin-relay/macro"
-import { useAccount } from "wagmi"
-import { ProposalsAIPanelQuery } from "./__generated__/ProposalsAIPanelQuery.graphql"
+import { useFragment, useLazyLoadQuery } from "react-relay/hooks";
+import graphql from "babel-plugin-relay/macro";
+import { useAccount } from "wagmi";
+import { ProposalsAIPanelQuery } from "./__generated__/ProposalsAIPanelQuery.graphql";
 import {
   ChatCompletionRequestMessage,
   ChatCompletionResponseMessage,
-  OpenAI
-} from "openai-streams"
-import { Dispatch, SetStateAction, useEffect, useState } from "react"
-import { yieldStream } from "yield-stream"
-import { VStack } from "../../components/VStack"
-import { css } from "@emotion/css"
-import * as theme from "../../theme"
-import { ProposalsAIPanelFragment$key } from "./__generated__/ProposalsAIPanelFragment.graphql"
-import { buttonStyles } from "../EditDelegatePage/EditDelegatePage"
+  OpenAI,
+} from "openai-streams";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { yieldStream } from "yield-stream";
+import { VStack } from "../../components/VStack";
+import { css } from "@emotion/css";
+import * as theme from "../../theme";
+import { ProposalsAIPanelFragment$key } from "./__generated__/ProposalsAIPanelFragment.graphql";
+import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
 
-const apiKey = process.env.REACT_APP_OPENAI_KEY
+const apiKey = process.env.REACT_APP_OPENAI_KEY;
 
 export const generateUserView = (
   statement: {
-    readonly statement: string
+    readonly statement: string;
     readonly topIssues: readonly {
-      readonly type: string
-      readonly value: string
-    }[]
+      readonly type: string;
+      readonly value: string;
+    }[];
   } | null
 ) => `This is my statement: ${statement?.statement}
 
@@ -35,62 +35,62 @@ ${
         `On the topic of ${type}, my view is: ${value.trim()}`
     )
     .join(".\n")
-}`
+}`;
 
 export const generateChatGpt = async (
   messages: ChatCompletionRequestMessage[],
   setText: Dispatch<SetStateAction<string>>,
   setIsPending: Dispatch<SetStateAction<boolean>>
 ) => {
-  setIsPending(true)
-  setText("")
+  setIsPending(true);
+  setText("");
   try {
     const stream = await OpenAI(
       "chat",
       {
         model: "gpt-3.5-turbo",
         temperature: 0.7,
-        messages
+        messages,
       },
       { apiKey: apiKey }
-    )
+    );
 
-    const abortController = new AbortController()
-    const DECODER = new TextDecoder()
+    const abortController = new AbortController();
+    const DECODER = new TextDecoder();
 
     for await (const chunk of yieldStream(stream, abortController)) {
-      if (abortController.signal.aborted) break
+      if (abortController.signal.aborted) break;
 
       try {
         const decoded: ChatCompletionResponseMessage = JSON.parse(
           DECODER.decode(chunk)
-        )
+        );
 
         if (decoded.content === undefined)
           throw new Error(
             "No choices in response. Decoded response: " +
               JSON.stringify(decoded)
-          )
+          );
 
-        setText((text) => text + decoded.content)
+        setText((text) => text + decoded.content);
       } catch (err) {
-        console.error(err)
+        console.error(err);
       }
     }
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
 
-  setIsPending(false)
-}
+  setIsPending(false);
+};
 
 export function ProposalsAIPanel({
-  fragmentRef
+  fragmentRef,
 }: {
-  fragmentRef: ProposalsAIPanelFragment$key
+  fragmentRef: ProposalsAIPanelFragment$key;
 }) {
-  const [isPending, setIsPending] = useState(false)
-  const { address } = useAccount()
+  const [isPending, setIsPending] = useState(false);
+  const { address } = useAccount();
 
   const query = useLazyLoadQuery<ProposalsAIPanelQuery>(
     graphql`
@@ -108,9 +108,9 @@ export function ProposalsAIPanel({
     `,
     {
       addressOrEnsName: address ?? "",
-      skip: !address
+      skip: !address,
     }
-  )
+  );
 
   const proposal = useFragment(
     graphql`
@@ -120,38 +120,38 @@ export function ProposalsAIPanel({
       }
     `,
     fragmentRef
-  )
+  );
 
-  const proposalId = proposal.id.split("|").pop()
+  const proposalId = proposal.id.split("|").pop();
 
   const [report, setReport] = useState<string>(
     localStorage.getItem(`${address}-${proposalId}-report`)!
-  )
+  );
 
-  const statement = query?.delegate?.statement
+  const statement = query?.delegate?.statement;
 
-  const userView = statement ? generateUserView(statement) : ""
+  const userView = statement ? generateUserView(statement) : "";
 
   const messages: ChatCompletionRequestMessage[] = [
     {
       role: "system",
-      content: `You are a governance assistant that helps voting on DAO proposals. Impersonate the user and reply with a reason to vote. Do not exceed 400 characters. Break lines between paragraphs and use bullet lists. Start with "The aim of this proposal is to".`
+      content: `You are a governance assistant that helps voting on DAO proposals. Impersonate the user and reply with a reason to vote. Do not exceed 400 characters. Break lines between paragraphs and use bullet lists. Start with "The aim of this proposal is to".`,
     },
     {
       role: "user",
-      content: userView
+      content: userView,
     },
     {
       role: "user",
-      content: `Based on how my statement and views align or are in conflict with the proposal, explain why I should vote for, against or abstain. Here is the proposal:\n\n${proposal.description}`
-    }
-  ]
+      content: `Based on how my statement and views align or are in conflict with the proposal, explain why I should vote for, against or abstain. Here is the proposal:\n\n${proposal.description}`,
+    },
+  ];
 
   useEffect(() => {
     if (address && proposalId) {
-      localStorage.setItem(`${address}-${proposalId}-report`, report)
+      localStorage.setItem(`${address}-${proposalId}-report`, report);
     }
-  }, [report])
+  }, [report]);
 
   return apiKey && userView ? (
     <VStack
@@ -221,5 +221,5 @@ export function ProposalsAIPanel({
         </button>
       </VStack>
     </VStack>
-  ) : null
+  ) : null;
 }
