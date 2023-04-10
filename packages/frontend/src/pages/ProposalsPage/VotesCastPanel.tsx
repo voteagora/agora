@@ -17,7 +17,6 @@ import { VotesCastPanelHoveredVoterQuery } from "./__generated__/VotesCastPanelH
 import { VoterCard } from "../HomePage/VoterCard";
 import { VotesCastPanelQueryFragment$key } from "./__generated__/VotesCastPanelQueryFragment.graphql";
 import { BigNumber } from "ethers";
-import { ProposalsAIPanel } from "./ProposalsAIPanel";
 
 export function VotesCastPanel({
   fragmentRef,

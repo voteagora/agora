@@ -104,6 +104,7 @@ export function CastVoteInput({
     if (address && proposalId) {
       localStorage.setItem(`${address}-${proposalId}-reason`, reason);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reason]);
 
   return (

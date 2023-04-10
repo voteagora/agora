@@ -151,6 +151,7 @@ export function ProposalsAIPanel({
     if (address && proposalId) {
       localStorage.setItem(`${address}-${proposalId}-report`, report);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [report]);
 
   return apiKey && userView ? (
