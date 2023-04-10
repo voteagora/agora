@@ -16,6 +16,7 @@ import {
 import { ReactNode } from "react";
 import { BigNumber } from "ethers";
 import { pluralizeNoun, pluralizeVote } from "../../words";
+import { Tooltip } from "../../components/Tooltip";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;
@@ -242,27 +243,7 @@ function TitleDetail({ detail, value, icon, streak = 0 }: TitleDetailProps) {
         {value}
       </div>
 
-      <div
-        className={cx(
-          css`
-            position: absolute;
-            top: calc(100% + ${theme.spacing["1"]});
-            right: -${theme.spacing["2"]};
-
-            font-size: ${theme.fontSize.sm};
-            white-space: nowrap;
-            visibility: hidden;
-            background: #66676b;
-            border-radius: ${theme.spacing["1"]};
-            color: white;
-
-            padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
-          `,
-          "test"
-        )}
-      >
-        {detail}
-      </div>
+      <Tooltip text={detail} />
     </HStack>
   );
 }
