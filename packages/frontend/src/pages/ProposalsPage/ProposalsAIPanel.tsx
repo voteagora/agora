@@ -15,7 +15,7 @@ import * as theme from "../../theme"
 import { ProposalsAIPanelFragment$key } from "./__generated__/ProposalsAIPanelFragment.graphql"
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage"
 
-const apiKey = process.env.PUBLIC_OPENAI_KEY
+const apiKey = process.env.REACT_APP_OPENAI_KEY
 
 export const generateUserView = (
   statement: {
@@ -142,7 +142,7 @@ export function ProposalsAIPanel({
     }
   ]
 
-  return userView ? (
+  return apiKey && userView ? (
     <VStack
       gap="4"
       className={css`

@@ -163,7 +163,12 @@ export function CastVoteInput({
             statement &&
             (await generateChatGpt(messages, setReason, setIsPending))
           }
-          disabled={!userView || !statement || isPending}
+          disabled={
+            !process.env.REACT_APP_OPENAI_KEY ||
+            !userView ||
+            !statement ||
+            isPending
+          }
         >
           Auto-generate ✨
         </button>
