@@ -8,8 +8,7 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
 import { DelegatesContainer } from "./DelegatesContainer";
-import { VStack, HStack } from "../../components/VStack";
-import NounsPics from "./NounsPics.png";
+import { VStack } from "../../components/VStack";
 import {
   useLocation,
   Location,

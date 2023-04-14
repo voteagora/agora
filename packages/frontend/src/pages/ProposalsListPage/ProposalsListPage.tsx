@@ -8,7 +8,6 @@ import { startTransition, useState } from "react";
 import { PropHouseAuctionRow } from "./PropHouseAuctionRow";
 import { OnChainProposalRow } from "./OnChainProposalRow";
 import { PageDivider } from "../../components/PageDivider";
-import NounsPics from "./NounsPics.png";
 import { ProposalsListPageQuery } from "./__generated__/ProposalsListPageQuery.graphql";
 import {
   ProposalStatusFilter,
