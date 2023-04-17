@@ -6,17 +6,18 @@ import {
   SupportTextProps,
 } from "../DelegatePage/VoteDetailsContainer";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay/hooks";
 import { CastVoteInputVoteButtonsFragment$key } from "./__generated__/CastVoteInputVoteButtonsFragment.graphql";
 import { CastVoteInputVoteButtonsQueryFragment$key } from "./__generated__/CastVoteInputVoteButtonsQueryFragment.graphql";
 import { useAccount } from "wagmi";
-import { generateChatGpt, generateUserView } from "./ProposalsAIPanel";
+import { generateUserView } from "./ProposalsAIPanel";
 import { ChatCompletionRequestMessage } from "openai-streams";
 import { CastVoteInputFragment$key } from "./__generated__/CastVoteInputFragment.graphql";
 import { Tooltip } from "../../components/Tooltip";
 import { CastVoteInputQueryFragment$key } from "./__generated__/CastVoteInputQueryFragment.graphql";
+import { useGenerateChatGpt } from "../../hooks/useGenerateChatGpt";
 
 type Props = {
   onVoteClick: (
@@ -39,7 +40,9 @@ export function CastVoteInput({
   delegateFragmentRef,
   proposalFragmentRef,
 }: Props) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [reason, setReason] = useState("");
+
+  const { generateChatGpt, isLoading } = useGenerateChatGpt();
 
   const { address } = useAccount();
 
@@ -68,15 +71,10 @@ export function CastVoteInput({
   const proposal = useFragment(
     graphql`
       fragment CastVoteInputFragment on Proposal {
-        number
         description
       }
     `,
     proposalFragmentRef
-  );
-
-  const [reason, setReason] = useState<string>(
-    localStorage.getItem(`${address}-${proposal.number}-reason`)!
   );
 
   const statement = delegate?.statement;
@@ -98,12 +96,16 @@ export function CastVoteInput({
     },
   ];
 
-  useEffect(() => {
-    if (address && proposal.number) {
-      localStorage.setItem(`${address}-${proposal.number}-reason`, reason);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reason]);
+  // TODO: Consider using local storage to save the report
+  // const [reason, setReason] = useState<string>(
+  //   localStorage.getItem(`${address}-${proposal.number}-reason`)!
+  // );
+  // useEffect(() => {
+  //   if (address && proposal.number) {
+  //     localStorage.setItem(`${address}-${proposal.number}-reason`, reason);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [reason]);
 
   const aiGenerationDisabled = !userView || isLoading;
 
@@ -150,8 +152,7 @@ export function CastVoteInput({
           `
         }
         onClick={async () =>
-          statement &&
-          (await generateChatGpt(messages, setReason, setIsLoading))
+          statement && (await generateChatGpt(messages, setReason))
         }
         disabled={aiGenerationDisabled}
       >
