@@ -1,22 +1,13 @@
-import * as Sentry from "@sentry/react";
-import { useFragment, useLazyLoadQuery } from "react-relay/hooks";
+import { useFragment } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
-import { useAccount } from "wagmi";
-import { ProposalsAIPanelQuery } from "./__generated__/ProposalsAIPanelQuery.graphql";
-import {
-  ChatCompletionRequestMessage,
-  ChatCompletionResponseMessage,
-  OpenAI,
-} from "openai-streams";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { yieldStream } from "yield-stream";
+import { ChatCompletionRequestMessage } from "openai-streams";
 import { VStack } from "../../components/VStack";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { ProposalsAIPanelFragment$key } from "./__generated__/ProposalsAIPanelFragment.graphql";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
-
-const DECODER = new TextDecoder();
+import { ProposalsAIPanelQueryFragment$key } from "./__generated__/ProposalsAIPanelQueryFragment.graphql";
+import { useGenerateChatGpt } from "../../hooks/useGenerateChatGpt";
 
 export const generateUserView = (
   statement: {
@@ -37,61 +28,26 @@ export const generateUserView = (
       .join(".\n")
   }`;
 
-export const generateChatGpt = async (
-  messages: ChatCompletionRequestMessage[],
-  setText: Dispatch<SetStateAction<string>>,
-  setIsPending: Dispatch<SetStateAction<boolean>>
-) => {
-  setIsPending(true);
-  setText("");
-  try {
-    const stream = await OpenAI(
-      "chat",
-      {
-        model: "gpt-3.5-turbo",
-        temperature: 0.7,
-        messages,
-      },
-      { apiKey: process.env.REACT_APP_OPENAI_KEY }
-    );
-
-    for await (const chunk of yieldStream(stream)) {
-      try {
-        const decoded: ChatCompletionResponseMessage = JSON.parse(
-          DECODER.decode(chunk)
-        );
-
-        if (decoded.content === undefined)
-          throw new Error(
-            "No choices in response. Decoded response: " +
-              JSON.stringify(decoded)
-          );
-
-        setText((text) => text + decoded.content);
-      } catch {}
-    }
-  } catch (e) {
-    const id = Sentry.captureException(e);
-    console.error(e, { id });
-  }
-
-  setIsPending(false);
-};
-
 export function ProposalsAIPanel({
-  fragmentRef,
+  delegateFragmentRef,
+  proposalFragmentRef,
 }: {
-  fragmentRef: ProposalsAIPanelFragment$key;
+  delegateFragmentRef: ProposalsAIPanelQueryFragment$key;
+  proposalFragmentRef: ProposalsAIPanelFragment$key;
 }) {
-  const [isPending, setIsPending] = useState(false);
-  const { address } = useAccount();
+  const { generateChatGpt, text, isLoading } = useGenerateChatGpt();
 
-  const query = useLazyLoadQuery<ProposalsAIPanelQuery>(
+  const { delegate } = useFragment(
     graphql`
-      query ProposalsAIPanelQuery($addressOrEnsName: String!, $skip: Boolean!) {
-        delegate(addressOrEnsName: $addressOrEnsName) @skip(if: $skip) {
+      fragment ProposalsAIPanelQueryFragment on Query
+      @argumentDefinitions(
+        address: { type: "String!" }
+        skipAddress: { type: "Boolean!" }
+      ) {
+        delegate(addressOrEnsName: $address) @skip(if: $skipAddress) {
           statement {
             statement
+            # eslint-disable-next-line relay/unused-fields
             topIssues {
               type
               value
@@ -100,27 +56,19 @@ export function ProposalsAIPanel({
         }
       }
     `,
-    {
-      addressOrEnsName: address ?? "",
-      skip: !address,
-    }
+    delegateFragmentRef
   );
 
   const proposal = useFragment(
     graphql`
       fragment ProposalsAIPanelFragment on Proposal {
-        number
         description
       }
     `,
-    fragmentRef
+    proposalFragmentRef
   );
 
-  const [report, setReport] = useState<string>(
-    localStorage.getItem(`${address}-${proposal.number}-report`)!
-  );
-
-  const statement = query?.delegate?.statement;
+  const statement = delegate?.statement;
 
   const userView = statement ? generateUserView(statement) : "";
 
@@ -139,12 +87,17 @@ export function ProposalsAIPanel({
     },
   ];
 
-  useEffect(() => {
-    if (address && proposal.number) {
-      localStorage.setItem(`${address}-${proposal.number}-report`, report);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [report]);
+  // TODO: Consider using local storage to save the report
+  // const [report, setReport] = useState<string>(
+  //   localStorage.getItem(`${address}-${proposal.number}-report`)!
+  // )
+
+  // useEffect(() => {
+  //   if (address && proposal.number) {
+  //     localStorage.setItem(`${address}-${proposal.number}-report`, report)
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [report])
 
   return userView ? (
     <VStack
@@ -184,7 +137,7 @@ export function ProposalsAIPanel({
               outline: 0;
             }
           `}
-          value={report ?? undefined}
+          value={text ?? undefined}
           placeholder="The aim of this proposal is to ..."
         />
         <button
@@ -204,11 +157,8 @@ export function ProposalsAIPanel({
               margin-bottom: ${theme.spacing["3"]};
             `
           }
-          onClick={async () =>
-            statement &&
-            (await generateChatGpt(messages, setReport, setIsPending))
-          }
-          disabled={isPending}
+          onClick={async () => statement && (await generateChatGpt(messages))}
+          disabled={isLoading}
         >
           Generate AI Report ✨
         </button>
