@@ -68,17 +68,15 @@ export function CastVoteInput({
   const proposal = useFragment(
     graphql`
       fragment CastVoteInputFragment on Proposal {
-        id
+        number
         description
       }
     `,
     proposalFragmentRef
   );
 
-  const proposalId = proposal.id.split("|").pop();
-
   const [reason, setReason] = useState<string>(
-    localStorage.getItem(`${address}-${proposalId}-reason`)!
+    localStorage.getItem(`${address}-${proposal.number}-reason`)!
   );
 
   const statement = delegate?.statement;
@@ -101,8 +99,8 @@ export function CastVoteInput({
   ];
 
   useEffect(() => {
-    if (address && proposalId) {
-      localStorage.setItem(`${address}-${proposalId}-reason`, reason);
+    if (address && proposal.number) {
+      localStorage.setItem(`${address}-${proposal.number}-reason`, reason);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reason]);

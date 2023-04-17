@@ -109,17 +109,15 @@ export function ProposalsAIPanel({
   const proposal = useFragment(
     graphql`
       fragment ProposalsAIPanelFragment on Proposal {
-        id
+        number
         description
       }
     `,
     fragmentRef
   );
 
-  const proposalId = proposal.id.split("|").pop();
-
   const [report, setReport] = useState<string>(
-    localStorage.getItem(`${address}-${proposalId}-report`)!
+    localStorage.getItem(`${address}-${proposal.number}-report`)!
   );
 
   const statement = query?.delegate?.statement;
@@ -142,8 +140,8 @@ export function ProposalsAIPanel({
   ];
 
   useEffect(() => {
-    if (address && proposalId) {
-      localStorage.setItem(`${address}-${proposalId}-report`, report);
+    if (address && proposal.number) {
+      localStorage.setItem(`${address}-${proposal.number}-report`, report);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [report]);
