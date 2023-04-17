@@ -106,13 +106,11 @@ export function ProposalsPage() {
             @media (max-width: ${theme.maxWidth["2xl"]}) {
               position: fixed;
               left: 16px;
-              top: calc(100% - 168px);
-              max-height: 152px;
-              height: 152px;
+              top: calc(100% - 204px);
+              height: 188px;
               align-items: stretch;
               justify-content: flex-end;
               width: calc(100% - 32px);
-              height: auto;
             }
           `}
         >

@@ -36,6 +36,8 @@ export function VotesCastPanel({
         skipAddress: { type: "Boolean!" }
       ) {
         ...VotesCastPanelVotesFragment @arguments(proposalId: $proposalId)
+        ...CastVoteInputQueryFragment
+          @arguments(address: $address, skipAddress: $skipAddress)
         ...CastVoteInputVoteButtonsQueryFragment
           @arguments(address: $address, skipAddress: $skipAddress)
       }
@@ -70,6 +72,7 @@ export function VotesCastPanel({
         number
 
         ...ProposalVotesSummaryFragment
+        ...CastVoteInputFragment
         ...CastVoteInputVoteButtonsFragment
       }
     `,
@@ -102,6 +105,9 @@ export function VotesCastPanel({
             padding-right: ${theme.spacing["4"]};
             overflow-y: scroll;
             ::-webkit-scrollbar {
+              display: none;
+            }
+            @media (max-width: ${theme.maxWidth["2xl"]}) {
               display: none;
             }
           `}
@@ -198,9 +204,12 @@ export function VotesCastPanel({
         {!expanded && (
           <CastVoteInput
             queryFragmentRef={queryResult}
-            framgnetRef={result}
+            fragmentRef={result}
+            delegateFragmentRef={queryResult}
+            proposalFragmentRef={result}
             className={css`
               flex-shrink: 0;
+              margin-top: ${theme.spacing["4"]};
               margin-left: ${theme.spacing["4"]};
               margin-right: ${theme.spacing["4"]};
             `}
