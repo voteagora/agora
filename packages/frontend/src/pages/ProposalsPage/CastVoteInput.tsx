@@ -96,17 +96,6 @@ export function CastVoteInput({
     },
   ];
 
-  // TODO: Consider using local storage to save the report
-  // const [reason, setReason] = useState<string>(
-  //   localStorage.getItem(`${address}-${proposal.number}-reason`)!
-  // );
-  // useEffect(() => {
-  //   if (address && proposal.number) {
-  //     localStorage.setItem(`${address}-${proposal.number}-reason`, reason);
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [reason]);
-
   const aiGenerationDisabled = !userView || isLoading;
 
   return (

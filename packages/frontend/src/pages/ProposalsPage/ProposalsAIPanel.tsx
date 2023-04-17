@@ -87,18 +87,6 @@ export function ProposalsAIPanel({
     },
   ];
 
-  // TODO: Consider using local storage to save the report
-  // const [report, setReport] = useState<string>(
-  //   localStorage.getItem(`${address}-${proposal.number}-report`)!
-  // )
-
-  // useEffect(() => {
-  //   if (address && proposal.number) {
-  //     localStorage.setItem(`${address}-${proposal.number}-report`, report)
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [report])
-
   return userView ? (
     <VStack
       gap="4"
