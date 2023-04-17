@@ -11,6 +11,13 @@ import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay/hooks";
 import { CastVoteInputVoteButtonsFragment$key } from "./__generated__/CastVoteInputVoteButtonsFragment.graphql";
 import { CastVoteInputVoteButtonsQueryFragment$key } from "./__generated__/CastVoteInputVoteButtonsQueryFragment.graphql";
+import { useAccount } from "wagmi";
+import { generateUserView } from "./ProposalsAIPanel";
+import { ChatCompletionRequestMessage } from "openai-streams";
+import { CastVoteInputFragment$key } from "./__generated__/CastVoteInputFragment.graphql";
+import { Tooltip } from "../../components/Tooltip";
+import { CastVoteInputQueryFragment$key } from "./__generated__/CastVoteInputQueryFragment.graphql";
+import { useGenerateChatGpt } from "../../hooks/useGenerateChatGpt";
 
 type Props = {
   onVoteClick: (
@@ -19,17 +26,77 @@ type Props = {
     address: string
   ) => void;
   className: string;
-  framgnetRef: CastVoteInputVoteButtonsFragment$key;
+  fragmentRef: CastVoteInputVoteButtonsFragment$key;
   queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
+  delegateFragmentRef: CastVoteInputQueryFragment$key;
+  proposalFragmentRef: CastVoteInputFragment$key;
 };
 
 export function CastVoteInput({
   onVoteClick,
   className,
-  framgnetRef,
+  fragmentRef,
   queryFragmentRef,
+  delegateFragmentRef,
+  proposalFragmentRef,
 }: Props) {
-  const [reason, setReason] = useState<string>("");
+  const [reason, setReason] = useState("");
+
+  const { generateChatGpt, isLoading } = useGenerateChatGpt();
+
+  const { address } = useAccount();
+
+  const { delegate } = useFragment(
+    graphql`
+      fragment CastVoteInputQueryFragment on Query
+      @argumentDefinitions(
+        address: { type: "String!" }
+        skipAddress: { type: "Boolean!" }
+      ) {
+        delegate(addressOrEnsName: $address) @skip(if: $skipAddress) {
+          statement {
+            statement
+            # eslint-disable-next-line relay/unused-fields
+            topIssues {
+              type
+              value
+            }
+          }
+        }
+      }
+    `,
+    delegateFragmentRef
+  );
+
+  const proposal = useFragment(
+    graphql`
+      fragment CastVoteInputFragment on Proposal {
+        description
+      }
+    `,
+    proposalFragmentRef
+  );
+
+  const statement = delegate?.statement;
+
+  const userView = statement ? generateUserView(statement) : "";
+
+  const messages: ChatCompletionRequestMessage[] = [
+    {
+      role: "system",
+      content: `You are a governance assistant that helps voting on DAO proposals. Impersonate the user and reply with a reason to vote. Do not exceed 400 characters in total. Always break lines between paragraphs.`,
+    },
+    {
+      role: "user",
+      content: userView,
+    },
+    {
+      role: "user",
+      content: `Starting with "I am voting", explain why I'm for, against or abstaining from voting on this proposal. Write as if you were me. Do it mentioning how my statement and views align or are in conflict with the following proposal:\n\n${proposal.description}`,
+    },
+  ];
+
+  const aiGenerationDisabled = !userView || isLoading;
 
   return (
     <div
@@ -52,7 +119,51 @@ export function CastVoteInput({
             rgba(255, 255, 255, 0) 100%
           );
         `}
-      ></div>
+      />
+      <button
+        className={
+          buttonStyles +
+          " " +
+          css`
+            position: absolute;
+            top: -${theme.spacing["5"]};
+            right: ${theme.spacing["4"]};
+            width: fit-content;
+            padding: ${theme.spacing["1"]} ${theme.spacing["3"]};
+
+            :disabled {
+              cursor: not-allowed;
+            }
+
+            &:hover > #tooltip {
+              visibility: visible;
+            }
+          `
+        }
+        onClick={async () =>
+          statement && (await generateChatGpt(messages, setReason))
+        }
+        disabled={aiGenerationDisabled}
+      >
+        Auto-generate ✨
+        {aiGenerationDisabled && (
+          <Tooltip
+            text={(() => {
+              if (!address) {
+                return "Connect your wallet";
+              }
+              if (!userView) {
+                return "Delegate statement required to generate reason";
+              }
+              return "Generation in progress";
+            })()}
+            className={css`
+              right: 0;
+              font-size: ${theme.fontSize.xs};
+            `}
+          />
+        )}
+      </button>
       <VStack
         className={cx(
           css`
@@ -76,9 +187,11 @@ export function CastVoteInput({
             }
           `}
           placeholder="I believe..."
-          value={reason}
+          value={reason ?? undefined}
           onChange={(e) => setReason(e.target.value)}
+          disabled={isLoading}
         />
+
         <VStack
           justifyContent="stretch"
           alignItems="stretch"
@@ -93,7 +206,7 @@ export function CastVoteInput({
             onClick={(supportType, address) =>
               onVoteClick(supportType, reason, address)
             }
-            fragmentRef={framgnetRef}
+            fragmentRef={fragmentRef}
             queryFragmentRef={queryFragmentRef}
           />
         </VStack>

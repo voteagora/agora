@@ -42,6 +42,7 @@ jobs:
           REACT_APP_DEPLOY_ENV: ${{ github.event.inputs.environment || 'staging' }}
           REACT_APP_ALCHEMY_ID: ${{ secrets.ALCHEMY_KEY }}
           REACT_APP_GOOGLE_ANALYTICS_ID: ${{ secrets.GOOGLE_ANALYTICS_ID }}
+          REACT_APP_OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
 
       - uses: getsentry/action-release@v1
         env:
