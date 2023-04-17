@@ -68,9 +68,7 @@ export const generateChatGpt = async (
           );
 
         setText((text) => text + decoded.content);
-      } catch (err) {
-        console.error(err);
-      }
+      } catch {}
     }
   } catch (e) {
     const id = Sentry.captureException(e);
