@@ -109,12 +109,6 @@ export function CastVoteInput({
 
   const aiGenerationDisabled = !userView || isPending;
 
-  const tooltipText = !address
-    ? "Connect your wallet"
-    : !userView
-    ? "Delegate statement required to generate reason"
-    : "Generation in progress";
-
   return (
     <div
       className={css`
@@ -137,6 +131,51 @@ export function CastVoteInput({
           );
         `}
       />
+      <button
+        className={
+          buttonStyles +
+          " " +
+          css`
+            position: absolute;
+            top: -${theme.spacing["5"]};
+            right: ${theme.spacing["4"]};
+            width: fit-content;
+            padding: ${theme.spacing["1"]} ${theme.spacing["3"]};
+
+            :disabled {
+              cursor: not-allowed;
+            }
+
+            &:hover > #tooltip {
+              visibility: visible;
+            }
+          `
+        }
+        onClick={async () =>
+          statement &&
+          (await generateChatGpt(messages, setReason, setIsPending))
+        }
+        disabled={aiGenerationDisabled}
+      >
+        Auto-generate ✨
+        {aiGenerationDisabled && (
+          <Tooltip
+            text={(() => {
+              if (!address) {
+                return "Connect your wallet";
+              }
+              if (!userView) {
+                return "Delegate statement required to generate reason";
+              }
+              return "Generation in progress";
+            })()}
+            className={css`
+              right: 0;
+              font-size: ${theme.fontSize.xs};
+            `}
+          />
+        )}
+      </button>
       <VStack
         className={cx(
           css`
@@ -165,46 +204,6 @@ export function CastVoteInput({
           disabled={isPending}
         />
 
-        <button
-          className={
-            buttonStyles +
-            " " +
-            css`
-              position: absolute;
-              top: -18px;
-              right: 16px;
-              font-size: x-small;
-              width: fit-content;
-              padding: ${theme.spacing["1"]} ${theme.spacing["3"]};
-              @media (max-width: ${theme.maxWidth["2xl"]}) {
-                top: -30px;
-              }
-              :disabled {
-                cursor: not-allowed;
-              }
-
-              &:hover > #tooltip {
-                visibility: visible;
-              }
-            `
-          }
-          onClick={async () =>
-            statement &&
-            (await generateChatGpt(messages, setReason, setIsPending))
-          }
-          disabled={aiGenerationDisabled}
-        >
-          Auto-generate ✨
-          {aiGenerationDisabled && (
-            <Tooltip
-              text={tooltipText}
-              className={css`
-                right: 0;
-                font-size: ${theme.fontSize.xs};
-              `}
-            />
-          )}
-        </button>
         <VStack
           justifyContent="stretch"
           alignItems="stretch"
