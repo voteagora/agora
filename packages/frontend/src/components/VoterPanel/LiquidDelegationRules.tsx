@@ -32,7 +32,12 @@ export function LiquidDelegationRules({
   return (
     <VStack
       className={css`
-        font-size: ${theme.fontSize.sm};
+        font-size: ${theme.fontSize.xs};
+        border-left: 1px solid ${theme.colors.gray[300]};
+        padding-left: ${theme.spacing[2]};
+        padding-top: ${theme.spacing[1]};
+        padding-bottom: ${theme.spacing[1]};
+        color: ${theme.colors.gray[700]};
       `}
     >
       <TimeRule fragmentRef={rules} />
