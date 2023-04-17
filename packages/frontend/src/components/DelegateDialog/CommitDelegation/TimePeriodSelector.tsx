@@ -6,7 +6,7 @@ import { BigNumber } from "ethers";
 export type TimePeriodSettingType =
   | "INFINITE"
   | "TIME_PERIOD_1_MONTH"
-  | "TIME_PERIOD_3_MONTH"
+  | "TIME_PERIOD_2_MONTH"
   | "TIME_PERIOD_6_MONTH"
   | "TIME_PERIOD_12_MONTH";
 
@@ -38,9 +38,9 @@ export function TimePeriodSelector({ value, onChange }: Props) {
       value: "TIME_PERIOD_1_MONTH" as const,
     },
     {
-      title: "Delegate temporarily (3 months)",
-      subTitle: "Your delegate can vote for 3 months.",
-      value: "TIME_PERIOD_3_MONTH" as const,
+      title: "Delegate temporarily (2 months)",
+      subTitle: "Your delegate can vote for 2 months.",
+      value: "TIME_PERIOD_2_MONTH" as const,
     },
     {
       title: "Delegate temporarily (6 months)",

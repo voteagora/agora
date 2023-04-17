@@ -88,8 +88,8 @@ export function delegateRulesToContractState(
             switch (timePeriod) {
               case "TIME_PERIOD_1_MONTH":
                 return 1;
-              case "TIME_PERIOD_3_MONTH":
-                return 3;
+              case "TIME_PERIOD_2_MONTH":
+                return 2;
               case "TIME_PERIOD_6_MONTH":
                 return 6;
               case "TIME_PERIOD_12_MONTH":
