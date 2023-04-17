@@ -39,7 +39,7 @@ export function CastVoteInput({
   delegateFragmentRef,
   proposalFragmentRef,
 }: Props) {
-  const [isPending, setIsPending] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { address } = useAccount();
 
@@ -107,7 +107,7 @@ export function CastVoteInput({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reason]);
 
-  const aiGenerationDisabled = !userView || isPending;
+  const aiGenerationDisabled = !userView || isLoading;
 
   return (
     <div
@@ -153,7 +153,7 @@ export function CastVoteInput({
         }
         onClick={async () =>
           statement &&
-          (await generateChatGpt(messages, setReason, setIsPending))
+          (await generateChatGpt(messages, setReason, setIsLoading))
         }
         disabled={aiGenerationDisabled}
       >
@@ -201,7 +201,7 @@ export function CastVoteInput({
           placeholder="I believe..."
           value={reason ?? undefined}
           onChange={(e) => setReason(e.target.value)}
-          disabled={isPending}
+          disabled={isLoading}
         />
 
         <VStack
