@@ -9,6 +9,7 @@ type TooltipProps = {
 export function Tooltip({ text, className }: TooltipProps) {
   return (
     <div
+      id="tooltip"
       className={cx(
         css`
           position: absolute;
@@ -24,8 +25,7 @@ export function Tooltip({ text, className }: TooltipProps) {
 
           padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
         `,
-        className,
-        "test"
+        className
       )}
     >
       {text}

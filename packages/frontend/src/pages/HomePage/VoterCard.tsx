@@ -219,7 +219,7 @@ function TitleDetail({ detail, value, icon, streak = 0 }: TitleDetailProps) {
       className={css`
         position: relative;
 
-        &:hover .test {
+        &:hover > #tooltip {
           visibility: visible;
         }
       `}

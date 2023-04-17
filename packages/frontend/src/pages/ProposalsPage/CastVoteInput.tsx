@@ -183,7 +183,7 @@ export function CastVoteInput({
                 cursor: not-allowed;
               }
 
-              &:hover .test {
+              &:hover > #tooltip {
                 visibility: visible;
               }
             `
