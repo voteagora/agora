@@ -62,13 +62,14 @@ export function ProposalsCreatedRow({
           {proposed.map((proposal) => {
             return (
               <Link to={`/proposals/${proposal.number}`}>
-                <HStack
-                  justifyContent="space-between"
-                  className={css`
-                    color: ${theme.colors.gray[700]};
-                  `}
-                >
-                  <div>Prop {proposal.number}</div>
+                <HStack justifyContent="space-between">
+                  <div
+                    className={css`
+                      color: ${theme.colors.gray[700]};
+                    `}
+                  >
+                    Prop {proposal.number}
+                  </div>
                   <div
                     className={css`
                       overflow: hidden;
