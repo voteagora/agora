@@ -26,10 +26,8 @@ export function VoterPanel({ fragment }: Props) {
       fragment VoterPanelFragment on Delegate {
         ...NameSectionFragment
 
-        delegateMetrics {
-          ...ProposalsCreatedRowFragment
-          ...RecentActivityRowFragment
-        }
+        ...ProposalsCreatedRowFragment
+        ...RecentActivityRowFragment
 
         ...DelegateFromListRowFragment
         ...DelegatedToListRowFragment
@@ -82,8 +80,8 @@ export function VoterPanel({ fragment }: Props) {
             <ProposalsVotedRow fragment={delegate} />
             <VotePowerRow fragment={delegate} />
             <ForAgainstAbstainRow fragment={delegate} />
-            <RecentActivityRow fragment={delegate.delegateMetrics} />
-            <ProposalsCreatedRow fragment={delegate.delegateMetrics} />
+            <RecentActivityRow fragment={delegate} />
+            <ProposalsCreatedRow fragment={delegate} />
             <DelegateFromList fragment={delegate} />
             <DelegatedToListRow fragmentRef={delegate} />
           </VStack>
