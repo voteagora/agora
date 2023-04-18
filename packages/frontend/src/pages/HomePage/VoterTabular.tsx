@@ -204,7 +204,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
                       color: #66676b;
                     `}
                   >
-                    Currently seeking delegation
+                    No delegation currently
                   </div>
                 </VStack>
               );

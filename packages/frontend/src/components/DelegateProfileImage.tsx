@@ -80,7 +80,7 @@ export function DelegateProfileImage({ fragment, dense }: Props) {
           padding: 0 ${theme.spacing["4"]};
         `}
       >
-        Currently seeking delegation
+        No delegation currently
       </div>
     </HStack>
   ) : (
