@@ -8,10 +8,12 @@ export function RecentActivityRow({
 }: {
   fragment: RecentActivityRowFragment$key;
 }) {
-  const { ofLastTenProps } = useFragment(
+  const { delegateMetrics } = useFragment(
     graphql`
-      fragment RecentActivityRowFragment on DelegateMetrics {
-        ofLastTenProps
+      fragment RecentActivityRowFragment on Delegate {
+        delegateMetrics {
+          ofLastTenProps
+        }
       }
     `,
     fragment
@@ -20,7 +22,11 @@ export function RecentActivityRow({
   return (
     <PanelRow
       title="Recent activity"
-      detail={ofLastTenProps ? `${ofLastTenProps} of 10 last props` : "N/A"}
+      detail={
+        delegateMetrics.ofLastTenProps
+          ? `${delegateMetrics.ofLastTenProps} of 10 last props`
+          : "N/A"
+      }
     />
   );
 }
