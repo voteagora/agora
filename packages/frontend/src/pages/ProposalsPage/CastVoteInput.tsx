@@ -141,6 +141,9 @@ export function CastVoteInput({
             &:hover > #tooltip {
               visibility: visible;
             }
+            @media (max-width: ${theme.maxWidth["2xl"]}) {
+              top: -${theme.spacing["8"]};
+            }
           `
         }
         onClick={async () =>
@@ -184,12 +187,15 @@ export function CastVoteInput({
             padding: ${theme.spacing["4"]};
             resize: none;
             border-radius: ${theme.borderRadius.lg};
-            height: ${reason ? theme.spacing["32"] : theme.spacing["12"]};
-            transition-property: height;
-            transition-duration: 150ms;
 
             :focus {
               outline: 0;
+            }
+
+            @media (min-width: ${theme.maxWidth["2xl"]}) {
+              height: ${reason ? theme.spacing["40"] : theme.spacing["12"]};
+              transition-property: height;
+              transition-duration: 150ms;
             }
           `}
           placeholder="I believe..."
