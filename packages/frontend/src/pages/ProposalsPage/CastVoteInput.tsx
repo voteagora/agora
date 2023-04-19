@@ -184,6 +184,9 @@ export function CastVoteInput({
             padding: ${theme.spacing["4"]};
             resize: none;
             border-radius: ${theme.borderRadius.lg};
+            height: ${reason ? theme.spacing["32"] : theme.spacing["12"]};
+            transition-property: height;
+            transition-duration: 150ms;
 
             :focus {
               outline: 0;
