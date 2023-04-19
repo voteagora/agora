@@ -84,7 +84,7 @@ export function CastVoteInput({
   const messages: ChatCompletionRequestMessage[] = [
     {
       role: "system",
-      content: `You are a governance assistant that helps voting on DAO proposals. Impersonate the user and reply with a reason to vote. Do not exceed 400 characters in total. Always break lines between paragraphs.`,
+      content: `You are a governance assistant that helps voting on DAO proposals. Impersonate the user and reply with a reason to vote reflecting his beliefs. Do not exceed 500 characters in total. Always break lines between paragraphs.`,
     },
     {
       role: "user",
@@ -92,7 +92,10 @@ export function CastVoteInput({
     },
     {
       role: "user",
-      content: `Starting with "I am voting", explain why I'm for, against or abstaining from voting on this proposal. Write as if you were me. Do it mentioning how my statement and views align or are in conflict with the following proposal:\n\n${proposal.description}`,
+      content: `Starting with "I am voting", explain why I'm for, against or abstaining from voting on this proposal. Write as if you were me. Do it mentioning how my statement and views align or are in conflict with the following proposal:\n\n${proposal.description.slice(
+        0,
+        12000
+      )}`,
     },
   ];
 
