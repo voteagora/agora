@@ -83,6 +83,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
         tokensOwned: BigNumber.from(it.tokensOwned.amount.amount),
         it,
       }))
+      .filter((item) => item.tokensOwned.toNumber() > 0)
       .slice()
       .sort(descendingValueComparator((item) => item.tokensOwned.toNumber()));
   }, [delegate]);
@@ -228,7 +229,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
                       resolvedName={tokenHolders[0].it.address.resolvedName}
                     />
                     {tokenHolders.length > 1 &&
-                      ` + ${pluralizeOther(tokenHolders.length - 1)}`}
+                      ` and ${pluralizeOther(tokenHolders.length - 1)}`}
                   </div>
 
                   <div
