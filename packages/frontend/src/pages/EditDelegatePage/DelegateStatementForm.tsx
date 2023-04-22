@@ -1,43 +1,41 @@
 import { css, cx } from "@emotion/css";
-import * as Sentry from "@sentry/react";
-import { useMutation as useReactQueryMutation } from "@tanstack/react-query";
-import graphql from "babel-plugin-relay/macro";
-import { BigNumber, ethers, Signer } from "ethers";
-import { isEqual } from "lodash";
-import { useEffect, useMemo, useState } from "react";
-import { useFragment, useMutation, VariablesOf } from "react-relay";
-import { useAccount, useProvider, useSigner } from "wagmi";
-
-import {
-  BlockNavigationError,
-  browserHistory,
-  useNavigate,
-} from "../../components/HammockRouter/HammockRouter";
-import { HStack, VStack } from "../../components/VStack";
-import { GnosisSafe, GnosisSafe__factory } from "../../contracts/generated";
 import * as theme from "../../theme";
-
 import {
   DelegateStatementFormSection,
   tipTextStyle,
 } from "./DelegateStatementFormSection";
-import { buttonStyles } from "./EditDelegatePage";
-import { OtherInfoFormSection } from "./OtherInfoFormSection";
-import {
-  PastProposalsFormSection,
-  SelectedProposal,
-} from "./PastProposalsFormSection";
 import {
   initialTopIssues,
   IssueState,
   TopIssuesFormSection,
 } from "./TopIssuesFormSection";
-import { DelegateStatementFormFragment$key } from "./__generated__/DelegateStatementFormFragment.graphql";
+import {
+  PastProposalsFormSection,
+  SelectedProposal,
+} from "./PastProposalsFormSection";
+import { OtherInfoFormSection } from "./OtherInfoFormSection";
+import { buttonStyles } from "./EditDelegatePage";
+import { UseForm, useForm } from "./useForm";
+import { useAccount, useProvider, useSigner } from "wagmi";
+import { useFragment, useMutation, VariablesOf } from "react-relay";
+import { useMutation as useReactQueryMutation } from "@tanstack/react-query";
+import graphql from "babel-plugin-relay/macro";
 import {
   DelegateStatementFormMutation,
   ValueWithSignature,
 } from "./__generated__/DelegateStatementFormMutation.graphql";
-import { UseForm, useForm } from "./useForm";
+import { HStack, VStack } from "../../components/VStack";
+import { DelegateStatementFormFragment$key } from "./__generated__/DelegateStatementFormFragment.graphql";
+import { useEffect, useMemo, useState } from "react";
+import { isEqual } from "lodash";
+import {
+  BlockNavigationError,
+  browserHistory,
+  useNavigate,
+} from "../../components/HammockRouter/HammockRouter";
+import { BigNumber, ethers, Signer } from "ethers";
+import * as Sentry from "@sentry/react";
+import { GnosisSafe, GnosisSafe__factory } from "../../contracts/generated";
 
 type DelegateStatementFormProps = {
   queryFragment: DelegateStatementFormFragment$key;

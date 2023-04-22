@@ -1,20 +1,18 @@
 import { css } from "@emotion/css";
+import * as theme from "../theme";
+import logo from "../logo.svg";
 import graphql from "babel-plugin-relay/macro";
 import { ConnectKitButton } from "connectkit";
-import { ReactNode } from "react";
-import { useLazyLoadQuery } from "react-relay/hooks";
-import { useMediaQuery } from "react-responsive";
 import { useAccount } from "wagmi";
-
-import { icons } from "../icons/icons";
-import logo from "../logo.svg";
-import * as theme from "../theme";
-
-import { useLocation } from "./HammockRouter/HammockRouter";
-import { Link } from "./HammockRouter/Link";
-import { ProfileDropDown } from "./ProfileDropDown";
-import { HStack } from "./VStack";
+import { useLazyLoadQuery } from "react-relay/hooks";
 import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
+import { HStack } from "./VStack";
+import { ReactNode } from "react";
+import { Link } from "./HammockRouter/Link";
+import { icons } from "../icons/icons";
+import { useLocation } from "./HammockRouter/HammockRouter";
+import { useMediaQuery } from "react-responsive";
+import { ProfileDropDown } from "./ProfileDropDown";
 
 export function PageHeader() {
   const location = useLocation();

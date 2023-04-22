@@ -1,6 +1,7 @@
-import { StorageArea } from "../followChain";
-import { RuntimeType } from "../serde";
 import { BlockIdentifier } from "../storageHandle";
+import { RuntimeType } from "../serde";
+import { StorageArea } from "../followChain";
+
 import { makeStorageAreaFromBlockSequence } from "../testUtils";
 
 import {

@@ -1,14 +1,13 @@
-import graphql from "babel-plugin-relay/macro";
-import { ethers } from "ethers";
-import { useFragment } from "react-relay";
-
-import { useDelegationContractStateFragment$key } from "./__generated__/useDelegationContractStateFragment.graphql";
 import {
   DelegationContractState,
   PERMISSION_PROPOSE,
   PERMISSION_SIGN,
   PERMISSION_VOTE,
 } from "./delegateRules";
+import { useFragment } from "react-relay";
+import graphql from "babel-plugin-relay/macro";
+import { useDelegationContractStateFragment$key } from "./__generated__/useDelegationContractStateFragment.graphql";
+import { ethers } from "ethers";
 
 export function useDelegationContractState(
   fragmentRef: useDelegationContractStateFragment$key

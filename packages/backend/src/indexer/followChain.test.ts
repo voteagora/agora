@@ -1,27 +1,29 @@
 import { makeContractInstance } from "../contracts";
+
 import { EventsExample__factory } from "../contracts/generated";
 
+import { followChain, makeInitialStorageArea } from "./followChain";
+import { DurableObjectEntityStore } from "./storage/durableObjects/durableObjectEntityStore";
+import { MemoryStorage } from "./storage/durableObjects/memoryStorage";
 import {
   FakeBlockProvider,
   FakeBlockProviderBlock,
 } from "./blockProvider/fakeBlockProvider";
-import { followChain, makeInitialStorageArea } from "./followChain";
 import { FakeLogProvider } from "./logProvider/fakeLogProvider";
 import {
   makeEntityDefinition,
   makeIndexerDefinition,
   maxReorgBlocksDepth,
 } from "./process";
+
 import * as serde from "./serde";
-import { DurableObjectEntityStore } from "./storage/durableObjects/durableObjectEntityStore";
-import { MemoryStorage } from "./storage/durableObjects/memoryStorage";
+import { countingStream } from "./utils/generatorUtils";
 import {
   appendBlocksWithLogs,
   makeBlockIdentifier,
   makeEncodeLogArgs,
   makeStorageEntryForLatestBlock,
 } from "./testUtils";
-import { countingStream } from "./utils/generatorUtils";
 
 const finalizedBlockNumber = 0;
 

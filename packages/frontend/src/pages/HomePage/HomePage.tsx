@@ -1,21 +1,19 @@
-import { css } from "@emotion/css";
-import graphql from "babel-plugin-relay/macro";
 import { useLazyLoadQuery } from "react-relay/hooks";
-
+import graphql from "babel-plugin-relay/macro";
+import {
+  DelegatesOrder,
+  HomePageQuery,
+} from "./__generated__/HomePageQuery.graphql";
+import { css } from "@emotion/css";
+import * as theme from "../../theme";
+import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
+import { DelegatesContainer } from "./DelegatesContainer";
+import { VStack } from "../../components/VStack";
 import {
   useLocation,
   Location,
 } from "../../components/HammockRouter/HammockRouter";
 import { PageDivider } from "../../components/PageDivider";
-import { VStack } from "../../components/VStack";
-import * as theme from "../../theme";
-
-import { DelegatesContainer } from "./DelegatesContainer";
-import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
-import {
-  DelegatesOrder,
-  HomePageQuery,
-} from "./__generated__/HomePageQuery.graphql";
 
 const orderByValidValues: HomePageQuery["variables"]["orderBy"][] = [
   "mostVotingPower",

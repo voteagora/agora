@@ -1,18 +1,16 @@
-import { css } from "@emotion/css";
-import { ArrowDownIcon } from "@heroicons/react/20/solid";
-import graphql from "babel-plugin-relay/macro";
-import { BigNumber } from "ethers";
-import { useFragment } from "react-relay";
-
-import { icons } from "../../icons/icons";
-import * as theme from "../../theme";
-import { inset0, shadow } from "../../theme";
-import { NounGridChildren } from "../NounGrid";
-import { NounResolvedLink } from "../NounResolvedLink";
 import { HStack, VStack } from "../VStack";
+import * as theme from "../../theme";
+import { icons } from "../../icons/icons";
+import { BigNumber } from "ethers";
+import { NounResolvedLink } from "../NounResolvedLink";
+import { NounGridChildren } from "../NounGrid";
+import { inset0, shadow } from "../../theme";
+import { ArrowDownIcon } from "@heroicons/react/20/solid";
 import { NounGridFragment$data } from "../__generated__/NounGridFragment.graphql";
-
+import { useFragment } from "react-relay";
+import graphql from "babel-plugin-relay/macro";
 import { DelegationDisplayFragment$key } from "./__generated__/DelegationDisplayFragment.graphql";
+import { css } from "@emotion/css";
 
 export function DelegationDisplay({
   fragmentRef,

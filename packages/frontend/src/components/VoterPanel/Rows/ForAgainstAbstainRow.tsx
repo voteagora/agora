@@ -1,6 +1,5 @@
-import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay";
-
+import graphql from "babel-plugin-relay/macro";
 import { PanelRow } from "./PanelRow";
 import { ForAgainstAbstainRowFragment$key } from "./__generated__/ForAgainstAbstainRowFragment.graphql";
 

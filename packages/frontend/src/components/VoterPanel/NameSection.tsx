@@ -1,15 +1,13 @@
-import { css } from "@emotion/css";
-import graphql from "babel-plugin-relay/macro";
-import React from "react";
 import { useFragment } from "react-relay";
-import { Textfit } from "react-textfit";
-
-import { icons } from "../../icons/icons";
 import * as theme from "../../theme";
-import { shortAddress } from "../../utils/address";
-import { HStack, VStack } from "../VStack";
-
+import graphql from "babel-plugin-relay/macro";
 import { NameSectionFragment$key } from "./__generated__/NameSectionFragment.graphql";
+import { shortAddress } from "../../utils/address";
+import React from "react";
+import { HStack, VStack } from "../VStack";
+import { css } from "@emotion/css";
+import { Textfit } from "react-textfit";
+import { icons } from "../../icons/icons";
 
 type NameSectionProps = {
   resolvedName: NameSectionFragment$key;

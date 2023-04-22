@@ -41,10 +41,7 @@
       "import/order": [
         "error",
         {
-          "newlines-between": "always",
-          "alphabetize": {
-            "order": "asc"
-          }
+          "newlines-between": "always-and-inside-groups"
         }
       ]
     },

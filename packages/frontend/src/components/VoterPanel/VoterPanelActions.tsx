@@ -1,16 +1,14 @@
-import { css } from "@emotion/css";
-import graphql from "babel-plugin-relay/macro";
-import toast from "react-hot-toast";
 import { useFragment } from "react-relay";
-
-import { icons } from "../../icons/icons";
-import { buttonStyles } from "../../pages/EditDelegatePage/EditDelegatePage";
-import * as theme from "../../theme";
-import { useOpenDialog } from "../DialogProvider/DialogProvider";
+import graphql from "babel-plugin-relay/macro";
 import { HStack } from "../VStack";
-
-import { VoterPanelActionsDelegateButtonFragment$key } from "./__generated__/VoterPanelActionsDelegateButtonFragment.graphql";
+import { css } from "@emotion/css";
+import * as theme from "../../theme";
+import { icons } from "../../icons/icons";
+import toast from "react-hot-toast";
+import { buttonStyles } from "../../pages/EditDelegatePage/EditDelegatePage";
 import { VoterPanelActionsFragment$key } from "./__generated__/VoterPanelActionsFragment.graphql";
+import { VoterPanelActionsDelegateButtonFragment$key } from "./__generated__/VoterPanelActionsDelegateButtonFragment.graphql";
+import { useOpenDialog } from "../DialogProvider/DialogProvider";
 
 export function VoterPanelActions({
   className,

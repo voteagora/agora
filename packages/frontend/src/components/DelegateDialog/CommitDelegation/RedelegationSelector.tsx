@@ -1,7 +1,6 @@
-import { BigNumber } from "ethers";
-
 import { DropDown } from "../DropDown";
 import { DelegationContractState } from "../delegateRules";
+import { BigNumber } from "ethers";
 
 export type RedelegationSettingType =
   | "NOT_ALLOWED"

@@ -1,22 +1,20 @@
-import { css } from "@emotion/css";
-import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay";
-
+import graphql from "babel-plugin-relay/macro";
+import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { DelegateProfileImage } from "../DelegateProfileImage";
 import { VStack } from "../VStack";
-
-import { NameSection } from "./NameSection";
-import { DelegateFromList } from "./Rows/DelegateFromListRow";
-import { DelegatedToListRow } from "./Rows/DelegatedToListRow";
-import { ForAgainstAbstainRow } from "./Rows/ForAgainstAbstainRow";
-import { ProposalsCreatedRow } from "./Rows/ProposalsCreatedRow";
 import { ProposalsVotedRow } from "./Rows/ProposalsVotedRow";
+import { ForAgainstAbstainRow } from "./Rows/ForAgainstAbstainRow";
 import { RecentActivityRow } from "./Rows/RecentActivityRow";
-import { TotalVotePowerRow } from "./Rows/TotalVotePowerRow";
-import { VotePowerRow } from "./Rows/VotePowerRow";
+import { ProposalsCreatedRow } from "./Rows/ProposalsCreatedRow";
 import { VoterPanelActions } from "./VoterPanelActions";
+import { VotePowerRow } from "./Rows/VotePowerRow";
+import { DelegateFromList } from "./Rows/DelegateFromListRow";
+import { DelegateProfileImage } from "../DelegateProfileImage";
 import { VoterPanelFragment$key } from "./__generated__/VoterPanelFragment.graphql";
+import { NameSection } from "./NameSection";
+import { TotalVotePowerRow } from "./Rows/TotalVotePowerRow";
+import { DelegatedToListRow } from "./Rows/DelegatedToListRow";
 
 type Props = {
   fragment: VoterPanelFragment$key;

@@ -1,5 +1,5 @@
-import { loadExportFile } from "../export/fs";
 import { LevelEntityStore } from "../storage/level/levelEntityStore";
+import { loadExportFile } from "../export/fs";
 
 async function main() {
   const entityStore = await LevelEntityStore.open();

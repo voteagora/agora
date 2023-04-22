@@ -81,8 +81,7 @@
   "eslintConfig": {
     "plugins": [
       "relay",
-      "ban",
-      "import"
+      "ban"
     ],
     "rules": {
       "relay/generated-flow-types": "off",
@@ -91,16 +90,6 @@
         {
           "name": "parseInt",
           "message": "Use BigNumber.from(value).toNumber() instead, it throws when provided invalid values instead of coercing"
-        }
-      ],
-      "import/no-duplicates": "error",
-      "import/order": [
-        "error",
-        {
-          "newlines-between": "always",
-          "alphabetize": {
-            "order": "asc"
-          }
         }
       ]
     },

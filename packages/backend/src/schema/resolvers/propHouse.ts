@@ -1,11 +1,13 @@
-import { groupBy } from "lodash";
 import { z } from "zod";
 
-import { proposal } from "../../propHouse/common";
+import { groupBy } from "lodash";
+
 import { auctionsAuction, fetchAuctions } from "../../propHouse/fetchAuctions";
+import { proposal } from "../../propHouse/common";
 import { fetchProposalsForAuction } from "../../propHouse/fetchProposalsForAuction";
-import { fetchVotes } from "../../propHouse/fetchVotes";
+
 import { groupVotesByAuction, statusForAuction } from "../../propHouse/helpers";
+import { fetchVotes } from "../../propHouse/fetchVotes";
 
 import {
   DelegateResolvers,

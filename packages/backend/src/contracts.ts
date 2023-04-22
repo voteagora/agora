@@ -1,5 +1,6 @@
-import { LogDescription } from "@ethersproject/abi";
 import { ethers } from "ethers";
+
+import { LogDescription } from "@ethersproject/abi";
 
 import { TopicFilter } from "./indexer/logProvider/logProvider";
 import { EventFragmentArg } from "./indexer/process";

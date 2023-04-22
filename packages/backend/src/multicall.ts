@@ -1,6 +1,7 @@
-import { TransactionRequest } from "@ethersproject/abstract-provider";
-import DataLoader from "dataloader";
 import { ethers } from "ethers";
+import { TransactionRequest } from "@ethersproject/abstract-provider";
+
+import DataLoader from "dataloader";
 
 import { Multicall2__factory } from "./contracts/generated";
 

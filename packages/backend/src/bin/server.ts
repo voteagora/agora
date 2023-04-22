@@ -1,28 +1,33 @@
 import "isomorphic-fetch";
+import { createServer } from "@graphql-yoga/node";
+
+import { useTiming } from "@envelop/core";
 
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
+
 import { useApolloTracing } from "@envelop/apollo-tracing";
-import { useTiming } from "@envelop/core";
-import { createServer } from "@graphql-yoga/node";
+
 import { ethers } from "ethers";
 
-import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
-import { indexers } from "../indexer/contracts";
-import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
+import { makeGatewaySchema } from "../schema";
+import { AgoraContextType } from "../schema/context";
+
+import { ValidatedMessage } from "../utils/signing";
+import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
+
+import { TransparentMultiCallProvider } from "../multicall";
+import { useErrorInspection } from "../schema/plugins/useErrorInspection";
 import { followChain, makeInitialStorageArea } from "../indexer/followChain";
-import { EthersLogProvider } from "../indexer/logProvider/logProvider";
+import { indexers } from "../indexer/contracts";
 import { LevelEntityStore } from "../indexer/storage/level/levelEntityStore";
 import { LevelReader } from "../indexer/storage/level/levelReader";
 import { timeout } from "../indexer/utils/asyncUtils";
-import { TransparentMultiCallProvider } from "../multicall";
-import { makeProvider } from "../provider";
-import { makeGatewaySchema } from "../schema";
-import { AgoraContextType } from "../schema/context";
+import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
+import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 import { makeLatestBlockFetcher } from "../schema/latestBlockFetcher";
-import { useErrorInspection } from "../schema/plugins/useErrorInspection";
+import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
 import { makeDynamoStatementStorage } from "../store/dynamo/statement";
-import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
-import { ValidatedMessage } from "../utils/signing";
+import { makeProvider } from "../provider";
 
 async function main() {
   const schema = makeGatewaySchema();

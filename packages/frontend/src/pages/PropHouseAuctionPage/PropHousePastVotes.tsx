@@ -1,16 +1,14 @@
-import { css } from "@emotion/css";
-import graphql from "babel-plugin-relay/macro";
 import { groupBy } from "lodash";
-import { useFragment } from "react-relay";
-
-import { NounResolvedLink } from "../../components/NounResolvedLink";
+import { compareBy } from "../../utils/sorting";
 import { VStack } from "../../components/VStack";
 import * as theme from "../../theme";
-import { compareBy } from "../../utils/sorting";
-
 import { ActionButton } from "./ActionButton";
-import { ActionButtonVoteButtonDelegateFragment$key } from "./__generated__/ActionButtonVoteButtonDelegateFragment.graphql";
+import { css } from "@emotion/css";
+import { useFragment } from "react-relay";
+import graphql from "babel-plugin-relay/macro";
 import { PropHousePastVotesFragment$key } from "./__generated__/PropHousePastVotesFragment.graphql";
+import { NounResolvedLink } from "../../components/NounResolvedLink";
+import { ActionButtonVoteButtonDelegateFragment$key } from "./__generated__/ActionButtonVoteButtonDelegateFragment.graphql";
 
 export function PropHousePastVotes({
   delegateFragmentRef,

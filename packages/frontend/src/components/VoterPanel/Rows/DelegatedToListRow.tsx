@@ -1,25 +1,23 @@
-import { css } from "@emotion/css";
-import { XMarkIcon } from "@heroicons/react/20/solid";
 import graphql from "babel-plugin-relay/macro";
-import { BigNumber } from "ethers";
-import React, { useState } from "react";
 import { useFragment } from "react-relay";
+import { PanelRow } from "./PanelRow";
+import React, { useState } from "react";
+import { HStack, VStack } from "../../VStack";
+import { css } from "@emotion/css";
+import { ExpandItemsArrow } from "./DelegateFromListRow";
+import { pluralizeDelegations } from "../../../words";
+import { NounResolvedLink } from "../../NounResolvedLink";
+import { DelegatedToListRowFragment$key } from "./__generated__/DelegatedToListRowFragment.graphql";
+import { NounGridChildren } from "../../NounGrid";
+import { BigNumber } from "ethers";
+import { LiquidDelegationRules } from "../LiquidDelegationRules";
+import { XMarkIcon } from "@heroicons/react/20/solid";
+import * as theme from "../../../theme";
 import { useAccount } from "wagmi";
-
+import { useContractWriteFn } from "../../../hooks/useContractWrite";
 import { nounsAlligator, nounsToken } from "../../../contracts/contracts";
 import { Alligator, NounsToken } from "../../../contracts/generated";
-import { useContractWriteFn } from "../../../hooks/useContractWrite";
-import * as theme from "../../../theme";
-import { pluralizeDelegations } from "../../../words";
 import { restrictiveRules } from "../../DelegateDialog/delegateRules";
-import { NounGridChildren } from "../../NounGrid";
-import { NounResolvedLink } from "../../NounResolvedLink";
-import { HStack, VStack } from "../../VStack";
-import { LiquidDelegationRules } from "../LiquidDelegationRules";
-
-import { ExpandItemsArrow } from "./DelegateFromListRow";
-import { PanelRow } from "./PanelRow";
-import { DelegatedToListRowFragment$key } from "./__generated__/DelegatedToListRowFragment.graphql";
 
 export function DelegatedToListRow({
   fragmentRef,

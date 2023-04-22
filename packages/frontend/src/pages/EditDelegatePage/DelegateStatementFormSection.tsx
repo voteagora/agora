@@ -1,14 +1,12 @@
 import { css } from "@emotion/css";
-import { Tab } from "@headlessui/react";
-import { useState } from "react";
-
-import { Markdown } from "../../components/Markdown";
-import { HStack, VStack } from "../../components/VStack";
 import * as theme from "../../theme";
-
-import { Form } from "./DelegateStatementForm";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
 import { formSectionContainerStyles } from "./TopIssuesFormSection";
+import { useState } from "react";
+import { Form } from "./DelegateStatementForm";
+import { Markdown } from "../../components/Markdown";
+import { HStack, VStack } from "../../components/VStack";
+import { Tab } from "@headlessui/react";
 
 export const tipTextStyle = css`
   font-size: ${theme.fontSize.sm};

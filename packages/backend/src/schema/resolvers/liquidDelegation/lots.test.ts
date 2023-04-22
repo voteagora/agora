@@ -1,9 +1,10 @@
-import { entityDefinitions } from "../../../indexer/contracts/entityDefinitions";
-import { EntitiesWithMetadata } from "../../../indexer/storage/entityStore";
 import { TestReader } from "../../../indexer/storage/testReader";
+import { entityDefinitions } from "../../../indexer/contracts/entityDefinitions";
+
 import { collectGenerator } from "../../../indexer/utils/generatorUtils";
 
-import { delegatedToLots } from "./lots";
+import { EntitiesWithMetadata } from "../../../indexer/storage/entityStore";
+
 import {
   makeDefaultRules,
   PERMISSION_PROPOSE,
@@ -11,6 +12,7 @@ import {
   PERMISSION_VOTE,
   Rules,
 } from "./rules";
+import { delegatedToLots } from "./lots";
 
 describe("delegatedToLots", () => {
   describe("simple environment with one proxy and one subdelegation", () => {

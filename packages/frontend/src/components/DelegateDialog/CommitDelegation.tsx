@@ -1,39 +1,37 @@
-import { css } from "@emotion/css";
-import graphql from "babel-plugin-relay/macro";
-import { ConnectKitButton } from "connectkit";
-import { BigNumber } from "ethers";
-import { isEqual } from "lodash";
-import { ReactNode, useState } from "react";
-import { useFragment } from "react-relay";
-
+import { useContractWriteFn } from "../../hooks/useContractWrite";
 import { nounsAlligator, nounsToken } from "../../contracts/contracts";
 import { Alligator, NounsToken } from "../../contracts/generated";
-import { useContractWriteFn } from "../../hooks/useContractWrite";
+import { ReactNode, useState } from "react";
+import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { VStack } from "../VStack";
-
+import { useFragment } from "react-relay";
+import graphql from "babel-plugin-relay/macro";
 import {
-  existingContractStateIntoRedelegationSetting,
-  RedelegationSelector,
-  WrappedRedelegationSetting,
-} from "./CommitDelegation/RedelegationSelector";
+  delegateRulesToContractState,
+  DelegationContractState,
+} from "./delegateRules";
+import { VStack } from "../VStack";
+import { useDelegationContractState } from "./useDelegationContractState";
 import {
   existingContractStateIntoTimePeriodSetting,
   TimePeriodSelector,
   WrappedTimePeriodSetting,
 } from "./CommitDelegation/TimePeriodSelector";
 import {
+  existingContractStateIntoRedelegationSetting,
+  RedelegationSelector,
+  WrappedRedelegationSetting,
+} from "./CommitDelegation/RedelegationSelector";
+import {
   existingContractStateIntoVotingScopeSetting,
   VotingScopeSelector,
   WrappedVotingScopeSetting,
 } from "./CommitDelegation/VotingScopeSelector";
+import { BigNumber } from "ethers";
+import { isEqual } from "lodash";
 import { CommitDelegationContentsFragment$key } from "./__generated__/CommitDelegationContentsFragment.graphql";
 import { CommitDelegationFragment$key } from "./__generated__/CommitDelegationFragment.graphql";
-import {
-  delegateRulesToContractState,
-  DelegationContractState,
-} from "./delegateRules";
-import { useDelegationContractState } from "./useDelegationContractState";
+import { ConnectKitButton } from "connectkit";
 
 export function CommitDelegationContents({
   fragmentRef,

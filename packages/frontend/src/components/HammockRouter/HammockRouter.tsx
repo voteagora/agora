@@ -1,5 +1,3 @@
-import { createBrowserHistory, History } from "history";
-import { isEqual } from "lodash";
 import {
   createContext,
   ReactNode,
@@ -9,22 +7,25 @@ import {
   useLayoutEffect,
   useTransition,
 } from "react";
+import { HomePage } from "../../pages/HomePage/HomePage";
+import { DelegatePage } from "../../pages/DelegatePage/DelegatePage";
+import { EditDelegatePage } from "../../pages/EditDelegatePage/EditDelegatePage";
+import { VoteAuctionPage } from "../../pages/VoteAuctionPage/VoteAuctionPage";
+import { OopsPage } from "../../pages/OopsPage/OopsPage";
 import { matchPath, PathMatch } from "react-router-dom";
+
+import { createBrowserHistory } from "history";
 import {
   atom,
   selector,
   useRecoilState_TRANSITION_SUPPORT_UNSTABLE,
   useRecoilValue_TRANSITION_SUPPORT_UNSTABLE,
 } from "recoil";
-
-import { DelegatePage } from "../../pages/DelegatePage/DelegatePage";
-import { EditDelegatePage } from "../../pages/EditDelegatePage/EditDelegatePage";
-import { HomePage } from "../../pages/HomePage/HomePage";
-import { OopsPage } from "../../pages/OopsPage/OopsPage";
-import { PropHouseAuctionPage } from "../../pages/PropHouseAuctionPage/PropHouseAuctionPage";
+import { History } from "history";
+import { isEqual } from "lodash";
 import { ProposalsListPage } from "../../pages/ProposalsListPage/ProposalsListPage";
+import { PropHouseAuctionPage } from "../../pages/PropHouseAuctionPage/PropHouseAuctionPage";
 import { ProposalsPage } from "../../pages/ProposalsPage/ProposalsPage";
-import { VoteAuctionPage } from "../../pages/VoteAuctionPage/VoteAuctionPage";
 
 export const browserHistory = createBrowserHistory();
 

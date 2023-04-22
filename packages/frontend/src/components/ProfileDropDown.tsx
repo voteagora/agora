@@ -1,26 +1,24 @@
 import { css } from "@emotion/css";
-import { Popover, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import graphql from "babel-plugin-relay/macro";
-import { BigNumber } from "ethers";
-import { AnimatePresence, motion } from "framer-motion";
-import React, { ReactNode } from "react";
-import { useFragment } from "react-relay";
-import { useDisconnect } from "wagmi";
-
-import { icons } from "../icons/icons";
 import * as theme from "../theme";
 import { inset0 } from "../theme";
-import { shortAddress } from "../utils/address";
-
-import { Link } from "./HammockRouter/Link";
-import { NounGridChildren } from "./NounGrid";
-import { NounResolvedName } from "./NounResolvedName";
+import { useFragment } from "react-relay";
+import graphql from "babel-plugin-relay/macro";
 import { HStack, VStack } from "./VStack";
+import React, { ReactNode } from "react";
+import { Link } from "./HammockRouter/Link";
+import { shortAddress } from "../utils/address";
+import { Popover, Transition } from "@headlessui/react";
 import { PanelRow } from "./VoterPanel/Rows/PanelRow";
-import { ProfileDropDownButtonFragment$key } from "./__generated__/ProfileDropDownButtonFragment.graphql";
+import { useDisconnect } from "wagmi";
+import { NounResolvedName } from "./NounResolvedName";
+import { AnimatePresence, motion } from "framer-motion";
+import { BigNumber } from "ethers";
+import { NounGridChildren } from "./NounGrid";
 import { ProfileDropDownContentsFragment$key } from "./__generated__/ProfileDropDownContentsFragment.graphql";
 import { ProfileDropDownFragment$key } from "./__generated__/ProfileDropDownFragment.graphql";
+import { ProfileDropDownButtonFragment$key } from "./__generated__/ProfileDropDownButtonFragment.graphql";
+import { icons } from "../icons/icons";
 
 function ProfileDropDownContents({
   close,

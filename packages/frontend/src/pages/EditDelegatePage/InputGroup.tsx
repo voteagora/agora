@@ -1,7 +1,5 @@
 import { css } from "@emotion/css";
-
 import * as theme from "../../theme";
-
 import { sharedInputStyle } from "./TopIssuesFormSection";
 
 type Props = {

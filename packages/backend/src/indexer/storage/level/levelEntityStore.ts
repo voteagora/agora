@@ -1,15 +1,16 @@
 import { Level } from "level";
 
-import { makeEntityKey } from "../../entityKey";
 import { BlockIdentifier } from "../../storageHandle";
-import { StoredEntry } from "../dump";
+import { makeEntityKey } from "../../entityKey";
 import {
   blockIdentifierKey,
   EntityStore,
   EntityWithMetadata,
 } from "../entityStore";
-import { EntityDefinitions } from "../reader";
+
+import { StoredEntry } from "../dump";
 import { updatesForEntities } from "../updates";
+import { EntityDefinitions } from "../reader";
 
 import { coerceLevelDbNotfoundError } from "./utils";
 

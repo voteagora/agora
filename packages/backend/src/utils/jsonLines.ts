@@ -1,5 +1,5 @@
-import { createReadStream } from "fs";
 import readline from "readline";
+import { createReadStream } from "fs";
 
 export async function* loadJsonLines<T>(path: string): AsyncGenerator<T> {
   try {

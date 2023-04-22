@@ -1,11 +1,11 @@
-import { IndexKeyType } from "../indexer/indexKey";
-import { RuntimeType } from "../indexer/serde";
 import { EntityDefinitions, Reader } from "../indexer/storage/reader";
+import { RuntimeType } from "../indexer/serde";
 import {
   collectGenerator,
   limitGenerator,
   skipGenerator,
 } from "../indexer/utils/generatorUtils";
+import { IndexKeyType } from "../indexer/indexKey";
 
 export type PageInfo = {
   hasPreviousPage: boolean;

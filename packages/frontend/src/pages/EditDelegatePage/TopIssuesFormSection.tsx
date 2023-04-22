@@ -1,20 +1,18 @@
-import { css } from "@emotion/css";
-import { Menu } from "@headlessui/react";
+import { icons } from "../../icons/icons";
 import { useCallback } from "react";
-
+import { css } from "@emotion/css";
+import * as theme from "../../theme";
+import { formSectionHeadingStyle } from "./PastProposalsFormSection";
+import { CloseButton } from "./CloseButton";
+import { Form } from "./DelegateStatementForm";
+import { HStack, VStack } from "../../components/VStack";
+import { Menu } from "@headlessui/react";
 import {
   dropdownContainerStyles,
   dropdownItemActiveStyle,
   DropdownItems,
   dropdownItemStyle,
 } from "../../components/DelegateDialog/DropDown";
-import { HStack, VStack } from "../../components/VStack";
-import { icons } from "../../icons/icons";
-import * as theme from "../../theme";
-
-import { CloseButton } from "./CloseButton";
-import { Form } from "./DelegateStatementForm";
-import { formSectionHeadingStyle } from "./PastProposalsFormSection";
 
 type IssueTypeDefinition = {
   key: string;

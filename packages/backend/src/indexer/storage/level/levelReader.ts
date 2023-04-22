@@ -1,9 +1,8 @@
 import { Level } from "level";
 
-import { makeEntityKey } from "../../entityKey";
 import { StorageArea } from "../../followChain";
 import { RuntimeType } from "../../serde";
-import { BlockIdentifier } from "../../storageHandle";
+import { makeEntityKey } from "../../entityKey";
 import {
   EntityDefinitions,
   getEntitiesByIndexFromStorageArea,
@@ -12,6 +11,8 @@ import {
   IndexQueryArgs,
   Reader,
 } from "../reader";
+
+import { BlockIdentifier } from "../../storageHandle";
 
 import { coerceLevelDbNotfoundError } from "./utils";
 

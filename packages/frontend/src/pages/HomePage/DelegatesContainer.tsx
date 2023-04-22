@@ -1,25 +1,23 @@
-import { css } from "@emotion/css";
-import { Tab } from "@headlessui/react";
-import graphql from "babel-plugin-relay/macro";
-import { motion } from "framer-motion";
-import { useCallback, useState, useTransition } from "react";
-import InfiniteScroll from "react-infinite-scroller";
 import { usePaginationFragment } from "react-relay";
-
+import graphql from "babel-plugin-relay/macro";
+import { css } from "@emotion/css";
+import * as theme from "../../theme";
+import { VoterCard } from "./VoterCard";
+import { VoterTabular } from "./VoterTabular";
+import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
+import { HStack, VStack } from "../../components/VStack";
+import { useCallback, useState, useTransition } from "react";
+import { Selector, SelectorItem } from "./Selector";
+import { motion } from "framer-motion";
+import InfiniteScroll from "react-infinite-scroller";
 import {
   Location,
   useLocation,
   useNavigate,
 } from "../../components/HammockRouter/HammockRouter";
-import { HStack, VStack } from "../../components/VStack";
-import { icons } from "../../icons/icons";
-import * as theme from "../../theme";
-
 import type { LocationVariables } from "./HomePage";
-import { Selector, SelectorItem } from "./Selector";
-import { VoterCard } from "./VoterCard";
-import { VoterTabular } from "./VoterTabular";
-import { DelegatesContainerFragment$key } from "./__generated__/DelegatesContainerFragment.graphql";
+import { Tab } from "@headlessui/react";
+import { icons } from "../../icons/icons";
 import { DelegatesOrder } from "./__generated__/DelegatesContainerPaginationQuery.graphql";
 
 type Props = {

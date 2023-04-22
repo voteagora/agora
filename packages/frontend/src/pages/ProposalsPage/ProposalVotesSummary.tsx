@@ -1,14 +1,12 @@
-import { css, cx } from "@emotion/css";
-import graphql from "babel-plugin-relay/macro";
 import { formatDistanceToNowStrict, formatISO9075 } from "date-fns";
-import { useFragment } from "react-relay";
-
 import { HStack, VStack } from "../../components/VStack";
-import * as theme from "../../theme";
-import { colorForSupportType } from "../DelegatePage/VoteDetailsContainer";
-
 import { ProposalVotesSummaryFragment$key } from "./__generated__/ProposalVotesSummaryFragment.graphql";
 import { ProposalVotesSummaryVoteTimeFragment$key } from "./__generated__/ProposalVotesSummaryVoteTimeFragment.graphql";
+import graphql from "babel-plugin-relay/macro";
+import * as theme from "../../theme";
+import { useFragment } from "react-relay";
+import { colorForSupportType } from "../DelegatePage/VoteDetailsContainer";
+import { css, cx } from "@emotion/css";
 import { ProposalVotesSummaryVotesBarFragment$key } from "./__generated__/ProposalVotesSummaryVotesBarFragment.graphql";
 
 export function ProposalVotesSummary({

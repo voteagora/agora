@@ -1,8 +1,6 @@
-import graphql from "babel-plugin-relay/macro";
-import { useFragment } from "react-relay";
-
 import { shortAddress } from "../utils/address";
-
+import { useFragment } from "react-relay";
+import graphql from "babel-plugin-relay/macro";
 import { NounResolvedNameFragment$key } from "./__generated__/NounResolvedNameFragment.graphql";
 
 type Props = {

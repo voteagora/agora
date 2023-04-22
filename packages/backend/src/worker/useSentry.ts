@@ -1,8 +1,4 @@
-import {
-  EnvelopError,
-  handleStreamOrSingleExecutionResult,
-  Plugin,
-} from "@graphql-yoga/common";
+import { Toucan } from "toucan-js";
 import {
   GraphQLError,
   Kind,
@@ -10,10 +6,14 @@ import {
   print,
   responsePathAsArray,
 } from "graphql";
-import { Toucan } from "toucan-js";
+import {
+  EnvelopError,
+  handleStreamOrSingleExecutionResult,
+  Plugin,
+} from "@graphql-yoga/common";
 
-import { AgoraContextType } from "../schema/context";
 import { withSentryScope } from "../sentry";
+import { AgoraContextType } from "../schema/context";
 
 import { captureException } from "./sentry";
 

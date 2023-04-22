@@ -1,10 +1,11 @@
 import { BigNumber, ethers } from "ethers";
 
+import { makeIndexerDefinition } from "../process";
 import { makeContractInstance } from "../../contracts";
 import { NounsToken__factory } from "../../contracts/generated";
-import { subtractItems, unionItems } from "../../utils/set";
-import { makeIndexerDefinition } from "../process";
 import { RuntimeType } from "../serde";
+
+import { subtractItems, unionItems } from "../../utils/set";
 
 import {
   entityDefinitions,

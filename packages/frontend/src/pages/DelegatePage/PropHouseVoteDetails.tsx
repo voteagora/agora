@@ -1,20 +1,18 @@
-import { css } from "@emotion/css";
-import graphql from "babel-plugin-relay/macro";
-import { formatDistanceToNow } from "date-fns";
-import { BigNumber } from "ethers";
 import { useFragment } from "react-relay";
-
-import { Link } from "../../components/HammockRouter/Link";
-import { VStack } from "../../components/VStack";
-import * as theme from "../../theme";
-import { pluralizeVote } from "../../words";
-
+import graphql from "babel-plugin-relay/macro";
 import {
   colorForSupportType,
   VoteDetailsContainer,
   VoteTitle,
 } from "./VoteDetailsContainer";
+import { VStack } from "../../components/VStack";
 import { PropHouseVoteDetailsFragment$key } from "./__generated__/PropHouseVoteDetailsFragment.graphql";
+import { css } from "@emotion/css";
+import * as theme from "../../theme";
+import { formatDistanceToNow } from "date-fns";
+import { pluralizeVote } from "../../words";
+import { BigNumber } from "ethers";
+import { Link } from "../../components/HammockRouter/Link";
 
 type Props = {
   voteFragment: PropHouseVoteDetailsFragment$key;

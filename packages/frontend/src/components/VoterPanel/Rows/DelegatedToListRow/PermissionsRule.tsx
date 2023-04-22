@@ -1,14 +1,12 @@
+import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import React from "react";
-import { useFragment } from "react-relay";
-
+import { PermissionsRuleFragment$key } from "./__generated__/PermissionsRuleFragment.graphql";
 import {
   PERMISSION_PROPOSE,
   PERMISSION_SIGN,
   PERMISSION_VOTE,
 } from "../../../DelegateDialog/delegateRules";
-
-import { PermissionsRuleFragment$key } from "./__generated__/PermissionsRuleFragment.graphql";
 
 export function PermissionsRule({
   fragmentRef,

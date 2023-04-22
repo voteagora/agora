@@ -1,10 +1,8 @@
-import graphql from "babel-plugin-relay/macro";
+import { etherscanAddressUrl } from "../../NameSection";
+import { shortAddress } from "../../../../utils/address";
 import React from "react";
 import { useFragment } from "react-relay";
-
-import { shortAddress } from "../../../../utils/address";
-import { etherscanAddressUrl } from "../../NameSection";
-
+import graphql from "babel-plugin-relay/macro";
 import { CustomRulesFragment$key } from "./__generated__/CustomRulesFragment.graphql";
 
 export function CustomRules({

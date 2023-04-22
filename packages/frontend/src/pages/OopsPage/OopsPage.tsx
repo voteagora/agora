@@ -1,8 +1,6 @@
 import { css } from "@emotion/css";
-
-import { VStack } from "../../components/VStack";
 import * as theme from "../../theme";
-
+import { VStack } from "../../components/VStack";
 import blink from "./blink.gif";
 
 export function OopsPage() {

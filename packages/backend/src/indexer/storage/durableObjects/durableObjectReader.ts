@@ -1,7 +1,3 @@
-import { makeEntityKey } from "../../entityKey";
-import { StorageArea } from "../../followChain";
-import { RuntimeType } from "../../serde";
-import { BlockIdentifier } from "../../storageHandle";
 import {
   EntityDefinitions,
   getEntitiesByIndexFromStorageArea,
@@ -10,6 +6,11 @@ import {
   IndexQueryArgs,
   Reader,
 } from "../reader";
+import { StorageArea } from "../../followChain";
+import { RuntimeType } from "../../serde";
+import { makeEntityKey } from "../../entityKey";
+
+import { BlockIdentifier } from "../../storageHandle";
 
 import { listEntries, StorageInterface } from "./storageInterface";
 

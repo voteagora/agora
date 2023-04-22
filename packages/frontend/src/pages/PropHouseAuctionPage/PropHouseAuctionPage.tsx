@@ -1,25 +1,23 @@
+import { HStack, VStack } from "../../components/VStack";
 import { css } from "@emotion/css";
-import graphql from "babel-plugin-relay/macro";
-import { motion } from "framer-motion";
+import * as theme from "../../theme";
 import { useState, useTransition } from "react";
-import { useLazyLoadQuery } from "react-relay/hooks";
-import { useAccount } from "wagmi";
-
 import {
   useNavigate,
   useParams,
 } from "../../components/HammockRouter/HammockRouter";
-import { HStack, VStack } from "../../components/VStack";
-import * as theme from "../../theme";
+import { AuctionDetailPanel } from "./AuctionDetailPanel";
+import { motion } from "framer-motion";
 import {
   ProposalsListPanel,
   selectedProposalToPath,
 } from "../ProposalsPage/ProposalListPanel/ProposalsListPanel";
-
-import { AuctionDetailPanel } from "./AuctionDetailPanel";
-import { PendingVotesProvider } from "./PendingVotesContext";
-import { PropHousePastVotes } from "./PropHousePastVotes";
+import graphql from "babel-plugin-relay/macro";
+import { useLazyLoadQuery } from "react-relay/hooks";
 import { PropHouseAuctionPageQuery } from "./__generated__/PropHouseAuctionPageQuery.graphql";
+import { PropHousePastVotes } from "./PropHousePastVotes";
+import { useAccount } from "wagmi";
+import { PendingVotesProvider } from "./PendingVotesContext";
 
 // nouns
 // const stagingCommunityAddress = "0x0000000000000000000000000000000000000000";

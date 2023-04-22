@@ -1,11 +1,12 @@
 import * as Sentry from "@sentry/react";
 import { writeContract, prepareWriteContract } from "@wagmi/core";
-import { ethers, CallOverrides } from "ethers";
-import { useCallback } from "react";
+import { ethers } from "ethers";
 import {
   usePrepareContractWrite as usePrepareContractWriteUNSAFE,
   useContractWrite as useContractWriteUNSAFE,
 } from "wagmi";
+import { CallOverrides } from "ethers";
+import { useCallback } from "react";
 
 export interface Contract<InterfaceType extends TypedInterface>
   extends ethers.BaseContract {

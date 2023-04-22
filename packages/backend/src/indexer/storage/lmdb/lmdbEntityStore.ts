@@ -1,14 +1,14 @@
 import lmdb from "lmdb";
 
-import { makeEntityKey } from "../../entityKey";
-import { BlockIdentifier } from "../../storageHandle";
 import {
   blockIdentifierKey,
   EntityStore,
   EntityWithMetadata,
 } from "../entityStore";
-import { EntityDefinitions } from "../reader";
+import { BlockIdentifier } from "../../storageHandle";
+import { makeEntityKey } from "../../entityKey";
 import { updatesForEntities } from "../updates";
+import { EntityDefinitions } from "../reader";
 
 export class LmdbEntityStore implements EntityStore {
   readonly lmdb: lmdb.RootDatabase;

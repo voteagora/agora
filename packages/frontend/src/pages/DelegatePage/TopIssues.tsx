@@ -1,12 +1,10 @@
-import { css } from "@emotion/css";
-import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay";
-
-import { HStack, VStack } from "../../components/VStack";
-import { icons } from "../../icons/icons";
-import * as theme from "../../theme";
+import graphql from "babel-plugin-relay/macro";
 import { issueDefinitions } from "../EditDelegatePage/TopIssuesFormSection";
-
+import { HStack, VStack } from "../../components/VStack";
+import * as theme from "../../theme";
+import { icons } from "../../icons/icons";
+import { css } from "@emotion/css";
 import { TopIssuesFragment$key } from "./__generated__/TopIssuesFragment.graphql";
 
 export function TopIssues({ fragment }: { fragment: TopIssuesFragment$key }) {

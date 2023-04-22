@@ -1,9 +1,8 @@
-import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay";
-
-import { Link } from "./HammockRouter/Link";
-import { NounResolvedName } from "./NounResolvedName";
+import graphql from "babel-plugin-relay/macro";
 import { NounResolvedLinkFragment$key } from "./__generated__/NounResolvedLinkFragment.graphql";
+import { NounResolvedName } from "./NounResolvedName";
+import { Link } from "./HammockRouter/Link";
 
 type Props = {
   resolvedName: NounResolvedLinkFragment$key;

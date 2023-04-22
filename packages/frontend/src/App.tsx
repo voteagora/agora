@@ -1,20 +1,19 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ConnectKitProvider, getDefaultClient } from "connectkit";
 import React, { Suspense } from "react";
-import { Toaster } from "react-hot-toast";
 import { RelayEnvironmentProvider } from "react-relay/hooks";
-import { RecoilRoot } from "recoil";
+import { relayEnvironment } from "./relayEnvironment";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createClient, WagmiConfig } from "wagmi";
-
-import { DialogProvider } from "./components/DialogProvider/DialogProvider";
-import { FullPageLoadingIndicator } from "./components/FullPageLoadingIndicator";
+import { ConnectKitProvider, getDefaultClient } from "connectkit";
+import { PageContainer } from "./components/PageContainer";
+import { PageHeader } from "./components/PageHeader";
 import {
   HammockRouter,
   HammockRouterContents,
 } from "./components/HammockRouter/HammockRouter";
-import { PageContainer } from "./components/PageContainer";
-import { PageHeader } from "./components/PageHeader";
-import { relayEnvironment } from "./relayEnvironment";
+import { FullPageLoadingIndicator } from "./components/FullPageLoadingIndicator";
+import { Toaster } from "react-hot-toast";
+import { RecoilRoot } from "recoil";
+import { DialogProvider } from "./components/DialogProvider/DialogProvider";
 
 const wagmiClient = createClient(
   getDefaultClient({

@@ -1,11 +1,10 @@
-import { css } from "@emotion/css";
-import { Listbox } from "@headlessui/react";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { AnimatePresence, motion } from "framer-motion";
-import { ReactNode } from "react";
-
-import * as theme from "../../theme";
 import { HStack, VStack } from "../VStack";
+import * as theme from "../../theme";
+import { Listbox } from "@headlessui/react";
+import { css } from "@emotion/css";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { ReactNode } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 export const dropdownContainerStyles = css`
   display: flex;

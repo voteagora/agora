@@ -2,12 +2,13 @@ import { createReadStream, promises as fs } from "fs";
 import * as readline from "readline";
 
 import { ethers } from "ethers";
+
 import Heap from "heap";
 
-import { IndexerDefinition } from "./process";
 import { BlockIdentifier } from "./storageHandle";
-import { takeLast } from "./utils/generatorUtils";
 import { Comparator, compareByTuple } from "./utils/sortUtils";
+import { IndexerDefinition } from "./process";
+import { takeLast } from "./utils/generatorUtils";
 
 export async function loadLastLogIndex(
   reducer: IndexerDefinition

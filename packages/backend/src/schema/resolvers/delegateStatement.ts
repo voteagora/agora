@@ -1,14 +1,17 @@
-import { ethers } from "ethers";
 import { marked } from "marked";
+
 import { z } from "zod";
 
+import { ethers } from "ethers";
+
 import { formSchema } from "../../formSchema";
+import { validateSigned } from "../../utils/signing";
+import { StoredStatement } from "../model";
+
 import {
   extractFirstParagraph,
   trimENSStatementHeader,
 } from "../../utils/markdown";
-import { validateSigned } from "../../utils/signing";
-import { StoredStatement } from "../model";
 
 import {
   DelegateStatementResolvers,

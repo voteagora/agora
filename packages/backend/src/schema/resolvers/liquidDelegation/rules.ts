@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
 
+import { RuntimeType } from "../../../indexer/serde";
+import { entityDefinitions } from "../../../indexer/contracts/entityDefinitions";
 import { IRule__factory } from "../../../contracts/generated/factories/IRule__factory";
 import { daoContract } from "../../../indexer/contracts/NounsDAO";
-import { entityDefinitions } from "../../../indexer/contracts/entityDefinitions";
-import { RuntimeType } from "../../../indexer/serde";
 
 export function calculateResolvedRules(
   authorityChain: (Rules | null)[]

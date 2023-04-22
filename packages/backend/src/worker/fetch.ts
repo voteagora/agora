@@ -1,8 +1,9 @@
 import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
+
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
 
-import { fetchThroughCache } from "./cache";
 import { Env, shouldUseCache } from "./env";
+import { fetchThroughCache } from "./cache";
 
 const assetManifest = JSON.parse(manifestJSON);
 

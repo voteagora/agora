@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
 
 import { BlockIdentifier } from "../storageHandle";
-import { executeWithRetries } from "../utils/asyncUtils";
 import { compareBy } from "../utils/sortUtils";
+import { executeWithRetries } from "../utils/asyncUtils";
 
 export type BlockProviderBlock = {
   number: number;

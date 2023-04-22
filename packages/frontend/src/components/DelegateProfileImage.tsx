@@ -1,15 +1,13 @@
-import { css } from "@emotion/css";
-import graphql from "babel-plugin-relay/macro";
-import { BigNumber } from "ethers";
 import { useFragment } from "react-relay";
-import { useEnsAvatar } from "wagmi";
-
-import { icons } from "../icons/icons";
-import * as theme from "../theme";
-
-import { NounsRepresentedGrid } from "./NounGrid";
-import { HStack } from "./VStack";
+import graphql from "babel-plugin-relay/macro";
+import { css } from "@emotion/css";
 import { DelegateProfileImageFragment$key } from "./__generated__/DelegateProfileImageFragment.graphql";
+import { NounsRepresentedGrid } from "./NounGrid";
+import * as theme from "../theme";
+import { HStack } from "./VStack";
+import { useEnsAvatar } from "wagmi";
+import { icons } from "../icons/icons";
+import { BigNumber } from "ethers";
 
 type Props = {
   fragment: DelegateProfileImageFragment$key;

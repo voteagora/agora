@@ -1,5 +1,6 @@
-import { RewriteFrames } from "@sentry/integrations";
 import { Toucan, Options } from "toucan-js";
+
+import { RewriteFrames } from "@sentry/integrations";
 
 import { StructuredError } from "../indexer/utils/errorUtils";
 
