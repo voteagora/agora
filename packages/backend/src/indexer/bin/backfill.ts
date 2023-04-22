@@ -1,18 +1,18 @@
 import { ethers } from "ethers";
 
-import { EntityWithMetadata } from "../storage/entityStore";
-import { IndexerDefinition } from "../process";
-import { groupBy } from "../utils/generatorUtils";
+import { indexers } from "../contracts";
+import { entityDefinitions } from "../contracts/entityDefinitions";
 import { loadLastLogIndex, loadMergedLogs } from "../logStorage";
+import { IndexerDefinition } from "../process";
+import { EntityWithMetadata } from "../storage/entityStore";
+import { LevelEntityStore } from "../storage/level/levelEntityStore";
 import {
   BlockIdentifier,
   makeStorageHandleWithStagingArea,
 } from "../storageHandle";
-import { indexers } from "../contracts";
 import { StructuredError } from "../utils/errorUtils";
-import { LevelEntityStore } from "../storage/level/levelEntityStore";
+import { groupBy } from "../utils/generatorUtils";
 import { makeProgressBar } from "../utils/progressBarUtils";
-import { entityDefinitions } from "../contracts/entityDefinitions";
 
 /**
  * Backfills updates from fetched logs starting from the last finalized block

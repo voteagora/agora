@@ -1,22 +1,21 @@
 import { ethers } from "ethers";
 
-import { makeDynamoStatementStorage } from "../store/dynamo/statement";
-import { AgoraContextType } from "../schema/context";
-import { makeGatewaySchema } from "../schema";
-import { TransparentMultiCallProvider } from "../multicall";
-import { DurableObjectReader } from "../indexer/storage/durableObjects/durableObjectReader";
+import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
 import { StorageArea } from "../indexer/followChain";
+import { DurableObjectReader } from "../indexer/storage/durableObjects/durableObjectReader";
 import { StorageInterface } from "../indexer/storage/durableObjects/storageInterface";
-import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
 import { NopReader } from "../indexer/storage/nopReader";
 import { Reader } from "../indexer/storage/reader";
+import { TransparentMultiCallProvider } from "../multicall";
+import { makeGatewaySchema } from "../schema";
+import { AgoraContextType } from "../schema/context";
 import { makeLatestBlockFetcher } from "../schema/latestBlockFetcher";
-import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
+import { makeDynamoStatementStorage } from "../store/dynamo/statement";
+import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
 
 import { makeDynamoClient } from "./dynamodb";
-import { makeEmailStorage } from "./storage";
-
 import { Env, shouldAllowRead } from "./env";
+import { makeEmailStorage } from "./storage";
 
 // Initializing the schema takes about 250ms. We should avoid doing it once
 // per request. We need to move this calculation into some kind of compile time

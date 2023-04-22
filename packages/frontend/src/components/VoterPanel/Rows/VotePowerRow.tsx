@@ -1,8 +1,10 @@
-import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
+import { useFragment } from "react-relay";
+
+import { bpsToString } from "../../../utils/bps";
+
 import { PanelRow } from "./PanelRow";
 import { VotePowerRowFragment$key } from "./__generated__/VotePowerRowFragment.graphql";
-import { bpsToString } from "../../../utils/bps";
 
 export function VotePowerRow({
   fragment,

@@ -1,7 +1,7 @@
-import { makeToucanOptions, wrapModuleSentry } from "./sentry";
+import { StorageDurableObjectV1 as StorageDurableObjectV1Implementation } from "./durableObject";
 import { Env } from "./env";
 import { fetch } from "./fetch";
-import { StorageDurableObjectV1 as StorageDurableObjectV1Implementation } from "./durableObject";
+import { makeToucanOptions, wrapModuleSentry } from "./sentry";
 
 const sentryWrappedModule = wrapModuleSentry(makeToucanOptions, (sentry) => ({
   async fetch(request, env: Env, ctx: ExecutionContext): Promise<Response> {

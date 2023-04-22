@@ -1,17 +1,19 @@
-import { HStack, VStack } from "../../components/VStack";
-import * as theme from "../../theme";
-import { NounResolvedLink } from "../../components/NounResolvedLink";
+import { css } from "@emotion/css";
 import { UserIcon } from "@heroicons/react/20/solid";
-import { VoteReason } from "../../components/VoteReason";
-import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
+import { useFragment } from "react-relay";
+
+import { NounResolvedLink } from "../../components/NounResolvedLink";
+import { HStack, VStack } from "../../components/VStack";
+import { VoteReason } from "../../components/VoteReason";
+import * as theme from "../../theme";
 import {
   colorForSupportType,
   toSupportType,
 } from "../DelegatePage/VoteDetailsContainer";
+
 import { VoteRowFragment$key } from "./__generated__/VoteRowFragment.graphql";
 import { VoteRowTextFragment$key } from "./__generated__/VoteRowTextFragment.graphql";
-import { css } from "@emotion/css";
 
 export function VoteRow({ fragmentRef }: { fragmentRef: VoteRowFragment$key }) {
   const vote = useFragment(

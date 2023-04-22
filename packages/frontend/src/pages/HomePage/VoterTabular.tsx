@@ -1,19 +1,21 @@
-import { useFragment } from "react-relay";
-import { useMemo } from "react";
-import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
-import { VoterTabularFragment$key } from "./__generated__/VoterTabularFragment.graphql";
-import { NounResolvedName } from "../../components/NounResolvedName";
-import { NounsRepresentedGrid } from "../../components/NounGrid";
-import { HStack, VStack } from "../../components/VStack";
-import { Link } from "../../components/HammockRouter/Link";
+import graphql from "babel-plugin-relay/macro";
 import { BigNumber } from "ethers";
-import { pluralizeNoun, pluralizeProb, pluralizeOther } from "../../words";
-import { descendingValueComparator } from "../../utils/sorting";
-import { icons } from "../../icons/icons";
+import { useMemo } from "react";
 import toast from "react-hot-toast";
+import { useFragment } from "react-relay";
+
+import { Link } from "../../components/HammockRouter/Link";
+import { NounsRepresentedGrid } from "../../components/NounGrid";
+import { NounResolvedName } from "../../components/NounResolvedName";
+import { HStack, VStack } from "../../components/VStack";
 import { DelegateButton } from "../../components/VoterPanel/VoterPanelActions";
+import { icons } from "../../icons/icons";
+import * as theme from "../../theme";
+import { descendingValueComparator } from "../../utils/sorting";
+import { pluralizeNoun, pluralizeProb, pluralizeOther } from "../../words";
+
+import { VoterTabularFragment$key } from "./__generated__/VoterTabularFragment.graphql";
 
 type VoterTabularProps = {
   fragmentRef: VoterTabularFragment$key;

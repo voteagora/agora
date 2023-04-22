@@ -1,7 +1,6 @@
-import { BlockIdentifier } from "../storageHandle";
-
 import { makeEntityKey } from "../entityKey";
 import { RuntimeType } from "../serde";
+import { BlockIdentifier } from "../storageHandle";
 
 import { EntityDefinitions } from "./reader";
 

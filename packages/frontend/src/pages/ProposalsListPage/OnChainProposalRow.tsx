@@ -1,18 +1,20 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
-import { HStack } from "../../components/VStack";
-import { NounResolvedName } from "../../components/NounResolvedName";
-import { BigNumber, utils } from "ethers";
+import graphql from "babel-plugin-relay/macro";
 import { formatDistanceToNow } from "date-fns";
+import { BigNumber, utils } from "ethers";
+import { useFragment } from "react-relay";
+
+import { NounResolvedName } from "../../components/NounResolvedName";
+import { HStack } from "../../components/VStack";
+import * as theme from "../../theme";
+
+import { Row, RowValue } from "./Rows";
+import { StatusText } from "./StatusText";
+import { OnChainProposalRowActivityFragment$key } from "./__generated__/OnChainProposalRowActivityFragment.graphql";
 import {
   OnChainProposalRowFragment$key,
   ProposalStatus,
 } from "./__generated__/OnChainProposalRowFragment.graphql";
-import { OnChainProposalRowActivityFragment$key } from "./__generated__/OnChainProposalRowActivityFragment.graphql";
-import { StatusText } from "./StatusText";
-import { Row, RowValue } from "./Rows";
 
 export function OnChainProposalRow({
   fragmentRef,

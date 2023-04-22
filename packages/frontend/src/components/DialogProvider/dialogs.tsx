@@ -1,12 +1,13 @@
-import { DialogDefinitions } from "./types";
-import { DelegateDialog } from "../DelegateDialog/DelegateDialog";
 import { SupportTextProps } from "../../pages/DelegatePage/VoteDetailsContainer";
-import { CastVoteDialog } from "../../pages/ProposalsPage/CastVoteDialog";
 import { AuctionCastVoteDialog } from "../../pages/PropHouseAuctionPage/AuctionCastVoteDialog";
 import {
   AvailableVotingPower,
   VotingAddress,
 } from "../../pages/PropHouseAuctionPage/usePropHouseAvailableVotingPower";
+import { CastVoteDialog } from "../../pages/ProposalsPage/CastVoteDialog";
+import { DelegateDialog } from "../DelegateDialog/DelegateDialog";
+
+import { DialogDefinitions } from "./types";
 
 export type DialogType =
   | DelegateDialogType

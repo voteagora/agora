@@ -1,12 +1,12 @@
-import { z } from "zod";
 import { groupBy } from "lodash";
+import { z } from "zod";
 
 import { PropHouseAuctionStatus } from "../schema/resolvers/generated/types";
 
-import { auction } from "./fetchAuction";
-import { fetchVotesResponse } from "./fetchVotes";
-import { auctionsAuction, fetchAuctionsResponse } from "./fetchAuctions";
 import { proposal } from "./common";
+import { auction } from "./fetchAuction";
+import { auctionsAuction, fetchAuctionsResponse } from "./fetchAuctions";
+import { fetchVotesResponse } from "./fetchVotes";
 
 export function statusForAuction(
   a: z.infer<typeof auctionsAuction>

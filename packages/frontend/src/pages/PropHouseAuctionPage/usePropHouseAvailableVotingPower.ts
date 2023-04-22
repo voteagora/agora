@@ -1,14 +1,15 @@
-import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
+import { groupBy } from "lodash";
+import { useMemo } from "react";
+import { useFragment } from "react-relay";
+
+import { COMMUNITY_ADDRESS } from "./PropHouseAuctionPage";
+import { usePropHouseAvailableVotingPowerAuctionFragment$key } from "./__generated__/usePropHouseAvailableVotingPowerAuctionFragment.graphql";
 import {
   usePropHouseAvailableVotingPowerFragmentDelegateFragment$data,
   usePropHouseAvailableVotingPowerFragmentDelegateFragment$key,
 } from "./__generated__/usePropHouseAvailableVotingPowerFragmentDelegateFragment.graphql";
 import { useTotalVotingPower } from "./propHouse";
-import { COMMUNITY_ADDRESS } from "./PropHouseAuctionPage";
-import { useMemo } from "react";
-import { groupBy } from "lodash";
-import { usePropHouseAvailableVotingPowerAuctionFragment$key } from "./__generated__/usePropHouseAvailableVotingPowerAuctionFragment.graphql";
 
 export type AvailableVotingPower = {
   address: string;

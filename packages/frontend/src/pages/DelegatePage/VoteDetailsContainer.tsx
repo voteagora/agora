@@ -1,8 +1,9 @@
-import * as theme from "../../theme";
-import { ReactNode, useMemo } from "react";
-import { VStack } from "../../components/VStack";
 import { css } from "@emotion/css";
 import { BigNumber, utils } from "ethers";
+import { ReactNode, useMemo } from "react";
+
+import { VStack } from "../../components/VStack";
+import * as theme from "../../theme";
 import { shadow } from "../../theme";
 
 type VoteDetailsContainerProps = {

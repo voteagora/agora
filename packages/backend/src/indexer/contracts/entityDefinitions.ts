@@ -1,13 +1,13 @@
 import { BigNumber, ethers } from "ethers";
 
+import { makeCompoundKey } from "../indexKey";
 import {
   makeEntityDefinition,
   StorageHandleForEntityDefinition,
 } from "../process";
 import * as serde from "../serde";
-import { makeCompoundKey } from "../indexKey";
-import { efficientLengthEncodingNaturalNumbers } from "../utils/efficientLengthEncoding";
 import { RuntimeType } from "../serde";
+import { efficientLengthEncodingNaturalNumbers } from "../utils/efficientLengthEncoding";
 
 export type Handle = StorageHandleForEntityDefinition<typeof entityDefinitions>;
 

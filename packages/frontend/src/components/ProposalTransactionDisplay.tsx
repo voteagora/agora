@@ -1,13 +1,15 @@
-import { useFragment } from "react-relay";
+import { css } from "@emotion/css";
+import * as Sentry from "@sentry/react";
 import graphql from "babel-plugin-relay/macro";
 import { BigNumber, ethers } from "ethers";
+import { useMemo } from "react";
+import { useFragment } from "react-relay";
+
 import * as theme from "../theme";
+
+import { VStack } from "./VStack";
 import { etherscanAddressUrl } from "./VoterPanel/NameSection";
 import { ProposalTransactionDisplayFragment$key } from "./__generated__/ProposalTransactionDisplayFragment.graphql";
-import { css } from "@emotion/css";
-import { useMemo } from "react";
-import * as Sentry from "@sentry/react";
-import { VStack } from "./VStack";
 
 export function ProposalTransactionDisplay({
   fragment,

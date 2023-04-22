@@ -1,5 +1,6 @@
-import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
+import { useFragment } from "react-relay";
+
 import { PanelRow } from "./PanelRow";
 import { RecentActivityRowFragment$key } from "./__generated__/RecentActivityRowFragment.graphql";
 

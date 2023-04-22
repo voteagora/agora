@@ -1,5 +1,6 @@
-import { ReactNode } from "react";
 import { css, cx } from "@emotion/css";
+import { ReactNode } from "react";
+
 import * as theme from "../../theme";
 
 export function StatusText({

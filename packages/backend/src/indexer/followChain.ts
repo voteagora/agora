@@ -1,12 +1,5 @@
 import { ethers } from "ethers";
 
-import { EntityStore, EntityWithMetadata } from "./storage/entityStore";
-import {
-  EntitiesType,
-  IndexerDefinition,
-  isBlockDepthFinalized,
-  maxReorgBlocksDepth,
-} from "./process";
 import {
   blockIdentifierFromBlock,
   blockIdentifierFromParentBlock,
@@ -16,16 +9,23 @@ import {
 } from "./blockProvider/blockProvider";
 import { LogProvider, topicFilterForIndexers } from "./logProvider/logProvider";
 import {
+  EntitiesType,
+  IndexerDefinition,
+  isBlockDepthFinalized,
+  maxReorgBlocksDepth,
+} from "./process";
+import { EntityStore, EntityWithMetadata } from "./storage/entityStore";
+import {
   BlockIdentifier,
   makeStorageHandleForStorageArea,
   pathBetween,
 } from "./storageHandle";
+import { StructuredError } from "./utils/errorUtils";
 import {
   asyncIterableFromIterable,
   collectGenerator,
   groupBy,
 } from "./utils/generatorUtils";
-import { StructuredError } from "./utils/errorUtils";
 
 export function followChain(
   store: EntityStore,

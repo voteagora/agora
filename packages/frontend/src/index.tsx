@@ -1,12 +1,12 @@
 import "./sentry";
 
+import { ErrorBoundary } from "@sentry/react";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App";
+import ReactGA from "react-ga";
 
 import "./index.css";
-import { ErrorBoundary } from "@sentry/react";
-import ReactGA from "react-ga";
+import App from "./App";
 
 ReactGA.initialize([
   {

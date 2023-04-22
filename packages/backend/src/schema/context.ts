@@ -1,13 +1,12 @@
 import { ethers } from "ethers";
 
+import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
 import { Reader } from "../indexer/storage/reader";
 import { CacheDependencies } from "../utils/cache";
 
-import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
-
+import { LatestBlockFetcher } from "./latestBlockFetcher";
 import { EmailStorage, StatementStorage } from "./model";
 import { TracingContext } from "./transformers/tracingContext";
-import { LatestBlockFetcher } from "./latestBlockFetcher";
 
 export type AgoraContextType = {
   reader: Reader<typeof entityDefinitions>;

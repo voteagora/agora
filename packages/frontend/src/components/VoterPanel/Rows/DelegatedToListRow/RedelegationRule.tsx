@@ -1,6 +1,7 @@
-import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import React from "react";
+import { useFragment } from "react-relay";
+
 import { RedelegationRuleFragment$key } from "./__generated__/RedelegationRuleFragment.graphql";
 
 export function RedelegationRule({

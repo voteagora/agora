@@ -1,15 +1,17 @@
+import { css } from "@emotion/css";
 import graphql from "babel-plugin-relay/macro";
+import React from "react";
 import { useFragment } from "react-relay";
-import { VStack } from "../VStack";
+
 import * as theme from "../../theme";
-import { TimeRule } from "./Rows/DelegatedToListRow/TimeRule";
+import { VStack } from "../VStack";
+
+import { BlocksBeforeVoteClosesRule } from "./Rows/DelegatedToListRow/BlocksBeforeVoteClosesRule";
+import { CustomRules } from "./Rows/DelegatedToListRow/CustomRules";
 import { PermissionsRule } from "./Rows/DelegatedToListRow/PermissionsRule";
 import { RedelegationRule } from "./Rows/DelegatedToListRow/RedelegationRule";
-import { CustomRules } from "./Rows/DelegatedToListRow/CustomRules";
-import { BlocksBeforeVoteClosesRule } from "./Rows/DelegatedToListRow/BlocksBeforeVoteClosesRule";
-import React from "react";
+import { TimeRule } from "./Rows/DelegatedToListRow/TimeRule";
 import { LiquidDelegationRulesFragment$key } from "./__generated__/LiquidDelegationRulesFragment.graphql";
-import { css } from "@emotion/css";
 
 export function LiquidDelegationRules({
   fragmentRef,

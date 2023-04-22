@@ -1,6 +1,6 @@
+import { StorageArea } from "../followChain";
 import { RuntimeType } from "../serde";
 import { BlockIdentifier } from "../storageHandle";
-import { StorageArea } from "../followChain";
 
 import { IndexedValue, IndexQueryArgs, Reader } from "./reader";
 

@@ -1,23 +1,25 @@
 import { css, cx } from "@emotion/css";
-import * as theme from "../../theme";
+import graphql from "babel-plugin-relay/macro";
+import { ChatCompletionRequestMessage } from "openai-streams";
+import { useState } from "react";
+import { useFragment } from "react-relay/hooks";
+import { useAccount } from "wagmi";
+
+import { Tooltip } from "../../components/Tooltip";
 import { HStack, VStack } from "../../components/VStack";
+import { useGenerateChatGpt } from "../../hooks/useGenerateChatGpt";
+import * as theme from "../../theme";
 import {
   colorForSupportType,
   SupportTextProps,
 } from "../DelegatePage/VoteDetailsContainer";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
-import { useState } from "react";
-import graphql from "babel-plugin-relay/macro";
-import { useFragment } from "react-relay/hooks";
+
+import { generateUserView } from "./ProposalsAIPanel";
+import { CastVoteInputFragment$key } from "./__generated__/CastVoteInputFragment.graphql";
+import { CastVoteInputQueryFragment$key } from "./__generated__/CastVoteInputQueryFragment.graphql";
 import { CastVoteInputVoteButtonsFragment$key } from "./__generated__/CastVoteInputVoteButtonsFragment.graphql";
 import { CastVoteInputVoteButtonsQueryFragment$key } from "./__generated__/CastVoteInputVoteButtonsQueryFragment.graphql";
-import { useAccount } from "wagmi";
-import { generateUserView } from "./ProposalsAIPanel";
-import { ChatCompletionRequestMessage } from "openai-streams";
-import { CastVoteInputFragment$key } from "./__generated__/CastVoteInputFragment.graphql";
-import { Tooltip } from "../../components/Tooltip";
-import { CastVoteInputQueryFragment$key } from "./__generated__/CastVoteInputQueryFragment.graphql";
-import { useGenerateChatGpt } from "../../hooks/useGenerateChatGpt";
 
 type Props = {
   onVoteClick: (

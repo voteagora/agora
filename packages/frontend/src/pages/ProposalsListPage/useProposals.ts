@@ -1,9 +1,11 @@
-import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
+import { useMemo } from "react";
+import { useFragment } from "react-relay";
+
+import { compareBy } from "../../utils/sorting";
+
 import { ProposalSortType } from "./ProposalSortSelector";
 import { ProposalStatusFilter } from "./ProposalStatusSelector";
-import { useMemo } from "react";
-import { compareBy } from "../../utils/sorting";
 import { ProposalTypeFilter } from "./ProposalTypeSelector";
 import {
   useProposalsInnerFragment$data,

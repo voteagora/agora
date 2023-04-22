@@ -1,22 +1,24 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
 import { css, cx, keyframes } from "@emotion/css";
-import * as theme from "../../theme";
-import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql";
-import { NounResolvedName } from "../../components/NounResolvedName";
-import { DelegateProfileImage } from "../../components/DelegateProfileImage";
-import { HStack, VStack } from "../../components/VStack";
-import { VoterPanelActions } from "../../components/VoterPanel/VoterPanelActions";
-import { Link } from "../../components/HammockRouter/Link";
 import {
   UserIcon,
   ChatBubbleOvalLeftIcon,
   FireIcon,
 } from "@heroicons/react/20/solid";
-import { ReactNode } from "react";
+import graphql from "babel-plugin-relay/macro";
 import { BigNumber } from "ethers";
-import { pluralizeNoun, pluralizeVote } from "../../words";
+import { ReactNode } from "react";
+import { useFragment } from "react-relay";
+
+import { DelegateProfileImage } from "../../components/DelegateProfileImage";
+import { Link } from "../../components/HammockRouter/Link";
+import { NounResolvedName } from "../../components/NounResolvedName";
 import { Tooltip } from "../../components/Tooltip";
+import { HStack, VStack } from "../../components/VStack";
+import { VoterPanelActions } from "../../components/VoterPanel/VoterPanelActions";
+import * as theme from "../../theme";
+import { pluralizeNoun, pluralizeVote } from "../../words";
+
+import { VoterCardFragment$key } from "./__generated__/VoterCardFragment.graphql";
 
 type VoterCardProps = {
   fragmentRef: VoterCardFragment$key;

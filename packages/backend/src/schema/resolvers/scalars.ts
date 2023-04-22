@@ -1,5 +1,5 @@
-import { GraphQLScalarType } from "graphql";
 import { ethers } from "ethers";
+import { GraphQLScalarType } from "graphql";
 
 export const BigInt = new GraphQLScalarType<ethers.BigNumber, string>({
   name: "BigInt",

@@ -1,29 +1,27 @@
 import { createServer } from "@graphql-yoga/common";
+import { ethers } from "ethers";
 import { Toucan } from "toucan-js";
 
-import { ethers } from "ethers";
-
-import { readableStreamFromGenerator } from "../utils/readableStream";
-import { StoredEntry } from "../indexer/storage/dump";
-import { followChain, makeInitialStorageArea } from "../indexer/followChain";
-import { DurableObjectEntityStore } from "../indexer/storage/durableObjects/durableObjectEntityStore";
-import { AdminMessage } from "../indexer/ops/adminMessage";
+import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { indexers } from "../indexer/contracts";
+import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
+import { followChain, makeInitialStorageArea } from "../indexer/followChain";
+import { EthersLogProvider } from "../indexer/logProvider/logProvider";
+import { AdminMessage } from "../indexer/ops/adminMessage";
+import { StoredEntry } from "../indexer/storage/dump";
+import { AnalyticsEngineReporter } from "../indexer/storage/durableObjects/analyticsEngineReporter";
+import { DurableObjectEntityStore } from "../indexer/storage/durableObjects/durableObjectEntityStore";
 import { listEntries } from "../indexer/storage/durableObjects/storageInterface";
 import {
   collectGenerator,
   limitGenerator,
 } from "../indexer/utils/generatorUtils";
-import { AnalyticsEngineReporter } from "../indexer/storage/durableObjects/analyticsEngineReporter";
-import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
-import { EthersLogProvider } from "../indexer/logProvider/logProvider";
-import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
-
-import { makeToucanOptions, runReportingException } from "./sentry";
-import { useSentry } from "./useSentry";
-import { getGraphQLCallingContext } from "./graphql";
+import { readableStreamFromGenerator } from "../utils/readableStream";
 
 import { Env, safelyLoadBlockStepSize } from "./env";
+import { getGraphQLCallingContext } from "./graphql";
+import { makeToucanOptions, runReportingException } from "./sentry";
+import { useSentry } from "./useSentry";
 
 export const blockUpdateIntervalSeconds = 10;
 

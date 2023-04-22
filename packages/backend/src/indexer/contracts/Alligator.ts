@@ -1,9 +1,8 @@
-import { makeIndexerDefinition } from "../process";
 import { makeContractInstance } from "../../contracts";
 import { Alligator__factory } from "../../contracts/generated";
-
-import { RuntimeType } from "../serde";
 import { RulesStructOutput } from "../../contracts/generated/Alligator";
+import { makeIndexerDefinition } from "../process";
+import { RuntimeType } from "../serde";
 
 import { entityDefinitions } from "./entityDefinitions";
 

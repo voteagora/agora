@@ -1,21 +1,23 @@
-import { useProvider, useSigner } from "wagmi";
-import graphql from "babel-plugin-relay/macro";
-import { HStack, VStack } from "../../components/VStack";
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
 import { Dialog } from "@headlessui/react";
+import graphql from "babel-plugin-relay/macro";
 import { motion } from "framer-motion";
+import { useLazyLoadQuery } from "react-relay/hooks";
+import { useProvider, useSigner } from "wagmi";
+
+import { NounResolvedName } from "../../components/NounResolvedName";
+import { HStack, VStack } from "../../components/VStack";
+import * as theme from "../../theme";
+import { compareBy, flipComparator } from "../../utils/sorting";
 import { colorForSupportType } from "../DelegatePage/VoteDetailsContainer";
 import { voteButtonStyles } from "../ProposalsPage/CastVoteInput";
-import { useLazyLoadQuery } from "react-relay/hooks";
+
 import { AuctionCastVoteDialogQuery } from "./__generated__/AuctionCastVoteDialogQuery.graphql";
-import { compareBy, flipComparator } from "../../utils/sorting";
-import { NounResolvedName } from "../../components/NounResolvedName";
+import { submitVotes } from "./submitVotes";
 import {
   AvailableVotingPower,
   VotingAddress,
 } from "./usePropHouseAvailableVotingPower";
-import { submitVotes } from "./submitVotes";
 
 export function AuctionCastVoteDialog({
   address,

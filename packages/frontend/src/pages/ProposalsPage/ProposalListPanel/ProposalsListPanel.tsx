@@ -1,11 +1,17 @@
 import { css } from "@emotion/css";
-import { icons } from "../../../icons/icons";
 import graphql from "babel-plugin-relay/macro";
 import { motion } from "framer-motion";
 import { useState, useTransition } from "react";
 import { useFragment } from "react-relay";
+
 import { HStack, VStack } from "../../../components/VStack";
+import { icons } from "../../../icons/icons";
 import * as theme from "../../../theme";
+import { colorForPropHouseAuctionStatus } from "../../ProposalsListPage/PropHouseAuctionRow";
+import {
+  ProposalSortSelector,
+  ProposalSortType,
+} from "../../ProposalsListPage/ProposalSortSelector";
 import {
   ProposalStatusFilter,
   ProposalStatusSelector,
@@ -14,14 +20,10 @@ import {
   ProposalTypeFilter,
   ProposalTypeSelector,
 } from "../../ProposalsListPage/ProposalTypeSelector";
-import {
-  ProposalSortSelector,
-  ProposalSortType,
-} from "../../ProposalsListPage/ProposalSortSelector";
 import { useProposals } from "../../ProposalsListPage/useProposals";
-import { ProposalRow } from "./ProposalRow";
+
 import { OnChainProposalRow } from "./OnChainProposalRow";
-import { colorForPropHouseAuctionStatus } from "../../ProposalsListPage/PropHouseAuctionRow";
+import { ProposalRow } from "./ProposalRow";
 import { ProposalsListPanelFragment$key } from "./__generated__/ProposalsListPanelFragment.graphql";
 
 export type SelectedProposal = {

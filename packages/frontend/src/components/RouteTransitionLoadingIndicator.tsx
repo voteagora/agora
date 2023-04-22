@@ -1,8 +1,10 @@
-import { useIsNavigationPending } from "./HammockRouter/HammockRouter";
-import React from "react";
 import { css, keyframes } from "@emotion/css";
 import { motion } from "framer-motion";
+import React from "react";
+
 import * as theme from "../theme";
+
+import { useIsNavigationPending } from "./HammockRouter/HammockRouter";
 
 const shimmer = keyframes`
     from {

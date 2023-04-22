@@ -1,4 +1,8 @@
+import { css } from "@emotion/css";
 import graphql from "babel-plugin-relay/macro";
+import { useCallback } from "react";
+import { useFragment } from "react-relay";
+
 import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
 import { VStack } from "../../components/VStack";
 import * as theme from "../../theme";
@@ -6,14 +10,12 @@ import {
   DisabledVoteButton,
   voteButtonStyles,
 } from "../ProposalsPage/CastVoteInput";
-import { css } from "@emotion/css";
-import { useFragment } from "react-relay";
-import { ActionButtonFragment$key } from "./__generated__/ActionButtonFragment.graphql";
-import { useCallback } from "react";
-import { usePropHouseAvailableVotingPower } from "./usePropHouseAvailableVotingPower";
-import { ActionButtonVoteButtonDelegateFragment$key } from "./__generated__/ActionButtonVoteButtonDelegateFragment.graphql";
-import { ActionButtonVoteButtonAuctionFragment$key } from "./__generated__/ActionButtonVoteButtonAuctionFragment.graphql";
+
 import { usePendingVotes } from "./PendingVotesContext";
+import { ActionButtonFragment$key } from "./__generated__/ActionButtonFragment.graphql";
+import { ActionButtonVoteButtonAuctionFragment$key } from "./__generated__/ActionButtonVoteButtonAuctionFragment.graphql";
+import { ActionButtonVoteButtonDelegateFragment$key } from "./__generated__/ActionButtonVoteButtonDelegateFragment.graphql";
+import { usePropHouseAvailableVotingPower } from "./usePropHouseAvailableVotingPower";
 
 export function ActionButton({
   delegateFragmentRef,

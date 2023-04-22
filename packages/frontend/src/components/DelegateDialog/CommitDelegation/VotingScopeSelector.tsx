@@ -1,10 +1,11 @@
-import { DropDown } from "../DropDown";
-import { DelegationContractState } from "../delegateRules";
+import { BigNumber } from "ethers";
+
 import {
   permissionsString,
   toPermissions,
 } from "../../VoterPanel/Rows/DelegatedToListRow/PermissionsRule";
-import { BigNumber } from "ethers";
+import { DropDown } from "../DropDown";
+import { DelegationContractState } from "../delegateRules";
 
 export type VotingScopeSettingType = "VOTE_ALL" | "VOTE_PROPHOUSE";
 

@@ -1,15 +1,17 @@
-import { useLazyLoadQuery } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
-import { DelegatePageQuery } from "./__generated__/DelegatePageQuery.graphql";
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
-import { PastVotes } from "./PastVotes";
+import graphql from "babel-plugin-relay/macro";
+import { useLazyLoadQuery } from "react-relay/hooks";
+
+import { useParams } from "../../components/HammockRouter/HammockRouter";
 import { Markdown } from "../../components/Markdown";
 import { HStack, VStack } from "../../components/VStack";
-import { ImpactfulProposals } from "./ImpactfulProposals";
-import { useParams } from "../../components/HammockRouter/HammockRouter";
-import { TopIssues } from "./TopIssues";
 import { VoterPanel } from "../../components/VoterPanel/VoterPanel";
+import * as theme from "../../theme";
+
+import { ImpactfulProposals } from "./ImpactfulProposals";
+import { PastVotes } from "./PastVotes";
+import { TopIssues } from "./TopIssues";
+import { DelegatePageQuery } from "./__generated__/DelegatePageQuery.graphql";
 
 export function DelegatePage() {
   const { delegateId } = useParams();

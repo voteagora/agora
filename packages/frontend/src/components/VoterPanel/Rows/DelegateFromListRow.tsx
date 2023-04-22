@@ -1,18 +1,20 @@
-import { useFragment } from "react-relay";
-import * as theme from "../../../theme";
+import { css } from "@emotion/css";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import graphql from "babel-plugin-relay/macro";
+import { BigNumber } from "ethers";
+import React, { useMemo, useState } from "react";
+import { useFragment } from "react-relay";
+
+import * as theme from "../../../theme";
+import { descendingValueComparator } from "../../../utils/sorting";
+import { pluralizeAddresses } from "../../../words";
+import { NounGridChildren } from "../../NounGrid";
+import { NounResolvedLink } from "../../NounResolvedLink";
+import { HStack, VStack } from "../../VStack";
+import { LiquidDelegationRules } from "../LiquidDelegationRules";
+
 import { PanelRow } from "./PanelRow";
 import { DelegateFromListRowFragment$key } from "./__generated__/DelegateFromListRowFragment.graphql";
-import { pluralizeAddresses } from "../../../words";
-import React, { useMemo, useState } from "react";
-import { HStack, VStack } from "../../VStack";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { css } from "@emotion/css";
-import { NounResolvedLink } from "../../NounResolvedLink";
-import { NounGridChildren } from "../../NounGrid";
-import { descendingValueComparator } from "../../../utils/sorting";
-import { BigNumber } from "ethers";
-import { LiquidDelegationRules } from "../LiquidDelegationRules";
 
 export function DelegateFromList({
   fragment,

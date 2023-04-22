@@ -1,6 +1,6 @@
 import { IndexDefinition } from "./process";
-import { EntityWithMetadata } from "./storage/entityStore";
 import { RuntimeType, SerDe } from "./serde";
+import { EntityWithMetadata } from "./storage/entityStore";
 
 export function makeIndexKey<Type extends SerDe<any, any>>(
   indexDefinition: IndexDefinition<Type, string>,

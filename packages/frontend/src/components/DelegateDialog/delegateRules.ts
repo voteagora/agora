@@ -1,9 +1,11 @@
-import { RulesStruct } from "../../contracts/generated/Alligator";
 import * as dateFns from "date-fns";
 import { ethers } from "ethers";
+
+import { RulesStruct } from "../../contracts/generated/Alligator";
+
 import { WrappedRedelegationSetting } from "./CommitDelegation/RedelegationSelector";
-import { WrappedVotingScopeSetting } from "./CommitDelegation/VotingScopeSelector";
 import { WrappedTimePeriodSetting } from "./CommitDelegation/TimePeriodSelector";
+import { WrappedVotingScopeSetting } from "./CommitDelegation/VotingScopeSelector";
 
 export type DelegationRules = {
   redelegation: WrappedRedelegationSetting;

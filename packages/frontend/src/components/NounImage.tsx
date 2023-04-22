@@ -1,10 +1,11 @@
-import { useFragment } from "react-relay";
-import { NounImageFragment$key } from "./__generated__/NounImageFragment.graphql";
-import graphql from "babel-plugin-relay/macro";
-import { useMemo } from "react";
-import { buildSVG } from "@nouns/sdk/dist/image/svg-builder";
 import { getNounData, ImageData } from "@nouns/assets";
+import { buildSVG } from "@nouns/sdk/dist/image/svg-builder";
+import graphql from "babel-plugin-relay/macro";
 import { BigNumber } from "ethers";
+import { useMemo } from "react";
+import { useFragment } from "react-relay";
+
+import { NounImageFragment$key } from "./__generated__/NounImageFragment.graphql";
 
 type Props = {
   className: string;

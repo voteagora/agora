@@ -1,5 +1,5 @@
-import { fetchVotes } from "./fetchVotes";
 import { fetchAuctions } from "./fetchAuctions";
+import { fetchVotes } from "./fetchVotes";
 import { groupVotesByAuction } from "./helpers";
 
 it("groupVotesByAuction", async () => {

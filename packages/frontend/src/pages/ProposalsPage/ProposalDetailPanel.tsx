@@ -1,12 +1,14 @@
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
-import { HStack, VStack } from "../../components/VStack";
-import { Markdown } from "../../components/Markdown";
 import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay";
-import { ProposalDetailPanelFragment$key } from "./__generated__/ProposalDetailPanelFragment.graphql";
+
+import { Markdown } from "../../components/Markdown";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { ProposalTransactionDisplay } from "../../components/ProposalTransactionDisplay";
+import { HStack, VStack } from "../../components/VStack";
+import * as theme from "../../theme";
+
+import { ProposalDetailPanelFragment$key } from "./__generated__/ProposalDetailPanelFragment.graphql";
 
 export function ProposalDetailPanel({
   fragmentRef,

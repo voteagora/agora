@@ -1,17 +1,17 @@
 import Heap from "heap";
 
-import { EntityDefinition } from "../process";
-import * as serde from "../serde";
-import { RuntimeType } from "../serde";
-import { StorageArea } from "../followChain";
-import { BlockIdentifier, pathBetween } from "../storageHandle";
 import { makeEntityKey } from "../entityKey";
+import { StorageArea } from "../followChain";
 import {
   IndexKeyType,
   makeIndexKey,
   makeIndexPrefix,
   serializeIndexKey,
 } from "../indexKey";
+import { EntityDefinition } from "../process";
+import * as serde from "../serde";
+import { RuntimeType } from "../serde";
+import { BlockIdentifier, pathBetween } from "../storageHandle";
 import { compareBy } from "../utils/sortUtils";
 
 export type EntityDefinitions = {

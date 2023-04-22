@@ -1,16 +1,17 @@
-import {
-  AvailableVotingPower,
-  VotingAddress,
-} from "./usePropHouseAvailableVotingPower";
-import { assignPendingVotes, flattenPendingVotes } from "./assignPendingVotes";
-import { groupBy } from "lodash";
+import { TypedDataSigner } from "@ethersproject/abstract-signer";
 import { ethers } from "ethers";
+import { groupBy } from "lodash";
+
+import { assignPendingVotes, flattenPendingVotes } from "./assignPendingVotes";
+import { submitVote } from "./propHouse";
 import {
   signLiquidDelegatedVotes,
   signTokenDelegationVotes,
 } from "./signVotes";
-import { submitVote } from "./propHouse";
-import { TypedDataSigner } from "@ethersproject/abstract-signer";
+import {
+  AvailableVotingPower,
+  VotingAddress,
+} from "./usePropHouseAvailableVotingPower";
 
 export async function submitVotes(
   pendingVotesRaw: Map<number, number>,

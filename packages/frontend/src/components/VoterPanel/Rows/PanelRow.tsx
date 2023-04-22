@@ -1,7 +1,8 @@
-import { ReactNode } from "react";
-import { HStack } from "../../VStack";
-import * as theme from "../../../theme";
 import { css } from "@emotion/css";
+import { ReactNode } from "react";
+
+import * as theme from "../../../theme";
+import { HStack } from "../../VStack";
 
 export type PanelRowProps = {
   title: string;

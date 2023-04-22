@@ -1,5 +1,5 @@
-import { exactIndexValue, Reader } from "../../../indexer/storage/reader";
 import { entityDefinitions } from "../../../indexer/contracts/entityDefinitions";
+import { exactIndexValue, Reader } from "../../../indexer/storage/reader";
 
 import { calculateResolvedRules, ResolvedRules, Rules } from "./rules";
 

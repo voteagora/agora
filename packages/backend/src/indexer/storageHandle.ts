@@ -1,18 +1,18 @@
 import {
+  blockIdentifierFromBlock,
+  BlockProviderBlock,
+} from "./blockProvider/blockProvider";
+import { makeEntityKey } from "./entityKey";
+import { StorageArea } from "./followChain";
+import { cloneSerdeValue } from "./serde";
+import {
   EntityWithMetadata,
   mapEntriesForEntity,
   ReadOnlyEntityStore,
   setMapEntries,
 } from "./storage/entityStore";
-import {
-  blockIdentifierFromBlock,
-  BlockProviderBlock,
-} from "./blockProvider/blockProvider";
-import { getOrInsert } from "./utils/mapUtils";
-import { makeEntityKey } from "./entityKey";
-import { StorageArea } from "./followChain";
 import { EntityDefinitions } from "./storage/reader";
-import { cloneSerdeValue } from "./serde";
+import { getOrInsert } from "./utils/mapUtils";
 
 export type ReadableStorageHandle<Entities> = {
   loadEntity<Entity extends keyof Entities & string>(

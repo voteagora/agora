@@ -1,5 +1,6 @@
 import { BigNumber, ethers } from "ethers";
 
+import { formSchema } from "../../formSchema";
 import {
   governanceAggregatesKey,
   makeDefaultGovernanceAggregate,
@@ -10,8 +11,11 @@ import {
   defaultAccount,
   makeDefaultAggregate,
 } from "../../indexer/contracts/NounsToken";
-import { exactIndexValue, Reader } from "../../indexer/storage/reader";
+import { entityDefinitions } from "../../indexer/contracts/entityDefinitions";
+import { makeCompoundKey } from "../../indexer/indexKey";
 import { RuntimeType } from "../../indexer/serde";
+import { exactIndexValue, Reader } from "../../indexer/storage/reader";
+import { efficientLengthEncodingNaturalNumbers } from "../../indexer/utils/efficientLengthEncoding";
 import {
   collectGenerator,
   countItems,
@@ -19,16 +23,12 @@ import {
   limitGenerator,
   takeFirst,
 } from "../../indexer/utils/generatorUtils";
-import { getTitleFromProposalDescription } from "../../utils/markdown";
-import { driveReaderByIndex } from "../pagination";
-import { formSchema } from "../../formSchema";
-import { approximateTimeStampForBlock } from "../../utils/blockTimestamp";
-import { makeCompoundKey } from "../../indexer/indexKey";
-import { intersection } from "../../utils/set";
 import { countConsecutiveValues } from "../../utils/array";
-import { entityDefinitions } from "../../indexer/contracts/entityDefinitions";
+import { approximateTimeStampForBlock } from "../../utils/blockTimestamp";
+import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { resolveEnsOrNnsName } from "../../utils/resolveName";
-import { efficientLengthEncodingNaturalNumbers } from "../../indexer/utils/efficientLengthEncoding";
+import { intersection } from "../../utils/set";
+import { driveReaderByIndex } from "../pagination";
 
 import {
   DelegateResolvers,

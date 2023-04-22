@@ -5,8 +5,8 @@ import {
   responsePathAsArray,
 } from "graphql";
 
-import { AgoraContextType } from "../context";
 import { Span } from "../../utils/cache";
+import { AgoraContextType } from "../context";
 
 export function attachTracingContextInjection(
   schema: GraphQLSchema

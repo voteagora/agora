@@ -1,5 +1,4 @@
 import { it, fc } from "@fast-check/jest";
-
 import { ethers } from "ethers";
 
 import { efficientLengthEncodingNaturalNumbers } from "./efficientLengthEncoding";

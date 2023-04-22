@@ -1,5 +1,10 @@
 import { groupBy } from "lodash";
 
+import { Alligator__factory } from "../../../contracts/generated";
+import { alligatorContract } from "../../../indexer/contracts/Alligator";
+import { defaultAccount } from "../../../indexer/contracts/NounsToken";
+import { entityDefinitions } from "../../../indexer/contracts/entityDefinitions";
+import { RuntimeType } from "../../../indexer/serde";
 import {
   collectGenerator,
   flatMapGenerator,
@@ -12,12 +17,12 @@ import {
   LiquidDelegationRulesResolvers,
 } from "../generated/types";
 
-import { defaultAccount } from "../../../indexer/contracts/NounsToken";
-import { Alligator__factory } from "../../../contracts/generated";
-import { alligatorContract } from "../../../indexer/contracts/Alligator";
-import { RuntimeType } from "../../../indexer/serde";
-import { entityDefinitions } from "../../../indexer/contracts/entityDefinitions";
-
+import {
+  delegatedToLots,
+  ResolvedLiquidDelegatedVotesLot,
+  resolveLot,
+  subDelegationsFrom,
+} from "./lots";
 import {
   calculateResolvedRules,
   checkBlocksBeforeVoteCloses,
@@ -28,12 +33,6 @@ import {
   PERMISSION_VOTE,
   ResolvedRules,
 } from "./rules";
-import {
-  delegatedToLots,
-  ResolvedLiquidDelegatedVotesLot,
-  resolveLot,
-  subDelegationsFrom,
-} from "./lots";
 
 export const Delegate: DelegateResolvers = {
   async liquidDelegations({ address }, _args, { reader }) {

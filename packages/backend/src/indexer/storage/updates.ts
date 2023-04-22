@@ -1,11 +1,9 @@
+import { makeEntityKey } from "../entityKey";
+import { makeIndexKey } from "../indexKey";
 import { BlockIdentifier } from "../storageHandle";
 
-import { makeEntityKey } from "../entityKey";
-
-import { makeIndexKey } from "../indexKey";
-
-import { EntityDefinitions } from "./reader";
 import { blockIdentifierKey } from "./entityStore";
+import { EntityDefinitions } from "./reader";
 
 export type EntityWithChange = {
   entity: string;

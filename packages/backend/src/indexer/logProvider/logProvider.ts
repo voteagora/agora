@@ -1,10 +1,10 @@
 import { ethers } from "ethers";
 
-import { IndexerDefinition } from "../process";
 import { topicsForSignatures } from "../../contracts";
-import { compareByTuple } from "../utils/sortUtils";
-import { executeWithRetries } from "../utils/asyncUtils";
+import { IndexerDefinition } from "../process";
 import * as serde from "../serde";
+import { executeWithRetries } from "../utils/asyncUtils";
+import { compareByTuple } from "../utils/sortUtils";
 
 export type LogFilter = BlockSpec & TopicFilter;
 

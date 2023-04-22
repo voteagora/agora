@@ -1,9 +1,15 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
-import { VoteDetailsFragment$key } from "./__generated__/VoteDetailsFragment.graphql";
+import graphql from "babel-plugin-relay/macro";
+import { formatDistanceToNow } from "date-fns";
+import { BigNumber } from "ethers";
+import { useFragment } from "react-relay";
+
+import { ProposalLink } from "../../components/ProposalLink";
 import { VStack } from "../../components/VStack";
+import { VoteReason } from "../../components/VoteReason";
+import * as theme from "../../theme";
+import { pluralizeVote } from "../../words";
+
 import {
   colorForSupportType,
   toSupportType,
@@ -11,11 +17,7 @@ import {
   VoteDetailsContainer,
   VoteTitle,
 } from "./VoteDetailsContainer";
-import { pluralizeVote } from "../../words";
-import { BigNumber } from "ethers";
-import { formatDistanceToNow } from "date-fns";
-import { ProposalLink } from "../../components/ProposalLink";
-import { VoteReason } from "../../components/VoteReason";
+import { VoteDetailsFragment$key } from "./__generated__/VoteDetailsFragment.graphql";
 
 type Props = {
   voteFragment: VoteDetailsFragment$key;

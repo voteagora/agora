@@ -1,21 +1,20 @@
 import { BigNumber } from "ethers";
 
-import {
-  blockIdentifierKey,
-  EntityStore,
-  EntityWithMetadata,
-} from "../entityStore";
-import { BlockIdentifier } from "../../storageHandle";
 import { makeEntityKey } from "../../entityKey";
-import { updatesForEntities } from "../updates";
+import { BlockIdentifier } from "../../storageHandle";
+import { efficientLengthEncodingNaturalNumbers } from "../../utils/efficientLengthEncoding";
 import {
   asyncIterableFromIterable,
   batch,
   collectGenerator,
 } from "../../utils/generatorUtils";
-import { efficientLengthEncodingNaturalNumbers } from "../../utils/efficientLengthEncoding";
-
+import {
+  blockIdentifierKey,
+  EntityStore,
+  EntityWithMetadata,
+} from "../entityStore";
 import { EntityDefinitions } from "../reader";
+import { updatesForEntities } from "../updates";
 
 import { listEntries, StorageInterface } from "./storageInterface";
 

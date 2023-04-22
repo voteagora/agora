@@ -1,5 +1,5 @@
-import { random } from "lodash";
 import { AnalyticsEngineDataset } from "@cloudflare/workers-types";
+import { random } from "lodash";
 
 export interface Env {
   ENVIRONMENT: "prod" | "dev" | "staging";

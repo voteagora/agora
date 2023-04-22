@@ -1,7 +1,9 @@
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
-import { inputLabelStyle } from "./InputGroup";
+
 import { HStack, VStack } from "../../components/VStack";
+import * as theme from "../../theme";
+
+import { inputLabelStyle } from "./InputGroup";
 
 type Props = {
   onSelectionChanged: (newSelection: "yes" | "no") => void;

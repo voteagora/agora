@@ -1,6 +1,7 @@
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
+
 import { CloseIcon } from "../../components/CloseIcon";
+import * as theme from "../../theme";
 
 type Props = {
   onClick: () => void;

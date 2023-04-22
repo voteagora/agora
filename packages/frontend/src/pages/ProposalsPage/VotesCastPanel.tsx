@@ -1,22 +1,24 @@
-import { VStack, HStack } from "../../components/VStack";
 import { css, keyframes } from "@emotion/css";
-import * as theme from "../../theme";
-import { useFragment, usePaginationFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { VotesCastPanelFragment$key } from "./__generated__/VotesCastPanelFragment.graphql";
+import { BigNumber } from "ethers";
+import { Suspense, useEffect, useState, useTransition } from "react";
+import { InView } from "react-intersection-observer";
+import { useFragment, usePaginationFragment } from "react-relay";
+import { useLazyLoadQuery } from "react-relay/hooks";
+
 import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
+import { VStack, HStack } from "../../components/VStack";
+import { makePaginationItems } from "../../hooks/pagination";
+import * as theme from "../../theme";
+import { VoterCard } from "../HomePage/VoterCard";
+
 import { CastVoteInput } from "./CastVoteInput";
 import { ProposalVotesSummary } from "./ProposalVotesSummary";
 import { VoteRow } from "./VoteRow";
-import { VotesCastPanelVotesFragment$key } from "./__generated__/VotesCastPanelVotesFragment.graphql";
-import { makePaginationItems } from "../../hooks/pagination";
-import { InView } from "react-intersection-observer";
-import { Suspense, useEffect, useState, useTransition } from "react";
-import { useLazyLoadQuery } from "react-relay/hooks";
+import { VotesCastPanelFragment$key } from "./__generated__/VotesCastPanelFragment.graphql";
 import { VotesCastPanelHoveredVoterQuery } from "./__generated__/VotesCastPanelHoveredVoterQuery.graphql";
-import { VoterCard } from "../HomePage/VoterCard";
 import { VotesCastPanelQueryFragment$key } from "./__generated__/VotesCastPanelQueryFragment.graphql";
-import { BigNumber } from "ethers";
+import { VotesCastPanelVotesFragment$key } from "./__generated__/VotesCastPanelVotesFragment.graphql";
 
 export function VotesCastPanel({
   fragmentRef,

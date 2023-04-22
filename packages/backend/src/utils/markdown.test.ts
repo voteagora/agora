@@ -1,8 +1,7 @@
 import exp from "constants";
 
-import { marked } from "marked";
-
 import dedent from "dedent";
+import { marked } from "marked";
 
 import {
   extractFirstParagraph,

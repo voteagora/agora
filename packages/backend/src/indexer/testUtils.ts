@@ -2,15 +2,14 @@ import { ethers } from "ethers";
 
 import { ContractInstance, TypedInterface } from "../contracts";
 
-import { BlockIdentifier } from "./storageHandle";
-import { FakeBlockProviderBlock } from "./blockProvider/fakeBlockProvider";
 import {
   blockIdentifierFromBlock,
   BlockProviderBlock,
 } from "./blockProvider/blockProvider";
-
-import { blockIdentifierKey } from "./storage/entityStore";
+import { FakeBlockProviderBlock } from "./blockProvider/fakeBlockProvider";
 import { BlockStorageArea, StorageArea } from "./followChain";
+import { blockIdentifierKey } from "./storage/entityStore";
+import { BlockIdentifier } from "./storageHandle";
 
 export type BlockWithLog = {
   block: BlockIdentifier;

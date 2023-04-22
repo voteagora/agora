@@ -1,15 +1,17 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
+import graphql from "babel-plugin-relay/macro";
+import { BigNumber, utils } from "ethers";
+import { useMemo, useState } from "react";
+import { useFragment } from "react-relay";
+
+import { HStack, VStack } from "../../components/VStack";
 import * as theme from "../../theme";
+import { descendingValueComparator } from "../../utils/sorting";
+import { Selector } from "../HomePage/Selector";
+
+import { PropHouseVoteDetails } from "./PropHouseVoteDetails";
 import { VoteDetails } from "./VoteDetails";
 import { PastVotesFragment$key } from "./__generated__/PastVotesFragment.graphql";
-import { HStack, VStack } from "../../components/VStack";
-import { PropHouseVoteDetails } from "./PropHouseVoteDetails";
-import { Selector } from "../HomePage/Selector";
-import { useMemo, useState } from "react";
-import { BigNumber, utils } from "ethers";
-import { descendingValueComparator } from "../../utils/sorting";
 
 type Props = {
   fragment: PastVotesFragment$key;

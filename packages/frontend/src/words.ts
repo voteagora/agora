@@ -1,5 +1,5 @@
-import { BigNumber } from "ethers";
 import { format } from "date-fns";
+import { BigNumber } from "ethers";
 
 export function pluralizeNoun(count: BigNumber) {
   if (count.eq(1)) {

@@ -1,12 +1,11 @@
 import { fc, it } from "@fast-check/jest";
 
 import * as serde from "../../serde";
-
 import { EntityDefinitions } from "../reader";
 
 import { DurableObjectEntityStore } from "./durableObjectEntityStore";
-import { MemoryStorage } from "./memoryStorage";
 import { FailableStorage } from "./failableStorage";
+import { MemoryStorage } from "./memoryStorage";
 
 describe("durableObjectEntityStore", () => {
   const entityDefinitions: EntityDefinitions = {

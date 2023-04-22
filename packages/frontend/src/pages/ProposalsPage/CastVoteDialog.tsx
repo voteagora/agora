@@ -1,25 +1,27 @@
-import { useFragment, useLazyLoadQuery } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
-import * as theme from "../../theme";
-import { HStack, VStack } from "../../components/VStack";
-import { NounGridChildren } from "../../components/NounGrid";
-import { UserIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
-import { motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
-import { NounResolvedLink } from "../../components/NounResolvedLink";
-import { NounsDAOLogicV2 } from "../../contracts/generated";
+import { UserIcon } from "@heroicons/react/20/solid";
+import graphql from "babel-plugin-relay/macro";
+import { motion } from "framer-motion";
 import { ReactNode } from "react";
+import { useFragment, useLazyLoadQuery } from "react-relay/hooks";
+
+import { NounGridChildren } from "../../components/NounGrid";
+import { NounResolvedLink } from "../../components/NounResolvedLink";
+import { HStack, VStack } from "../../components/VStack";
+import { nounsAlligator, nounsDao } from "../../contracts/contracts";
+import { NounsDAOLogicV2 } from "../../contracts/generated";
+import { Alligator } from "../../contracts/generated/Alligator";
+import { useContractWrite } from "../../hooks/useContractWrite";
+import * as theme from "../../theme";
 import {
   colorForSupportType,
   SupportTextProps,
 } from "../DelegatePage/VoteDetailsContainer";
-import { CastVoteDialogQuery } from "./__generated__/CastVoteDialogQuery.graphql";
-import { useContractWrite } from "../../hooks/useContractWrite";
-import { nounsAlligator, nounsDao } from "../../contracts/contracts";
-import { CastVoteDialogTokenDelegationLotVoteCellFragment$key } from "./__generated__/CastVoteDialogTokenDelegationLotVoteCellFragment.graphql";
+
 import { CastVoteDialogLiquidDelegationLotVoteCellFragment$key } from "./__generated__/CastVoteDialogLiquidDelegationLotVoteCellFragment.graphql";
-import { Alligator } from "../../contracts/generated/Alligator";
+import { CastVoteDialogQuery } from "./__generated__/CastVoteDialogQuery.graphql";
+import { CastVoteDialogTokenDelegationLotVoteCellFragment$key } from "./__generated__/CastVoteDialogTokenDelegationLotVoteCellFragment.graphql";
 
 type Props = {
   proposalId: number;

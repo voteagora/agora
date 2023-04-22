@@ -1,13 +1,15 @@
-import { useLazyLoadQuery } from "react-relay/hooks";
+import { css } from "@emotion/css";
+import { Dialog } from "@headlessui/react";
 import graphql from "babel-plugin-relay/macro";
+import { motion } from "framer-motion";
+import { useLazyLoadQuery } from "react-relay/hooks";
+import { useAccount } from "wagmi";
+
 import * as theme from "../../theme";
 import { VStack } from "../VStack";
-import { useAccount } from "wagmi";
-import { css } from "@emotion/css";
-import { motion } from "framer-motion";
-import { Dialog } from "@headlessui/react";
-import { DelegationDisplay } from "./DelegationDisplay";
+
 import { CommitDelegation } from "./CommitDelegation";
+import { DelegationDisplay } from "./DelegationDisplay";
 import { DelegateDialogQuery } from "./__generated__/DelegateDialogQuery.graphql";
 
 export function DelegateDialog({

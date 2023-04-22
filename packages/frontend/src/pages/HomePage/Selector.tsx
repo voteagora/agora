@@ -1,14 +1,15 @@
-import { HStack } from "../../components/VStack";
-import * as theme from "../../theme";
-import { Listbox } from "@headlessui/react";
 import { css, cx } from "@emotion/css";
+import { Listbox } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
+
 import {
   dropdownContainerStyles,
   dropdownItemActiveStyle,
   DropdownItems,
   dropdownItemStyle,
 } from "../../components/DelegateDialog/DropDown";
+import { HStack } from "../../components/VStack";
+import * as theme from "../../theme";
 
 export type SelectorItem<T> = {
   title: string;

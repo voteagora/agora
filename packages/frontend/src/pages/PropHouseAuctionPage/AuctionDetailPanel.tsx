@@ -1,19 +1,21 @@
 import { css } from "@emotion/css";
 import graphql from "babel-plugin-relay/macro";
-import * as theme from "../../theme";
-import { HStack, VStack } from "../../components/VStack";
-import { Markdown } from "../../components/Markdown";
-import { useState } from "react";
-import { Selector } from "../HomePage/Selector";
 import { formatDistanceToNow } from "date-fns";
-import { useFragment } from "react-relay";
-import { AuctionDetailPanelFragment$key } from "./__generated__/AuctionDetailPanelFragment.graphql";
-import { NounResolvedLink } from "../../components/NounResolvedLink";
-import { AuctionDetailPanelAuctionProposalFragment$key } from "./__generated__/AuctionDetailPanelAuctionProposalFragment.graphql";
-import { compareBy, flipComparator } from "../../utils/sorting";
-import { icons } from "../../icons/icons";
-import { usePendingVotes, useUpdatePendingVotes } from "./PendingVotesContext";
 import { BigNumber } from "ethers";
+import { useState } from "react";
+import { useFragment } from "react-relay";
+
+import { Markdown } from "../../components/Markdown";
+import { NounResolvedLink } from "../../components/NounResolvedLink";
+import { HStack, VStack } from "../../components/VStack";
+import { icons } from "../../icons/icons";
+import * as theme from "../../theme";
+import { compareBy, flipComparator } from "../../utils/sorting";
+import { Selector } from "../HomePage/Selector";
+
+import { usePendingVotes, useUpdatePendingVotes } from "./PendingVotesContext";
+import { AuctionDetailPanelAuctionProposalFragment$key } from "./__generated__/AuctionDetailPanelAuctionProposalFragment.graphql";
+import { AuctionDetailPanelFragment$key } from "./__generated__/AuctionDetailPanelFragment.graphql";
 
 type Sort = "MOST VOTES" | "LEAST VOTES" | "NEWEST" | "OLDEST";
 

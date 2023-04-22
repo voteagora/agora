@@ -1,10 +1,9 @@
-import * as serde from "../serde";
-import { makeEntityDefinition } from "../process";
-import { RuntimeType } from "../serde";
-import { collectGenerator } from "../utils/generatorUtils";
-import { makeStorageAreaFromBlockSequence } from "../testUtils";
-
 import { makeIndexKey } from "../indexKey";
+import { makeEntityDefinition } from "../process";
+import * as serde from "../serde";
+import { RuntimeType } from "../serde";
+import { makeStorageAreaFromBlockSequence } from "../testUtils";
+import { collectGenerator } from "../utils/generatorUtils";
 
 import { mapEntriesForEntity } from "./entityStore";
 import { getEntitiesByIndexFromStorageArea, IndexedValue } from "./reader";

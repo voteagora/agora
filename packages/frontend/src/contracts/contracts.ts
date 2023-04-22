@@ -1,10 +1,11 @@
+import { makeContractInstance } from "../hooks/useContractWrite";
+
 import {
   NounsDAOLogicV2__factory,
   NounsToken__factory,
   ZoraAuctionHouse__factory,
   Alligator__factory,
 } from "./generated";
-import { makeContractInstance } from "../hooks/useContractWrite";
 
 export const nounsDao = makeContractInstance({
   factory: NounsDAOLogicV2__factory,

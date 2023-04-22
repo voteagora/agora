@@ -1,8 +1,8 @@
 import { infiniteStream } from "../../utils/generatorUtils";
 
+import { DurableObjectEntityStore } from "./durableObjectEntityStore";
 import { FailableStorage } from "./failableStorage";
 import { MemoryStorage } from "./memoryStorage";
-import { DurableObjectEntityStore } from "./durableObjectEntityStore";
 
 describe("failableStorage", () => {
   it("fails when failure stream provided", async () => {

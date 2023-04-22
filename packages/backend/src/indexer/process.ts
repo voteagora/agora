@@ -2,8 +2,8 @@ import { ethers } from "ethers";
 
 import { ContractInstance, TypedInterface } from "../contracts";
 
-import { StorageHandle } from "./storageHandle";
 import { RuntimeType, SerDe } from "./serde";
+import { StorageHandle } from "./storageHandle";
 
 // The latest block is at depth zero with the block depth of each block below
 // latest defined as LATEST.blockNumber - OTHER.blockNumber.

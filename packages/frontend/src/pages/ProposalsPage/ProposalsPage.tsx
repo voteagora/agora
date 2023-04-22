@@ -1,22 +1,24 @@
-import { useLazyLoadQuery } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
-import { ProposalsPageDetailQuery } from "./__generated__/ProposalsPageDetailQuery.graphql";
-import { HStack, VStack } from "../../components/VStack";
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
-import { ProposalDetailPanel } from "./ProposalDetailPanel";
-import { VotesCastPanel } from "./VotesCastPanel";
-import {
-  ProposalsListPanel,
-  selectedProposalToPath,
-} from "./ProposalListPanel/ProposalsListPanel";
-import { useState, useTransition } from "react";
+import graphql from "babel-plugin-relay/macro";
 import { motion } from "framer-motion";
+import { useState, useTransition } from "react";
+import { useLazyLoadQuery } from "react-relay/hooks";
+import { useAccount } from "wagmi";
+
 import {
   useNavigate,
   useParams,
 } from "../../components/HammockRouter/HammockRouter";
-import { useAccount } from "wagmi";
+import { HStack, VStack } from "../../components/VStack";
+import * as theme from "../../theme";
+
+import { ProposalDetailPanel } from "./ProposalDetailPanel";
+import {
+  ProposalsListPanel,
+  selectedProposalToPath,
+} from "./ProposalListPanel/ProposalsListPanel";
+import { VotesCastPanel } from "./VotesCastPanel";
+import { ProposalsPageDetailQuery } from "./__generated__/ProposalsPageDetailQuery.graphql";
 
 export function ProposalsPage() {
   const { proposalId } = useParams();

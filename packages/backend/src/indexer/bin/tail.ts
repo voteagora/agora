@@ -1,13 +1,13 @@
 import { ethers } from "ethers";
 
+import { makeProvider } from "../../provider";
+import { EthersBlockProvider } from "../blockProvider/blockProvider";
 import { indexers } from "../contracts";
+import { entityDefinitions } from "../contracts/entityDefinitions";
 import { followChain, makeInitialStorageArea } from "../followChain";
+import { EthersLogProvider } from "../logProvider/logProvider";
 import { LevelEntityStore } from "../storage/level/levelEntityStore";
 import { timeout } from "../utils/asyncUtils";
-import { EthersBlockProvider } from "../blockProvider/blockProvider";
-import { EthersLogProvider } from "../logProvider/logProvider";
-import { entityDefinitions } from "../contracts/entityDefinitions";
-import { makeProvider } from "../../provider";
 
 /**
  * Processes and writes updates for finalized blocks from stored logs.

@@ -1,24 +1,26 @@
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
-import { HStack, VStack } from "../../components/VStack";
 import graphql from "babel-plugin-relay/macro";
-import { useLazyLoadQuery } from "react-relay/hooks";
-import { OverviewMetricsContainer } from "../HomePage/OverviewMetricsContainer";
 import { startTransition, useState } from "react";
-import { PropHouseAuctionRow } from "./PropHouseAuctionRow";
-import { OnChainProposalRow } from "./OnChainProposalRow";
+import { useLazyLoadQuery } from "react-relay/hooks";
+
 import { PageDivider } from "../../components/PageDivider";
-import { ProposalsListPageQuery } from "./__generated__/ProposalsListPageQuery.graphql";
+import { HStack, VStack } from "../../components/VStack";
+import * as theme from "../../theme";
+import { OverviewMetricsContainer } from "../HomePage/OverviewMetricsContainer";
+
+import { OnChainProposalRow } from "./OnChainProposalRow";
+import { PropHouseAuctionRow } from "./PropHouseAuctionRow";
+import { ProposalSortSelector, ProposalSortType } from "./ProposalSortSelector";
 import {
   ProposalStatusFilter,
   ProposalStatusSelector,
 } from "./ProposalStatusSelector";
-import { ProposalSortSelector, ProposalSortType } from "./ProposalSortSelector";
-import { useProposals } from "./useProposals";
 import {
   ProposalTypeFilter,
   ProposalTypeSelector,
 } from "./ProposalTypeSelector";
+import { ProposalsListPageQuery } from "./__generated__/ProposalsListPageQuery.graphql";
+import { useProposals } from "./useProposals";
 
 export function ProposalsListPage() {
   const result = useLazyLoadQuery<ProposalsListPageQuery>(

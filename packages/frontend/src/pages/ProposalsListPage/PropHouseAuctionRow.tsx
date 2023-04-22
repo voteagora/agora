@@ -1,14 +1,16 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
+import graphql from "babel-plugin-relay/macro";
 import { formatDistanceToNow } from "date-fns";
-import { PropHouseAuctionRowActivityFragment$key } from "./__generated__/PropHouseAuctionRowActivityFragment.graphql";
-import { StatusText } from "./StatusText";
-import { PropHouseAuctionRowFragment$key } from "./__generated__/PropHouseAuctionRowFragment.graphql";
-import { colorForOnChainProposalStatus } from "./OnChainProposalRow";
 import React from "react";
+import { useFragment } from "react-relay";
+
+import * as theme from "../../theme";
+
+import { colorForOnChainProposalStatus } from "./OnChainProposalRow";
 import { Row, RowValue } from "./Rows";
+import { StatusText } from "./StatusText";
+import { PropHouseAuctionRowActivityFragment$key } from "./__generated__/PropHouseAuctionRowActivityFragment.graphql";
+import { PropHouseAuctionRowFragment$key } from "./__generated__/PropHouseAuctionRowFragment.graphql";
 import { PropHouseAuctionStatus } from "./__generated__/useProposalsInnerFragment.graphql";
 
 export function PropHouseAuctionRow({

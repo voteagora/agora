@@ -1,10 +1,12 @@
 import { css } from "@emotion/css";
+import { Dialog } from "@headlessui/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { createContext, ReactNode, useContext, useState } from "react";
-import { dialogs, DialogType } from "./dialogs";
+
 import { inset0 } from "../../theme";
-import { Dialog } from "@headlessui/react";
 import { useStartTransition } from "../HammockRouter/HammockRouter";
+
+import { dialogs, DialogType } from "./dialogs";
 
 type OpenDialogFn = (dialog: DialogType) => void;
 
