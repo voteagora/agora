@@ -88,7 +88,7 @@
   },
   "scripts": {
     "analyze": "source-map-explorer 'build/static/js/*.js'",
-    "start": "concurrently 'vite' 'yarn relay --watch'",
+    "start": "concurrently --kill-others 'vite' 'yarn relay --watch'",
     "lint": "eslint --fix '**/*.{ts,tsx}'",
     "build": "yarn run codegen && vite build",
     "relay": "yarn run relay-compiler",
