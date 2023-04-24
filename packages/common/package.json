@@ -7,7 +7,8 @@
   "scripts": {
     "codegen": "yarn generate-typechain",
     "generate-typechain": "typechain --target ethers-v5 --out-dir src/contracts/generated src/contracts/abis/*.json",
-    "test": "jest"
+    "test": "jest",
+    "postinstall": "yarn run codegen"
   },
   "dependencies": {
     "@nouns/contracts": "^0.3.0",

@@ -1,26 +1,16 @@
-# nouns-agora
+# agora
 
-## Initial setup
+Tools for organizing DAOs.
 
-Install yarn packages:
-
-```sh
-yarn install
-```
-
-Get an API key from [Alchemy](https://dashboard.alchemy.com/) to access the Ethereum mainnet.
-
-Run:
+## Getting started
 
 ```sh
-ALCHEMY_API_KEY=<key> yarn workspace @agora/backend run generate-snapshot
+$ yarn workspace @agora/frontend run start
+$ yarn workspace @agora/backend run start
 ```
 
-This will take around 30 minutes for the first run, subsequent runs will use the existing snapshot as a base and should be much faster.
+See the corresponding readmes for details about further configuring these parts
+of the application.
 
-## running
-
-```sh
-$ yarn run start-backend
-$ yarn run start-frontend
-```
+- [frontend](./packages/frontend/README.md)
+- [backend](./packages/backend/README.md)

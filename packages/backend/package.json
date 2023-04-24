@@ -20,7 +20,8 @@
     "visualize-worker-bundle": "esbuild-visualizer ---metadata ./dist/meta.json",
     "start": "yarn run generate && yarn run server",
     "test": "jest",
-    "lint": "eslint --fix '**/*.ts'"
+    "lint": "eslint --fix '**/*.ts'",
+    "postinstall": "yarn run generate"
   },
   "eslintConfig": {
     "ignorePatterns": [

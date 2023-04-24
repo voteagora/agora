@@ -4,8 +4,6 @@
     "./packages/*"
   ],
   "scripts": {
-    "start-frontend": "yarn workspace @agora/frontend run start",
-    "start-backend": "yarn workspace @agora/backend run start",
     "prettier": "prettier --write . --ignore-path .gitignore"
   },
   "devDependencies": {
