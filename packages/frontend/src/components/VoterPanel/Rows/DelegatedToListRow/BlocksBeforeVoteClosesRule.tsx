@@ -1,5 +1,5 @@
-import graphql from "babel-plugin-relay/macro";
-import { useFragment } from "react-relay";
+import { graphql, useFragment } from "react-relay";
+
 import { BlocksBeforeVoteClosesRuleFragment$key } from "./__generated__/BlocksBeforeVoteClosesRuleFragment.graphql";
 
 export function BlocksBeforeVoteClosesRule({

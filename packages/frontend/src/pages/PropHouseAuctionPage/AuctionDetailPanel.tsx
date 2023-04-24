@@ -1,19 +1,20 @@
 import { css } from "@emotion/css";
-import graphql from "babel-plugin-relay/macro";
+import { graphql, useFragment } from "react-relay";
+import { useState } from "react";
+import { formatDistanceToNow } from "date-fns";
+import { BigNumber } from "ethers";
+
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
 import { Markdown } from "../../components/Markdown";
-import { useState } from "react";
 import { Selector } from "../HomePage/Selector";
-import { formatDistanceToNow } from "date-fns";
-import { useFragment } from "react-relay";
-import { AuctionDetailPanelFragment$key } from "./__generated__/AuctionDetailPanelFragment.graphql";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
-import { AuctionDetailPanelAuctionProposalFragment$key } from "./__generated__/AuctionDetailPanelAuctionProposalFragment.graphql";
 import { compareBy, flipComparator } from "../../utils/sorting";
 import { icons } from "../../icons/icons";
+
+import { AuctionDetailPanelFragment$key } from "./__generated__/AuctionDetailPanelFragment.graphql";
+import { AuctionDetailPanelAuctionProposalFragment$key } from "./__generated__/AuctionDetailPanelAuctionProposalFragment.graphql";
 import { usePendingVotes, useUpdatePendingVotes } from "./PendingVotesContext";
-import { BigNumber } from "ethers";
 
 type Sort = "MOST VOTES" | "LEAST VOTES" | "NEWEST" | "OLDEST";
 

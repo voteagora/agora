@@ -1,16 +1,18 @@
 import { useLazyLoadQuery } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
+import { graphql } from "react-relay";
 import { css } from "@emotion/css";
-import { EditDelegatePageQuery } from "./__generated__/EditDelegatePageQuery.graphql";
-import * as theme from "../../theme";
-import { DelegateStatementForm } from "./DelegateStatementForm";
-import { EditDelegatePageLazyVoterPanelQuery } from "./__generated__/EditDelegatePageLazyVoterPanelQuery.graphql";
 import { useAccount } from "wagmi";
+
+import * as theme from "../../theme";
 import { HStack } from "../../components/VStack";
 import { Navigate } from "../../components/HammockRouter/Navigate";
 import { VoterPanel } from "../../components/VoterPanel/VoterPanel";
 
-export function EditDelegatePage() {
+import { EditDelegatePageLazyVoterPanelQuery } from "./__generated__/EditDelegatePageLazyVoterPanelQuery.graphql";
+import { DelegateStatementForm } from "./DelegateStatementForm";
+import { EditDelegatePageQuery } from "./__generated__/EditDelegatePageQuery.graphql";
+
+export default function EditDelegatePage() {
   const { address } = useAccount();
 
   const query = useLazyLoadQuery<EditDelegatePageQuery>(

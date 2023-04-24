@@ -1,5 +1,6 @@
-import { EmailStorage } from "../schema/model";
-import { ValidatedMessage } from "../utils/signing";
+import { ValidatedMessage } from "@agora/common";
+
+import { EmailStorage } from "../schema/modules/delegateStatement/context/emailStorage";
 
 export function makeEmailStorage(kvNamespace: KVNamespace): EmailStorage {
   return {

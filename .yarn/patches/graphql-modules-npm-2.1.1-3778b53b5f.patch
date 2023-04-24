@@ -1,0 +1,64 @@
+diff --git a/index.mjs b/index.mjs
+index dd82962cc650fa95fb625cf4dcba9bb161c08ff3..a1ae32468d86bad40ddcc15974eb8185b0307ca2 100644
+--- a/index.mjs
++++ b/index.mjs
+@@ -1,9 +1,12 @@
+ import { makeExecutableSchema } from '@graphql-tools/schema';
+-import { createHook, executionAsyncId } from 'async_hooks';
+ import { GraphQLSchema, execute as execute$1, subscribe, visit, Kind, GraphQLScalarType, concatAST, defaultFieldResolver, parse } from 'graphql';
+ import { wrapSchema } from '@graphql-tools/wrap';
+ import { mergeDeepWith } from 'ramda';
+ 
++function executionAsyncId() {
++    return 'NOT_IMPLEMENTED';
++}
++
+ const ERROR_ORIGINAL_ERROR = 'diOriginalError';
+ function getOriginalError(error) {
+     return error[ERROR_ORIGINAL_ERROR];
+@@ -174,25 +177,6 @@ function isFactoryProvider(provider) {
+ 
+ const executionContextStore = new Map();
+ const executionContextDependencyStore = new Map();
+-const executionContextHook = createHook({
+-    init(asyncId, _, triggerAsyncId) {
+-        var _a;
+-        // Store same context data for child async resources
+-        const ctx = executionContextStore.get(triggerAsyncId);
+-        if (ctx) {
+-            const dependencies = (_a = executionContextDependencyStore.get(triggerAsyncId)) !== null && _a !== void 0 ? _a : executionContextDependencyStore
+-                .set(triggerAsyncId, new Set())
+-                .get(triggerAsyncId);
+-            dependencies.add(asyncId);
+-            executionContextStore.set(asyncId, ctx);
+-        }
+-    },
+-    destroy(asyncId) {
+-        if (executionContextStore.has(asyncId)) {
+-            executionContextStore.delete(asyncId);
+-        }
+-    },
+-});
+ function destroyContextAndItsChildren(id) {
+     if (executionContextStore.has(id)) {
+         executionContextStore.delete(id);
+@@ -222,11 +206,6 @@ const executionContext = {
+         return picker.getApplicationContext();
+     },
+ };
+-function enableExecutionContext() {
+-    {
+-        executionContextHook.enable();
+-    }
+-}
+ 
+ function ensureReflect() {
+     if (!(Reflect && Reflect.getOwnMetadata)) {
+@@ -237,7 +216,6 @@ function Injectable(options) {
+     return (target) => {
+         var _a;
+         ensureReflect();
+-        enableExecutionContext();
+         const params = (Reflect.getMetadata('design:paramtypes', target) || []).map((param) => (isType(param) ? param : null));
+         const existingMeta = readInjectableMetadata(target);
+         const meta = {

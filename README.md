@@ -13,7 +13,7 @@ Get an API key from [Alchemy](https://dashboard.alchemy.com/) to access the Ethe
 Run:
 
 ```sh
-ALCHEMY_API_KEY=<key> yarn workspace nouns-agora-backend run generate-snapshot
+ALCHEMY_API_KEY=<key> yarn workspace @agora/backend run generate-snapshot
 ```
 
 This will take around 30 minutes for the first run, subsequent runs will use the existing snapshot as a base and should be much faster.

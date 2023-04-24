@@ -1,6 +1,7 @@
-import { RulesStruct } from "../../contracts/generated/Alligator";
 import * as dateFns from "date-fns";
 import { ethers } from "ethers";
+import { Address } from "@wagmi/core";
+
 import { WrappedRedelegationSetting } from "./CommitDelegation/RedelegationSelector";
 import { WrappedVotingScopeSetting } from "./CommitDelegation/VotingScopeSelector";
 import { WrappedTimePeriodSetting } from "./CommitDelegation/TimePeriodSelector";
@@ -18,7 +19,7 @@ export type DelegationContractState =
   | {
       type: "LIQUID";
       delegatedToLiquidContract: boolean;
-      rules: { [K in keyof RulesStruct]: Awaited<RulesStruct[K]> } | null;
+      rules: Rules | null;
     };
 
 export function delegateRulesToContractState(
@@ -118,7 +119,16 @@ export const PERMISSION_PROPOSE = 0b100;
 
 const maxUint8Value = Math.pow(2, 8) - 1;
 
-export function restrictiveRules(): RulesStruct {
+type Rules = {
+  customRule: Address;
+  permissions: number;
+  notValidAfter: number;
+  notValidBefore: number;
+  maxRedelegations: number;
+  blocksBeforeVoteCloses: number;
+};
+
+export function restrictiveRules(): Rules {
   return {
     customRule: ethers.constants.AddressZero,
     permissions: 0,

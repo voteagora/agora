@@ -1,0 +1,35 @@
+scalar BigInt
+scalar Bytes
+scalar Timestamp
+
+type Address {
+  address: String!
+  resolvedName: ResolvedName!
+  isContract: Boolean!
+}
+
+type ResolvedName {
+  address: ID!
+  name: String
+}
+
+type TokenAmount {
+  amount: BigInt!
+  currency: String!
+  decimals: Int!
+}
+
+type VotingPower {
+  amount: TokenAmount!
+
+  bpsOfQuorum: Int!
+  bpsOfDelegatedSupply: Int!
+  bpsOfTotal: Int!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}

@@ -9,5 +9,9 @@
     "skipLibCheck": true,
     "strict": true
   },
+  "ts-node": {
+    "require": ["./scripts/registerGraphQL.ts", "graphql-import-node/register"],
+    "files": true
+  },
   "include": ["./src"]
 }

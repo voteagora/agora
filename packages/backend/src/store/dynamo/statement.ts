@@ -1,8 +1,10 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-
 import DataLoader from "dataloader";
 
-import { StatementStorage, StoredStatement } from "../../schema/model";
+import {
+  StatementStorage,
+  StoredStatement,
+} from "../../schema/modules/delegateStatement/context/statementStorage";
 
 import { makeKey, marshaller, TableName } from "./utils";
 

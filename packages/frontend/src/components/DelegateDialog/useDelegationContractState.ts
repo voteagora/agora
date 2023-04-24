@@ -1,13 +1,14 @@
+import { useFragment, graphql } from "react-relay";
+import { ethers } from "ethers";
+import { Address } from "@wagmi/core";
+
+import { useDelegationContractStateFragment$key } from "./__generated__/useDelegationContractStateFragment.graphql";
 import {
   DelegationContractState,
   PERMISSION_PROPOSE,
   PERMISSION_SIGN,
   PERMISSION_VOTE,
 } from "./delegateRules";
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
-import { useDelegationContractStateFragment$key } from "./__generated__/useDelegationContractStateFragment.graphql";
-import { ethers } from "ethers";
 
 export function useDelegationContractState(
   fragmentRef: useDelegationContractStateFragment$key
@@ -108,9 +109,8 @@ export function useDelegationContractState(
       const rules = delegationTo.rules;
 
       return {
-        customRule:
-          rules.customRules[rules.customRules.length - 1] ??
-          ethers.constants.AddressZero,
+        customRule: (rules.customRules[rules.customRules.length - 1] ??
+          ethers.constants.AddressZero) as Address,
         notValidBefore: rules.notValidBefore ? rules.notValidBefore / 1000 : 0,
         notValidAfter: rules.notValidAfter ? rules.notValidAfter / 1000 : 0,
         permissions:

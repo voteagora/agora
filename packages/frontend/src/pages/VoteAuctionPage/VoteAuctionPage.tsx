@@ -1,14 +1,17 @@
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
-import { HStack, VStack } from "../../components/VStack";
 import { useNFT } from "@zoralabs/nft-hooks";
 import { formatDistanceToNow, parseISO } from "date-fns";
-import { shortAddress } from "../../utils/address";
 import React, { useEffect, useState } from "react";
-import { useContractWrite } from "../../hooks/useContractWrite";
-import { ZoraAuctionHouse } from "../../contracts/generated";
-import { zoraAuctionHouse } from "../../contracts/contracts";
 import { ethers } from "ethers";
+import { usePrepareContractWrite } from "wagmi";
+import { Address } from "@wagmi/core";
+
+import * as theme from "../../theme";
+import { HStack, VStack } from "../../components/VStack";
+import { shortAddress } from "../../utils/address";
+import { useContractWrite } from "../../hooks/useContractWrite";
+import { zoraAuctionHouse } from "../../contracts/contracts";
+
 // import { constSelector } from "recoil";
 
 // To do:
@@ -17,7 +20,7 @@ import { ethers } from "ethers";
 // - Hitting items in the list changes main auction
 // - New auctions still need a deploy
 
-export function VoteAuctionPage() {
+export default function VoteAuctionPage() {
   const auctionListRaw = [
     {
       collection: "0x1CFb7e79f406C2a58Cc62A0956238f980F9098Ee",
@@ -486,7 +489,14 @@ function PlaceBid({ market }: { market: any }) {
     }
   })();
 
-  const write = useContractWrite<ZoraAuctionHouse, "createBid">(
+  usePrepareContractWrite({
+    address: zoraAuctionHouse.address as Address,
+    abi: zoraAuctionHouse.abi,
+    functionName: "createBid",
+    args: [auctionId, value],
+  });
+
+  const write = useContractWrite(
     zoraAuctionHouse,
     "createBid",
     [auctionId, value],

@@ -1,5 +1,7 @@
 import { ethers } from "ethers";
 
+import { requiredValue } from "./shared/utils/requiredValue";
+
 export function makeProvider() {
   return makeAlchemyProvider();
 }
@@ -7,7 +9,7 @@ export function makeProvider() {
 export function makeAlchemyProvider() {
   return new ethers.providers.AlchemyProvider(
     "mainnet",
-    process.env.ALCHEMY_API_KEY
+    requiredValue(process.env, "ALCHEMY_API_KEY")
   );
 }
 

@@ -1,0 +1,63 @@
+type Delegate {
+  liquidDelegationProxyAddress: Address!
+  liquidDelegationProxy: LiquidDelegationProxy
+
+  liquidDelegations: [LiquidDelegationDelegation!]!
+  liquidRepresentation(
+    filter: LiquidRepresentationFilterArgs!
+  ): [LiquidDelegationRepresentation!]!
+}
+
+type LiquidDelegationProxy {
+  proxy: Delegate!
+  owner: Delegate!
+}
+
+input LiquidRepresentationFilterArgs {
+  currentlyActive: Boolean
+  forProposal: LiquidRepresentationProposalFilterArgs
+
+  canSign: Boolean
+  canVote: Boolean
+  canPropose: Boolean
+}
+
+enum SupportType {
+  FOR
+  AGAINST
+  ABSTAIN
+}
+
+input LiquidRepresentationProposalFilterArgs {
+  proposalId: ID!
+  support: SupportType
+}
+
+type LiquidDelegationDelegation {
+  to: Address!
+  rules: LiquidDelegationRules!
+}
+
+type LiquidDelegationLot {
+  authorityChain: [String!]!
+  rules: LiquidDelegationRules!
+}
+
+type LiquidDelegationRules {
+  permissionVote: Boolean!
+  permissionSign: Boolean!
+  permissionPropose: Boolean!
+
+  notValidAfter: Timestamp
+  notValidBefore: Timestamp
+
+  blocksBeforeVoteCloses: Int!
+  customRules: [String!]!
+  maxRedelegations: Int!
+}
+
+type LiquidDelegationRepresentation {
+  proxy: Delegate!
+  owner: Delegate!
+  lots: [LiquidDelegationLot!]!
+}

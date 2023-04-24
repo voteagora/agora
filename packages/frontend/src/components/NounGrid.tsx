@@ -1,15 +1,16 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
-import { NounImage } from "./NounImage";
+import { useFragment, graphql } from "react-relay";
 import { css, cx } from "@emotion/css";
+import { BigNumber } from "ethers";
+
 import * as theme from "../theme";
+import { icons } from "../icons/icons";
+
+import { NounImage } from "./NounImage";
 import {
   NounGridFragment$data,
   NounGridFragment$key,
 } from "./__generated__/NounGridFragment.graphql";
 import { HStack } from "./VStack";
-import { BigNumber } from "ethers";
-import { icons } from "../icons/icons";
 
 type Props = {
   dense?: boolean;

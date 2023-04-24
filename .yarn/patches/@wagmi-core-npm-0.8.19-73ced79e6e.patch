@@ -1,0 +1,12 @@
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+index a4257b819e14b23d95312c6713d6ef073f4b30dd..161d1d79f20bdd0f58cfea8818c5ee4503715412 100644
+--- a/dist/index.d.ts
++++ b/dist/index.d.ts
+@@ -13,6 +13,7 @@ import { G as GetConfig, a as GetOverridesForAbiStateMutability, U as UnionToInt
+ import { TransactionResponse } from '@ethersproject/providers';
+ export { InjectedConnector, InjectedConnectorOptions } from '@wagmi/connectors/injected';
+ import * as abitype_dist_abi_b1bae27f from 'abitype/dist/abi-b1bae27f';
++export * from 'abitype';
+ 
+ type BaseStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+ type ClientStorage = {

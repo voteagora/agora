@@ -1,8 +1,8 @@
 import { css } from "@emotion/css";
+import { useFragment, graphql } from "react-relay";
 
 import * as theme from "../theme";
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
+
 import { VoteReasonFragment$key } from "./__generated__/VoteReasonFragment.graphql";
 
 type Props = {

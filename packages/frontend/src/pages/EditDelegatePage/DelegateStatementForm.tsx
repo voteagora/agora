@@ -1,5 +1,22 @@
 import { css, cx } from "@emotion/css";
+import { useAccount, useProvider, useSigner } from "wagmi";
+import { useFragment, useMutation, VariablesOf, graphql } from "react-relay";
+import { useMutation as useReactQueryMutation } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import isEqual from "lodash/isEqual";
+import { BigNumber, ethers, Signer } from "ethers";
+import * as Sentry from "@sentry/react";
+import { GnosisSafe__factory } from "@agora/common/src/contracts/generated";
+import { checkSafeSignature, hashEnvelopeValue } from "@agora/common";
+
 import * as theme from "../../theme";
+import { HStack, VStack } from "../../components/VStack";
+import {
+  BlockNavigationError,
+  browserHistory,
+  useNavigate,
+} from "../../components/HammockRouter/HammockRouter";
+
 import {
   DelegateStatementFormSection,
   tipTextStyle,
@@ -16,26 +33,11 @@ import {
 import { OtherInfoFormSection } from "./OtherInfoFormSection";
 import { buttonStyles } from "./EditDelegatePage";
 import { UseForm, useForm } from "./useForm";
-import { useAccount, useProvider, useSigner } from "wagmi";
-import { useFragment, useMutation, VariablesOf } from "react-relay";
-import { useMutation as useReactQueryMutation } from "@tanstack/react-query";
-import graphql from "babel-plugin-relay/macro";
 import {
   DelegateStatementFormMutation,
   ValueWithSignature,
 } from "./__generated__/DelegateStatementFormMutation.graphql";
-import { HStack, VStack } from "../../components/VStack";
 import { DelegateStatementFormFragment$key } from "./__generated__/DelegateStatementFormFragment.graphql";
-import { useEffect, useMemo, useState } from "react";
-import { isEqual } from "lodash";
-import {
-  BlockNavigationError,
-  browserHistory,
-  useNavigate,
-} from "../../components/HammockRouter/HammockRouter";
-import { BigNumber, ethers, Signer } from "ethers";
-import * as Sentry from "@sentry/react";
-import { GnosisSafe, GnosisSafe__factory } from "../../contracts/generated";
 
 type DelegateStatementFormProps = {
   queryFragment: DelegateStatementFormFragment$key;
@@ -415,20 +417,6 @@ function withIgnoringBlock(fn: () => void) {
   } finally {
     currentlyIgnoringBlock = false;
   }
-}
-
-function hashEnvelopeValue(value: string) {
-  return JSON.stringify({
-    for: "nouns-agora",
-    hashedValue: ethers.utils.hashMessage(value),
-  });
-}
-
-async function checkSafeSignature(safe: GnosisSafe, value: string) {
-  const hashed = ethers.utils.hashMessage(value);
-  const messageHash = await safe.getMessageHash(hashed);
-  const isSigned = await safe.signedMessages(messageHash);
-  return !isSigned.isZero();
 }
 
 async function makeSignedValue(

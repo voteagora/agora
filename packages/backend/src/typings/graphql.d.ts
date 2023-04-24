@@ -1,4 +1,1 @@
-declare module "*.graphql" {
-  const contents: string;
-  export default contents;
-}
+import "graphql-import-node";

@@ -1,7 +1,8 @@
 import { css, cx } from "@emotion/css";
 import { ReactNode } from "react";
-import * as theme from "../theme";
 import { DataType } from "csstype";
+
+import * as theme from "../theme";
 
 type Props = {
   className?: string;

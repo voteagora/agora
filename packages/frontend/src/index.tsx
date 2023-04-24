@@ -1,16 +1,15 @@
 import "./sentry";
-
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App";
-
 import "./index.css";
 import { ErrorBoundary } from "@sentry/react";
 import ReactGA from "react-ga";
 
+import App from "./App";
+
 ReactGA.initialize([
   {
-    trackingId: process.env.REACT_APP_GOOGLE_ANALYTICS_ID!,
+    trackingId: import.meta.env.VITE_GOOGLE_ANALYTICS_ID!,
   },
 ]);
 

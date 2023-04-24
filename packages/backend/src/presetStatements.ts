@@ -1,20 +1,7 @@
 import { z } from "zod";
+import { formSchema, initialFields } from "@agora/common";
 
-import { formSchema } from "./formSchema";
-import { StoredStatement } from "./schema/model";
-
-export function initialFields(): z.TypeOf<typeof formSchema> {
-  return {
-    delegateStatement: "",
-    openToSponsoringProposals: null,
-    twitter: "",
-    discord: "",
-    mostValuableProposals: [],
-    leastValuableProposals: [],
-    topIssues: [],
-    for: "nouns-agora",
-  };
-}
+import { StoredStatement } from "./schema/modules/delegateStatement/context/statementStorage";
 
 export function makeStoredStatement(
   address: string,

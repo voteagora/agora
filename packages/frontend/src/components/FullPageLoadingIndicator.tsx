@@ -1,6 +1,8 @@
 import { css, keyframes } from "@emotion/css";
+
 import logo from "../logo.svg";
 import * as theme from "../theme";
+
 import { VStack } from "./VStack";
 
 const shimmer = keyframes`

@@ -1,14 +1,15 @@
 import { css } from "@emotion/css";
+import { usePreloadedQuery } from "react-relay";
+import { startTransition, useState } from "react";
+
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
-import graphql from "babel-plugin-relay/macro";
-import { useLazyLoadQuery } from "react-relay/hooks";
 import { OverviewMetricsContainer } from "../HomePage/OverviewMetricsContainer";
-import { startTransition, useState } from "react";
+import { PageDivider } from "../../components/PageDivider";
+import { RoutePropsForRoute } from "../../components/HammockRouter/HammockRouter";
+
 import { PropHouseAuctionRow } from "./PropHouseAuctionRow";
 import { OnChainProposalRow } from "./OnChainProposalRow";
-import { PageDivider } from "../../components/PageDivider";
-import { ProposalsListPageQuery } from "./__generated__/ProposalsListPageQuery.graphql";
 import {
   ProposalStatusFilter,
   ProposalStatusSelector,
@@ -19,34 +20,12 @@ import {
   ProposalTypeFilter,
   ProposalTypeSelector,
 } from "./ProposalTypeSelector";
+import { proposalsListPageRoute, query } from "./ProposalsListPageRoute";
 
-export function ProposalsListPage() {
-  const result = useLazyLoadQuery<ProposalsListPageQuery>(
-    graphql`
-      query ProposalsListPageQuery {
-        proposals {
-          # eslint-disable-next-line relay/unused-fields
-          status
-          # eslint-disable-next-line relay/unused-fields
-          voteStartsAt
-
-          ...OnChainProposalRowFragment
-        }
-
-        propHouseAuctions {
-          # eslint-disable-next-line relay/unused-fields
-          startTime
-          # eslint-disable-next-line relay/unused-fields
-          status
-
-          ...PropHouseAuctionRowFragment
-        }
-
-        ...OverviewMetricsContainerFragment
-      }
-    `,
-    {}
-  );
+export default function ProposalsListPage({
+  initialQueryRef,
+}: RoutePropsForRoute<typeof proposalsListPageRoute>) {
+  const result = usePreloadedQuery(query, initialQueryRef);
 
   const [sort, setSort] = useState<ProposalSortType>("NEWEST");
   const [filter, setFilter] = useState<ProposalStatusFilter>("ALL");

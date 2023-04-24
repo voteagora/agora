@@ -1,0 +1,13 @@
+{
+  "name": "@agora/eslint-plugin",
+  "private": true,
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "dependencies": {
+    "@typescript-eslint/utils": "^5.55.0",
+    "ts-node": "^10.9.1"
+  },
+  "peerDependencies": {
+    "eslint": "^8.36.0"
+  }
+}

@@ -24,6 +24,7 @@ export interface Env {
   STORAGE_OBJECT: DurableObjectNamespace;
   AWS_ACCESS_KEY_ID: string;
   AWS_SECRET_ACCESS_KEY: string;
+  DD_API_KEY: string;
 }
 
 export function safelyLoadBlockStepSize(env: Env): number | undefined {

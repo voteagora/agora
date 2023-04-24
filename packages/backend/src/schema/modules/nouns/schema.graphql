@@ -1,0 +1,39 @@
+type Noun {
+  id: ID!
+  tokenId: BigInt!
+  accessory: Int!
+  background: Int!
+  body: Int!
+  glasses: Int!
+  head: Int!
+}
+
+type DelegateSnapshot {
+  nounsRepresented: [Noun!]!
+}
+
+type Delegate {
+  nounsOwned: [Noun!]!
+  nounsRepresented: [Noun!]!
+}
+
+type Query {
+  metrics: Metrics!
+}
+
+type Metrics {
+  delegatedSupply: TokenAmount!
+  totalSupply: TokenAmount!
+
+  # Count of unique addresses with a non-zero delegation power.
+  delegatesCount: Int!
+
+  # Count of unique addresses with non-zero ownership.
+  ownersCount: Int!
+
+  quorumFloor: VotingPower!
+  quorumCeiling: VotingPower!
+  proposalThreshold: VotingPower!
+
+  recentVoterTurnoutBps: Int!
+}

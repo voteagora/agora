@@ -1,13 +1,14 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
+import { useFragment, graphql } from "react-relay";
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
 import { formatDistanceToNow } from "date-fns";
+import React from "react";
+
+import * as theme from "../../theme";
+
 import { PropHouseAuctionRowActivityFragment$key } from "./__generated__/PropHouseAuctionRowActivityFragment.graphql";
 import { StatusText } from "./StatusText";
 import { PropHouseAuctionRowFragment$key } from "./__generated__/PropHouseAuctionRowFragment.graphql";
 import { colorForOnChainProposalStatus } from "./OnChainProposalRow";
-import React from "react";
 import { Row, RowValue } from "./Rows";
 import { PropHouseAuctionStatus } from "./__generated__/useProposalsInnerFragment.graphql";
 

@@ -1,12 +1,12 @@
-import { DialogDefinitions } from "./types";
-import { DelegateDialog } from "../DelegateDialog/DelegateDialog";
-import { SupportTextProps } from "../../pages/DelegatePage/VoteDetailsContainer";
-import { CastVoteDialog } from "../../pages/ProposalsPage/CastVoteDialog";
-import { AuctionCastVoteDialog } from "../../pages/PropHouseAuctionPage/AuctionCastVoteDialog";
-import {
+import React from "react";
+
+import type { SupportTextProps } from "../../pages/DelegatePage/VoteDetailsContainer";
+import type {
   AvailableVotingPower,
   VotingAddress,
 } from "../../pages/PropHouseAuctionPage/usePropHouseAvailableVotingPower";
+
+import type { DialogDefinitions } from "./types";
 
 export type DialogType =
   | DelegateDialogType
@@ -46,18 +46,11 @@ export type CastAuctionVoteDialogType = {
 };
 
 export const dialogs: DialogDefinitions<DialogType> = {
-  DELEGATE: ({ targetAccountAddress }, closeDialog) => {
-    return (
-      <DelegateDialog
-        targetAccountAddress={targetAccountAddress}
-        completeDelegation={closeDialog}
-      />
-    );
-  },
-  CAST_VOTE: ({ ...props }, closeDialog) => {
-    return <CastVoteDialog {...props} closeDialog={closeDialog} />;
-  },
-  CAST_AUCTION_VOTE: ({ ...props }, closeDialog) => {
-    return <AuctionCastVoteDialog {...props} closeDialog={closeDialog} />;
-  },
+  DELEGATE: React.lazy(() => import("../DelegateDialog/DelegateDialog")),
+  CAST_VOTE: React.lazy(
+    () => import("../../pages/ProposalsPage/CastVoteDialog")
+  ),
+  CAST_AUCTION_VOTE: React.lazy(
+    () => import("../../pages/PropHouseAuctionPage/AuctionCastVoteDialog")
+  ),
 };

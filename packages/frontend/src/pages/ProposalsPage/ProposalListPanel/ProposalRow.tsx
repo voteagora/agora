@@ -1,8 +1,9 @@
+import { css } from "@emotion/css";
+
 import { HStack, VStack } from "../../../components/VStack";
 import * as theme from "../../../theme";
 import { NounResolvedLink } from "../../../components/NounResolvedLink";
 import { NounResolvedLinkFragment$key } from "../../../components/__generated__/NounResolvedLinkFragment.graphql";
-import { css } from "@emotion/css";
 
 export function ProposalRow({
   onClick,

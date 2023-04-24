@@ -1,37 +1,30 @@
 import { useProvider, useSigner } from "wagmi";
-import graphql from "babel-plugin-relay/macro";
-import { HStack, VStack } from "../../components/VStack";
+import { graphql } from "react-relay";
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
 import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
+import { useLazyLoadQuery } from "react-relay/hooks";
+
 import { colorForSupportType } from "../DelegatePage/VoteDetailsContainer";
 import { voteButtonStyles } from "../ProposalsPage/CastVoteInput";
-import { useLazyLoadQuery } from "react-relay/hooks";
-import { AuctionCastVoteDialogQuery } from "./__generated__/AuctionCastVoteDialogQuery.graphql";
+import * as theme from "../../theme";
+import { HStack, VStack } from "../../components/VStack";
 import { compareBy, flipComparator } from "../../utils/sorting";
 import { NounResolvedName } from "../../components/NounResolvedName";
-import {
-  AvailableVotingPower,
-  VotingAddress,
-} from "./usePropHouseAvailableVotingPower";
+import { CastAuctionVoteDialogType } from "../../components/DialogProvider/dialogs";
+import { DialogProps } from "../../components/DialogProvider/types";
+
+import { AuctionCastVoteDialogQuery } from "./__generated__/AuctionCastVoteDialogQuery.graphql";
 import { submitVotes } from "./submitVotes";
 
-export function AuctionCastVoteDialog({
+export default function AuctionCastVoteDialog({
   address,
   auctionId,
   pendingVotes,
   closeDialog,
   votingPower,
   votingAddresses,
-}: {
-  address: string;
-  auctionId: number;
-  pendingVotes: Map<number, number>;
-  closeDialog: () => void;
-  votingPower: AvailableVotingPower[];
-  votingAddresses: VotingAddress[];
-}) {
+}: DialogProps<CastAuctionVoteDialogType>) {
   const {
     propHouseAuction: auction,
     delegate: { address: resolvedAddress },

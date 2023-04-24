@@ -1,18 +1,29 @@
 node_modules
 
 packages/backend/src/generated
-packages/backend/data/discourse
-packages/frontend/src/generated
+packages/backend/data
 packages/backend/src/contracts/generated
-packages/frontend/src/contracts/generated
+packages/backend/src/shared/contracts/generated
 packages/backend/dist
+*.logs.json
 
-packages/backend/src/contracts/abis/NounsDAOLogicV1.json
-packages/backend/src/contracts/abis/NounsDAOLogicV2.json
-packages/backend/src/contracts/abis/NounsToken.json
+packages/common/src/contracts/generated
 
-packages/frontend/build
+packages/frontend/dist
+packages/frontend/src/generated
+packages/frontend/src/contracts/generated
+
+packages/render-opengraph/target
+
+chain/cache
 __generated__
+
 .DS_Store
 
-*.logs.json
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

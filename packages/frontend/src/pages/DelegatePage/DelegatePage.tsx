@@ -1,39 +1,21 @@
-import { useLazyLoadQuery } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
-import { DelegatePageQuery } from "./__generated__/DelegatePageQuery.graphql";
+import { usePreloadedQuery } from "react-relay";
 import { css } from "@emotion/css";
+
 import * as theme from "../../theme";
-import { PastVotes } from "./PastVotes";
 import { Markdown } from "../../components/Markdown";
 import { HStack, VStack } from "../../components/VStack";
-import { ImpactfulProposals } from "./ImpactfulProposals";
-import { useParams } from "../../components/HammockRouter/HammockRouter";
-import { TopIssues } from "./TopIssues";
+import { RoutePropsForRoute } from "../../components/HammockRouter/HammockRouter";
 import { VoterPanel } from "../../components/VoterPanel/VoterPanel";
 
-export function DelegatePage() {
-  const { delegateId } = useParams();
+import { ImpactfulProposals } from "./ImpactfulProposals";
+import { TopIssues } from "./TopIssues";
+import { PastVotes } from "./PastVotes";
+import { delegatePageRoute, query } from "./DelegatePageRoute";
 
-  const query = useLazyLoadQuery<DelegatePageQuery>(
-    graphql`
-      query DelegatePageQuery($addressOrEnsName: String!) {
-        delegate(addressOrEnsName: $addressOrEnsName) {
-          ...VoterPanelFragment
-          ...PastVotesFragment
-
-          statement {
-            statement
-
-            ...ImpactfulProposalsFragment
-            ...TopIssuesFragment
-          }
-        }
-      }
-    `,
-    {
-      addressOrEnsName: delegateId ?? "",
-    }
-  );
+export default function DelegatePage({
+  initialQueryRef,
+}: RoutePropsForRoute<typeof delegatePageRoute>) {
+  const result = usePreloadedQuery(query, initialQueryRef);
 
   return (
     <>
@@ -71,9 +53,9 @@ export function DelegatePage() {
             }
           `}
         >
-          <VoterPanel fragment={query.delegate} />
+          <VoterPanel fragment={result.delegate} />
 
-          {!query.delegate.statement && (
+          {!result.delegate.statement && (
             <div
               className={css`
                 color: #66676b;
@@ -96,9 +78,9 @@ export function DelegatePage() {
             flex: 1;
           `}
         >
-          {!!query.delegate.statement && (
+          {!!result.delegate.statement && (
             <>
-              {query.delegate.statement.statement && (
+              {result.delegate.statement.statement && (
                 <VStack gap="4">
                   <h2
                     className={css`
@@ -109,16 +91,16 @@ export function DelegatePage() {
                     Delegate statement
                   </h2>
 
-                  <Markdown markdown={query.delegate.statement.statement} />
+                  <Markdown markdown={result.delegate.statement.statement} />
                 </VStack>
               )}
 
-              <TopIssues fragment={query.delegate.statement} />
-              <ImpactfulProposals fragment={query.delegate.statement} />
+              <TopIssues fragment={result.delegate.statement} />
+              <ImpactfulProposals fragment={result.delegate.statement} />
             </>
           )}
 
-          <PastVotes fragment={query.delegate} />
+          <PastVotes fragment={result.delegate} />
         </VStack>
       </HStack>
     </>

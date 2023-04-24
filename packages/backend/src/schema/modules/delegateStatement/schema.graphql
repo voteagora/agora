@@ -1,0 +1,36 @@
+type Mutation {
+  createNewDelegateStatement(data: CreateNewDelegateStatementData!): Delegate!
+}
+
+input CreateNewDelegateStatementData {
+  statement: ValueWithSignature!
+  email: ValueWithSignature
+}
+
+input ValueWithSignature {
+  # Address of the signer, this is used for logging and so we can implement
+  # gnosis wallet multi-sig signature verification.
+  signerAddress: String!
+  value: String!
+  signature: String!
+}
+
+type TopIssue {
+  type: String!
+  value: String!
+}
+
+type DelegateStatement {
+  statement: String!
+  summary: String
+  topIssues: [TopIssue!]!
+  mostValuableProposals: [Proposal!]!
+  leastValuableProposals: [Proposal!]!
+  twitter: String!
+  discord: String!
+  openToSponsoringProposals: Boolean
+}
+
+type Delegate {
+  statement: DelegateStatement
+}

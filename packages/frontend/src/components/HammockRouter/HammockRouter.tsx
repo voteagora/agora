@@ -1,4 +1,5 @@
-import {
+import React, {
+  ComponentType,
   createContext,
   ReactNode,
   TransitionStartFunction,
@@ -7,71 +8,55 @@ import {
   useLayoutEffect,
   useTransition,
 } from "react";
-import { HomePage } from "../../pages/HomePage/HomePage";
-import { DelegatePage } from "../../pages/DelegatePage/DelegatePage";
-import { EditDelegatePage } from "../../pages/EditDelegatePage/EditDelegatePage";
-import { VoteAuctionPage } from "../../pages/VoteAuctionPage/VoteAuctionPage";
-import { OopsPage } from "../../pages/OopsPage/OopsPage";
 import { matchPath, PathMatch } from "react-router-dom";
-
-import { createBrowserHistory } from "history";
+import { createBrowserHistory, History } from "history";
 import {
   atom,
   selector,
   useRecoilState_TRANSITION_SUPPORT_UNSTABLE,
   useRecoilValue_TRANSITION_SUPPORT_UNSTABLE,
 } from "recoil";
-import { History } from "history";
-import { isEqual } from "lodash";
-import { ProposalsListPage } from "../../pages/ProposalsListPage/ProposalsListPage";
-import { PropHouseAuctionPage } from "../../pages/PropHouseAuctionPage/PropHouseAuctionPage";
-import { ProposalsPage } from "../../pages/ProposalsPage/ProposalsPage";
+import isEqual from "lodash/isEqual";
+import { Environment, GraphQLTaggedNode, OperationType } from "relay-runtime";
+import { loadQuery, useRelayEnvironment } from "react-relay";
+import { PreloadedQuery } from "react-relay/hooks";
+
+import { relayEnvironment } from "../../relayEnvironment";
+
+import { routes } from "./routes";
 
 export const browserHistory = createBrowserHistory();
 
-type Route = {
-  path: string;
-  element: any;
+export type RouteProps<QueryType extends OperationType> = {
+  initialQueryRef: PreloadedQuery<QueryType>;
+  variables: QueryType["variables"];
 };
 
-const routes: Route[] = [
-  {
-    path: "/oops",
-    element: OopsPage,
-  },
-  {
-    path: "/",
-    element: ProposalsListPage,
-  },
-  {
-    path: "/voters",
-    element: HomePage,
-  },
-  {
-    path: "/delegate/:delegateId",
-    element: DelegatePage,
-  },
-  {
-    path: "/voteauction",
-    element: VoteAuctionPage,
-  },
-  {
-    path: "/create",
-    element: EditDelegatePage,
-  },
-  {
-    path: "/proposals",
-    element: ProposalsListPage,
-  },
-  {
-    path: "/proposals/:proposalId",
-    element: ProposalsPage,
-  },
-  {
-    path: "/auctions/:auctionId",
-    element: PropHouseAuctionPage,
-  },
-];
+export type Route = {
+  path: string;
+  params: RouteLoadingParams<any>;
+};
+
+export type RoutePropsForRoute<T extends RouteLoadingParams<any>> = RouteProps<
+  QueryTypeFromRouteLoadingParams<T>
+>;
+
+export type QueryTypeFromRouteLoadingParams<
+  T extends RouteLoadingParams<OperationType>
+> = T extends RouteLoadingParams<infer QueryType> ? QueryType : never;
+
+export type RouteLoadingParams<QueryType extends OperationType> = {
+  element: ComponentType<RouteProps<QueryType>>;
+} & (
+  | {}
+  | {
+      query: GraphQLTaggedNode;
+      variablesFromLocation: (
+        location: Location,
+        pathMatch: PathMatch
+      ) => QueryType["variables"];
+    }
+);
 
 type RouteMatch = {
   match?: PathMatch;
@@ -86,6 +71,12 @@ export type Location = {
 type RoutingState = {
   location: Location;
   match: RouteMatch;
+  preloadState?: PreloadState<any>;
+};
+
+export type PreloadState<QueryType extends OperationType> = {
+  variables: QueryType["variables"];
+  initialQueryRef: PreloadedQuery<QueryType>;
 };
 
 type NavigateUpdate = {
@@ -136,10 +127,32 @@ function locationFromHistoryLocation(location: History["location"]): Location {
   };
 }
 
-function routingStateForLocation(location: Location): RoutingState {
+function routingStateForLocation(
+  location: Location,
+  relayEnvironment: Environment
+): RoutingState {
+  const match = findMatchingRoute(location.pathname, routes);
+  const params = routes[match.index].params;
+
   return {
-    match: findMatchingRoute(location.pathname, routes),
+    match,
     location,
+    preloadState: (() => {
+      if ("query" in params && relayEnvironment && match.match) {
+        const variables = params.variablesFromLocation(location, match.match);
+
+        const initialQueryRef = loadQuery(
+          relayEnvironment,
+          params.query,
+          variables
+        );
+
+        return {
+          initialQueryRef,
+          variables,
+        };
+      }
+    })(),
   };
 }
 
@@ -177,15 +190,24 @@ function mergeUpdateWithPreviousValue(
   };
 }
 
+const mutabilityOptions = {
+  // Allow mutability to ensure loadQuery can complete.
+  dangerouslyAllowMutability: true,
+};
+
 // We use recoil here because recoil is able to schedule updates to an external
 // store (browserHistory) AFTER the updated state has been committed.
 const routingStateAtom = atom<RoutingState>({
   key: "RoutingState",
+
+  ...mutabilityOptions,
   default: selector({
     key: "RoutingStateInitializer",
+    ...mutabilityOptions,
     get() {
       return routingStateForLocation(
-        locationFromHistoryLocation(browserHistory.location)
+        locationFromHistoryLocation(browserHistory.location),
+        relayEnvironment
       );
     },
   }),
@@ -205,7 +227,10 @@ const routingStateAtom = atom<RoutingState>({
       });
       return browserHistory.listen((update) =>
         setSelf(
-          routingStateForLocation(locationFromHistoryLocation(update.location))
+          routingStateForLocation(
+            locationFromHistoryLocation(update.location),
+            relayEnvironment
+          )
         )
       );
     },
@@ -218,6 +243,8 @@ export function HammockRouter({ children }: Props) {
   const [currentRoute, setCurrentRoute] =
     useRecoilState_TRANSITION_SUPPORT_UNSTABLE(routingStateAtom);
   const [isPending, startTransition] = useTransition();
+
+  const relayEnvironment = useRelayEnvironment();
 
   const navigate = useCallback(
     (
@@ -248,10 +275,10 @@ export function HammockRouter({ children }: Props) {
               previousValue.location,
               update
             );
-            return routingStateForLocation(nextLocation);
+            return routingStateForLocation(nextLocation, relayEnvironment);
           });
 
-          afterUpdate();
+          afterUpdate?.();
         } catch (e) {
           if (e instanceof BlockNavigationError) {
             return;
@@ -261,7 +288,7 @@ export function HammockRouter({ children }: Props) {
         }
       });
     },
-    [setCurrentRoute, currentRoute, startTransition]
+    [setCurrentRoute, currentRoute, startTransition, relayEnvironment]
   );
 
   return (
@@ -283,8 +310,13 @@ export function HammockRouterContents() {
     window.scrollTo(0, 0);
   }, [currentRoute.location.pathname]);
 
-  const Element = routes[currentRoute.match.index].element;
-  return <Element />;
+  const Element = routes[currentRoute.match.index].params.element;
+  return (
+    <Element
+      initialQueryRef={currentRoute.preloadState?.initialQueryRef as any}
+      variables={currentRoute.preloadState?.variables as any}
+    />
+  );
 }
 
 export function useNavigate() {

@@ -1,0 +1,135 @@
+type Query {
+  delegate(addressOrEnsName: String!): Delegate!
+
+  delegates(
+    where: DelegatesWhere
+    orderBy: DelegatesOrder! = mostVotingPower
+    first: Int!
+    after: String
+  ): DelegatesConnection!
+
+  votes(proposalId: ID!, first: Int!, after: String): VotesConnection!
+
+  proposal(id: ID!): Proposal!
+  proposals: [Proposal!]!
+}
+
+type Delegate {
+  id: ID!
+  address: Address!
+
+  # Delegate where voting power has been delegated. Can be delegated to a
+  # delegate with the same address as the account.
+  delegatingTo: Delegate!
+
+  tokensOwned: VotingPower!
+
+  tokensRepresented: VotingPower!
+  tokenHoldersRepresented: [Delegate!]!
+
+  delegateSnapshot(proposalId: ID!): DelegateSnapshot!
+
+  delegateMetrics: DelegateMetrics!
+  proposed: [Proposal!]!
+
+  proposalVote(proposalId: ID!): Vote
+
+  votes: [Vote!]!
+}
+
+type DelegatesConnection {
+  pageInfo: PageInfo!
+  edges: [DelegatesEdge!]!
+}
+
+type DelegatesEdge {
+  node: Delegate!
+  cursor: String!
+}
+
+enum DelegatesWhere {
+  withStatement
+  withoutStatement
+}
+
+enum DelegatesOrder {
+  mostVotingPower
+  mostDelegates
+}
+
+type DelegateMetrics {
+  totalVotes: Int!
+  forVotes: Int!
+  againstVotes: Int!
+  abstainVotes: Int!
+  ofLastTenProps: Int!
+  ofTotalProps: Int!
+  consecutiveVotes: Int!
+  proposalsCreated: Int!
+  tokenHoldersRepresentedCount: Int!
+}
+
+type Proposal {
+  id: ID!
+  number: BigInt!
+
+  forVotes: TokenAmount!
+  againstVotes: TokenAmount!
+  abstainVotes: TokenAmount!
+  delegateSnapshot(address: String!): DelegateSnapshot!
+
+  title: String!
+  description: String!
+
+  voteEndsAt: Timestamp!
+  voteStartsAt: Timestamp!
+  quorumVotes: TokenAmount!
+  totalVotes: BigInt!
+
+  transactions: [ProposalTransaction!]!
+  status: ProposalStatus!
+
+  totalValue: BigInt!
+
+  proposer: Delegate!
+}
+
+type ProposalTransaction {
+  target: Address!
+  value: BigInt!
+  signature: String!
+  calldata: Bytes!
+}
+
+enum ProposalStatus {
+  PENDING
+  ACTIVE
+  CANCELLED
+  VETOED
+  QUEUED
+  EXECUTED
+  DEFEATED
+  EXPIRED
+}
+
+type Vote {
+  id: ID!
+  reason: String!
+  # todo: this should be an enum
+  supportDetailed: Int!
+  votes: VotingPower!
+
+  proposal: Proposal!
+  voter: Delegate!
+  approximateTimestamp: Timestamp!
+}
+
+type VotesConnection {
+  pageInfo: PageInfo!
+  edges: [VotesEdge!]!
+}
+
+type VotesEdge {
+  node: Vote!
+  cursor: String!
+}

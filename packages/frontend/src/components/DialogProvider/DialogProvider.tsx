@@ -1,10 +1,12 @@
 import { css } from "@emotion/css";
 import { AnimatePresence, motion } from "framer-motion";
 import { createContext, ReactNode, useContext, useState } from "react";
-import { dialogs, DialogType } from "./dialogs";
-import { inset0 } from "../../theme";
 import { Dialog } from "@headlessui/react";
+
+import { inset0 } from "../../theme";
 import { useStartTransition } from "../HammockRouter/HammockRouter";
+
+import { dialogs, DialogType } from "./dialogs";
 
 type OpenDialogFn = (dialog: DialogType) => void;
 
@@ -23,8 +25,13 @@ export function DialogProvider({ children }: Props) {
       return;
     }
 
-    const dialog = dialogs[contextValue.type];
-    return dialog(contextValue.params as any, () => setContextValue(null));
+    const DialogComponent = dialogs[contextValue.type] as any;
+    return (
+      <DialogComponent
+        {...contextValue.params}
+        closeDialog={() => setContextValue(null)}
+      />
+    );
   })();
 
   return (

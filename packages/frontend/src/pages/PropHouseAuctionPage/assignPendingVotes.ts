@@ -1,6 +1,8 @@
-import { AvailableVotingPower } from "./usePropHouseAvailableVotingPower";
-import { compareBy, flipComparator } from "../../utils/sorting";
 import Heap from "heap";
+
+import { compareBy, flipComparator } from "../../utils/sorting";
+
+import { AvailableVotingPower } from "./usePropHouseAvailableVotingPower";
 
 export type VoteAssignment = {
   address: string;

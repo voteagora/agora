@@ -1,8 +1,10 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
+import { useFragment, graphql } from "react-relay";
 import { css } from "@emotion/css";
+
 import * as theme from "../../theme";
 import { VStack } from "../VStack";
+import { DelegateProfileImage } from "../DelegateProfileImage";
+
 import { ProposalsVotedRow } from "./Rows/ProposalsVotedRow";
 import { ForAgainstAbstainRow } from "./Rows/ForAgainstAbstainRow";
 import { RecentActivityRow } from "./Rows/RecentActivityRow";
@@ -10,7 +12,6 @@ import { ProposalsCreatedRow } from "./Rows/ProposalsCreatedRow";
 import { VoterPanelActions } from "./VoterPanelActions";
 import { VotePowerRow } from "./Rows/VotePowerRow";
 import { DelegateFromList } from "./Rows/DelegateFromListRow";
-import { DelegateProfileImage } from "../DelegateProfileImage";
 import { VoterPanelFragment$key } from "./__generated__/VoterPanelFragment.graphql";
 import { NameSection } from "./NameSection";
 import { TotalVotePowerRow } from "./Rows/TotalVotePowerRow";

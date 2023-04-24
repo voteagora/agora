@@ -1,40 +1,46 @@
 generates:
-  src/schema/resolvers/generated/types.ts:
-    schema: ./src/schema/schema.graphql
+  src/schema/modules:
+    schema: "./src/schema/modules/**/*.graphql"
+    preset: graphql-modules
+    presetConfig:
+      baseTypesPath: "../generated-types/graphql.ts"
+      filename: "generated-types/module-types.ts"
     plugins:
       - "@graphql-codegen/typescript"
       - "@graphql-codegen/typescript-resolvers"
       - add:
           content: "/* eslint-disable */"
       - add:
-          content: "import { ethers } from 'ethers'"
+          content: "type DefaultContextType = {};"
     config:
       avoidOptionals: false
-      contextType: ../../context#AgoraContextType
+      contextType: DefaultContextType
       strictScalars: true
       scalars:
-        BigInt: ethers.BigNumber
+        BigInt: bigint
         Timestamp: Date
         Bytes: string
       mappers:
-        Address: ../common#AddressModel
-        ResolvedName: ../common#ResolvedNameModel
+        Address: ../modules/common/resolvers/Address#AddressModel
+        ResolvedName: ../modules/common/resolvers/ResolvedName#ResolvedNameModel
+        VotingPower: ../modules/common/resolvers/VotingPower#VotingPowerModel
+        TokenAmount: ../modules/common/resolvers/TokenAmount#TokenAmountModel
 
-        VotingPower: ../governance#VotingPowerModel
-        Metrics: ../governance#MetricsModel
-        Delegate: ../governance#DelegateModel
-        Proposal: ../governance#ProposalModel
-        Vote: ../governance#VoteModel
-        Noun: ../governance#NounModel
-        ProposalTransaction: ../governance#ProposalTransactionModel
-        DelegateSnapshot: ../governance#DelegateSnapshotModel
+        Delegate: ../modules/delegate/resolvers/Delegate#DelegateModel
+        DelegateSnapshot: ../modules/delegate/resolvers/Delegate#DelegateSnapshotModel
+        Proposal: ../modules/delegate/resolvers/Proposal#ProposalModel
+        ProposalTransaction: ../modules/delegate/resolvers/ProposalTransaction#ProposalTransactionModel
+        Vote: ../modules/delegate/resolvers/Vote#VoteModel
 
-        PropHouseProposal: ../propHouse#PropHouseProposalModel
-        PropHouseAuction: ../propHouse#PropHouseAuctionModel
+        Metrics: ../modules/nouns/resolvers/Metrics#MetricsModel
+        Noun: ../modules/nouns/resolvers/Noun#NounModel
 
-        DelegateStatement: ../delegateStatement#DelegateStatementModel
+        PropHouseProposal: ../modules/propHouse/resolvers/PropHouseProposal#PropHouseProposalModel
+        PropHouseAuction: ../modules/propHouse/resolvers/PropHouseAuction#PropHouseAuctionModel
 
-        LiquidDelegationRules: ../liquidDelegation#LiquidDelegationRulesModel
-        LiquidDelegationRepresentation: ../liquidDelegation#LiquidDelegationRepresentationModel
-        LiquidDelegationDelegation: ../liquidDelegation#LiquidDelegationDelegationModel
-        LiquidDelegationProxy: ../liquidDelegation#LiquidDelegationProxyModel
+        DelegateStatement: ../modules/delegateStatement/resolvers/DelegateStatement#DelegateStatementModel
+
+        LiquidDelegationRules: ../modules/liquidDelegation/resolvers/LiquidDelegationRules#LiquidDelegationRulesModel
+        LiquidDelegationRepresentation: ../modules/liquidDelegation/resolvers/LiquidDelegationRepresentation#LiquidDelegationRepresentationModel
+        LiquidDelegationDelegation: ../modules/liquidDelegation/resolvers/LiquidDelegationDelegation#LiquidDelegationDelegationModel
+        LiquidDelegationProxy: ../modules/liquidDelegation/resolvers/LiquidDelegationProxy#LiquidDelegationProxyModel

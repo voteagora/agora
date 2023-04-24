@@ -1,16 +1,20 @@
-import { useContractWriteFn } from "../../hooks/useContractWrite";
-import { nounsAlligator, nounsToken } from "../../contracts/contracts";
-import { Alligator, NounsToken } from "../../contracts/generated";
+import { nounsAlligator, nounsToken } from "@agora/common";
 import { ReactNode, useState } from "react";
 import { css } from "@emotion/css";
+import { useFragment, graphql } from "react-relay";
+import { BigNumber } from "ethers";
+import isEqual from "lodash/isEqual";
+import { ConnectKitButton } from "connectkit";
+import { Address } from "@wagmi/core";
+
+import { useContractWriteFn } from "../../hooks/useContractWrite";
 import * as theme from "../../theme";
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
+import { VStack } from "../VStack";
+
 import {
   delegateRulesToContractState,
   DelegationContractState,
 } from "./delegateRules";
-import { VStack } from "../VStack";
 import { useDelegationContractState } from "./useDelegationContractState";
 import {
   existingContractStateIntoTimePeriodSetting,
@@ -27,11 +31,8 @@ import {
   VotingScopeSelector,
   WrappedVotingScopeSetting,
 } from "./CommitDelegation/VotingScopeSelector";
-import { BigNumber } from "ethers";
-import { isEqual } from "lodash";
 import { CommitDelegationContentsFragment$key } from "./__generated__/CommitDelegationContentsFragment.graphql";
 import { CommitDelegationFragment$key } from "./__generated__/CommitDelegationFragment.graphql";
-import { ConnectKitButton } from "connectkit";
 
 export function CommitDelegationContents({
   fragmentRef,
@@ -102,15 +103,9 @@ export function CommitDelegationContents({
       )
     );
 
-  const writeLiquidDelegate = useContractWriteFn<Alligator, "subDelegate">(
-    nounsAlligator,
-    "subDelegate"
-  );
+  const writeLiquidDelegate = useContractWriteFn(nounsAlligator, "subDelegate");
 
-  const writeTokenDelegation = useContractWriteFn<NounsToken, "delegate">(
-    nounsToken,
-    "delegate"
-  );
+  const writeTokenDelegation = useContractWriteFn(nounsToken, "delegate");
 
   if (!currentAccount) {
     return <DelegateButton>Connect Wallet</DelegateButton>;
@@ -175,13 +170,14 @@ export function CommitDelegationContents({
                     targetContractDelegationState.delegatedToLiquidContract
                   ) {
                     await writeTokenDelegation([
-                      currentAccount.liquidDelegationProxyAddress.address,
+                      currentAccount.liquidDelegationProxyAddress
+                        .address as Address,
                     ]);
                   }
 
                   if (targetContractDelegationState.rules) {
                     await writeLiquidDelegate([
-                      targetAccount.address.resolvedName.address,
+                      targetAccount.address.resolvedName.address as Address,
                       targetContractDelegationState.rules,
                       true,
                     ]);
@@ -192,7 +188,7 @@ export function CommitDelegationContents({
 
                 case "TOKEN": {
                   await writeTokenDelegation([
-                    targetAccount.address.resolvedName.address,
+                    targetAccount.address.resolvedName.address as Address,
                   ]);
                   break;
                 }

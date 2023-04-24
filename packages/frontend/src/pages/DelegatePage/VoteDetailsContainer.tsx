@@ -1,8 +1,9 @@
-import * as theme from "../../theme";
 import { ReactNode, useMemo } from "react";
-import { VStack } from "../../components/VStack";
 import { css } from "@emotion/css";
 import { BigNumber, utils } from "ethers";
+
+import { VStack } from "../../components/VStack";
+import * as theme from "../../theme";
 import { shadow } from "../../theme";
 
 type VoteDetailsContainerProps = {
@@ -65,19 +66,6 @@ export function ValuePart({ value }: ValuePartProps) {
 export type SupportTextProps = {
   supportType: "FOR" | "AGAINST" | "ABSTAIN";
 };
-
-export function toSupportType(value: number): "FOR" | "AGAINST" | "ABSTAIN" {
-  switch (value) {
-    case 0:
-      return "AGAINST";
-    case 1:
-      return "FOR";
-    case 2:
-      return "ABSTAIN";
-    default:
-      throw new Error(`unknown type ${value}`);
-  }
-}
 
 export function colorForSupportType(
   supportType: SupportTextProps["supportType"]

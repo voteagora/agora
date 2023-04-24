@@ -19,6 +19,8 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/frontend/src/contracts/generated" />
       <excludeFolder url="file://$MODULE_DIR$/packages/render-opengraph/pkg" />
       <excludeFolder url="file://$MODULE_DIR$/packages/render-opengraph/target" />
+      <excludeFolder url="file://$MODULE_DIR$/.yarn" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/frontend/dist" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

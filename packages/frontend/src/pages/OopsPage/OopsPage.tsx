@@ -1,9 +1,11 @@
 import { css } from "@emotion/css";
+
 import * as theme from "../../theme";
 import { VStack } from "../../components/VStack";
+
 import blink from "./blink.gif";
 
-export function OopsPage() {
+export default function OopsPage() {
   return (
     <VStack
       justifyContent="center"

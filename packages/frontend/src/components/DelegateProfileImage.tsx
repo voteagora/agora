@@ -1,13 +1,14 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
+import { useFragment, graphql } from "react-relay";
 import { css } from "@emotion/css";
+import { useEnsAvatar } from "wagmi";
+import { BigNumber } from "ethers";
+
+import * as theme from "../theme";
+import { icons } from "../icons/icons";
+
 import { DelegateProfileImageFragment$key } from "./__generated__/DelegateProfileImageFragment.graphql";
 import { NounsRepresentedGrid } from "./NounGrid";
-import * as theme from "../theme";
 import { HStack } from "./VStack";
-import { useEnsAvatar } from "wagmi";
-import { icons } from "../icons/icons";
-import { BigNumber } from "ethers";
 
 type Props = {
   fragment: DelegateProfileImageFragment$key;

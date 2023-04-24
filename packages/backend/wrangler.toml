@@ -1,6 +1,7 @@
 compatibility_date = "2022-11-30"
 main = "dist/worker.js"
 logpush = true
+compatibility_flags = [ "nodejs_compat" ]
 
 [env.dev]
 name = "nouns-agora-dev"
@@ -20,7 +21,7 @@ ENVIRONMENT = "dev"
 DEPLOYMENT = "nouns"
 HONEYCOMB_DATASET = "nouns-agora-dev"
 ADMIN_API_KEY = ''
-PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'stable1'
+PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'stable'
 BLOCK_STEP_SIZE = "100"
 ALLOW_READS_PERCENTAGE = "100"
 USE_CACHE_PERCENTAGE = "100"
@@ -79,4 +80,4 @@ new_classes = ["StorageDurableObjectV1"]
 command = "yarn build-worker"
 
 [site]
-bucket = "../frontend/build"
+bucket = "../frontend/dist"

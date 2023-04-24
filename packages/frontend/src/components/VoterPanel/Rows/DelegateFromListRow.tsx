@@ -1,18 +1,19 @@
-import { useFragment } from "react-relay";
-import * as theme from "../../../theme";
-import graphql from "babel-plugin-relay/macro";
-import { PanelRow } from "./PanelRow";
-import { DelegateFromListRowFragment$key } from "./__generated__/DelegateFromListRowFragment.graphql";
-import { pluralizeAddresses } from "../../../words";
+import { useFragment, graphql } from "react-relay";
 import React, { useMemo, useState } from "react";
-import { HStack, VStack } from "../../VStack";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
+import { BigNumber } from "ethers";
+
+import { pluralizeAddresses } from "../../../words";
+import { HStack, VStack } from "../../VStack";
 import { NounResolvedLink } from "../../NounResolvedLink";
 import { NounGridChildren } from "../../NounGrid";
 import { descendingValueComparator } from "../../../utils/sorting";
-import { BigNumber } from "ethers";
+import * as theme from "../../../theme";
 import { LiquidDelegationRules } from "../LiquidDelegationRules";
+
+import { DelegateFromListRowFragment$key } from "./__generated__/DelegateFromListRowFragment.graphql";
+import { PanelRow } from "./PanelRow";
 
 export function DelegateFromList({
   fragment,

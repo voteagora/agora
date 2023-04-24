@@ -1,7 +1,9 @@
+import { css } from "@emotion/css";
+
+import * as theme from "../../theme";
+
 import { formSectionContainerStyles } from "./TopIssuesFormSection";
 import { formSectionHeadingStyle } from "./PastProposalsFormSection";
-import { css } from "@emotion/css";
-import * as theme from "../../theme";
 import { InputGroup } from "./InputGroup";
 import { YesNoSelector } from "./YesNoSelector";
 import { Form } from "./DelegateStatementForm";

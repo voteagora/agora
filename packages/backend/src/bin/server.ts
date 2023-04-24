@@ -1,95 +1,53 @@
 import "isomorphic-fetch";
-import { createServer } from "@graphql-yoga/node";
-
-import { useTiming } from "@envelop/core";
-
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { ValidatedMessage } from "@agora/common";
 
-import { useApolloTracing } from "@envelop/apollo-tracing";
-
-import { ethers } from "ethers";
-
-import { makeGatewaySchema } from "../schema";
-import { AgoraContextType } from "../schema/context";
-
-import { ValidatedMessage } from "../utils/signing";
-import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
-
-import { TransparentMultiCallProvider } from "../multicall";
-import { useErrorInspection } from "../schema/plugins/useErrorInspection";
-import { followChain, makeInitialStorageArea } from "../indexer/followChain";
-import { indexers } from "../indexer/contracts";
-import { LevelEntityStore } from "../indexer/storage/level/levelEntityStore";
-import { LevelReader } from "../indexer/storage/level/levelReader";
-import { timeout } from "../indexer/utils/asyncUtils";
-import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
-import { EthersLogProvider } from "../indexer/logProvider/logProvider";
-import { makeLatestBlockFetcher } from "../schema/latestBlockFetcher";
-import { entityDefinitions } from "../indexer/contracts/entityDefinitions";
-import { makeDynamoStatementStorage } from "../store/dynamo/statement";
+import { TransparentMultiCallProvider } from "../shared/utils/multicall";
+import { LevelEntityStore } from "../shared/indexer/storage/entityStore/levelEntityStore";
+import { makeLatestBlockFetcher } from "../shared/schema/context/latestBlockFetcher";
 import { makeProvider } from "../provider";
+import { loggingErrorReporter } from "../shared/schema/helpers/nonFatalErrors";
+import { makeContext, nounsDeployment } from "../deployments/nouns";
+import { executeServer } from "../shared/indexer/bin/server";
+import { pathForDeployment } from "../shared/indexer/paths";
 
 async function main() {
-  const schema = makeGatewaySchema();
-  const store = await LevelEntityStore.open();
+  const provider = makeProvider();
+  const deployment = "nouns";
+  const dataDirectory = pathForDeployment(deployment);
 
-  const baseProvider = makeProvider();
+  await executeServer({
+    ...nounsDeployment,
 
-  const storageArea = await makeInitialStorageArea(store);
-  const blockProvider = new EthersBlockProvider(baseProvider);
-  const logProvider = new EthersLogProvider(baseProvider);
-  const iter = followChain(
-    store,
-    indexers,
-    entityDefinitions,
-    blockProvider,
-    logProvider,
-    storageArea
-  );
-  const _ = (async () => {
-    while (true) {
-      const value = await iter();
-      console.log({ value });
-      switch (value.type) {
-        case "TIP": {
-          await timeout(1000);
-        }
-      }
-    }
-  })();
+    store: await LevelEntityStore.open(dataDirectory),
+    provider,
+    makeContextFactory: (reader) => {
+      const dynamoDb = new DynamoDB({});
 
-  const reader = new LevelReader(entityDefinitions, store.level, storageArea);
-
-  const dynamoDb = new DynamoDB({});
-
-  const server = createServer({
-    schema,
-    async context(): Promise<AgoraContextType> {
-      const provider = new TransparentMultiCallProvider(baseProvider);
-
-      return {
-        ethProvider: new TransparentMultiCallProvider(makeProvider()),
-        provider,
-        reader,
-        statementStorage: makeDynamoStatementStorage(dynamoDb),
-
-        cache: {
-          span: makeFakeSpan(),
-        },
-        emailStorage: {
-          async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
-            console.log({ verifiedEmail });
+      return () =>
+        makeContext(
+          {
+            provider: new TransparentMultiCallProvider(provider),
+            emailStorage: {
+              async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
+                console.log({ verifiedEmail });
+              },
+            },
+            statementStorage: {
+              async getStatement() {
+                return null;
+              },
+              async addStatement(): Promise<void> {
+                return;
+              },
+            },
+            latestBlockFetcher: makeLatestBlockFetcher(provider),
+            errorReporter: loggingErrorReporter(),
           },
-        },
-        tracingContext: makeEmptyTracingContext(),
-        latestBlockFetcher: makeLatestBlockFetcher(baseProvider),
-      };
+          reader
+        );
     },
-    port: 4001,
-    maskedErrors: false,
-    plugins: [useTiming(), useApolloTracing(), useErrorInspection()],
   });
-  await server.start();
 }
 
 main();

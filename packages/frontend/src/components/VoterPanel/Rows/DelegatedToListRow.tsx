@@ -1,23 +1,24 @@
-import graphql from "babel-plugin-relay/macro";
-import { useFragment } from "react-relay";
-import { PanelRow } from "./PanelRow";
+import { graphql, useFragment } from "react-relay";
 import React, { useState } from "react";
-import { HStack, VStack } from "../../VStack";
 import { css } from "@emotion/css";
-import { ExpandItemsArrow } from "./DelegateFromListRow";
-import { pluralizeDelegations } from "../../../words";
-import { NounResolvedLink } from "../../NounResolvedLink";
-import { DelegatedToListRowFragment$key } from "./__generated__/DelegatedToListRowFragment.graphql";
-import { NounGridChildren } from "../../NounGrid";
 import { BigNumber } from "ethers";
-import { LiquidDelegationRules } from "../LiquidDelegationRules";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import * as theme from "../../../theme";
 import { useAccount } from "wagmi";
+import { nounsAlligator, nounsToken } from "@agora/common";
+import { Address } from "@wagmi/core";
+
 import { useContractWriteFn } from "../../../hooks/useContractWrite";
-import { nounsAlligator, nounsToken } from "../../../contracts/contracts";
-import { Alligator, NounsToken } from "../../../contracts/generated";
+import * as theme from "../../../theme";
+import { LiquidDelegationRules } from "../LiquidDelegationRules";
+import { NounGridChildren } from "../../NounGrid";
+import { NounResolvedLink } from "../../NounResolvedLink";
+import { pluralizeDelegations } from "../../../words";
+import { HStack, VStack } from "../../VStack";
 import { restrictiveRules } from "../../DelegateDialog/delegateRules";
+
+import { DelegatedToListRowFragment$key } from "./__generated__/DelegatedToListRowFragment.graphql";
+import { ExpandItemsArrow } from "./DelegateFromListRow";
+import { PanelRow } from "./PanelRow";
 
 export function DelegatedToListRow({
   fragmentRef,
@@ -116,15 +117,9 @@ export function DelegatedToListRow({
     })(),
   ];
 
-  const writeLiquidDelegate = useContractWriteFn<Alligator, "subDelegate">(
-    nounsAlligator,
-    "subDelegate"
-  );
+  const writeLiquidDelegate = useContractWriteFn(nounsAlligator, "subDelegate");
 
-  const writeTokenDelegation = useContractWriteFn<NounsToken, "delegate">(
-    nounsToken,
-    "delegate"
-  );
+  const writeTokenDelegation = useContractWriteFn(nounsToken, "delegate");
   return (
     <VStack gap="1">
       <PanelRow
@@ -236,7 +231,8 @@ export function DelegatedToListRow({
                           switch (delegation.type) {
                             case "TOKEN_DELEGATION": {
                               await writeTokenDelegation([
-                                delegate.address.resolvedName.address,
+                                delegate.address.resolvedName
+                                  .address as Address,
                               ]);
                               break;
                             }
@@ -244,7 +240,7 @@ export function DelegatedToListRow({
                             case "LIQUID_DELEGATION": {
                               await writeLiquidDelegate([
                                 delegation.liquidDelegation.to.resolvedName
-                                  .address,
+                                  .address as Address,
                                 restrictiveRules(),
                                 false,
                               ]);

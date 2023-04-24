@@ -1,9 +1,11 @@
 import React, { ReactNode } from "react";
 import { css } from "@emotion/css";
+
 import * as theme from "../theme";
+import { inset0 } from "../theme";
+
 import { VStack } from "./VStack";
 import { RouteTransitionLoadingIndicator } from "./RouteTransitionLoadingIndicator";
-import { inset0 } from "../theme";
 
 type Props = {
   children: ReactNode;

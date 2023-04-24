@@ -1,13 +1,15 @@
 import { useFragment } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
 import { ChatCompletionRequestMessage } from "openai-streams";
-import { VStack } from "../../components/VStack";
 import { css } from "@emotion/css";
+import { graphql } from "react-relay";
+
+import { VStack } from "../../components/VStack";
 import * as theme from "../../theme";
-import { ProposalsAIPanelFragment$key } from "./__generated__/ProposalsAIPanelFragment.graphql";
 import { buttonStyles } from "../EditDelegatePage/EditDelegatePage";
-import { ProposalsAIPanelQueryFragment$key } from "./__generated__/ProposalsAIPanelQueryFragment.graphql";
 import { useGenerateChatGpt } from "../../hooks/useGenerateChatGpt";
+
+import { ProposalsAIPanelFragment$key } from "./__generated__/ProposalsAIPanelFragment.graphql";
+import { ProposalsAIPanelQueryFragment$key } from "./__generated__/ProposalsAIPanelQueryFragment.graphql";
 
 export const generateUserView = (
   statement: {

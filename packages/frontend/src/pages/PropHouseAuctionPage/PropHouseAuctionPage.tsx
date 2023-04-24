@@ -1,22 +1,24 @@
-import { HStack, VStack } from "../../components/VStack";
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
 import { useState, useTransition } from "react";
+import { motion } from "framer-motion";
+import { graphql } from "react-relay";
+import { useLazyLoadQuery } from "react-relay/hooks";
+import { useAccount } from "wagmi";
+
+import { HStack, VStack } from "../../components/VStack";
+import * as theme from "../../theme";
 import {
   useNavigate,
   useParams,
 } from "../../components/HammockRouter/HammockRouter";
-import { AuctionDetailPanel } from "./AuctionDetailPanel";
-import { motion } from "framer-motion";
 import {
   ProposalsListPanel,
   selectedProposalToPath,
 } from "../ProposalsPage/ProposalListPanel/ProposalsListPanel";
-import graphql from "babel-plugin-relay/macro";
-import { useLazyLoadQuery } from "react-relay/hooks";
+
+import { AuctionDetailPanel } from "./AuctionDetailPanel";
 import { PropHouseAuctionPageQuery } from "./__generated__/PropHouseAuctionPageQuery.graphql";
 import { PropHousePastVotes } from "./PropHousePastVotes";
-import { useAccount } from "wagmi";
 import { PendingVotesProvider } from "./PendingVotesContext";
 
 // nouns
@@ -25,7 +27,7 @@ const productionCommunityAddress = "0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03";
 
 export const COMMUNITY_ADDRESS = productionCommunityAddress;
 
-export function PropHouseAuctionPage() {
+export default function PropHouseAuctionPage() {
   const { auctionId } = useParams();
   const { address: currentAccountAddress } = useAccount();
 

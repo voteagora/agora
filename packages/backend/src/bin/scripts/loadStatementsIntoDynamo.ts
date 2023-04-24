@@ -1,9 +1,9 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 
-import { loadJsonLines } from "../../utils/jsonLines";
+import { loadJsonLines } from "../../shared/utils/jsonLines";
 import { marshaller, TableName } from "../../store/dynamo/utils";
 import { makeDelegateStatementKey } from "../../store/dynamo/statement";
-import { indexed } from "../../indexer/utils/generatorUtils";
+import { indexed } from "../../shared/utils/generatorUtils";
 
 type Line = {
   value: string;

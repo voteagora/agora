@@ -1,24 +1,26 @@
 import { useLazyLoadQuery } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
-import { ProposalsPageDetailQuery } from "./__generated__/ProposalsPageDetailQuery.graphql";
-import { HStack, VStack } from "../../components/VStack";
+import { graphql } from "react-relay";
 import { css } from "@emotion/css";
+import { useState, useTransition } from "react";
+import { motion } from "framer-motion";
+import { useAccount } from "wagmi";
+
+import { HStack, VStack } from "../../components/VStack";
 import * as theme from "../../theme";
+import {
+  useNavigate,
+  useParams,
+} from "../../components/HammockRouter/HammockRouter";
+
+import { ProposalsPageDetailQuery } from "./__generated__/ProposalsPageDetailQuery.graphql";
 import { ProposalDetailPanel } from "./ProposalDetailPanel";
 import { VotesCastPanel } from "./VotesCastPanel";
 import {
   ProposalsListPanel,
   selectedProposalToPath,
 } from "./ProposalListPanel/ProposalsListPanel";
-import { useState, useTransition } from "react";
-import { motion } from "framer-motion";
-import {
-  useNavigate,
-  useParams,
-} from "../../components/HammockRouter/HammockRouter";
-import { useAccount } from "wagmi";
 
-export function ProposalsPage() {
+export default function ProposalsPage() {
   const { proposalId } = useParams();
   const { address } = useAccount();
 
@@ -62,7 +64,7 @@ export function ProposalsPage() {
     startTransition(() => {
       navigate({ path: "/proposals" });
     });
-    return;
+    return null;
   }
 
   return (

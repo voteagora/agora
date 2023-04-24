@@ -1,13 +1,14 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
-import { PanelRow } from "./PanelRow";
-import { ProposalsCreatedRowFragment$key } from "./__generated__/ProposalsCreatedRowFragment.graphql";
+import { useFragment, graphql } from "react-relay";
 import React, { useState } from "react";
-import { VStack, HStack } from "../../VStack";
-import { ExpandItemsArrow } from "./DelegateFromListRow";
 import { css } from "@emotion/css";
+
+import { VStack, HStack } from "../../VStack";
 import { Link } from "../../HammockRouter/Link";
 import * as theme from "../../../theme";
+
+import { ExpandItemsArrow } from "./DelegateFromListRow";
+import { ProposalsCreatedRowFragment$key } from "./__generated__/ProposalsCreatedRowFragment.graphql";
+import { PanelRow } from "./PanelRow";
 export function ProposalsCreatedRow({
   fragment,
 }: {

@@ -1,14 +1,15 @@
 import { css } from "@emotion/css";
 import { ReactNode } from "react";
+import { useFragment, graphql } from "react-relay";
+import { BigNumber } from "ethers";
+
 import * as theme from "../../theme";
 import { icons } from "../../icons/icons";
 import { HStack, VStack } from "../../components/VStack";
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
-import { OverviewMetricsContainerFragment$key } from "./__generated__/OverviewMetricsContainerFragment.graphql";
 import { pluralizeNoun } from "../../words";
-import { BigNumber } from "ethers";
 import { bpsToString } from "../../utils/bps";
+
+import { OverviewMetricsContainerFragment$key } from "./__generated__/OverviewMetricsContainerFragment.graphql";
 
 type Props = {
   fragmentRef: OverviewMetricsContainerFragment$key;

@@ -1,0 +1,60 @@
+type Query {
+  propHouseAuction(auctionId: String!): PropHouseAuction!
+  propHouseAuctions: [PropHouseAuction!]!
+}
+
+type Delegate {
+  propHouseVotes: [PropHouseAuctionVotes!]!
+}
+
+type PropHouseAuction {
+  id: ID!
+  title: String!
+  number: Int!
+  description: String!
+  startTime: String!
+  proposalEndTime: String!
+  votingEndTime: String!
+  status: PropHouseAuctionStatus!
+
+  numProposals: Int!
+  numWinners: Int!
+  fundingAmount: String!
+  currencyType: String!
+
+  proposals: [PropHouseProposal!]!
+  votes: [PropHouseAuctionVote!]!
+}
+
+type PropHouseAuctionVote {
+  address: Address!
+  proposal: PropHouseProposal!
+  weight: Int!
+}
+
+enum PropHouseAuctionStatus {
+  PENDING
+  PROPOSING
+  ACTIVE
+  EXECUTED
+}
+
+type PropHouseProposal {
+  id: ID!
+  number: Int!
+  title: String!
+  tldr: String!
+  voteCount: Int!
+  createdDate: String!
+
+  proposer: Address!
+}
+
+type PropHouseAuctionVotes {
+  id: ID!
+  address: Address!
+  createdAt: Timestamp!
+
+  round: PropHouseAuction!
+  votes: [PropHouseAuctionVote!]!
+}

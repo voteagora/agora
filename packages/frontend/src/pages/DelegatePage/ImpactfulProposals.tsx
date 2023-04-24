@@ -1,12 +1,13 @@
-import { useFragment } from "react-relay";
+import { useFragment, graphql } from "react-relay";
 import { css } from "@emotion/css";
+
 import * as theme from "../../theme";
-import graphql from "babel-plugin-relay/macro";
 import { HStack, VStack } from "../../components/VStack";
+import { ProposalLink } from "../../components/ProposalLink";
+
 import { ImpactfulProposalsFragment$key } from "./__generated__/ImpactfulProposalsFragment.graphql";
 import { ImpactfulProposalsProposalFragment$key } from "./__generated__/ImpactfulProposalsProposalFragment.graphql";
 import { ValuePart } from "./VoteDetailsContainer";
-import { ProposalLink } from "../../components/ProposalLink";
 
 export type Props = {
   fragment: ImpactfulProposalsFragment$key;

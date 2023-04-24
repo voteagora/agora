@@ -1,15 +1,16 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
+import { useFragment, graphql } from "react-relay";
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
-import { VoteDetails } from "./VoteDetails";
-import { PastVotesFragment$key } from "./__generated__/PastVotesFragment.graphql";
-import { HStack, VStack } from "../../components/VStack";
-import { PropHouseVoteDetails } from "./PropHouseVoteDetails";
-import { Selector } from "../HomePage/Selector";
 import { useMemo, useState } from "react";
 import { BigNumber, utils } from "ethers";
+
+import * as theme from "../../theme";
+import { HStack, VStack } from "../../components/VStack";
+import { Selector } from "../HomePage/Selector";
 import { descendingValueComparator } from "../../utils/sorting";
+
+import { VoteDetails } from "./VoteDetails";
+import { PastVotesFragment$key } from "./__generated__/PastVotesFragment.graphql";
+import { PropHouseVoteDetails } from "./PropHouseVoteDetails";
 
 type Props = {
   fragment: PastVotesFragment$key;

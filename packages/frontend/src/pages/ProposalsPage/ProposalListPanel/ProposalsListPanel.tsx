@@ -1,9 +1,9 @@
 import { css } from "@emotion/css";
-import { icons } from "../../../icons/icons";
-import graphql from "babel-plugin-relay/macro";
+import { graphql, useFragment } from "react-relay";
 import { motion } from "framer-motion";
 import { useState, useTransition } from "react";
-import { useFragment } from "react-relay";
+
+import { icons } from "../../../icons/icons";
 import { HStack, VStack } from "../../../components/VStack";
 import * as theme from "../../../theme";
 import {
@@ -19,9 +19,10 @@ import {
   ProposalSortType,
 } from "../../ProposalsListPage/ProposalSortSelector";
 import { useProposals } from "../../ProposalsListPage/useProposals";
-import { ProposalRow } from "./ProposalRow";
-import { OnChainProposalRow } from "./OnChainProposalRow";
 import { colorForPropHouseAuctionStatus } from "../../ProposalsListPage/PropHouseAuctionRow";
+
+import { OnChainProposalRow } from "./OnChainProposalRow";
+import { ProposalRow } from "./ProposalRow";
 import { ProposalsListPanelFragment$key } from "./__generated__/ProposalsListPanelFragment.graphql";
 
 export type SelectedProposal = {

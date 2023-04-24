@@ -1,10 +1,10 @@
 import { css, cx } from "@emotion/css";
-import * as theme from "../theme";
-
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import sanitizeHtml from "sanitize-html";
 import rehypeRaw from "rehype-raw";
+
+import * as theme from "../theme";
 
 type Props = {
   markdown: string;

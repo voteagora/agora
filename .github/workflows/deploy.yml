@@ -13,15 +13,6 @@ on:
         default: "dev"
 
 jobs:
-  prettier:
-    runs-on: ubuntu-latest
-    name: Formatting
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actionsx/prettier@v2
-        with:
-          args: --check .
-
   build-frontend:
     runs-on: ubuntu-latest
     name: Build Frontend
@@ -35,14 +26,16 @@ jobs:
 
       - run: yarn install
 
-      - run: yarn workspace nouns-agora run build
+      - run: yarn workspace @agora/common codegen
+
+      - run: yarn workspace @agora/frontend run build
         env:
-          REACT_APP_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          REACT_APP_GITHUB_SHA: ${{ github.sha }}
-          REACT_APP_DEPLOY_ENV: ${{ github.event.inputs.environment || 'staging' }}
-          REACT_APP_ALCHEMY_ID: ${{ secrets.ALCHEMY_KEY }}
-          REACT_APP_GOOGLE_ANALYTICS_ID: ${{ secrets.GOOGLE_ANALYTICS_ID }}
-          REACT_APP_OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          VITE_GITHUB_SHA: ${{ github.sha }}
+          VITE_DEPLOY_ENV: ${{ github.event.inputs.environment || 'staging' }}
+          VITE_ALCHEMY_ID: ${{ secrets.ALCHEMY_KEY }}
+          VITE_GOOGLE_ANALYTICS_ID: ${{ secrets.GOOGLE_ANALYTICS_ID }}
+          VITE_OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
 
       - uses: getsentry/action-release@v1
         env:
@@ -50,12 +43,12 @@ jobs:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: nouns-agora-frontend
         with:
-          sourcemaps: "./packages/frontend/build/"
+          sourcemaps: "./packages/frontend/dist/"
 
       - uses: actions/upload-artifact@v3
         with:
           name: compiled-frontend
-          path: packages/frontend/build
+          path: packages/frontend/dist
 
   build-backend:
     runs-on: ubuntu-latest
@@ -69,6 +62,8 @@ jobs:
           cache: "yarn"
 
       - run: yarn install
+
+      - run: yarn workspace @agora/common codegen
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -89,9 +84,9 @@ jobs:
           wasm-pack build --target web
           rm pkg/render_opengraph_bg.wasm.d.ts
 
-      - run: yarn workspace nouns-agora-backend run generate
+      - run: yarn workspace @agora/backend run generate
 
-      - run: yarn workspace nouns-agora-backend run build-worker
+      - run: yarn workspace @agora/backend run build-worker
 
       - uses: getsentry/action-release@v1
         env:
@@ -125,7 +120,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: compiled-frontend
-          path: packages/frontend/build
+          path: packages/frontend/dist
 
       - uses: actions/download-artifact@v3
         with:
@@ -135,12 +130,6 @@ jobs:
       - run: yarn install
 
       - run: sed -i 's/yarn build-worker//' packages/backend/wrangler.toml
-
-      - name: Copy Resources
-        run: |
-          mkdir -p packages/frontend/build/worker-assets
-          cp packages/render-opengraph/resources/* packages/frontend/build/worker-assets
-          cp node_modules/@nouns/assets/dist/image-data.json packages/frontend/build/worker-assets/image-data.json
 
       - name: Publish
         uses: cloudflare/wrangler-action@2.0.0

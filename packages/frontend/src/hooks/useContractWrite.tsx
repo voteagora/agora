@@ -1,6 +1,13 @@
 import * as Sentry from "@sentry/react";
-import { writeContract, prepareWriteContract } from "@wagmi/core";
-import { ethers } from "ethers";
+import {
+  writeContract,
+  prepareWriteContract,
+  Abi,
+  ExtractAbiFunctionNames,
+  AbiParametersToPrimitiveTypes,
+  ExtractAbiFunction,
+  Address,
+} from "@wagmi/core";
 import {
   usePrepareContractWrite as usePrepareContractWriteUNSAFE,
   useContractWrite as useContractWriteUNSAFE,
@@ -8,50 +15,29 @@ import {
 import { CallOverrides } from "ethers";
 import { useCallback } from "react";
 
-export interface Contract<InterfaceType extends TypedInterface>
-  extends ethers.BaseContract {
-  interface: InterfaceType;
-}
-
-export interface TypedInterface extends ethers.utils.Interface {
-  events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
-}
-
-export interface TypedInterfaceFactory<InterfaceType extends TypedInterface> {
-  abi: any;
-  createInterface(): InterfaceType;
-}
-
-export type ContractInstance<InterfaceType extends TypedInterface> = {
-  factory: TypedInterfaceFactory<InterfaceType>;
+type ContractInstance<TAbi extends Abi> = {
+  abi: TAbi;
   address: string;
   startingBlock: number;
 };
 
-type ContractInterfaceType<ContractType extends Contract<TypedInterface>> =
-  ContractType extends Contract<infer InterfaceType> ? InterfaceType : never;
-
-export function makeContractInstance<InterfaceType extends TypedInterface>(
-  t: ContractInstance<InterfaceType>
-): ContractInstance<InterfaceType> {
-  return t;
-}
-
 export function useContractWrite<
-  ContractType extends Contract<TypedInterface>,
-  Function extends keyof ContractType["functions"] & string
+  TAbi extends Abi,
+  Function extends ExtractAbiFunctionNames<TAbi>
 >(
-  instance: ContractInstance<ContractInterfaceType<ContractType>>,
+  instance: ContractInstance<TAbi>,
   name: Function,
-  args: Parameters<ContractType["functions"][Function]>,
+  args: AbiParametersToPrimitiveTypes<
+    ExtractAbiFunction<TAbi, Function>["inputs"]
+  >,
   onSuccess: () => void,
   overrides?: CallOverrides
 ) {
   const { config } = usePrepareContractWriteUNSAFE({
     address: instance.address as any,
-    abi: instance.factory.abi,
+    abi: instance.abi as any,
     functionName: name,
-    args,
+    args: args as any,
     onError(e) {
       const id = Sentry.captureException(e);
 
@@ -92,23 +78,24 @@ export function useContractWrite<
 }
 
 export function useContractWriteFn<
-  ContractType extends Contract<TypedInterface>,
-  Function extends keyof ContractType["functions"] & string
->(
-  instance: ContractInstance<ContractInterfaceType<ContractType>>,
-  name: Function
-) {
+  TAbi extends Abi,
+  Function extends ExtractAbiFunctionNames<TAbi, "nonpayable" | "payable">
+>(instance: ContractInstance<TAbi>, name: Function) {
   return useCallback(
-    async (args: Parameters<ContractType["functions"][Function]>) => {
+    async (
+      args: AbiParametersToPrimitiveTypes<
+        ExtractAbiFunction<TAbi, Function>["inputs"]
+      >
+    ) => {
       try {
         const config = await prepareWriteContract({
-          address: instance.address as any,
-          abi: instance.factory.abi,
-          functionName: name,
-          args,
+          address: instance.address as Address,
+          abi: instance.abi as Abi,
+          functionName: name as any,
+          args: args as any,
         });
 
-        await writeContract(config);
+        await writeContract(config as any);
       } catch (e) {
         const id = Sentry.captureException(e);
         console.error(e, { id });

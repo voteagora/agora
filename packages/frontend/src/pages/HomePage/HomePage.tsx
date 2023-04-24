@@ -1,57 +1,20 @@
-import { useLazyLoadQuery } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
-import {
-  DelegatesOrder,
-  HomePageQuery,
-} from "./__generated__/HomePageQuery.graphql";
+import { usePreloadedQuery } from "react-relay";
 import { css } from "@emotion/css";
+
 import * as theme from "../../theme";
-import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
-import { DelegatesContainer } from "./DelegatesContainer";
 import { VStack } from "../../components/VStack";
-import {
-  useLocation,
-  Location,
-} from "../../components/HammockRouter/HammockRouter";
+import { RoutePropsForRoute } from "../../components/HammockRouter/HammockRouter";
 import { PageDivider } from "../../components/PageDivider";
 
-const orderByValidValues: HomePageQuery["variables"]["orderBy"][] = [
-  "mostVotingPower",
-  // "mostRelevant",
-  // "mostNounsRepresented",
-  "leastVotesCast",
-  // "mostRecentlyActive",
-  "mostVotesCast",
-];
+import { DelegatesContainer } from "./DelegatesContainer";
+import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
+import { homePageRoute, query } from "./HomePageRoute";
 
-export type LocationVariables = {
-  orderBy: DelegatesOrder;
-};
-
-export function locationToVariables(location: Location): LocationVariables {
-  return {
-    orderBy:
-      orderByValidValues.find(
-        (needle) => needle === location.search["orderBy"]
-      ) ?? "mostVotingPower",
-  };
-}
-
-export function HomePage() {
-  const location = useLocation();
-  const variables = locationToVariables(location);
-
-  const result = useLazyLoadQuery<HomePageQuery>(
-    graphql`
-      query HomePageQuery($orderBy: DelegatesOrder!) {
-        ...DelegatesContainerFragment @arguments(orderBy: $orderBy)
-        ...OverviewMetricsContainerFragment
-      }
-    `,
-    {
-      ...variables,
-    }
-  );
+export default function HomePage({
+  initialQueryRef,
+  variables,
+}: RoutePropsForRoute<typeof homePageRoute>) {
+  const result = usePreloadedQuery(query, initialQueryRef);
 
   return (
     <>

@@ -1,7 +1,8 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
-import { formatDate } from "../../../../words";
+import { useFragment, graphql } from "react-relay";
 import React from "react";
+
+import { formatDate } from "../../../../words";
+
 import { TimeRuleFragment$key } from "./__generated__/TimeRuleFragment.graphql";
 
 export function TimeRule({

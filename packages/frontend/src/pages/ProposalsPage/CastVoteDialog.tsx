@@ -1,35 +1,29 @@
 import { useFragment, useLazyLoadQuery } from "react-relay/hooks";
-import graphql from "babel-plugin-relay/macro";
-import * as theme from "../../theme";
-import { HStack, VStack } from "../../components/VStack";
-import { NounGridChildren } from "../../components/NounGrid";
+import { graphql } from "react-relay";
 import { UserIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
 import { motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
-import { NounResolvedLink } from "../../components/NounResolvedLink";
-import { NounsDAOLogicV2 } from "../../contracts/generated";
 import { ReactNode } from "react";
-import {
-  colorForSupportType,
-  SupportTextProps,
-} from "../DelegatePage/VoteDetailsContainer";
-import { CastVoteDialogQuery } from "./__generated__/CastVoteDialogQuery.graphql";
+import { nounsAlligator, nounsDao } from "@agora/common";
+import { Address } from "@wagmi/core";
+import { BigNumber } from "ethers";
+
+import * as theme from "../../theme";
+import { HStack, VStack } from "../../components/VStack";
+import { NounGridChildren } from "../../components/NounGrid";
+import { NounResolvedLink } from "../../components/NounResolvedLink";
+import { colorForSupportType } from "../DelegatePage/VoteDetailsContainer";
 import { useContractWrite } from "../../hooks/useContractWrite";
-import { nounsAlligator, nounsDao } from "../../contracts/contracts";
+import { CastVoteDialogType } from "../../components/DialogProvider/dialogs";
+import { DialogProps } from "../../components/DialogProvider/types";
+
+import { CastVoteDialogQuery } from "./__generated__/CastVoteDialogQuery.graphql";
 import { CastVoteDialogTokenDelegationLotVoteCellFragment$key } from "./__generated__/CastVoteDialogTokenDelegationLotVoteCellFragment.graphql";
 import { CastVoteDialogLiquidDelegationLotVoteCellFragment$key } from "./__generated__/CastVoteDialogLiquidDelegationLotVoteCellFragment.graphql";
-import { Alligator } from "../../contracts/generated/Alligator";
 
-type Props = {
-  proposalId: number;
-  address: string;
-  reason: string;
-  supportType: SupportTextProps["supportType"];
-  closeDialog: () => void;
-};
-
-export function CastVoteDialog(props: Props) {
+type Props = DialogProps<CastVoteDialogType>;
+export default function CastVoteDialog(props: Props) {
   return (
     <VStack
       alignItems="center"
@@ -277,15 +271,12 @@ function LiquidDelegationLotVoteCell({
     ];
   });
 
-  const writeLiquid = useContractWrite<
-    Alligator,
-    "castRefundableVotesWithReasonBatched"
-  >(
+  const writeLiquid = useContractWrite(
     nounsAlligator,
     "castRefundableVotesWithReasonBatched",
     [
-      lots.map((lot) => lot.lot.authorityChain.slice()),
-      proposalId,
+      lots.map((lot) => lot.lot.authorityChain.map((it) => it as Address)),
+      BigNumber.from(proposalId),
       supportType,
       reason,
     ],
@@ -354,13 +345,10 @@ function TokenDelegationLotVoteCell({
     fragment
   );
 
-  const writeTokenVote = useContractWrite<
-    NounsDAOLogicV2,
-    "castRefundableVoteWithReason"
-  >(
+  const writeTokenVote = useContractWrite(
     nounsDao,
     "castRefundableVoteWithReason",
-    [proposalId, supportType, reason],
+    [BigNumber.from(proposalId), supportType, reason],
     () => closeDialog()
   );
 

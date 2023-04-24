@@ -27,9 +27,18 @@ jobs:
 
       - run: yarn install
 
-      # - name: Typescript
-      #   working-directory: ./packages/frontend
-      #   run: yarn check
+      - run: yarn workspace @agora/common codegen
+
+      - run: yarn workspace @agora/frontend codegen
+
+      - uses: reviewdog/action-eslint@v1
+        with:
+          workdir: "packages/frontend"
+          eslint_flags: "'**/*.{ts,tsx}'"
+
+      - uses: EPMatt/reviewdog-action-tsc@v1
+        with:
+          workdir: "packages/frontend"
 
       - name: Build
         working-directory: ./packages/frontend
@@ -47,6 +56,8 @@ jobs:
           cache: "yarn"
 
       - run: yarn install
+
+      - run: yarn workspace @agora/common codegen
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -67,15 +78,16 @@ jobs:
           wasm-pack build --target web
           rm pkg/render_opengraph_bg.wasm.d.ts
 
-      - run: yarn workspace nouns-agora-backend run generate
+      - run: yarn workspace @agora/backend run generate
 
-      - name: Typescript
-        working-directory: ./packages/backend
-        run: yarn tsc --noEmit
+      - uses: EPMatt/reviewdog-action-tsc@v1
+        with:
+          workdir: "packages/backend"
 
-      - name: Lint
-        working-directory: ./packages/backend
-        run: yarn lint
+      - uses: reviewdog/action-eslint@v1
+        with:
+          workdir: "packages/backend"
+          eslint_flags: "'**/*.ts'"
 
       - name: Run Test
         working-directory: ./packages/backend

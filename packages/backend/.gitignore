@@ -1,4 +1,6 @@
 src/schema/resolvers/generated
 src/contracts/generated
+src/shared/workers/datadogTracer/gen
+src/shared/workers/datadogTracer/proto
 dist
 .serverless

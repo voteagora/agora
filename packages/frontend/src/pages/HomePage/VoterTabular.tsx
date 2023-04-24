@@ -1,19 +1,20 @@
-import { useFragment } from "react-relay";
+import { useFragment, graphql } from "react-relay";
 import { useMemo } from "react";
-import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
-import { VoterTabularFragment$key } from "./__generated__/VoterTabularFragment.graphql";
+import { BigNumber } from "ethers";
+import toast from "react-hot-toast";
+
 import { NounResolvedName } from "../../components/NounResolvedName";
 import { NounsRepresentedGrid } from "../../components/NounGrid";
 import { HStack, VStack } from "../../components/VStack";
 import { Link } from "../../components/HammockRouter/Link";
-import { BigNumber } from "ethers";
 import { pluralizeNoun, pluralizeProb, pluralizeOther } from "../../words";
 import { descendingValueComparator } from "../../utils/sorting";
 import { icons } from "../../icons/icons";
-import toast from "react-hot-toast";
+import * as theme from "../../theme";
 import { DelegateButton } from "../../components/VoterPanel/VoterPanelActions";
+
+import { VoterTabularFragment$key } from "./__generated__/VoterTabularFragment.graphql";
 
 type VoterTabularProps = {
   fragmentRef: VoterTabularFragment$key;

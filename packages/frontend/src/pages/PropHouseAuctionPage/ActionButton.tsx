@@ -1,4 +1,7 @@
-import graphql from "babel-plugin-relay/macro";
+import { graphql, useFragment } from "react-relay";
+import { css } from "@emotion/css";
+import { useCallback } from "react";
+
 import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
 import { VStack } from "../../components/VStack";
 import * as theme from "../../theme";
@@ -6,10 +9,8 @@ import {
   DisabledVoteButton,
   voteButtonStyles,
 } from "../ProposalsPage/CastVoteInput";
-import { css } from "@emotion/css";
-import { useFragment } from "react-relay";
+
 import { ActionButtonFragment$key } from "./__generated__/ActionButtonFragment.graphql";
-import { useCallback } from "react";
 import { usePropHouseAvailableVotingPower } from "./usePropHouseAvailableVotingPower";
 import { ActionButtonVoteButtonDelegateFragment$key } from "./__generated__/ActionButtonVoteButtonDelegateFragment.graphql";
 import { ActionButtonVoteButtonAuctionFragment$key } from "./__generated__/ActionButtonVoteButtonAuctionFragment.graphql";

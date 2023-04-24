@@ -1,18 +1,19 @@
 import { css } from "@emotion/css";
-import * as theme from "../../theme";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
+import { useFragment, graphql } from "react-relay";
+import useClickOutside from "@restart/ui/useClickOutside";
+import { BigNumber } from "ethers";
+
+import * as theme from "../../theme";
+import { VStack } from "../../components/VStack";
+
 import { PastProposalsFormSectionProposalListFragment$key } from "./__generated__/PastProposalsFormSectionProposalListFragment.graphql";
 import {
   formSectionContainerStyles,
   sharedInputStyle,
 } from "./TopIssuesFormSection";
-import useClickOutside from "@restart/ui/useClickOutside";
 import { CloseButton } from "./CloseButton";
 import { Form } from "./DelegateStatementForm";
-import { VStack } from "../../components/VStack";
-import { BigNumber } from "ethers";
 
 type Props = {
   queryFragment: PastProposalsFormSectionProposalListFragment$key;

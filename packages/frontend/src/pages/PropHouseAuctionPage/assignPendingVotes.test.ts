@@ -1,3 +1,5 @@
+import { it, describe, expect } from "vitest";
+
 import { assignPendingVotes } from "./assignPendingVotes";
 
 describe("assignPendingVotes", () => {
@@ -20,14 +22,14 @@ describe("assignPendingVotes", () => {
         )
       )
     ).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            "address": "A",
-            "proposalNumber": 1,
-            "weight": 5,
-          },
-        ]
-      `));
+      [
+        {
+          "address": "A",
+          "proposalNumber": 1,
+          "weight": 5,
+        },
+      ]
+    `));
 
   it("splits votes across multiple buckets when needed", () =>
     expect(
@@ -58,18 +60,18 @@ describe("assignPendingVotes", () => {
         )
       )
     ).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "address": "A",
           "proposalNumber": 1,
           "weight": 1,
         },
-        Object {
+        {
           "address": "B",
           "proposalNumber": 1,
           "weight": 1,
         },
-        Object {
+        {
           "address": "C",
           "proposalNumber": 1,
           "weight": 1,
@@ -102,13 +104,13 @@ describe("assignPendingVotes", () => {
         )
       )
     ).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "address": "A",
           "proposalNumber": 1,
           "weight": 1,
         },
-        Object {
+        {
           "address": "A",
           "proposalNumber": 2,
           "weight": 1,

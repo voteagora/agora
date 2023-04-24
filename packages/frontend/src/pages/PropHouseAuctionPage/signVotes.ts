@@ -1,8 +1,9 @@
 import { ethers, TypedDataField } from "ethers";
 import { TypedDataSigner } from "@ethersproject/abstract-signer";
+import { Alligator__factory } from "@agora/common/src/contracts/generated";
+import { nounsAlligator } from "@agora/common";
+
 import { COMMUNITY_ADDRESS } from "./PropHouseAuctionPage";
-import { Alligator__factory } from "../../contracts/generated";
-import { nounsAlligator } from "../../contracts/contracts";
 
 type AddressVoteAssignment = {
   address: string;

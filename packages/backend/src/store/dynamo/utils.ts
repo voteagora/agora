@@ -1,6 +1,5 @@
 import { Update } from "@aws-sdk/client-dynamodb";
 import { ExpressionAttributes } from "@aws/dynamodb-expressions";
-
 import { Marshaller } from "@aws/dynamodb-auto-marshaller";
 
 export const TableName = "ApplicationData";

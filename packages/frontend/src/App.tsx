@@ -1,9 +1,12 @@
 import React, { Suspense } from "react";
 import { RelayEnvironmentProvider } from "react-relay/hooks";
-import { relayEnvironment } from "./relayEnvironment";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createClient, WagmiConfig } from "wagmi";
 import { ConnectKitProvider, getDefaultClient } from "connectkit";
+import { Toaster } from "react-hot-toast";
+import { RecoilRoot } from "recoil";
+
+import { relayEnvironment } from "./relayEnvironment";
 import { PageContainer } from "./components/PageContainer";
 import { PageHeader } from "./components/PageHeader";
 import {
@@ -11,14 +14,12 @@ import {
   HammockRouterContents,
 } from "./components/HammockRouter/HammockRouter";
 import { FullPageLoadingIndicator } from "./components/FullPageLoadingIndicator";
-import { Toaster } from "react-hot-toast";
-import { RecoilRoot } from "recoil";
 import { DialogProvider } from "./components/DialogProvider/DialogProvider";
 
 const wagmiClient = createClient(
   getDefaultClient({
     appName: "Nouns Agora",
-    alchemyId: process.env.REACT_APP_ALCHEMY_ID,
+    alchemyId: import.meta.env.VITE_ALCHEMY_ID,
   })
 );
 

@@ -1,0 +1,39 @@
+diff --git a/lib/bignumber.d.ts b/lib/bignumber.d.ts
+index 4864fabc699ec093f67ee74d1d35e0868f4fef89..42b40791ef3417d03bea6d6fcbf720fdec63cb86 100644
+--- a/lib/bignumber.d.ts
++++ b/lib/bignumber.d.ts
+@@ -32,7 +32,7 @@ export declare class BigNumber implements Hexable {
+     toString(): string;
+     toHexString(): string;
+     toJSON(key?: string): any;
+-    static from(value: any): BigNumber;
++    static from(value: BigNumberish): BigNumber;
+     static isBigNumber(value: any): value is BigNumber;
+ }
+ export declare function _base36To16(value: string): string;
+diff --git a/lib.esm/bignumber.d.ts b/lib.esm/bignumber.d.ts
+index 4864fabc699ec093f67ee74d1d35e0868f4fef89..42b40791ef3417d03bea6d6fcbf720fdec63cb86 100644
+--- a/lib.esm/bignumber.d.ts
++++ b/lib.esm/bignumber.d.ts
+@@ -32,7 +32,7 @@ export declare class BigNumber implements Hexable {
+     toString(): string;
+     toHexString(): string;
+     toJSON(key?: string): any;
+-    static from(value: any): BigNumber;
++    static from(value: BigNumberish): BigNumber;
+     static isBigNumber(value: any): value is BigNumber;
+ }
+ export declare function _base36To16(value: string): string;
+diff --git a/src.ts/bignumber.ts b/src.ts/bignumber.ts
+index 31d4c448c4f6bd13eb2fad26f7e214ee2720720d..28cd65e077990c565c7935106f957a8f599fae06 100644
+--- a/src.ts/bignumber.ts
++++ b/src.ts/bignumber.ts
+@@ -223,7 +223,7 @@ export class BigNumber implements Hexable {
+         return { type: "BigNumber", hex: this.toHexString() };
+     }
+ 
+-    static from(value: any): BigNumber {
++    static from(value: BigNumberish): BigNumber {
+         if (value instanceof BigNumber) { return value; }
+ 
+         if (typeof(value) === "string") {

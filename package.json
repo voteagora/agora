@@ -1,17 +1,24 @@
 {
   "private": true,
   "workspaces": [
-    "./packages/frontend",
-    "./packages/backend"
+    "./packages/*"
   ],
   "scripts": {
-    "postinstall": "patch-package",
-    "start-frontend": "yarn workspace nouns-agora run start",
-    "start-backend": "yarn workspace nouns-agora-backend run start",
+    "start-frontend": "yarn workspace @agora/frontend run start",
+    "start-backend": "yarn workspace @agora/backend run start",
     "prettier": "prettier --write . --ignore-path .gitignore"
   },
   "devDependencies": {
-    "patch-package": "^6.4.7",
     "prettier": "^2.7.1"
+  },
+  "packageManager": "yarn@3.5.0",
+  "resolutions": {
+    "graphql-modules@^2.1.1": "patch:graphql-modules@npm%3A2.1.1#./.yarn/patches/graphql-modules-npm-2.1.1-3778b53b5f.patch",
+    "@ethersproject/web@5.7.0": "patch:@ethersproject/web@npm%3A5.7.0#./.yarn/patches/@ethersproject-web-npm-5.7.0-8f8cc127f6.patch",
+    "@ethersproject/web@^5.7.0": "patch:@ethersproject/web@npm%3A5.7.0#./.yarn/patches/@ethersproject-web-npm-5.7.0-8f8cc127f6.patch",
+    "@ethersproject/bignumber@5.7.0": "patch:@ethersproject/bignumber@npm%3A5.7.0#./.yarn/patches/@ethersproject-bignumber-npm-5.7.0-cd761880ac.patch",
+    "@ethersproject/bignumber@^5.7.0": "patch:@ethersproject/bignumber@npm%3A5.7.0#./.yarn/patches/@ethersproject-bignumber-npm-5.7.0-cd761880ac.patch",
+    "@ethersproject/bignumber@^5.5.0": "patch:@ethersproject/bignumber@npm%3A5.7.0#./.yarn/patches/@ethersproject-bignumber-npm-5.7.0-cd761880ac.patch",
+    "@wagmi/core@0.8.19": "patch:@wagmi/core@npm%3A0.8.19#./.yarn/patches/@wagmi-core-npm-0.8.19-73ced79e6e.patch"
   }
 }

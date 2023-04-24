@@ -1,8 +1,9 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
-import { ProposalRow } from "./ProposalRow";
+import { useFragment, graphql } from "react-relay";
 import { utils } from "ethers";
+
 import { colorForOnChainProposalStatus } from "../../ProposalsListPage/OnChainProposalRow";
+
+import { ProposalRow } from "./ProposalRow";
 import { OnChainProposalRowListFragment$key } from "./__generated__/OnChainProposalRowListFragment.graphql";
 
 export function OnChainProposalRow({

@@ -1,11 +1,12 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
+import { useFragment, graphql } from "react-relay";
 import { css } from "@emotion/css";
+import { BigNumber, utils } from "ethers";
+import { formatDistanceToNow } from "date-fns";
+
 import * as theme from "../../theme";
 import { HStack } from "../../components/VStack";
 import { NounResolvedName } from "../../components/NounResolvedName";
-import { BigNumber, utils } from "ethers";
-import { formatDistanceToNow } from "date-fns";
+
 import {
   OnChainProposalRowFragment$key,
   ProposalStatus,

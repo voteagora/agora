@@ -1,10 +1,11 @@
-import { useFragment } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
+import { useFragment, graphql } from "react-relay";
+import { css } from "@emotion/css";
+
 import { issueDefinitions } from "../EditDelegatePage/TopIssuesFormSection";
 import { HStack, VStack } from "../../components/VStack";
 import * as theme from "../../theme";
 import { icons } from "../../icons/icons";
-import { css } from "@emotion/css";
+
 import { TopIssuesFragment$key } from "./__generated__/TopIssuesFragment.graphql";
 
 export function TopIssues({ fragment }: { fragment: TopIssuesFragment$key }) {
