@@ -39,6 +39,10 @@
       "ban"
     ],
     "rules": {
+      "operator-assignment": [
+        "error",
+        "always"
+      ],
       "@agora/restrict-imports-from-shared": [
         "warn",
         {

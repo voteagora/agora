@@ -44,9 +44,9 @@ export function makeERC721VotesIndexerDefinition(
                 fromEntity.delegatingTo
               );
 
-              fromEntityDelegate.tokensRepresentedIds = unionItems(
+              fromEntityDelegate.tokensRepresentedIds = subtractItems(
                 fromEntityDelegate.tokensRepresentedIds,
-                fromEntity.tokensOwnedIds
+                [tokenId]
               );
 
               saveAccount(handle, fromEntityDelegate);
@@ -56,7 +56,7 @@ export function makeERC721VotesIndexerDefinition(
             (async () => {
               const toEntity = await loadAccount(handle, to);
 
-              toEntity.tokensOwned = toEntity.tokensOwned + 1n;
+              toEntity.tokensOwned += 1n;
               toEntity.tokensOwnedIds = [...toEntity.tokensOwnedIds, tokenId];
 
               saveAccount(handle, toEntity);
@@ -66,9 +66,9 @@ export function makeERC721VotesIndexerDefinition(
                 toEntity.delegatingTo
               );
 
-              toEntityDelegate.tokensRepresentedIds = subtractItems(
+              toEntityDelegate.tokensRepresentedIds = unionItems(
                 toEntityDelegate.tokensRepresentedIds,
-                toEntity.tokensOwnedIds
+                [tokenId]
               );
 
               saveAccount(handle, toEntityDelegate);
@@ -92,7 +92,7 @@ export function makeERC721VotesIndexerDefinition(
           const agg = await loadAggregate(handle);
 
           const change = newBalance - previousBalance;
-          agg.delegatedSupply = agg.delegatedSupply + change;
+          agg.delegatedSupply += change;
 
           saveAggregate(handle, agg);
           saveAccount(handle, account);
@@ -122,8 +122,7 @@ export function makeERC721VotesIndexerDefinition(
               if (fromDelegate !== ethers.constants.AddressZero) {
                 const fromAccount = await loadAccount(handle, fromDelegate);
 
-                fromAccount.accountsRepresentedCount =
-                  fromAccount.accountsRepresentedCount - 1n;
+                fromAccount.accountsRepresentedCount -= 1n;
                 fromAccount.tokensRepresentedIds = subtractItems(
                   fromAccount.tokensRepresentedIds,
                   delegatorAccount.tokensOwnedIds
@@ -137,8 +136,7 @@ export function makeERC721VotesIndexerDefinition(
               if (toDelegate !== ethers.constants.AddressZero) {
                 const toAccount = await loadAccount(handle, toDelegate);
 
-                toAccount.accountsRepresentedCount =
-                  toAccount.accountsRepresentedCount + 1n;
+                toAccount.accountsRepresentedCount += 1n;
                 toAccount.tokensRepresentedIds = unionItems(
                   toAccount.tokensRepresentedIds,
                   delegatorAccount.tokensOwnedIds

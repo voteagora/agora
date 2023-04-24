@@ -32,8 +32,8 @@ export function makeERC20VotesIndexerDefinition(
             loadAccount(handle, to),
           ]);
 
-          fromEntity.tokensOwned = fromEntity.tokensOwned + value;
-          toEntity.tokensOwned = toEntity.tokensOwned + value;
+          fromEntity.tokensOwned += value;
+          toEntity.tokensOwned += value;
 
           saveAccount(handle, fromEntity);
           saveAccount(handle, toEntity);
@@ -54,7 +54,7 @@ export function makeERC20VotesIndexerDefinition(
           const agg = await loadAggregate(handle);
 
           const change = newBalance - previousBalance;
-          agg.delegatedSupply = agg.delegatedSupply + change;
+          agg.delegatedSupply += change;
 
           saveAggregate(handle, agg);
           saveAccount(handle, account);

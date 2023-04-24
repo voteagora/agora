@@ -73,6 +73,6 @@ export function defaultAccount(
     tokensOwned: 0n,
     delegatingTo: initialDelegatingTo,
     tokensRepresented: 0n,
-    accountsRepresentedCount: 0n,
+    accountsRepresentedCount: from === initialDelegatingTo ? 1n : 0n,
   };
 }

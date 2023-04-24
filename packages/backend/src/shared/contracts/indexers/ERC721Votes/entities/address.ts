@@ -31,6 +31,10 @@ export function saveAccount(
   handle: StorageHandle<EntitiesType>,
   entity: EntityRuntimeType<typeof IVotesAddress>
 ) {
+  if (entity.accountsRepresentedCount < 0) {
+    throw new Error("negative accountsRepresentedCount");
+  }
+
   return handle.saveEntity("IVotesAddress", entity.address, entity);
 }
 
