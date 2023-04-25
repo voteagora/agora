@@ -11,7 +11,7 @@ export type Props = {
 
 export function TokenAmountDisplay({
   fragment,
-  maximumSignificantDigits = 5,
+  maximumSignificantDigits = 4,
 }: Props) {
   const { amount, decimals, currency } = useFragment(
     graphql`

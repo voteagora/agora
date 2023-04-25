@@ -386,19 +386,39 @@ function ProposalStatusPane({
     graphql`
       fragment ProposalsListPanelStatusFragment on Proposal {
         status
+        number
       }
     `,
     fragmentRef
   );
+  const testProposals = [
+    "90839767999322802375479087567202389126141447078032129455920633707568400402209",
+    "103606400798595803012644966342403441743733355496979747669804254618774477345292",
+    "89934444025525534467725222948723300602129924689317116631018191521555230364343",
+    "28601282374834906210319879956567232553560898502158891728063939287236508034960",
+  ];
 
   return (
-    <div
-      className={css`
-        color: ${colorForProposalStatus(result.status)};
-        text-transform: capitalize;
-      `}
-    >
-      {result.status.toLowerCase()}
+    <div>
+      {testProposals.includes(result.number) ? (
+        <div
+          className={css`
+            text-transform: capitalize;
+            color: ${theme.colors.gray[700]};
+          `}
+        >
+          Test Prop: {result.status.toLowerCase()}
+        </div>
+      ) : (
+        <div
+          className={css`
+            color: ${colorForProposalStatus(result.status)};
+            text-transform: capitalize;
+          `}
+        >
+          {result.status.toLowerCase()}
+        </div>
+      )}
     </div>
   );
 }
