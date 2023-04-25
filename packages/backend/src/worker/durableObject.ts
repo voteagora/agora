@@ -193,7 +193,7 @@ function makeGraphQLHandler(
           context,
           maskedErrors: isProduction,
           graphiql: !isProduction,
-          plugins: [useSentry(sentry), useTracing(span, false)],
+          plugins: [useSentry(sentry), useTracing(span, true)],
         });
 
         return await server.handleRequest(request);
