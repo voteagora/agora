@@ -2,22 +2,14 @@ import { ethers } from "ethers";
 
 const LENGTH_MARKER = "=";
 
-export function efficientLengthEncodingNaturalPositiveNumbers(
-  num: ethers.BigNumber
-): string {
-  const encoded = num.toString();
-
-  return [
-    num.gt(0) ? LENGTH_MARKER : "",
-    encoded.length > 1
-      ? efficientLengthEncodingNaturalPositiveNumbers(
-          ethers.BigNumber.from(encoded.length)
-        )
-      : "",
-    encoded,
-  ].join("");
-}
-
+/**
+ * Implements the efficient lexicographical encoding algorithm described in
+ * this [paper]. The code is based on the [elen][library] package and modified
+ * to work with `ethers.js` `BigNumber` instances.
+ *
+ * [paper]: https://prataprc.github.io/jsonsort.io/collate.pdf
+ * [library]: https://www.npmjs.com/package/elen
+ */
 export function efficientLengthEncodingNaturalNumbers(num: ethers.BigNumber) {
   const isNegative = num.lt(0);
 
@@ -52,5 +44,21 @@ export function efficientLengthEncodingNaturalNumbers(num: ethers.BigNumber) {
         }
       });
     })(),
+  ].join("");
+}
+
+function efficientLengthEncodingNaturalPositiveNumbers(
+  num: ethers.BigNumber
+): string {
+  const encoded = num.toString();
+
+  return [
+    num.gt(0) ? LENGTH_MARKER : "",
+    encoded.length > 1
+      ? efficientLengthEncodingNaturalPositiveNumbers(
+          ethers.BigNumber.from(encoded.length)
+        )
+      : "",
+    encoded,
   ].join("");
 }
