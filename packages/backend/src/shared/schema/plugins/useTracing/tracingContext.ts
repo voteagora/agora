@@ -7,6 +7,7 @@ import {
 
 import { ReadOnlySpan } from "../../../workers/datadogTracer/types";
 import { withSpanContext } from "../../../workers/datadogTracer/contextSpan";
+import { flattenMetaInputType } from "../../../workers/datadogTracer/flatten";
 
 export function attachTracingContextInjection(
   schema: GraphQLSchema
@@ -45,10 +46,12 @@ export function attachTracingContextInjection(
           const span = parentSpan.startSpan({
             name: "graphql",
             resource: `${info.parentType.name}.${info.fieldName}`,
-            meta: {
-              "graphql.path": JSON.stringify(path),
-              "graphql.args": JSON.stringify(args),
-            },
+            meta: flattenMetaInputType({
+              graphql: {
+                path,
+                args,
+              },
+            }),
           });
 
           tracingContext.spanMap.set(path.join(" > "), span);

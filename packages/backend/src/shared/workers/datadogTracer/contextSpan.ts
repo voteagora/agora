@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
-import { ReadOnlySpan, Span } from "./types";
+import { ReadOnlySpan, Span, SpanOptions } from "./types";
 
 const asyncLocalStorage = new AsyncLocalStorage<Span>();
 
@@ -20,6 +20,24 @@ export async function withSpan<R>(
   fn: () => Promise<R>
 ): Promise<R> {
   const result = await withSpanContext(span, async () => await fn());
+
+  span.finishSpan();
+
+  return result;
+}
+
+export async function trace<T>(
+  spanOptions: SpanOptions,
+  fn: () => Promise<T>
+): Promise<T> {
+  const rootSpan = getSpan();
+  if (!rootSpan) {
+    return await fn();
+  }
+
+  const span = rootSpan.startSpan(spanOptions);
+
+  const result = await fn();
 
   span.finishSpan();
 

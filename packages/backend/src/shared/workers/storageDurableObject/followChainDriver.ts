@@ -10,6 +10,8 @@ import { EthersBlockProvider } from "../../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../../indexer/logProvider/logProvider";
 import { IndexerDefinition } from "../../indexer/process/indexerDefinition";
 import { EntityDefinitions } from "../../indexer/storage/reader/type";
+import { TracingBlockProvider } from "../../indexer/blockProvider/tracingBlockProvider";
+import { TracingLogProvider } from "../../indexer/logProvider/tracingLogProvider";
 
 export class FollowChainDriver {
   private readonly storage: AnalyticsEngineReporter;
@@ -43,8 +45,12 @@ export class FollowChainDriver {
         const storageArea = await makeInitialStorageArea(
           this.stepChainEntityStore
         );
-        const blockProvider = new EthersBlockProvider(this.provider);
-        const logProvider = new EthersLogProvider(this.provider);
+        const blockProvider = new TracingBlockProvider(
+          new EthersBlockProvider(this.provider)
+        );
+        const logProvider = new TracingLogProvider(
+          new EthersLogProvider(this.provider)
+        );
         return followChain(
           this.stepChainEntityStore,
           this.indexers,

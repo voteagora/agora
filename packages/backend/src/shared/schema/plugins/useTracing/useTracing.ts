@@ -8,6 +8,7 @@ import {
   attachTracingContextInjection,
   TracingContext,
 } from "./tracingContext";
+import { flattenMetaInputType } from "../../../workers/datadogTracer/flatten";
 
 export function useTracing(
   span: ReadOnlySpan,
@@ -30,11 +31,13 @@ export function useTracing(
       const rootSpan = span.startSpan({
         name: "graphql",
         resource: `${rootOperation.operation} ${operationName}`,
-        meta: {
-          "graphql.operationName": operationName,
-          "graphql.operation": rootOperation.operation,
-          "graphql.variables": JSON.stringify(args.variableValues),
-        },
+        meta: flattenMetaInputType({
+          graphql: {
+            operationName,
+            operation: rootOperation.operation,
+            variables: JSON.stringify(args.variableValues),
+          },
+        }),
       });
 
       extendContext({
