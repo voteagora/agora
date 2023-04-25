@@ -45,6 +45,7 @@ export function attachTracingContextInjection(
 
           const span = parentSpan.startSpan({
             name: "graphql",
+            service: "graphql",
             resource: `${info.parentType.name}.${info.fieldName}`,
             meta: flattenMetaInputType({
               graphql: {

@@ -5,6 +5,7 @@ export async function fetchWithTracer(
   request: Request
 ) {
   const span = parentSpan.startSpan({
+    service: "fetch",
     name: "http.request",
     resource: `${request.method} ${request.url}`,
     meta: tracingMetaForRequest(request),

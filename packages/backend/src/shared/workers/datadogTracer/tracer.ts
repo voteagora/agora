@@ -50,7 +50,7 @@ export class DatadogTracer implements Tracer {
               priority: -128,
               spans: this.spans.map((span) => ({
                 name: span.opts.name,
-                service: this.opts.service,
+                service: span.opts.service ?? this.opts.service,
                 resource: span.opts.resource,
                 meta: Object.fromEntries(
                   Object.entries(span.opts.meta ?? {}).flatMap(

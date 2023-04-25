@@ -35,7 +35,9 @@ export function useTracing(
 
       const rootSpan = span.startSpan({
         name: "graphql",
+        service: "graphql",
         resource: `${rootOperation.operation} ${operationName}`,
+        isTopLevel: true,
         meta: flattenMetaInputType({
           graphql: {
             operationName,

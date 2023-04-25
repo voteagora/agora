@@ -1,6 +1,7 @@
 export type SpanOptions = {
   name?: string;
   resource?: string;
+  service?: string;
   meta?: Record<string, string | undefined>;
   metrics?: Record<string, number>;
   isTopLevel?: boolean;
