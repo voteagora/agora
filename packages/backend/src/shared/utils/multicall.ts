@@ -53,7 +53,6 @@ class CallDataLoader extends DataLoader<CallRequest, CallResult, string> {
       {
         batch: true,
         cache: true,
-        batchScheduleFn: (callback) => setTimeout(callback, 5000),
         cacheKeyFn: (item) => [item.target, item.data].join("|"),
       }
     );
