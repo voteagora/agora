@@ -3,6 +3,8 @@ import { TransactionRequest } from "@ethersproject/abstract-provider";
 import DataLoader from "dataloader";
 
 import { Multicall2__factory } from "../contracts/generated";
+import { trace } from "../workers/datadogTracer/contextSpan";
+import { flattenMetaInputType } from "../workers/datadogTracer/flatten";
 
 type CallRequest = {
   target: string;
@@ -27,20 +29,31 @@ class CallDataLoader extends DataLoader<CallRequest, CallResult, string> {
 
     super(
       async (batch) => {
-        return await multiCall.callStatic.tryAggregate(
-          false,
-          batch.map((item) => ({
-            callData: item.data,
-            target: item.target,
-          })),
+        return await trace(
           {
-            blockTag: "latest",
-          }
+            name: "TransparentMultiCallProvider",
+            resource: "TransparentMultiCallProvider.perform",
+            meta: flattenMetaInputType({
+              batchSize: batch.length,
+            }),
+          },
+          async () =>
+            await multiCall.callStatic.tryAggregate(
+              false,
+              batch.map((item) => ({
+                callData: item.data,
+                target: item.target,
+              })),
+              {
+                blockTag: "latest",
+              }
+            )
         );
       },
       {
         batch: true,
         cache: true,
+        batchScheduleFn: (callback) => setTimeout(callback, 5000),
         cacheKeyFn: (item) => [item.target, item.data].join("|"),
       }
     );
