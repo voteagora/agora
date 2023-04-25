@@ -29,7 +29,7 @@ export const routes: Route[] = [
     path: "/proposals",
     params: {
       element: React.lazy(
-        () => import("../../pages/ProposalsPage/ProposalsRedirectPage")
+        () => import("../../pages/ProposalsListPage/ProposalsListPage")
       ),
     },
   },
