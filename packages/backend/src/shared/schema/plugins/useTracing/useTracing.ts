@@ -10,13 +10,18 @@ import {
 } from "./tracingContext";
 import { flattenMetaInputType } from "../../../workers/datadogTracer/flatten";
 
+/**
+ * Reports traces:
+ * * one for each resolver execution if {@link spansForEachResolver} is true
+ * * one for the top level query
+ */
 export function useTracing(
   span: ReadOnlySpan,
-  enabled: boolean
+  spansForEachResolver: boolean
 ): Plugin<{ tracingContext: TracingContext }> {
   return {
     ...onSchemaChangedOnce("useTracing", ({ schema, replaceSchema }) => {
-      if (!enabled) {
+      if (!spansForEachResolver) {
         return;
       }
 
