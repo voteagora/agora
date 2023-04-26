@@ -1,6 +1,7 @@
-import { BlockProvider, BlockProviderBlock } from "./blockProvider";
 import { trace } from "../../workers/datadogTracer/contextSpan";
 import { flattenMetaInputType } from "../../workers/datadogTracer/flatten";
+
+import { BlockProvider, BlockProviderBlock } from "./blockProvider";
 
 const name = "BlockProvider";
 

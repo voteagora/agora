@@ -13,7 +13,7 @@ import { maxReorgBlocksDepth } from "../process/process";
 import { getAllLogsInRange } from "../logProvider/getAllLogsInRange";
 import { EthersLogProvider, LogProvider } from "../logProvider/logProvider";
 import { makeProgressBarWithRate } from "../../utils/progressBarUtils";
-import { filterForEventHandlers } from "../process/filters";
+import { filterForEventHandlers } from "../process/topicFilters";
 import {
   getIndexerByName,
   IndexerDefinition,

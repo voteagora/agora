@@ -3,12 +3,12 @@ import { Plugin } from "@graphql-yoga/common";
 import { getRootOperation } from "../../helpers/rootOperation";
 import { ReadOnlySpan } from "../../../workers/datadogTracer/types";
 import { onSchemaChangedOnce } from "../onSchemaChangedOnce";
+import { flattenMetaInputType } from "../../../workers/datadogTracer/flatten";
 
 import {
   attachTracingContextInjection,
   TracingContext,
 } from "./tracingContext";
-import { flattenMetaInputType } from "../../../workers/datadogTracer/flatten";
 
 /**
  * Reports traces:

@@ -1,11 +1,21 @@
 import { formatAbiItem, getEventSelector } from "viem/utils";
 
-export type EventDefinition = `${string}(${string})`;
-
-import { TopicFilter } from "../logProvider/logProvider";
-
 import { AbiEvents, ContractInstance } from "./contractInstance";
 import { IndexerDefinition } from "./indexerDefinition";
+
+export type EventDefinition = `${string}(${string})`;
+
+/**
+ * A normalized representation of a topic filter. A topic filter previously
+ * represented as `[A]` is now represented as `[[A]]`, that is as an array with
+ * a single item.
+ */
+export type TopicsType = string[][];
+
+export type TopicFilter = {
+  address?: string[];
+  topics?: TopicsType;
+};
 
 export function filterForEventHandlers<AbiEventsType extends AbiEvents>(
   instance: ContractInstance<AbiEventsType>,
@@ -38,8 +48,20 @@ function combineTopicFilterPair(
 ): TopicFilter {
   return {
     address: [...(lhs.address ?? []), ...(rhs.address ?? [])],
-    topics: [...(lhs.topics ?? []), ...(rhs.topics ?? [])],
+    topics: mergeTopicFilters(lhs.topics ?? [], rhs.topics ?? []),
   };
+}
+
+export function mergeTopicFilters(a: TopicsType, b: TopicsType): TopicsType {
+  const resultLength = Math.max(a.length, b.length);
+
+  return Array.from(
+    (function* () {
+      for (let i = 0; i < resultLength; i++) {
+        yield [...(a[i] ?? []), ...(b[i] ?? [])];
+      }
+    })()
+  );
 }
 
 export function topicFilterForIndexers(indexers: IndexerDefinition[]) {

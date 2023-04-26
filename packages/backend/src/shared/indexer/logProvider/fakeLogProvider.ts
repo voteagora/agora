@@ -5,45 +5,9 @@ import {
   getBlocksByRange,
   FakeBlockProviderBlock,
 } from "../blockProvider/fakeBlockProvider";
+import { TopicsType } from "../process/topicFilters";
 
-import { LogFilter, LogProvider, TopicFilter } from "./logProvider";
-
-export function normalizeTopics(filter: TopicFilter) {
-  if (!filter.topics) {
-    return [];
-  }
-
-  return filter.topics.map((topicOrTopics) => {
-    if (!Array.isArray(topicOrTopics)) {
-      return [topicOrTopics];
-    }
-
-    return topicOrTopics;
-  });
-}
-
-/**
- * Ensures a log matches a topic as determined by the topic filter matching
- * rules outlined in ethers.
- *
- * https://docs.ethers.org/v5/single-page/#/v5/concepts/events/-%23-events--filters
- *
- * @param normalizedTopics A list of normalized topics, can be obtained from
- *  {@link normalizeTopics}
- * @param log
- */
-export function logMatchesTopics(
-  normalizedTopics: string[][],
-  log: ethers.providers.Log
-): boolean {
-  for (const [idx, segment] of normalizedTopics.entries()) {
-    if (!segment.includes(log.topics[idx])) {
-      return false;
-    }
-  }
-
-  return true;
-}
+import { LogFilter, LogProvider } from "./logProvider";
 
 export class FakeLogProvider implements LogProvider {
   private readonly blocks: FakeBlockProviderBlock[];
@@ -61,7 +25,7 @@ export class FakeLogProvider implements LogProvider {
       return [getBlockByHash(this.blocks, filter.blockHash)];
     })();
 
-    const normalizedTopics = normalizeTopics(filter);
+    const normalizedTopics = filter.topics ?? [];
 
     const logs = blocks
       .flatMap((block) => block.logs)
@@ -76,4 +40,23 @@ export class FakeLogProvider implements LogProvider {
 
     return logs;
   }
+}
+
+/**
+ * Ensures a log matches a topic as determined by the topic filter matching
+ * rules outlined in ethers.
+ *
+ * https://docs.ethers.org/v5/single-page/#/v5/concepts/events/-%23-events--filters
+ */
+function logMatchesTopics(
+  normalizedTopics: TopicsType,
+  log: ethers.providers.Log
+): boolean {
+  for (const [idx, segment] of normalizedTopics.entries()) {
+    if (!segment.includes(log.topics[idx])) {
+      return false;
+    }
+  }
+
+  return true;
 }

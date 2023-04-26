@@ -32,7 +32,7 @@ import {
   maxReorgBlocksDepth,
 } from "./process";
 import { IndexerDefinition } from "./indexerDefinition";
-import { topicFilterForIndexers } from "./filters";
+import { topicFilterForIndexers } from "./topicFilters";
 
 export type FollowChainResultType =
   | {

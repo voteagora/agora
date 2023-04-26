@@ -9,7 +9,7 @@ import { EntityDefinitions } from "../storage/reader/type";
 import { AbiEvents } from "./contractInstance";
 import { IndexerDefinition } from "./indexerDefinition";
 import { stripInputNames } from "./stripEventArgNames";
-import { EventDefinition } from "./filters";
+import { EventDefinition } from "./topicFilters";
 
 // The latest block is at depth zero with the block depth of each block below
 // latest defined as LATEST.blockNumber - OTHER.blockNumber.

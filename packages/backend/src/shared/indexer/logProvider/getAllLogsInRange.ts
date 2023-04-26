@@ -1,4 +1,6 @@
-import { LogProvider, TopicFilter } from "./logProvider";
+import { TopicFilter } from "../process/topicFilters";
+
+import { LogProvider } from "./logProvider";
 import {
   defaultPageSizeCalculator,
   PageSizeCalculator,

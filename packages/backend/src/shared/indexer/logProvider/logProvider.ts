@@ -3,13 +3,9 @@ import { ethers } from "ethers";
 import { compareByTuple } from "../../utils/sortUtils";
 import { executeWithRetries } from "../../utils/asyncUtils";
 import * as serde from "../serde";
+import { TopicFilter } from "../process/topicFilters";
 
 export type LogFilter = BlockSpec & TopicFilter;
-
-export type TopicFilter = {
-  address?: string[];
-  topics?: Array<string | Array<string>>;
-};
 
 export type BlockSpec =
   | {

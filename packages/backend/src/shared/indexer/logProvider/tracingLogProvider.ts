@@ -1,7 +1,9 @@
-import { LogFilter, LogProvider } from "./logProvider";
 import { ethers } from "ethers";
+
 import { trace } from "../../workers/datadogTracer/contextSpan";
 import { flattenMetaInputType } from "../../workers/datadogTracer/flatten";
+
+import { LogFilter, LogProvider } from "./logProvider";
 
 const name = "LogProvider";
 
