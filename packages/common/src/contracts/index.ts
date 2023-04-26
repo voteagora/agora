@@ -17,8 +17,8 @@ export const nounsToken = makeContractInstance({
 
 export const nounsAlligator = makeContractInstance({
   abi: Alligator,
-  address: "0x57aa7DeD5187C423AD8B3bd5c91f2211cD97b2A3",
-  startingBlock: 16750535,
+  address: "0xb6D1EB1A7BE7d55224bB1942C74a5251E6c9Dab3",
+  startingBlock: 16996023,
 });
 
 export * from "./types";

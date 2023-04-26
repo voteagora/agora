@@ -16,6 +16,7 @@ export const Alligator = narrow([
   },
   { inputs: [], name: "AlreadyRegistered", type: "error" },
   { inputs: [], name: "BadSignature", type: "error" },
+  { inputs: [], name: "InvalidAuthorityChain", type: "error" },
   {
     inputs: [
       { internalType: "address", name: "from", type: "address" },
@@ -29,11 +30,7 @@ export const Alligator = narrow([
     inputs: [
       { internalType: "address", name: "from", type: "address" },
       { internalType: "address", name: "to", type: "address" },
-      {
-        internalType: "uint256",
-        name: "requiredPermissions",
-        type: "uint256",
-      },
+      { internalType: "uint256", name: "requiredPermissions", type: "uint256" },
     ],
     name: "NotDelegated",
     type: "error",
@@ -51,11 +48,7 @@ export const Alligator = narrow([
     inputs: [
       { internalType: "address", name: "from", type: "address" },
       { internalType: "address", name: "to", type: "address" },
-      {
-        internalType: "uint256",
-        name: "willBeValidFrom",
-        type: "uint256",
-      },
+      { internalType: "uint256", name: "willBeValidFrom", type: "uint256" },
     ],
     name: "NotValidYet",
     type: "error",
@@ -84,18 +77,8 @@ export const Alligator = narrow([
   {
     anonymous: false,
     inputs: [
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "node",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "a",
-        type: "address",
-      },
+      { indexed: true, internalType: "bytes32", name: "node", type: "bytes32" },
+      { indexed: false, internalType: "address", name: "a", type: "address" },
     ],
     name: "AddrChanged",
     type: "event",
@@ -157,31 +140,6 @@ export const Alligator = narrow([
       {
         indexed: true,
         internalType: "address",
-        name: "voter",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "refundAmount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "refundSent",
-        type: "bool",
-      },
-    ],
-    name: "RefundableVote",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
         name: "proxy",
         type: "address",
       },
@@ -204,36 +162,14 @@ export const Alligator = narrow([
   {
     anonymous: false,
     inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
+      { indexed: true, internalType: "address", name: "from", type: "address" },
+      { indexed: true, internalType: "address", name: "to", type: "address" },
       {
         components: [
           { internalType: "uint8", name: "permissions", type: "uint8" },
-          {
-            internalType: "uint8",
-            name: "maxRedelegations",
-            type: "uint8",
-          },
-          {
-            internalType: "uint32",
-            name: "notValidBefore",
-            type: "uint32",
-          },
-          {
-            internalType: "uint32",
-            name: "notValidAfter",
-            type: "uint32",
-          },
+          { internalType: "uint8", name: "maxRedelegations", type: "uint8" },
+          { internalType: "uint32", name: "notValidBefore", type: "uint32" },
+          { internalType: "uint32", name: "notValidAfter", type: "uint32" },
           {
             internalType: "uint16",
             name: "blocksBeforeVoteCloses",
@@ -253,12 +189,7 @@ export const Alligator = narrow([
   {
     anonymous: false,
     inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
+      { indexed: true, internalType: "address", name: "from", type: "address" },
       {
         indexed: false,
         internalType: "address[]",
@@ -268,21 +199,9 @@ export const Alligator = narrow([
       {
         components: [
           { internalType: "uint8", name: "permissions", type: "uint8" },
-          {
-            internalType: "uint8",
-            name: "maxRedelegations",
-            type: "uint8",
-          },
-          {
-            internalType: "uint32",
-            name: "notValidBefore",
-            type: "uint32",
-          },
-          {
-            internalType: "uint32",
-            name: "notValidAfter",
-            type: "uint32",
-          },
+          { internalType: "uint8", name: "maxRedelegations", type: "uint8" },
+          { internalType: "uint32", name: "notValidBefore", type: "uint32" },
+          { internalType: "uint32", name: "notValidAfter", type: "uint32" },
           {
             internalType: "uint16",
             name: "blocksBeforeVoteCloses",
@@ -339,12 +258,7 @@ export const Alligator = narrow([
         name: "proposalId",
         type: "uint256",
       },
-      {
-        indexed: false,
-        internalType: "uint8",
-        name: "support",
-        type: "uint8",
-      },
+      { indexed: false, internalType: "uint8", name: "support", type: "uint8" },
     ],
     name: "VoteCast",
     type: "event",
@@ -376,43 +290,10 @@ export const Alligator = narrow([
         name: "proposalId",
         type: "uint256",
       },
-      {
-        indexed: false,
-        internalType: "uint8",
-        name: "support",
-        type: "uint8",
-      },
+      { indexed: false, internalType: "uint8", name: "support", type: "uint8" },
     ],
     name: "VotesCast",
     type: "event",
-  },
-  {
-    inputs: [],
-    name: "MAX_REFUND_BASE_FEE",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "MAX_REFUND_GAS_USED",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "MAX_REFUND_PRIORITY_FEE",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "REFUND_BASE_GAS",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
   },
   {
     inputs: [],
@@ -430,11 +311,7 @@ export const Alligator = narrow([
   },
   {
     inputs: [
-      {
-        internalType: "address[][]",
-        name: "authorities",
-        type: "address[][]",
-      },
+      { internalType: "address[][]", name: "authorities", type: "address[][]" },
       { internalType: "uint256", name: "proposalId", type: "uint256" },
       { internalType: "uint8", name: "support", type: "uint8" },
       { internalType: "string", name: "reason", type: "string" },
@@ -483,11 +360,7 @@ export const Alligator = narrow([
   },
   {
     inputs: [
-      {
-        internalType: "address[][]",
-        name: "authorities",
-        type: "address[][]",
-      },
+      { internalType: "address[][]", name: "authorities", type: "address[][]" },
       { internalType: "uint256", name: "proposalId", type: "uint256" },
       { internalType: "uint8", name: "support", type: "uint8" },
       { internalType: "string", name: "reason", type: "string" },
@@ -613,21 +486,9 @@ export const Alligator = narrow([
       {
         components: [
           { internalType: "uint8", name: "permissions", type: "uint8" },
-          {
-            internalType: "uint8",
-            name: "maxRedelegations",
-            type: "uint8",
-          },
-          {
-            internalType: "uint32",
-            name: "notValidBefore",
-            type: "uint32",
-          },
-          {
-            internalType: "uint32",
-            name: "notValidAfter",
-            type: "uint32",
-          },
+          { internalType: "uint8", name: "maxRedelegations", type: "uint8" },
+          { internalType: "uint32", name: "notValidBefore", type: "uint32" },
+          { internalType: "uint32", name: "notValidAfter", type: "uint32" },
           {
             internalType: "uint16",
             name: "blocksBeforeVoteCloses",
@@ -652,21 +513,9 @@ export const Alligator = narrow([
       {
         components: [
           { internalType: "uint8", name: "permissions", type: "uint8" },
-          {
-            internalType: "uint8",
-            name: "maxRedelegations",
-            type: "uint8",
-          },
-          {
-            internalType: "uint32",
-            name: "notValidBefore",
-            type: "uint32",
-          },
-          {
-            internalType: "uint32",
-            name: "notValidAfter",
-            type: "uint32",
-          },
+          { internalType: "uint8", name: "maxRedelegations", type: "uint8" },
+          { internalType: "uint32", name: "notValidBefore", type: "uint32" },
+          { internalType: "uint32", name: "notValidAfter", type: "uint32" },
           {
             internalType: "uint16",
             name: "blocksBeforeVoteCloses",
@@ -733,5 +582,4 @@ export const Alligator = narrow([
     stateMutability: "view",
     type: "function",
   },
-  { stateMutability: "payable", type: "receive" },
 ]);

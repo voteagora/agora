@@ -14,6 +14,7 @@
   },
   { "inputs": [], "name": "AlreadyRegistered", "type": "error" },
   { "inputs": [], "name": "BadSignature", "type": "error" },
+  { "inputs": [], "name": "InvalidAuthorityChain", "type": "error" },
   {
     "inputs": [
       { "internalType": "address", "name": "from", "type": "address" },
@@ -147,31 +148,6 @@
       }
     ],
     "name": "ProxyDeployed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "voter",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "refundAmount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "refundSent",
-        "type": "bool"
-      }
-    ],
-    "name": "RefundableVote",
     "type": "event"
   },
   {
@@ -383,34 +359,6 @@
     ],
     "name": "VotesCast",
     "type": "event"
-  },
-  {
-    "inputs": [],
-    "name": "MAX_REFUND_BASE_FEE",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "MAX_REFUND_GAS_USED",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "MAX_REFUND_PRIORITY_FEE",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "REFUND_BASE_GAS",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
   },
   {
     "inputs": [],
@@ -750,6 +698,5 @@
     "outputs": [],
     "stateMutability": "view",
     "type": "function"
-  },
-  { "stateMutability": "payable", "type": "receive" }
+  }
 ]
