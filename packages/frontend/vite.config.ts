@@ -6,7 +6,7 @@ import pluginRewriteAll from "vite-plugin-rewrite-all";
 
 export default defineConfig({
   plugins: [relay, react(), visualizer(), pluginRewriteAll()],
-  define: { global: "window", "process.env": {} },
+  define: { "process.env": {} },
   build: {
     sourcemap: true,
     rollupOptions: {

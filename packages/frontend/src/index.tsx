@@ -1,3 +1,11 @@
+/**
+ * window.global is required by wallet-connect (a dependency of connectkit).
+ * This is a bug in the library. Changing the vite.config.ts to use
+ * `define: { "window.global": "window" }` applies too broadly causing sentry
+ * to not build properly.
+ */
+window.global ||= window;
+
 import "./sentry";
 import React from "react";
 import ReactDOM from "react-dom/client";
