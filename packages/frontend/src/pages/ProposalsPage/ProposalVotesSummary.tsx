@@ -73,7 +73,7 @@ export function ProposalVotesSummary({
           color: ${theme.colors.gray["4f"]};
         `}
       >
-        <div>QUORUM 12.0M OP</div>
+        <div>QUORUM 11.9M OP</div>
         <VoteTime fragmentRef={proposal} />
       </HStack>
     </VStack>
