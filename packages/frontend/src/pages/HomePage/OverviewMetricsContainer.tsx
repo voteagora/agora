@@ -69,7 +69,7 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
         }
       />
 
-      <MetricContainer icon="ballot" title="Quorum" body={<>{"12.0M OP"}</>} />
+      <MetricContainer icon="ballot" title="Quorum" body={<>{"11.9M OP"}</>} />
 
       <a
         href="https://github.com/ethereum-optimism/OPerating-manual/blob/main/manual.md"
