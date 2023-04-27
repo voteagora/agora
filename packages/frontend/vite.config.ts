@@ -36,7 +36,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/graphql": "https://nounsagora.com/",
+      "/graphql": "http://localhost:4001/",
     },
   },
 });
