@@ -2,7 +2,7 @@
   "name": "nouns-agora",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://0.0.0.0:4001/",
+  "proxy": "https://vote.optimism.io/",
   "dependencies": {
     "@emotion/css": "^11.10.0",
     "@ensdomains/ens-avatar": "^0.1.8",

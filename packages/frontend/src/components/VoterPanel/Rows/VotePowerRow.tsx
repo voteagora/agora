@@ -14,7 +14,6 @@ export function VotePowerRow({
       fragment VotePowerRowFragment on Delegate {
         tokensRepresented {
           bpsOfDelegatedSupply
-          bpsOfQuorum
         }
       }
     `,
@@ -30,8 +29,6 @@ export function VotePowerRow({
         ) : (
           <>
             {bpsToString(tokensRepresented.bpsOfDelegatedSupply)} votable supply
-            <br />
-            {bpsToString(tokensRepresented.bpsOfQuorum)} quorum
           </>
         )
       }
