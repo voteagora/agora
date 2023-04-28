@@ -11,9 +11,6 @@ kv_namespaces = [
 durable_objects.bindings = [
     { name = "STORAGE_OBJECT", class_name = "StorageDurableObjectV1" }
 ]
-analytics_engine_datasets = [
-    { binding = "STORAGE_ANALYTICS" }
-]
 
 [env.dev.vars]
 ENVIRONMENT = "dev"
@@ -33,9 +30,6 @@ kv_namespaces = [
 ]
 durable_objects.bindings = [
     { name = "STORAGE_OBJECT", class_name = "StorageDurableObjectV1" }
-]
-analytics_engine_datasets = [
-    { binding = "STORAGE_ANALYTICS" }
 ]
 
 [env.prod.vars]

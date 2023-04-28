@@ -17,8 +17,6 @@ export interface Env {
   ALLOW_READS_PERCENTAGE?: string;
   USE_CACHE_PERCENTAGE?: string;
 
-  STORAGE_ANALYTICS: AnalyticsEngineDataset;
-
   EMAILS: KVNamespace;
   __STATIC_CONTENT: KVNamespace;
   STORAGE_OBJECT: DurableObjectNamespace;

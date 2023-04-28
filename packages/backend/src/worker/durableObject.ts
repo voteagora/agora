@@ -16,7 +16,6 @@ import {
   collectGenerator,
   limitGenerator,
 } from "../indexer/utils/generatorUtils";
-import { AnalyticsEngineReporter } from "../indexer/storage/durableObjects/analyticsEngineReporter";
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 
@@ -27,7 +26,6 @@ export class StorageDurableObjectV1 {
   private readonly env: Env;
   private readonly provider: ethers.providers.JsonRpcProvider;
 
-  private readonly storage: AnalyticsEngineReporter;
   private readonly stepChainEntityStore: DurableObjectEntityStore;
   private lastResult: Awaited<
     ReturnType<ReturnType<typeof followChain>>
@@ -43,11 +41,9 @@ export class StorageDurableObjectV1 {
       mustGetAlchemyApiKey(env)
     );
 
-    this.storage = new AnalyticsEngineReporter(
-      this.state.storage,
-      env.STORAGE_ANALYTICS
+    this.stepChainEntityStore = new DurableObjectEntityStore(
+      this.state.storage
     );
-    this.stepChainEntityStore = new DurableObjectEntityStore(this.storage);
   }
 
   async fetchWithSentry(request: Request, sentry: Toucan): Promise<Response> {
@@ -104,10 +100,7 @@ export class StorageDurableObjectV1 {
 
       case "/graphql": {
         const isProduction = this.env.ENVIRONMENT === "prod";
-        const storage = new AnalyticsEngineReporter(
-          this.state.storage,
-          this.env.STORAGE_ANALYTICS
-        );
+        const storage = this.state.storage;
 
         const entityStore = new DurableObjectEntityStore(storage);
 
@@ -132,7 +125,6 @@ export class StorageDurableObjectV1 {
           const response = await server.handleRequest(request);
           return response;
         } finally {
-          storage.flushIoReport(["kind:read"]);
         }
       }
 
@@ -232,7 +224,6 @@ export class StorageDurableObjectV1 {
     try {
       return await iter(resolvedStepSize);
     } finally {
-      this.storage.flushIoReport(["kind:write"]);
     }
   }
 
