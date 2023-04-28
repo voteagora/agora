@@ -16,10 +16,11 @@ export type ServerArgs<
 > = {
   store: EntityStore;
   provider: ethers.providers.JsonRpcProvider;
-  makeContextFactory: (
+  contextFactory: (
     reader: Reader<EntityDefinitionsType>
-  ) => () => Prettify<DependenciesFromModuleDefinitions<ModuleDefinitions>>;
+  ) => Prettify<DependenciesFromModuleDefinitions<ModuleDefinitions>>;
 } & DeploymentArgs<EntityDefinitionsType, ModuleDefinitions>;
+
 export type DeploymentArgs<
   EntityDefinitionsType extends EntityDefinitions,
   ModuleDefinitions extends ReadonlyArray<ModuleDefinition<Record<string, any>>>

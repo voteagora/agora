@@ -21,31 +21,30 @@ async function main() {
 
     store: await LevelEntityStore.open(dataDirectory),
     provider,
-    makeContextFactory: (reader) => {
+    contextFactory(reader) {
       const dynamoDb = new DynamoDB({});
 
-      return () =>
-        makeContext(
-          {
-            provider: new TransparentMultiCallProvider(provider),
-            emailStorage: {
-              async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
-                console.log({ verifiedEmail });
-              },
+      return makeContext(
+        {
+          provider: new TransparentMultiCallProvider(provider),
+          emailStorage: {
+            async addEmail(verifiedEmail: ValidatedMessage): Promise<void> {
+              console.log({ verifiedEmail });
             },
-            statementStorage: {
-              async getStatement() {
-                return null;
-              },
-              async addStatement(): Promise<void> {
-                return;
-              },
-            },
-            latestBlockFetcher: makeLatestBlockFetcher(provider),
-            errorReporter: loggingErrorReporter(),
           },
-          reader
-        );
+          statementStorage: {
+            async getStatement() {
+              return null;
+            },
+            async addStatement(): Promise<void> {
+              return;
+            },
+          },
+          latestBlockFetcher: makeLatestBlockFetcher(provider),
+          errorReporter: loggingErrorReporter(),
+        },
+        reader
+      );
     },
   });
 }

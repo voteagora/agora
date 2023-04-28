@@ -21,7 +21,7 @@ export async function executeServer<
   entityDefinitions,
   provider,
   modules,
-  makeContextFactory,
+  contextFactory,
 }: ServerArgs<EntityDefinitionsType, ModuleDefinitions>) {
   const blockProvider = new EthersBlockProvider(provider);
   const logProvider = new EthersLogProvider(provider);
@@ -47,15 +47,13 @@ export async function executeServer<
     }
   })();
 
-  const reader = makeReader(store, storageArea, entityDefinitions);
-  const contextFactory = makeContextFactory(reader);
-
   const schema = applyIdPrefix(combineModules(modules));
 
   const server = createServer({
     schema,
     async context() {
-      return contextFactory();
+      const reader = makeReader(store, storageArea, entityDefinitions);
+      return contextFactory(reader);
     },
     port: 4001,
     maskedErrors: false,
