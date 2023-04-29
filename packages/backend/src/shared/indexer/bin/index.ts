@@ -7,6 +7,10 @@ import {
   ExportableEntityStore,
   ImportableEntityStore,
 } from "../storage/entityStore/entityStore";
+import {
+  blockIdentifierFromBlock,
+  EthersBlockProvider,
+} from "../blockProvider/blockProvider";
 
 import { backfill } from "./backfill";
 import { dump } from "./dump";
@@ -37,13 +41,18 @@ export async function executeBin({
 
   switch (commandArg) {
     case "backfill": {
-      const lastBlockToIndexArgument = (() => {
+      const lastBlockToIndexArgument = await (async () => {
         const [rawValue] = restArgs;
         if (!rawValue) {
           return null;
         }
 
-        return ethers.BigNumber.from(rawValue).toNumber();
+        const blockNumber = ethers.BigNumber.from(rawValue).toNumber();
+
+        const provider = providerFactory();
+        const blockProvider = new EthersBlockProvider(provider);
+        const block = await blockProvider.getBlockByNumber(blockNumber);
+        return blockIdentifierFromBlock(block);
       })();
 
       const store = await storeFactory();

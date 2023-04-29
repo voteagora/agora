@@ -22,6 +22,7 @@ export async function executeServer<
   provider,
   modules,
   contextFactory,
+  finalizationDisabled,
 }: ServerArgs<EntityDefinitionsType, ModuleDefinitions>) {
   const blockProvider = new EthersBlockProvider(provider);
   const logProvider = new EthersLogProvider(provider);
@@ -33,8 +34,10 @@ export async function executeServer<
     entityDefinitions,
     blockProvider,
     logProvider,
-    storageArea
+    storageArea,
+    !!finalizationDisabled
   );
+
   const _ = (async () => {
     while (true) {
       const value = await iter();

@@ -19,6 +19,13 @@ export type ServerArgs<
   contextFactory: (
     reader: Reader<EntityDefinitionsType>
   ) => Prettify<DependenciesFromModuleDefinitions<ModuleDefinitions>>;
+
+  /**
+   * Disable finalization of blocks. New blocks will be processed, but updates
+   * will not be finalized to {@link store}. Useful for testing where you want
+   * to repeatedly restart real-time indexing from a specific point in time.
+   */
+  finalizationDisabled?: boolean;
 } & DeploymentArgs<EntityDefinitionsType, ModuleDefinitions>;
 
 export type DeploymentArgs<

@@ -10,8 +10,8 @@ import {
 import { StructuredError } from "../../utils/errorUtils";
 import { makeProgressBarWithRate } from "../../utils/progressBarUtils";
 import {
-  EntityWithMetadata,
   EntityStore,
+  EntityWithMetadata,
 } from "../storage/entityStore/entityStore";
 import { IndexerDefinition } from "../process/indexerDefinition";
 import { EntityDefinitions } from "../storage/reader/type";
@@ -25,7 +25,7 @@ export async function backfill(
   store: EntityStore,
   indexers: IndexerDefinition[],
   entityDefinitions: EntityDefinitions,
-  lastBlockToIndexArgument: number | null,
+  lastBlockToIndexArgument: BlockIdentifier | null,
   dataDirectory: string
 ) {
   const highestCommonBlock = await calculateHighestCommonBlock(
@@ -36,20 +36,29 @@ export async function backfill(
     return;
   }
 
-  const lastBlockToIndex = Math.min(
-    highestCommonBlock.blockNumber,
-    lastBlockToIndexArgument ?? Infinity
-  );
+  const lastBlockToIndex = (() => {
+    if (!lastBlockToIndexArgument) {
+      return highestCommonBlock;
+    }
+
+    if (lastBlockToIndexArgument.blockNumber < highestCommonBlock.blockNumber) {
+      return lastBlockToIndexArgument;
+    }
+
+    return highestCommonBlock;
+  })();
+
+  console.log({ lastBlockToIndex });
 
   const entityStoreFinalizedBlock = await store.getFinalizedBlock();
   if (
     entityStoreFinalizedBlock &&
-    entityStoreFinalizedBlock.blockNumber >= lastBlockToIndex
+    entityStoreFinalizedBlock.blockNumber >= lastBlockToIndex.blockNumber
   ) {
     return;
   }
 
-  const progressBar = makeProgressBarWithRate(lastBlockToIndex);
+  const progressBar = makeProgressBarWithRate(lastBlockToIndex.blockNumber);
 
   let idx = 0;
   const blockLogGenerator = groupBy(
@@ -68,7 +77,7 @@ export async function backfill(
       continue;
     }
 
-    if (firstLog.blockNumber > lastBlockToIndex) {
+    if (firstLog.blockNumber > lastBlockToIndex.blockNumber) {
       break;
     }
 
@@ -107,9 +116,7 @@ export async function backfill(
     );
   }
 
-  if (lastBlockToIndex === highestCommonBlock.blockNumber) {
-    await store.flushUpdates(highestCommonBlock, entityDefinitions, []);
-  }
+  await store.flushUpdates(lastBlockToIndex, entityDefinitions, []);
 }
 
 function blockIdentifierFromLog(log: ethers.providers.Log): BlockIdentifier {
@@ -124,17 +131,21 @@ async function calculateHighestCommonBlock(
   basePath: string
 ): Promise<BlockIdentifier | null> {
   const latestBlockPerIndex = await Promise.all(
-    indexers.map((indexer) => loadLastLogIndex(indexer, basePath))
+    indexers.map(async (indexer) => {
+      const index = await loadLastLogIndex(indexer, basePath);
+
+      if (!index) {
+        throw new Error(`missing logs for ${indexer.name}, run fetch`);
+      }
+
+      return index;
+    })
   );
 
   let lowestBlock: BlockIdentifier | null = null;
-  for (const latestBlock of latestBlockPerIndex) {
-    if (!latestBlock) {
-      return null;
-    }
-
-    if (!lowestBlock || latestBlock.blockNumber < lowestBlock.blockNumber) {
-      lowestBlock = latestBlock;
+  for (const indexValue of latestBlockPerIndex) {
+    if (!lowestBlock || indexValue.blockNumber < lowestBlock.blockNumber) {
+      lowestBlock = indexValue;
     }
   }
 

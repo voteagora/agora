@@ -13,7 +13,11 @@ async function main() {
     signer
   );
 
+  await nounsToken.transferFrom(noun12Address, testAccountAddress, "156");
   await nounsToken.transferFrom(noun12Address, testAccountAddress, "12");
+  await nounsToken.transferFrom(noun12Address, testAccountAddress, "224");
+  await nounsToken.transferFrom(noun12Address, testAccountAddress, "649");
+  await nounsToken.transferFrom(noun12Address, testAccountAddress, "24");
 }
 
 // We recommend this pattern to be able to use async/await everywhere
