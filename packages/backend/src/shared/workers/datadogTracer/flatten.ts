@@ -5,6 +5,7 @@ type MetaInputType = {
 type PrimitiveType =
   | string
   | undefined
+  | null
   | number
   | MetaInputType
   | PrimitiveType[];
@@ -40,7 +41,7 @@ function* flattenPrimitiveValueGen(
   value: PrimitiveType
 ): Generator<[string[], string | undefined]> {
   if (typeof value === "undefined") {
-    yield [[], value];
+  } else if (value === null) {
   } else if (typeof value === "string") {
     yield [[], value];
   } else if (typeof value === "number") {
