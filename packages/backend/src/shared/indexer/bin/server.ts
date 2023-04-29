@@ -35,7 +35,7 @@ export async function executeServer<
     blockProvider,
     logProvider,
     storageArea,
-    !!finalizationDisabled
+    !finalizationDisabled
   );
 
   const _ = (async () => {
