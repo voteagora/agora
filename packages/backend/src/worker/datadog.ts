@@ -11,5 +11,6 @@ export function makeTracingOptions(
     apiKey: env.DD_API_KEY,
     hostname,
     service: env.DEPLOYMENT,
+    version: env.GITHUB_SHA,
   };
 }

@@ -7,6 +7,7 @@ export type TracerOptions = {
   env: string;
   service: string;
   hostname: string;
+  version: string;
   apiKey: string;
 };
 
@@ -45,6 +46,7 @@ export class DatadogTracer implements Tracer {
       env: this.opts.env,
       tracerPayloads: [
         {
+          appVersion: this.opts.version,
           chunks: [
             {
               priority: -128,
