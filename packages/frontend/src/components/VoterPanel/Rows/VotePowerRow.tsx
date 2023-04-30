@@ -10,10 +10,10 @@ export function VotePowerRow({
 }: {
   fragment: VotePowerRowFragment$key;
 }) {
-  const { tokensRepresented } = useFragment(
+  const { totalTokensRepresented } = useFragment(
     graphql`
       fragment VotePowerRowFragment on Delegate {
-        tokensRepresented {
+        totalTokensRepresented {
           bpsOfDelegatedSupply
           bpsOfQuorum
         }
@@ -26,12 +26,12 @@ export function VotePowerRow({
     <PanelRow
       title="Vote Power"
       detail={
-        !tokensRepresented ? (
+        !totalTokensRepresented ? (
           "None"
         ) : (
           <>
-            {bpsToString(tokensRepresented.bpsOfDelegatedSupply)} all /{" "}
-            {bpsToString(tokensRepresented.bpsOfQuorum)} quorum
+            {bpsToString(totalTokensRepresented.bpsOfDelegatedSupply)} all /{" "}
+            {bpsToString(totalTokensRepresented.bpsOfQuorum)} quorum
           </>
         )
       }

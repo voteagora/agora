@@ -11,6 +11,7 @@ import { IVotesAddress } from "../../../shared/contracts/indexers/ERC721Votes/en
 import { AccountLoader } from "../../context/accountLoader";
 import { EntityRuntimeType } from "../../../shared/indexer/process/process";
 import { QuorumFetcher } from "../../../shared/schema/context/quorumFetcher";
+import { DelegatesLoader } from "../context/delegatesLoader";
 
 import typeDefs from "./schema.graphql";
 import { DelegateModule } from "./generated-types/module-types";
@@ -29,6 +30,7 @@ type Dependencies = {
   latestBlockFetcher: LatestBlockFetcher;
   quorumFetcher: QuorumFetcher;
   nameResolver: NameResolver;
+  delegatesLoader: DelegatesLoader;
 };
 
 type ResolversAssignable = ReplaceContextAllResolvers<

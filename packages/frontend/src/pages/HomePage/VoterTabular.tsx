@@ -42,7 +42,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
           discord
         }
 
-        tokensRepresented {
+        totalTokensRepresented {
           amount {
             amount
           }
@@ -73,7 +73,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
   );
 
   const nounsRepresented = BigNumber.from(
-    delegate.tokensRepresented.amount.amount
+    delegate.totalTokensRepresented.amount.amount
   );
 
   const votesCast = BigNumber.from(delegate.delegateMetrics.totalVotes);

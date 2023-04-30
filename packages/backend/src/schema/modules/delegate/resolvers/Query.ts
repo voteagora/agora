@@ -41,21 +41,11 @@ export const Query: Resolvers["Query"] = {
     };
   },
 
-  async delegates(_, { orderBy, first, where, after }, { reader }) {
-    return await driveReaderByIndex(
-      reader,
-      "IVotesAddress",
-      (() => {
-        switch (orderBy) {
-          case "mostDelegates":
-            return "byTokenHoldersRepresented";
-
-          case "mostVotingPower":
-            return "byTokensRepresented";
-        }
-      })(),
+  async delegates(_, { orderBy, first, where, after }, { delegatesLoader }) {
+    return await delegatesLoader.loadDelegates({
+      after: after ?? null,
       first,
-      after ?? null
-    );
+      orderBy,
+    });
   },
 };

@@ -48,7 +48,7 @@ export function VoterCard({ fragmentRef, contentClassName }: VoterCardProps) {
 
         # eslint-disable-next-line relay/unused-fields
         id
-        tokensRepresented {
+        totalTokensRepresented {
           amount {
             amount
           }
@@ -64,7 +64,7 @@ export function VoterCard({ fragmentRef, contentClassName }: VoterCardProps) {
   );
 
   const nounsRepresented = BigNumber.from(
-    delegate.tokensRepresented.amount.amount
+    delegate.totalTokensRepresented.amount.amount
   );
 
   const votesCast = BigNumber.from(delegate.delegateMetrics.totalVotes);

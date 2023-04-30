@@ -6,6 +6,7 @@ import {
 } from "../utils/generatorUtils";
 import { IndexKeyType } from "../indexer/storage/keys/indexKey";
 import { EntityDefinitions, Reader } from "../indexer/storage/reader/type";
+import { safeParseNumber } from "../utils/safeParseNumber";
 
 export type PageInfo = {
   hasPreviousPage: boolean;
@@ -78,6 +79,42 @@ export async function driveReaderByIndex<
     pageInfo: {
       endCursor,
       hasNextPage: !!endCursor,
+      hasPreviousPage: false,
+      startCursor: null,
+    },
+  };
+}
+
+export function paginateArray<T>(
+  items: T[],
+  first: number,
+  after: string | null
+): Connection<T> {
+  const startingIndex = (() => {
+    if (!after) {
+      return 0;
+    }
+
+    const parsedNumber = safeParseNumber(after);
+    if (parsedNumber === null) {
+      throw new Error(`invalid cursor ${after}`);
+    }
+
+    return parsedNumber + 1;
+  })();
+
+  const edges = Array.from(items.entries())
+    .slice(startingIndex, startingIndex + first)
+    .map<Edge<T>>(([index, node]) => ({
+      cursor: index.toString(),
+      node,
+    }));
+
+  return {
+    edges,
+    pageInfo: {
+      endCursor: edges[edges.length - 1]?.cursor ?? null,
+      hasNextPage: items.length - startingIndex > first,
       hasPreviousPage: false,
       startCursor: null,
     },

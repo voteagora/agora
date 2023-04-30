@@ -200,3 +200,39 @@ export async function* flatMapGenerator<T, U>(
     yield* mapper(item);
   }
 }
+
+export async function* uniqueItems<T>(
+  items: AsyncGenerator<T>
+): AsyncGenerator<T> {
+  const seen = new Set();
+  for await (const item of items) {
+    if (seen.has(item)) {
+      continue;
+    }
+
+    seen.add(item);
+    yield item;
+  }
+}
+
+export async function* concatGenerators<T>(
+  ...generators: AsyncGenerator<T>[]
+): AsyncGenerator<T> {
+  for (const generator of generators) {
+    yield* generator;
+  }
+}
+
+export async function reduceGenerator<T, U>(
+  generator: AsyncGenerator<T>,
+  reducer: (acc: U, item: T) => U,
+  initialValue: U
+): Promise<U> {
+  let acc = initialValue;
+
+  for await (const item of generator) {
+    acc = reducer(acc, item);
+  }
+
+  return acc;
+}

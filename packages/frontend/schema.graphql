@@ -39,40 +39,41 @@ type Query {
   delegate(addressOrEnsName: String!): Delegate!
   delegates(
     where: DelegatesWhere
-    orderBy: DelegatesOrder!
+    orderBy: DelegatesOrder! = mostVotingPower
     first: Int!
     after: String
   ): DelegatesConnection!
-  metrics: Metrics!
-  propHouseAuction(auctionId: String!): PropHouseAuction!
-  propHouseAuctions: [PropHouseAuction!]!
   votes(proposalId: ID!, first: Int!, after: String): VotesConnection!
   proposal(id: ID!): Proposal!
   proposals: [Proposal!]!
+  propHouseAuction(auctionId: String!): PropHouseAuction!
+  propHouseAuctions: [PropHouseAuction!]!
+  metrics: Metrics!
 }
 
 type Delegate {
   id: ID!
   address: Address!
   delegatingTo: Delegate!
-  statement: DelegateStatement
   tokensOwned: VotingPower!
-  nounsOwned: [Noun!]!
   tokensRepresented: VotingPower!
   tokenHoldersRepresented: [Delegate!]!
-  nounsRepresented: [Noun!]!
   delegateSnapshot(proposalId: ID!): DelegateSnapshot!
   delegateMetrics: DelegateMetrics!
   proposed: [Proposal!]!
   proposalVote(proposalId: ID!): Vote
   votes: [Vote!]!
+  statement: DelegateStatement
   liquidDelegationProxyAddress: Address!
   liquidDelegationProxy: LiquidDelegationProxy
   liquidDelegations: [LiquidDelegationDelegation!]!
   liquidRepresentation(
     filter: LiquidRepresentationFilterArgs!
   ): [LiquidDelegationRepresentation!]!
+  totalTokensRepresented: VotingPower!
   propHouseVotes: [PropHouseAuctionVotes!]!
+  nounsOwned: [Noun!]!
+  nounsRepresented: [Noun!]!
 }
 
 type DelegatesConnection {
@@ -85,20 +86,6 @@ type DelegatesEdge {
   cursor: String!
 }
 
-type DelegateSnapshot {
-  nounsRepresented: [Noun!]!
-}
-
-type Noun {
-  id: ID!
-  tokenId: BigInt!
-  accessory: Int!
-  background: Int!
-  body: Int!
-  glasses: Int!
-  head: Int!
-}
-
 enum DelegatesWhere {
   withStatement
   withoutStatement
@@ -107,8 +94,6 @@ enum DelegatesWhere {
 enum DelegatesOrder {
   mostVotingPower
   mostDelegates
-  mostVotesCast
-  leastVotesCast
 }
 
 type DelegateMetrics {
@@ -121,6 +106,63 @@ type DelegateMetrics {
   consecutiveVotes: Int!
   proposalsCreated: Int!
   tokenHoldersRepresentedCount: Int!
+}
+
+type Proposal {
+  id: ID!
+  number: BigInt!
+  forVotes: TokenAmount!
+  againstVotes: TokenAmount!
+  abstainVotes: TokenAmount!
+  delegateSnapshot(address: String!): DelegateSnapshot!
+  title: String!
+  description: String!
+  voteEndsAt: Timestamp!
+  voteStartsAt: Timestamp!
+  quorumVotes: TokenAmount!
+  totalVotes: BigInt!
+  transactions: [ProposalTransaction!]!
+  status: ProposalStatus!
+  totalValue: BigInt!
+  proposer: Delegate!
+}
+
+type ProposalTransaction {
+  target: Address!
+  value: BigInt!
+  signature: String!
+  calldata: Bytes!
+}
+
+enum ProposalStatus {
+  PENDING
+  ACTIVE
+  CANCELLED
+  VETOED
+  QUEUED
+  EXECUTED
+  DEFEATED
+  EXPIRED
+}
+
+type Vote {
+  id: ID!
+  reason: String!
+  supportDetailed: Int!
+  votes: VotingPower!
+  proposal: Proposal!
+  voter: Delegate!
+  approximateTimestamp: Timestamp!
+}
+
+type VotesConnection {
+  pageInfo: PageInfo!
+  edges: [VotesEdge!]!
+}
+
+type VotesEdge {
+  node: Vote!
+  cursor: String!
 }
 
 type Mutation {
@@ -205,17 +247,6 @@ type LiquidDelegationRepresentation {
   lots: [LiquidDelegationLot!]!
 }
 
-type Metrics {
-  delegatedSupply: TokenAmount!
-  totalSupply: TokenAmount!
-  delegatesCount: Int!
-  ownersCount: Int!
-  quorumFloor: VotingPower!
-  quorumCeiling: VotingPower!
-  proposalThreshold: VotingPower!
-  recentVoterTurnoutBps: Int!
-}
-
 type PropHouseAuction {
   id: ID!
   title: String!
@@ -264,59 +295,27 @@ type PropHouseAuctionVotes {
   votes: [PropHouseAuctionVote!]!
 }
 
-type Proposal {
+type Noun {
   id: ID!
-  number: BigInt!
-  forVotes: TokenAmount!
-  againstVotes: TokenAmount!
-  abstainVotes: TokenAmount!
-  delegateSnapshot(address: String!): DelegateSnapshot!
-  title: String!
-  description: String!
-  voteEndsAt: Timestamp!
-  voteStartsAt: Timestamp!
-  quorumVotes: TokenAmount!
-  totalVotes: BigInt!
-  transactions: [ProposalTransaction!]!
-  status: ProposalStatus!
-  totalValue: BigInt!
-  proposer: Delegate!
+  tokenId: BigInt!
+  accessory: Int!
+  background: Int!
+  body: Int!
+  glasses: Int!
+  head: Int!
 }
 
-type ProposalTransaction {
-  target: Address!
-  value: BigInt!
-  signature: String!
-  calldata: Bytes!
+type DelegateSnapshot {
+  nounsRepresented: [Noun!]!
 }
 
-enum ProposalStatus {
-  PENDING
-  ACTIVE
-  CANCELLED
-  VETOED
-  QUEUED
-  EXECUTED
-  DEFEATED
-  EXPIRED
-}
-
-type Vote {
-  id: ID!
-  reason: String!
-  supportDetailed: Int!
-  votes: VotingPower!
-  proposal: Proposal!
-  voter: Delegate!
-  approximateTimestamp: Timestamp!
-}
-
-type VotesConnection {
-  pageInfo: PageInfo!
-  edges: [VotesEdge!]!
-}
-
-type VotesEdge {
-  node: Vote!
-  cursor: String!
+type Metrics {
+  delegatedSupply: TokenAmount!
+  totalSupply: TokenAmount!
+  delegatesCount: Int!
+  ownersCount: Int!
+  quorumFloor: VotingPower!
+  quorumCeiling: VotingPower!
+  proposalThreshold: VotingPower!
+  recentVoterTurnoutBps: Int!
 }

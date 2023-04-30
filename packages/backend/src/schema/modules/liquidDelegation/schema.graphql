@@ -6,6 +6,8 @@ type Delegate {
   liquidRepresentation(
     filter: LiquidRepresentationFilterArgs!
   ): [LiquidDelegationRepresentation!]!
+
+  totalTokensRepresented: VotingPower!
 }
 
 type LiquidDelegationProxy {

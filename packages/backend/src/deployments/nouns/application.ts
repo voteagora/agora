@@ -20,6 +20,7 @@ import { EmailStorage } from "../../schema/modules/delegateStatement/context/ema
 import { loadGovernanceAggregate } from "./indexers/NounsDAO/entities/governorAggregates";
 import { daoContract } from "./indexers/NounsDAO/NounsDAO";
 import { makeNounsNameResolver } from "./nameResolver";
+import { makeLiquidDelegationDelegatesLoader } from "./delegatesLoader";
 
 export const modules = <const>[
   commonModule,
@@ -56,6 +57,7 @@ export function makeContext(
     liquidDelegation: {
       daoContract: daoContract.address as Address,
     },
+    delegatesLoader: makeLiquidDelegationDelegatesLoader(reader),
     accountLoader: {
       async loadAccount(address: Address) {
         return await loadAccount(reader, address);

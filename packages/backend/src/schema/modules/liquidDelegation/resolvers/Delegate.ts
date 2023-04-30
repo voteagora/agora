@@ -20,6 +20,7 @@ import {
   filterForProposal,
   filterPermissions,
 } from "../../../../shared/contracts/indexers/Alligator/entities/filterLots";
+import { sortParamsForDelegate } from "../../../../deployments/nouns/delegatesLoader";
 
 import { LiquidDelegationRepresentationModel } from "./LiquidDelegationRepresentation";
 
@@ -100,6 +101,12 @@ export const Delegate: Resolvers["Delegate"] = {
     return {
       address: proxyAddress,
     };
+  },
+
+  async totalTokensRepresented({ address }, _args, { reader }) {
+    const item = await sortParamsForDelegate(address, new Date(), reader);
+
+    return item.tokensRepresented;
   },
 };
 

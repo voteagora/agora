@@ -275,9 +275,17 @@ export function NounsRepresentedGrid({
     fragmentKey
   );
 
+  const nounsLiquidRepresented = liquidRepresentation.flatMap(
+    (it) => it.proxy.nounsRepresented
+  );
+
   const totalNouns = BigNumber.from(tokensRepresentedRaw).toNumber();
 
-  if (!dense && nounsRepresented.length < layoutProps.columns) {
+  if (
+    !dense &&
+    nounsRepresented.length + nounsLiquidRepresented.length <
+      layoutProps.columns
+  ) {
     return (
       <HStack
         justifyContent="space-evenly"
