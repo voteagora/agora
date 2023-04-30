@@ -128,8 +128,15 @@ jobs:
       - run: sed -i 's/yarn build-worker//' packages/backend/wrangler.toml
 
       - name: Publish
-        uses: cloudflare/wrangler-action@2.0.0
-        with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-          workingDirectory: ./packages/backend
-          command: publish --env ${{ github.event.inputs.environment || 'staging' }} --var GITHUB_SHA:${{ github.sha }}
+        shell: bash
+        working-directory: ./packages/backend
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: >
+          while !
+          yarn
+          wrangler publish
+          --env ${{ github.event.inputs.environment || 'staging' }}
+          --var GITHUB_SHA:${{ github.sha }};
+          do echo 'retrying';
+          done
