@@ -22,7 +22,14 @@ export interface StorageInterfaceLeaf {
 }
 
 export type ListEntriesArgs = {
+  /**
+   * Inclusive starting key to list from if present.
+   */
   start?: string;
+
+  /**
+   * Only keys with this prefix will be returned if present.
+   */
   prefix?: string;
 };
 

@@ -37,48 +37,51 @@ export async function driveReaderByIndex<
   after: string | null,
   prefix?: IndexKeyType
 ): Promise<Connection<RuntimeType<EntityDefinitions[EntityName]["serde"]>>> {
-  const edges = (
-    await collectGenerator(
-      limitGenerator(
-        skipGenerator(
-          reader.getEntitiesByIndex(entityName, indexName, {
-            prefix,
+  const indexedValues = await collectGenerator(
+    limitGenerator(
+      skipGenerator(
+        reader.getEntitiesByIndex(entityName, indexName, {
+          prefix,
 
-            starting: (() => {
-              if (after) {
-                const [indexKey, entityId] = after.split("|");
+          starting: (() => {
+            if (after) {
+              const [indexKey, entityId] = after.split("|");
 
-                return {
-                  indexKey,
-                  entityId,
-                };
-              }
+              return {
+                indexKey,
+                entityId,
+              };
+            }
 
-              if (prefix) {
-                return {
-                  indexKey: prefix.indexKey,
-                };
-              }
+            if (prefix) {
+              return {
+                indexKey: prefix.indexKey,
+              };
+            }
 
-              return undefined;
-            })(),
-          }),
-          after ? 1 : 0
-        ),
-        first
-      )
+            return undefined;
+          })(),
+        }),
+        after ? 1 : 0
+      ),
+      // Fetch an extra item to determine if there is a next page
+      first + 1
     )
-  ).map<Edge<RuntimeType<EntityDefinitions[EntityName]["serde"]>>>((node) => ({
-    node: node.value,
-    cursor: [node.indexKey, node.entityId].join("|"),
-  }));
+  );
+
+  const edges = indexedValues
+    .slice(0, first)
+    .map<Edge<RuntimeType<EntityDefinitions[EntityName]["serde"]>>>((node) => ({
+      node: node.value,
+      cursor: [node.indexKey, node.entityId].join("|"),
+    }));
 
   const endCursor = edges[edges.length - 1]?.cursor;
   return {
     edges,
     pageInfo: {
       endCursor,
-      hasNextPage: !!endCursor,
+      hasNextPage: !!indexedValues[first],
       hasPreviousPage: false,
       startCursor: null,
     },
