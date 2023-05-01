@@ -98,6 +98,7 @@ export function useContractWriteFn<
         await writeContract(config as any);
       } catch (e) {
         const id = Sentry.captureException(e);
+        // eslint-disable-next-line no-console
         console.error(e, { id });
       }
     },

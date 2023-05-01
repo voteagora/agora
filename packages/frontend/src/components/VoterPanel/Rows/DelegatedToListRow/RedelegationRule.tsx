@@ -19,9 +19,15 @@ export function RedelegationRule({
 
   if (rules.maxRedelegations === 0xff) {
     return <div>Unlimited redelegations</div>;
-  } else if (rules.maxRedelegations === 1) {
+  }
+
+  if (rules.maxRedelegations === 1) {
     return <div>Redelegation allowed once</div>;
-  } else {
+  }
+
+  if (rules.maxRedelegations === 0) {
     return <div>Redelegation disallowed</div>;
   }
+
+  return <div>Redelegation allowed {rules.maxRedelegations} times</div>;
 }

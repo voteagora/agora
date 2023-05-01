@@ -81,10 +81,6 @@ export function DelegatedToListRow({
 
   const { address } = useAccount();
 
-  const isTokenDelegatingToLiquidDelegationProxy =
-    delegate.delegatingTo.address.resolvedName.address ===
-    delegate.liquidDelegationProxyAddress.address;
-
   const delegations = [
     ...(() => {
       if (!delegate.delegatingTo) {
@@ -98,6 +94,10 @@ export function DelegatedToListRow({
         return [];
       }
 
+      if (!delegate.nounsOwned.length) {
+        return [];
+      }
+
       return [
         {
           type: "TOKEN_DELEGATION" as const,
@@ -106,10 +106,6 @@ export function DelegatedToListRow({
       ];
     })(),
     ...(() => {
-      if (!isTokenDelegatingToLiquidDelegationProxy) {
-        return [];
-      }
-
       return delegate.liquidDelegations.map((liquidDelegation) => ({
         type: "LIQUID_DELEGATION" as const,
         liquidDelegation,
@@ -125,25 +121,25 @@ export function DelegatedToListRow({
       <PanelRow
         title="Delegating to"
         detail={
-          <div onClick={() => setIsExpanded((lastValue) => !lastValue)}>
-            <HStack
-              alignItems="center"
-              gap="1"
-              className={css`
-                cursor: pointer;
-                user-select: none;
-              `}
-            >
-              {delegate.nounsOwned.length ? (
+          delegations.length ? (
+            <div onClick={() => setIsExpanded((lastValue) => !lastValue)}>
+              <HStack
+                alignItems="center"
+                gap="1"
+                className={css`
+                  cursor: pointer;
+                  user-select: none;
+                `}
+              >
                 <HStack gap="1" alignItems="center">
-                  <div>{pluralizeDelegations(delegations.length)}</div>{" "}
+                  {pluralizeDelegations(delegations.length)}{" "}
                   <ExpandItemsArrow isExpanded={isExpanded} />
                 </HStack>
-              ) : (
-                <div>{pluralizeDelegations(0)}</div>
-              )}
-            </HStack>
-          </div>
+              </HStack>
+            </div>
+          ) : (
+            <>None</>
+          )
         }
       />
 
@@ -173,13 +169,11 @@ export function DelegatedToListRow({
 
                       case "TOKEN_DELEGATION": {
                         return (
-                          delegate.nounsOwned.length > 0 && (
-                            <NounResolvedLink
-                              resolvedName={
-                                delegation.delegate.address.resolvedName
-                              }
-                            />
-                          )
+                          <NounResolvedLink
+                            resolvedName={
+                              delegation.delegate.address.resolvedName
+                            }
+                          />
                         );
                       }
                     }
@@ -218,59 +212,42 @@ export function DelegatedToListRow({
                       return null;
                     }
 
-                    if (
-                      delegate.address.resolvedName.address ===
-                      delegate.delegatingTo.address.resolvedName.address
-                    ) {
-                      return null;
-                    }
+                    switch (delegation.type) {
+                      case "TOKEN_DELEGATION": {
+                        if (
+                          delegate.address.resolvedName.address ===
+                          delegate.delegatingTo.address.resolvedName.address
+                        ) {
+                          return null;
+                        }
 
-                    return (
-                      <div
-                        onClick={async () => {
-                          switch (delegation.type) {
-                            case "TOKEN_DELEGATION": {
-                              await writeTokenDelegation([
+                        return (
+                          <RemoveDelegationButton
+                            onClick={() =>
+                              writeTokenDelegation([
                                 delegate.address.resolvedName
                                   .address as Address,
-                              ]);
-                              break;
+                              ])
                             }
+                          />
+                        );
+                      }
 
-                            case "LIQUID_DELEGATION": {
-                              await writeLiquidDelegate([
+                      case "LIQUID_DELEGATION": {
+                        return (
+                          <RemoveDelegationButton
+                            onClick={() =>
+                              writeLiquidDelegate([
                                 delegation.liquidDelegation.to.resolvedName
                                   .address as Address,
                                 restrictiveRules(),
                                 false,
-                              ]);
-                              break;
+                              ])
                             }
-                          }
-                        }}
-                        className={css`
-                          cursor: pointer;
-                          display: flex;
-                          flex-direction: column;
-                          padding: ${theme.spacing["1"]};
-                          border-radius: ${theme.borderRadius.md};
-                          transition: 0.3s background;
-
-                          :hover {
-                            background: ${theme.colors.gray.eb};
-                          }
-                        `}
-                      >
-                        <XMarkIcon
-                          aria-hidden="true"
-                          className={css`
-                            color: ${theme.colors.gray.af};
-                            width: ${theme.spacing["4"]};
-                            height: ${theme.spacing["4"]};
-                          `}
-                        />
-                      </div>
-                    );
+                          />
+                        );
+                      }
+                    }
                   })()}
                 </HStack>
               </HStack>
@@ -289,5 +266,34 @@ export function DelegatedToListRow({
         </VStack>
       )}
     </VStack>
+  );
+}
+
+function RemoveDelegationButton({ onClick }: { onClick: () => void }) {
+  return (
+    <div
+      onClick={onClick}
+      className={css`
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        padding: ${theme.spacing["1"]};
+        border-radius: ${theme.borderRadius.md};
+        transition: 0.3s background;
+
+        :hover {
+          background: ${theme.colors.gray.eb};
+        }
+      `}
+    >
+      <XMarkIcon
+        aria-hidden="true"
+        className={css`
+          color: ${theme.colors.gray.af};
+          width: ${theme.spacing["4"]};
+          height: ${theme.spacing["4"]};
+        `}
+      />
+    </div>
   );
 }

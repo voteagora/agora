@@ -48,6 +48,7 @@ export const useGenerateChatGpt = () => {
       }
     } catch (e) {
       const id = Sentry.captureException(e);
+      // eslint-disable-next-line no-console
       console.error(e, { id });
     }
 

@@ -31,7 +31,6 @@ export function ProposalsCreatedRow({
 
   const [isExpanded, setIsExpanded] = useState(false);
 
-  console.log(proposed);
   return (
     <VStack gap="1">
       <PanelRow

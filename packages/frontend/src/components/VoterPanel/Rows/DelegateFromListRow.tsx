@@ -106,25 +106,25 @@ export function DelegateFromList({
       <PanelRow
         title="Delegated from"
         detail={
-          <div onClick={() => setIsExpanded((lastValue) => !lastValue)}>
-            <HStack
-              alignItems="center"
-              gap="1"
-              className={css`
-                cursor: pointer;
-                user-select: none;
-              `}
-            >
-              {representations.length ? (
+          representations.length ? (
+            <div onClick={() => setIsExpanded((lastValue) => !lastValue)}>
+              <HStack
+                alignItems="center"
+                gap="1"
+                className={css`
+                  cursor: pointer;
+                  user-select: none;
+                `}
+              >
                 <HStack gap="1" alignItems="center">
-                  <div>{pluralizeAddresses(representations.length)}</div>{" "}
+                  {pluralizeAddresses(representations.length)}{" "}
                   <ExpandItemsArrow isExpanded={isExpanded} />
                 </HStack>
-              ) : (
-                <div>{pluralizeAddresses(representations.length)}</div>
-              )}
-            </HStack>
-          </div>
+              </HStack>
+            </div>
+          ) : (
+            <>None</>
+          )
         }
       />
 
