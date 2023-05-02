@@ -11,6 +11,8 @@ export const IVotesAggregate = makeEntityDefinition({
   serde: serde.object({
     totalSupply: serde.bigint,
     delegatedSupply: serde.bigint,
+    totalOwners: serde.number,
+    totalDelegates: serde.number,
   }),
   indexes: {},
 });
@@ -37,5 +39,7 @@ function makeDefaultAggregate(): EntityRuntimeType<typeof IVotesAggregate> {
   return {
     delegatedSupply: 0n,
     totalSupply: 0n,
+    totalOwners: 0,
+    totalDelegates: 0,
   };
 }

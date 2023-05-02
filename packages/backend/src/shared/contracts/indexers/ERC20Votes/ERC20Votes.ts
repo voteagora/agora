@@ -27,14 +27,25 @@ export function makeERC20VotesIndexerDefinition(
 
           await updateTotalSupply(from, to, value, log, handle);
 
-          const [fromEntity, toEntity] = await Promise.all([
+          const [fromEntity, toEntity, agg] = await Promise.all([
             loadAccount(handle, from),
             loadAccount(handle, to),
+            loadAggregate(handle),
           ]);
 
+          const fromEntityOldBalance = fromEntity.tokensOwned;
           fromEntity.tokensOwned += value;
-          toEntity.tokensOwned += value;
+          if (fromEntityOldBalance === 0n && fromEntity.tokensOwned > 0n) {
+            agg.totalOwners += 1;
+          }
 
+          const toEntityOldBalance = toEntity.tokensOwned;
+          toEntity.tokensOwned -= value;
+          if (toEntityOldBalance > 0n && toEntity.tokensOwned === 0n) {
+            agg.totalOwners -= 1;
+          }
+
+          saveAggregate(handle, agg);
           saveAccount(handle, fromEntity);
           saveAccount(handle, toEntity);
         },
@@ -55,6 +66,15 @@ export function makeERC20VotesIndexerDefinition(
 
           const change = newBalance - previousBalance;
           agg.delegatedSupply += change;
+          agg.totalDelegates += (() => {
+            if (previousBalance === 0n && newBalance > 0n) {
+              return 1;
+            } else if (previousBalance > 0n && newBalance === 0n) {
+              return -1;
+            } else {
+              return 0;
+            }
+          })();
 
           saveAggregate(handle, agg);
           saveAccount(handle, account);

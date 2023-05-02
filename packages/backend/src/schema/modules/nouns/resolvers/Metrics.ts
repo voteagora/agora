@@ -2,7 +2,6 @@ import { BigNumber } from "ethers";
 
 import {
   collectGenerator,
-  countItems,
   limitGenerator,
 } from "../../../../shared/utils/generatorUtils";
 import {
@@ -38,21 +37,7 @@ export const Metrics: Resolvers["Metrics"] = {
   },
 
   async ownersCount(_parent, _args, { reader }) {
-    return await countItems(
-      (async function* () {
-        for await (const address of reader.getEntitiesByIndex(
-          "IVotesAddress",
-          "byTokensOwned",
-          {}
-        )) {
-          if (!address.value.tokensOwnedIds.length) {
-            return;
-          }
-
-          yield address;
-        }
-      })()
-    );
+    return (await loadAggregate(reader)).totalOwners;
   },
 
   async proposalThreshold(_parents, _args, { reader }) {
@@ -62,21 +47,7 @@ export const Metrics: Resolvers["Metrics"] = {
   },
 
   async delegatesCount(_parents, _args, { reader }) {
-    return await countItems(
-      (async function* () {
-        for await (const address of reader.getEntitiesByIndex(
-          "IVotesAddress",
-          "byTokensRepresented",
-          {}
-        )) {
-          if (address.value.tokensRepresented === 0n) {
-            return;
-          }
-
-          yield address;
-        }
-      })()
-    );
+    return (await loadAggregate(reader)).totalDelegates;
   },
 
   async recentVoterTurnoutBps(_parents, _args, { reader }) {

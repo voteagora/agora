@@ -27,54 +27,66 @@ export function makeERC721VotesIndexerDefinition(
             return;
           }
 
-          await Promise.all([
-            updateTotalSupply(from, to, 1n, log, handle),
-            (async () => {
-              const fromEntity = await loadAccount(handle, from);
+          let tokenHoldersDiff = 0;
+          {
+            const fromEntity = await loadAccount(handle, from);
 
-              fromEntity.tokensOwned -= 1n;
-              fromEntity.tokensOwnedIds = fromEntity.tokensOwnedIds.filter(
-                (it) => it !== tokenId
-              );
+            fromEntity.tokensOwned -= 1n;
+            fromEntity.tokensOwnedIds = fromEntity.tokensOwnedIds.filter(
+              (it) => it !== tokenId
+            );
 
-              saveAccount(handle, fromEntity);
+            saveAccount(handle, fromEntity);
 
-              const fromEntityDelegate = await loadAccount(
-                handle,
-                fromEntity.delegatingTo
-              );
+            if (fromEntity.tokensOwned === 0n) {
+              tokenHoldersDiff -= 1;
+            }
 
-              fromEntityDelegate.tokensRepresentedIds = subtractItems(
-                fromEntityDelegate.tokensRepresentedIds,
-                [tokenId]
-              );
+            const fromEntityDelegate = await loadAccount(
+              handle,
+              fromEntity.delegatingTo
+            );
 
-              saveAccount(handle, fromEntityDelegate);
-              saveAddressSnapshot(handle, fromEntityDelegate, log);
-            })(),
+            fromEntityDelegate.tokensRepresentedIds = subtractItems(
+              fromEntityDelegate.tokensRepresentedIds,
+              [tokenId]
+            );
 
-            (async () => {
-              const toEntity = await loadAccount(handle, to);
+            saveAccount(handle, fromEntityDelegate);
+            saveAddressSnapshot(handle, fromEntityDelegate, log);
+          }
 
-              toEntity.tokensOwned += 1n;
-              toEntity.tokensOwnedIds = [...toEntity.tokensOwnedIds, tokenId];
+          {
+            const toEntity = await loadAccount(handle, to);
 
-              saveAccount(handle, toEntity);
+            toEntity.tokensOwned += 1n;
+            toEntity.tokensOwnedIds = [...toEntity.tokensOwnedIds, tokenId];
 
-              const toEntityDelegate = await loadAccount(
-                handle,
-                toEntity.delegatingTo
-              );
+            saveAccount(handle, toEntity);
 
-              toEntityDelegate.tokensRepresentedIds = unionItems(
-                toEntityDelegate.tokensRepresentedIds,
-                [tokenId]
-              );
+            if (toEntity.tokensOwned === 1n) {
+              tokenHoldersDiff += 1;
+            }
 
-              saveAccount(handle, toEntityDelegate);
-              saveAddressSnapshot(handle, toEntityDelegate, log);
-            })(),
-          ]);
+            const toEntityDelegate = await loadAccount(
+              handle,
+              toEntity.delegatingTo
+            );
+
+            toEntityDelegate.tokensRepresentedIds = unionItems(
+              toEntityDelegate.tokensRepresentedIds,
+              [tokenId]
+            );
+
+            saveAccount(handle, toEntityDelegate);
+            saveAddressSnapshot(handle, toEntityDelegate, log);
+          }
+
+          const aggregate = await loadAggregate(handle);
+          aggregate.totalOwners += tokenHoldersDiff;
+          saveAggregate(handle, aggregate);
+
+          await updateTotalSupply(from, to, 1n, log, handle);
         },
       },
       DelegateVotesChanged: {
@@ -93,6 +105,15 @@ export function makeERC721VotesIndexerDefinition(
 
           const change = newBalance - previousBalance;
           agg.delegatedSupply += change;
+          agg.totalDelegates += (() => {
+            if (previousBalance === 0n && newBalance > 0n) {
+              return 1;
+            } else if (previousBalance > 0n && newBalance === 0n) {
+              return -1;
+            } else {
+              return 0;
+            }
+          })();
 
           saveAggregate(handle, agg);
           saveAccount(handle, account);
