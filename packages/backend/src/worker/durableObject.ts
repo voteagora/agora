@@ -38,6 +38,7 @@ import { NopReader } from "../shared/indexer/storage/reader/nopReader";
 import { Reader } from "../shared/indexer/storage/reader/type";
 import { makeReader } from "../shared/indexer/storage/reader/reader";
 import { DurableObjectEntityStore } from "../shared/indexer/storage/entityStore/durableObjects/durableObjectEntityStore";
+import { CachedReader } from "../shared/indexer/storage/reader/cachedReader";
 
 import { makeEmailStorage } from "./storage";
 import { getSchema } from "./getSchema";
@@ -185,7 +186,7 @@ function makeGraphQLHandler(
             statementStorage: makeDynamoStatementStorage(dynamo),
             errorReporter: loggingErrorReporter(),
           },
-          reader
+          new CachedReader(reader)
         );
 
         const server = createServer({
