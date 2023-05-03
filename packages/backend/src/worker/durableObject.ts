@@ -3,7 +3,6 @@ import { Toucan } from "toucan-js";
 import { ethers } from "ethers";
 import { TransparentMultiCallProvider } from "@agora/common";
 
-import { entityDefinitions, indexers } from "../deployments/nouns/indexers";
 import { AnalyticsEngineReporter } from "../shared/indexer/storage/entityStore/durableObjects/storageInterface/analyticsEngineReporter";
 import { useSentry } from "../shared/workers/sentry/useSentry";
 import {
@@ -30,7 +29,7 @@ import {
   handleFetchWithSentry,
 } from "../shared/workers/sentry/module";
 import { MakeOptionsResult } from "../shared/workers/sentry/makeOptions";
-import { makeContext } from "../deployments/nouns";
+import { makeContext, nounsDeployment } from "../deployments/nouns";
 import { makeLatestBlockFetcher } from "../shared/schema/context/latestBlockFetcher";
 import { makeDynamoStatementStorage } from "../store/dynamo/statement";
 import { loggingErrorReporter } from "../shared/schema/helpers/nonFatalErrors";
@@ -74,8 +73,8 @@ export class StorageDurableObjectV1 {
     this.followChainDriver = new FollowChainDriver(
       this.storageWithAnalyticsEngineReporter,
       provider,
-      indexers,
-      entityDefinitions
+      nounsDeployment.indexers,
+      nounsDeployment.entityDefinitions
     );
 
     this.tracer = new DatadogTracer(
@@ -170,10 +169,16 @@ function makeGraphQLHandler(
 
       const reader = (() => {
         if (!allowRead) {
-          return new NopReader(storageArea) as Reader<typeof entityDefinitions>;
+          return new NopReader(storageArea) as Reader<
+            typeof nounsDeployment.entityDefinitions
+          >;
         }
 
-        return makeReader(entityStore, storageArea, entityDefinitions);
+        return makeReader(
+          entityStore,
+          storageArea,
+          nounsDeployment.entityDefinitions
+        );
       })();
 
       try {

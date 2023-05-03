@@ -1,7 +1,4 @@
-import { narrow, parseAbi } from "abitype";
-
-import { nounsTokenIndexer } from "../../../deployments/nouns/indexers/NounsToken/NounsToken";
-import { alligatorIndexer } from "../../../deployments/nouns/indexers/Alligator";
+import { parseAbi } from "abitype";
 
 import { mergeTopicFilters, topicFilterForIndexers } from "./topicFilters";
 import {
