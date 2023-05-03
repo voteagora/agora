@@ -35,13 +35,6 @@ export function OnChainProposalRow({
         }
         voteStartsAt
         voteEndsAt
-        proposer {
-          address {
-            resolvedName {
-              ...NounResolvedNameFragment
-            }
-          }
-        }
 
         ...OnChainProposalRowActivityFragment
       }
@@ -55,10 +48,7 @@ export function OnChainProposalRow({
         primary
         title={
           <>
-            Prop {proposal.number} – by{" "}
-            <NounResolvedName
-              resolvedName={proposal.proposer.address.resolvedName}
-            />
+            Prop {proposal.number}
             <span
               className={css`
                 @media (min-width: ${theme.maxWidth["2xl"]}) {
