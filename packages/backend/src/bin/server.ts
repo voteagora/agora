@@ -1,8 +1,7 @@
 import "isomorphic-fetch";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { ValidatedMessage } from "@agora/common";
+import { ValidatedMessage, TransparentMultiCallProvider } from "@agora/common";
 
-import { TransparentMultiCallProvider } from "../shared/utils/multicall";
 import { LevelEntityStore } from "../shared/indexer/storage/entityStore/levelEntityStore";
 import { makeLatestBlockFetcher } from "../shared/schema/context/latestBlockFetcher";
 import { makeProvider } from "../provider";

@@ -14,6 +14,7 @@
     "@nouns/contracts": "^0.3.0",
     "@typechain/ethers-v5": "^10.1.0",
     "abitype": "^0.7.1",
+    "dataloader": "^2.2.2",
     "ethers": "5.7.0",
     "typechain": "^8.1.0",
     "zod": "3.14.2"

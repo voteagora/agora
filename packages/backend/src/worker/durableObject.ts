@@ -1,6 +1,7 @@
 import { createServer, Plugin } from "@graphql-yoga/common";
 import { Toucan } from "toucan-js";
 import { ethers } from "ethers";
+import { TransparentMultiCallProvider } from "@agora/common";
 
 import { entityDefinitions, indexers } from "../deployments/nouns/indexers";
 import { AnalyticsEngineReporter } from "../shared/indexer/storage/entityStore/durableObjects/storageInterface/analyticsEngineReporter";
@@ -12,7 +13,6 @@ import {
 import { FollowChainDriver } from "../shared/workers/storageDurableObject/followChainDriver";
 import { handleRoute } from "../shared/workers/router/handler";
 import { makeDynamoClient } from "../shared/workers/dynamodb";
-import { TransparentMultiCallProvider } from "../shared/utils/multicall";
 import { makeAdminRoutes, stopSentinel } from "../shared/workers/admin/handler";
 import {
   isResultFinal,
@@ -39,6 +39,7 @@ import { Reader } from "../shared/indexer/storage/reader/type";
 import { makeReader } from "../shared/indexer/storage/reader/reader";
 import { DurableObjectEntityStore } from "../shared/indexer/storage/entityStore/durableObjects/durableObjectEntityStore";
 import { CachedReader } from "../shared/indexer/storage/reader/cachedReader";
+import { TracingProvider } from "../shared/tracingProvider";
 
 import { makeEmailStorage } from "./storage";
 import { getSchema } from "./getSchema";
@@ -180,7 +181,9 @@ function makeGraphQLHandler(
 
         const context = makeContext(
           {
-            provider: new TransparentMultiCallProvider(provider),
+            provider: new TransparentMultiCallProvider(
+              new TracingProvider(provider)
+            ),
             latestBlockFetcher: makeLatestBlockFetcher(provider),
             emailStorage: makeEmailStorage(env.EMAILS),
             statementStorage: makeDynamoStatementStorage(dynamo),
