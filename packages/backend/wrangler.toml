@@ -4,9 +4,9 @@ logpush = true
 
 [env.dev]
 name = "optimism-agora-dev"
-account_id = "86fdf8ef811b4d0aa8954fa036684ea3"
+account_id = "f843baa950d11ddb130ad0f649fc1fa2"
 kv_namespaces = [
-    { binding = "EMAILS", id = "23588c86ba844b2ab1e966da7e039f61", preview_id = "23588c86ba844b2ab1e966da7e039f61" }
+    { binding = "EMAILS", id = "ac8e3dcdb119401bb0803f4b6104bbf1" }
 ]
 durable_objects.bindings = [
     { name = "STORAGE_OBJECT", class_name = "StorageDurableObjectV1" }
@@ -15,9 +15,8 @@ durable_objects.bindings = [
 [env.dev.vars]
 ENVIRONMENT = "dev"
 DEPLOYMENT = "optimism"
-HONEYCOMB_DATASET = "nouns-agora-dev"
 ADMIN_API_KEY = ''
-PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'stable5'
+PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'stable'
 BLOCK_STEP_SIZE = "100"
 ALLOW_READS_PERCENTAGE = "100"
 USE_CACHE_PERCENTAGE = "100"
@@ -35,7 +34,6 @@ durable_objects.bindings = [
 [env.prod.vars]
 ENVIRONMENT = "prod"
 DEPLOYMENT = "optimism"
-HONEYCOMB_DATASET = "nouns-agora-prod"
 PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'stable10'
 BLOCK_STEP_SIZE = "1000"
 ALLOW_READS_PERCENTAGE = "100"
