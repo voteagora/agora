@@ -2,9 +2,9 @@ import * as dateFns from "date-fns";
 import { ethers } from "ethers";
 import { Address } from "@wagmi/core";
 
-import { WrappedRedelegationSetting } from "./CommitDelegation/RedelegationSelector";
-import { WrappedVotingScopeSetting } from "./CommitDelegation/VotingScopeSelector";
-import { WrappedTimePeriodSetting } from "./CommitDelegation/TimePeriodSelector";
+import { WrappedRedelegationSetting } from "./pages/ConfigureDelegationParameters/CommitDelegation/RedelegationSelector";
+import { WrappedVotingScopeSetting } from "./pages/ConfigureDelegationParameters/CommitDelegation/VotingScopeSelector";
+import { WrappedTimePeriodSetting } from "./pages/ConfigureDelegationParameters/CommitDelegation/TimePeriodSelector";
 
 export type DelegationRules = {
   redelegation: WrappedRedelegationSetting;
@@ -119,7 +119,7 @@ export const PERMISSION_PROPOSE = 0b100;
 
 const maxUint8Value = Math.pow(2, 8) - 1;
 
-type Rules = {
+export type Rules = {
   customRule: Address;
   permissions: number;
   notValidAfter: number;

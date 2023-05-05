@@ -17,7 +17,7 @@ import { EventDefinition } from "./topicFilters";
 // maxReorgBlocksDepth indicates the number of blocks before a block is
 // considered "finalized" and can not be reorganized out. Blocks for which
 // depth is > maxReorgBlocksDepth are considered "finalized".
-export const maxReorgBlocksDepth = 10;
+export const maxReorgBlocksDepth = 3;
 
 export function isBlockDepthFinalized(depth: number) {
   return depth > maxReorgBlocksDepth;

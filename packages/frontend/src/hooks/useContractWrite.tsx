@@ -80,28 +80,60 @@ export function useContractWrite<
 export function useContractWriteFn<
   TAbi extends Abi,
   Function extends ExtractAbiFunctionNames<TAbi, "nonpayable" | "payable">
->(instance: ContractInstance<TAbi>, name: Function) {
+>(instance: ContractInstance<TAbi>, functionName: Function) {
   return useCallback(
     async (
       args: AbiParametersToPrimitiveTypes<
         ExtractAbiFunction<TAbi, Function>["inputs"]
       >
     ) => {
+      const address = instance.address as Address;
+
       try {
         const config = await prepareWriteContract({
-          address: instance.address as Address,
+          address,
           abi: instance.abi as Abi,
-          functionName: name as any,
+          functionName: functionName as any,
           args: args as any,
         });
 
         await writeContract(config as any);
       } catch (e) {
-        const id = Sentry.captureException(e);
-        // eslint-disable-next-line no-console
-        console.error(e, { id });
+        throw new ContractWriteError(
+          {
+            address,
+            args: args as any,
+            functionName,
+          },
+          e
+        );
       }
     },
-    [instance, name]
+    [instance, functionName]
   );
+}
+
+type ContractWriteErrorParams = {
+  address: Address;
+  functionName: string;
+  args: any[];
+};
+
+export class ContractWriteError extends Error {
+  constructor(
+    public readonly params: ContractWriteErrorParams,
+    cause: unknown
+  ) {
+    super("ContractWriteError", { cause });
+  }
+}
+
+function catchError(e: unknown) {
+  const id = Sentry.captureException(e);
+  // eslint-disable-next-line no-console
+  console.error(e, { id });
+}
+
+export function handlingError<T>(promise: Promise<T>) {
+  return promise.catch((err) => catchError(err));
 }

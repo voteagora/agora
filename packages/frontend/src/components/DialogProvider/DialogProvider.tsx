@@ -1,6 +1,14 @@
 import { css } from "@emotion/css";
 import { AnimatePresence, motion } from "framer-motion";
-import { createContext, ReactNode, useContext, useState } from "react";
+import {
+  createContext,
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useCallback,
+  useContext,
+  useState,
+} from "react";
 import { Dialog } from "@headlessui/react";
 
 import { inset0 } from "../../theme";
@@ -8,35 +16,44 @@ import { useStartTransition } from "../HammockRouter/HammockRouter";
 
 import { dialogs, DialogType } from "./dialogs";
 
-type OpenDialogFn = (dialog: DialogType) => void;
-
-const context = createContext<OpenDialogFn | null>(null);
+const context = createContext<Dispatch<
+  SetStateAction<DialogTypeWithAutoClose | undefined>
+> | null>(null);
 
 type Props = {
   children: ReactNode;
 };
 
+type DialogTypeWithAutoClose = {
+  dialogType: DialogType;
+  autoClose: boolean;
+};
+
 export function DialogProvider({ children }: Props) {
   const startTransition = useStartTransition();
-  const [contextValue, setContextValue] = useState<DialogType | null>();
+  const [contextValue, setContextValue] = useState<
+    DialogTypeWithAutoClose | undefined
+  >();
 
   const renderedDialog = (() => {
     if (!contextValue) {
       return;
     }
 
-    const DialogComponent = dialogs[contextValue.type] as any;
+    const DialogComponent = dialogs[contextValue.dialogType.type] as any;
     return (
       <DialogComponent
-        {...contextValue.params}
-        closeDialog={() => setContextValue(null)}
+        {...contextValue.dialogType.params}
+        closeDialog={() => setContextValue(undefined)}
       />
     );
   })();
 
   return (
     <context.Provider
-      value={(dialog) => startTransition(() => setContextValue(dialog))}
+      value={(contextValue) =>
+        startTransition(() => setContextValue(contextValue))
+      }
     >
       <AnimatePresence>
         {!!renderedDialog && (
@@ -56,7 +73,11 @@ export function DialogProvider({ children }: Props) {
 
       <Dialog
         open={!!renderedDialog}
-        onClose={() => setContextValue(null)}
+        onClose={() => {
+          if (contextValue?.autoClose) {
+            setContextValue(undefined);
+          }
+        }}
         className={css`
           z-index: 10;
           position: fixed;
@@ -75,12 +96,37 @@ export function DialogProvider({ children }: Props) {
   );
 }
 
-export function useOpenDialog() {
-  const openDialog = useContext(context);
+export function useDialogContext() {
+  const dialogContext = useContext(context);
 
-  if (!openDialog) {
+  if (!dialogContext) {
     throw new Error("missing DialogProvider in tree");
   }
 
-  return openDialog;
+  return dialogContext;
+}
+
+export function useOpenDialog() {
+  const dialogContext = useDialogContext();
+
+  return useCallback((dialogType: DialogType) => {
+    dialogContext({ dialogType, autoClose: true });
+  }, []);
+}
+
+export function useSetAutoCloseDialog() {
+  const dialogContext = useDialogContext();
+
+  return useCallback((autoClose: boolean) => {
+    dialogContext((old) => {
+      if (!old) {
+        return undefined;
+      }
+
+      return {
+        dialogType: old.dialogType,
+        autoClose,
+      };
+    });
+  }, []);
 }

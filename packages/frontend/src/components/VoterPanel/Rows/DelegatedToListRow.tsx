@@ -7,7 +7,10 @@ import { useAccount } from "wagmi";
 import { nounsAlligator, nounsToken } from "@agora/common";
 import { Address } from "@wagmi/core";
 
-import { useContractWriteFn } from "../../../hooks/useContractWrite";
+import {
+  handlingError,
+  useContractWriteFn,
+} from "../../../hooks/useContractWrite";
 import * as theme from "../../../theme";
 import { LiquidDelegationRules } from "../LiquidDelegationRules";
 import { NounGridChildren } from "../../NounGrid";
@@ -114,8 +117,8 @@ export function DelegatedToListRow({
   ];
 
   const writeLiquidDelegate = useContractWriteFn(nounsAlligator, "subDelegate");
-
   const writeTokenDelegation = useContractWriteFn(nounsToken, "delegate");
+
   return (
     <VStack gap="1">
       <PanelRow
@@ -224,10 +227,12 @@ export function DelegatedToListRow({
                         return (
                           <RemoveDelegationButton
                             onClick={() =>
-                              writeTokenDelegation([
-                                delegate.address.resolvedName
-                                  .address as Address,
-                              ])
+                              handlingError(
+                                writeTokenDelegation([
+                                  delegate.address.resolvedName
+                                    .address as Address,
+                                ])
+                              )
                             }
                           />
                         );
@@ -237,12 +242,14 @@ export function DelegatedToListRow({
                         return (
                           <RemoveDelegationButton
                             onClick={() =>
-                              writeLiquidDelegate([
-                                delegation.liquidDelegation.to.resolvedName
-                                  .address as Address,
-                                restrictiveRules(),
-                                false,
-                              ])
+                              handlingError(
+                                writeLiquidDelegate([
+                                  delegation.liquidDelegation.to.resolvedName
+                                    .address as Address,
+                                  restrictiveRules(),
+                                  false,
+                                ])
+                              )
                             }
                           />
                         );

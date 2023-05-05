@@ -4,15 +4,17 @@ import { useAccount } from "wagmi";
 import { css } from "@emotion/css";
 import { motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
+import { useCallback, useState } from "react";
 
 import { VStack } from "../VStack";
 import * as theme from "../../theme";
 import { DelegateDialogType } from "../DialogProvider/dialogs";
 import { DialogProps } from "../DialogProvider/types";
 
-import { DelegationDisplay } from "./DelegationDisplay";
-import { CommitDelegation } from "./CommitDelegation";
 import { DelegateDialogQuery } from "./__generated__/DelegateDialogQuery.graphql";
+import { ConfigureDelegationParameters } from "./pages/ConfigureDelegationParameters/ConfigureDelegationParameters";
+import { LiquidDelegationAction, TokenDelegationAction } from "./action";
+import { CommitMultiStepDelegation } from "./pages/CommitMultiStepDelegation/CommitMultiStepDelegation";
 
 export default function DelegateDialog({
   targetAccountAddress,
@@ -51,6 +53,16 @@ export default function DelegateDialog({
   );
 }
 
+type DelegateDialogState =
+  | {
+      type: "CONFIGURE";
+    }
+  | {
+      type: "COMMIT_DELEGATION";
+      liquidDelegation: LiquidDelegationAction;
+      tokenDelegation: TokenDelegationAction;
+    };
+
 function DelegateDialogContents({
   targetAccountAddress,
   completeDelegation,
@@ -66,13 +78,7 @@ function DelegateDialogContents({
         $targetAccountAddress: String!
         $skip: Boolean!
       ) {
-        ...DelegationDisplayFragment
-          @arguments(
-            currentAccountAddress: $currentAccountAddress
-            targetAccountAddress: $targetAccountAddress
-            skip: $skip
-          )
-        ...CommitDelegationFragment
+        ...ConfigureDelegationParametersFragment
           @arguments(
             currentAccountAddress: $currentAccountAddress
             targetAccountAddress: $targetAccountAddress
@@ -84,16 +90,60 @@ function DelegateDialogContents({
       targetAccountAddress,
       currentAccountAddress: accountAddress ?? "",
       skip: !accountAddress,
+    },
+    {
+      fetchPolicy: "network-only",
     }
   );
 
-  return (
-    <VStack gap="8" alignItems="stretch">
-      <DelegationDisplay fragmentRef={result} />
-      <CommitDelegation
-        fragmentRef={result}
-        completeDelegation={() => completeDelegation()}
-      />
-    </VStack>
-  );
+  const [state, setState] = useState<DelegateDialogState>(() => ({
+    type: "CONFIGURE",
+  }));
+
+  const navigateDialog = useCallback((action: NavigateDialogAction) => {
+    switch (action.type) {
+      case "CLOSE": {
+        completeDelegation();
+        break;
+      }
+
+      case "DELEGATE": {
+        setState({
+          type: "COMMIT_DELEGATION",
+          tokenDelegation: action.tokenDelegation,
+          liquidDelegation: action.liquidDelegation,
+        });
+        break;
+      }
+    }
+  }, []);
+
+  switch (state.type) {
+    case "CONFIGURE": {
+      return (
+        <ConfigureDelegationParameters
+          fragmentRef={result}
+          navigateDialog={navigateDialog}
+        />
+      );
+    }
+
+    case "COMMIT_DELEGATION": {
+      return (
+        <CommitMultiStepDelegation
+          complete={() => navigateDialog({ type: "CLOSE" })}
+          tokenDelegation={state.tokenDelegation}
+          liquidDelegation={state.liquidDelegation}
+        />
+      );
+    }
+  }
 }
+
+export type NavigateDialogAction =
+  | { type: "CLOSE" }
+  | {
+      type: "DELEGATE";
+      tokenDelegation: TokenDelegationAction;
+      liquidDelegation: LiquidDelegationAction;
+    };

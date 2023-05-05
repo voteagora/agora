@@ -162,7 +162,7 @@ describe("followChain", () => {
 
       expect(result).toMatchInlineSnapshot(`
         {
-          "depth": 9,
+          "depth": 2,
           "nextBlock": 3,
           "type": "MORE",
         }
@@ -207,7 +207,7 @@ describe("followChain", () => {
 
       expect(result).toMatchInlineSnapshot(`
         {
-          "depth": 8,
+          "depth": 1,
           "nextBlock": 4,
           "type": "MORE",
         }

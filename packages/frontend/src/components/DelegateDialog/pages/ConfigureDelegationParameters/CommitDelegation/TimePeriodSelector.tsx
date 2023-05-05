@@ -1,8 +1,8 @@
 import { BigNumber } from "ethers";
 
-import { DelegationContractState } from "../delegateRules";
-import { DropDown } from "../DropDown";
-import { formatDate } from "../../../words";
+import { DelegationContractState } from "../../../delegateRules";
+import { DropDown } from "../../../DropDown";
+import { formatDate } from "../../../../../words";
 
 export type TimePeriodSettingType =
   | "INFINITE"

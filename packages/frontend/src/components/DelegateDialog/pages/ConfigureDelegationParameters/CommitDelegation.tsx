@@ -1,47 +1,47 @@
-import { nounsAlligator, nounsToken } from "@agora/common";
-import { ReactNode, useState } from "react";
-import { css } from "@emotion/css";
-import { useFragment, graphql } from "react-relay";
+import { useState } from "react";
+import { graphql, useFragment } from "react-relay";
 import { BigNumber } from "ethers";
 import isEqual from "lodash/isEqual";
 import { ConnectKitButton } from "connectkit";
 import { Address } from "@wagmi/core";
 
-import { useContractWriteFn } from "../../hooks/useContractWrite";
-import * as theme from "../../theme";
-import { VStack } from "../VStack";
-
+import { VStack } from "../../../VStack";
 import {
   delegateRulesToContractState,
   DelegationContractState,
-} from "./delegateRules";
-import { useDelegationContractState } from "./useDelegationContractState";
+} from "../../delegateRules";
+import { useDelegationContractState } from "../../useDelegationContractState";
+import { actionsForDelegationState, useExecuteAction } from "../../action";
+import { NavigateDialogAction } from "../../DelegateDialog";
+import { DelegateButton } from "../../DelegateButton";
+import { handlingError } from "../../../../hooks/useContractWrite";
+
 import {
-  existingContractStateIntoTimePeriodSetting,
-  TimePeriodSelector,
-  WrappedTimePeriodSetting,
-} from "./CommitDelegation/TimePeriodSelector";
+  existingContractStateIntoVotingScopeSetting,
+  VotingScopeSelector,
+  WrappedVotingScopeSetting,
+} from "./CommitDelegation/VotingScopeSelector";
 import {
   existingContractStateIntoRedelegationSetting,
   RedelegationSelector,
   WrappedRedelegationSetting,
 } from "./CommitDelegation/RedelegationSelector";
 import {
-  existingContractStateIntoVotingScopeSetting,
-  VotingScopeSelector,
-  WrappedVotingScopeSetting,
-} from "./CommitDelegation/VotingScopeSelector";
+  existingContractStateIntoTimePeriodSetting,
+  TimePeriodSelector,
+  WrappedTimePeriodSetting,
+} from "./CommitDelegation/TimePeriodSelector";
 import { CommitDelegationContentsFragment$key } from "./__generated__/CommitDelegationContentsFragment.graphql";
 import { CommitDelegationFragment$key } from "./__generated__/CommitDelegationFragment.graphql";
 
 export function CommitDelegationContents({
   fragmentRef,
   existingDelegationContractState,
-  completeDelegation,
+  navigateDialog,
 }: {
   fragmentRef: CommitDelegationContentsFragment$key;
   existingDelegationContractState: DelegationContractState;
-  completeDelegation: () => void;
+  navigateDialog: (action: NavigateDialogAction) => void;
 }) {
   const { targetAccount, currentAccount } = useFragment(
     graphql`
@@ -52,6 +52,9 @@ export function CommitDelegationContents({
         skip: { type: "Boolean!" }
       ) {
         targetAccount: delegate(addressOrEnsName: $targetAccountAddress) {
+          # eslint-disable-next-line relay/must-colocate-fragment-spreads
+          ...LiquidDelegationStepTargetDelegateFragment
+
           address {
             resolvedName {
               address
@@ -103,9 +106,7 @@ export function CommitDelegationContents({
       )
     );
 
-  const writeLiquidDelegate = useContractWriteFn(nounsAlligator, "subDelegate");
-
-  const writeTokenDelegation = useContractWriteFn(nounsToken, "delegate");
+  const executeAction = useExecuteAction();
 
   if (!currentAccount) {
     return <DelegateButton>Connect Wallet</DelegateButton>;
@@ -158,44 +159,43 @@ export function CommitDelegationContents({
           return <DelegateButton>No changes</DelegateButton>;
         }
 
+        const actions = actionsForDelegationState(
+          targetContractDelegationState,
+          existingDelegationContractState,
+          targetAccount.address.resolvedName.address as Address,
+          targetAccount,
+          currentAccount.liquidDelegationProxyAddress.address as Address
+        );
+
+        if (!(actions.tokenDelegation || actions.liquidDelegation)) {
+          return <DelegateButton>No changes</DelegateButton>;
+        }
+
         return (
           <DelegateButton
-            onClick={async () => {
-              switch (targetContractDelegationState.type) {
-                case "LIQUID": {
-                  if (
-                    (existingDelegationContractState.type === "TOKEN" ||
-                      (existingDelegationContractState.type === "LIQUID" &&
-                        !existingDelegationContractState.delegatedToLiquidContract)) &&
-                    targetContractDelegationState.delegatedToLiquidContract
-                  ) {
-                    await writeTokenDelegation([
-                      currentAccount.liquidDelegationProxyAddress
-                        .address as Address,
-                    ]);
+            onClick={() =>
+              handlingError(
+                (async () => {
+                  if (!actions.tokenDelegation || !actions.liquidDelegation) {
+                    const action =
+                      actions.tokenDelegation ?? actions.liquidDelegation;
+                    if (!action) {
+                      throw new Error("No action to execute");
+                    }
+
+                    await executeAction(action);
+
+                    navigateDialog({ type: "CLOSE" });
+                  } else {
+                    navigateDialog({
+                      type: "DELEGATE",
+                      liquidDelegation: actions.liquidDelegation,
+                      tokenDelegation: actions.tokenDelegation,
+                    });
                   }
-
-                  if (targetContractDelegationState.rules) {
-                    await writeLiquidDelegate([
-                      targetAccount.address.resolvedName.address as Address,
-                      targetContractDelegationState.rules,
-                      true,
-                    ]);
-                  }
-
-                  break;
-                }
-
-                case "TOKEN": {
-                  await writeTokenDelegation([
-                    targetAccount.address.resolvedName.address as Address,
-                  ]);
-                  break;
-                }
-              }
-
-              completeDelegation();
-            }}
+                })()
+              )
+            }
           >
             {(() => {
               switch (targetContractDelegationState.type) {
@@ -215,10 +215,10 @@ export function CommitDelegationContents({
 
 export function CommitDelegation({
   fragmentRef,
-  completeDelegation,
+  navigateDialog,
 }: {
   fragmentRef: CommitDelegationFragment$key;
-  completeDelegation: () => void;
+  navigateDialog: (action: NavigateDialogAction) => void;
 }) {
   const result = useFragment(
     graphql`
@@ -264,41 +264,7 @@ export function CommitDelegation({
     <CommitDelegationContents
       fragmentRef={result}
       existingDelegationContractState={existingDelegationContractState}
-      completeDelegation={completeDelegation}
+      navigateDialog={navigateDialog}
     />
   );
 }
-
-type DelegateButtonProps = {
-  onClick?: () => void;
-  children: ReactNode;
-};
-
-const DelegateButton = ({ children, onClick }: DelegateButtonProps) => {
-  return (
-    <div
-      onClick={onClick}
-      className={css`
-        text-align: center;
-        border-radius: ${theme.spacing["2"]};
-        border: 1px solid ${theme.colors.gray.eb};
-        font-weight: ${theme.fontWeight.semibold};
-        padding: ${theme.spacing["4"]} 0;
-        cursor: pointer;
-
-        ${!onClick &&
-        css`
-          background: ${theme.colors.gray.eb};
-          color: ${theme.colors.gray["700"]};
-          cursor: not-allowed;
-        `}
-
-        :hover {
-          background: ${theme.colors.gray.eb};
-        }
-      `}
-    >
-      {children}
-    </div>
-  );
-};
