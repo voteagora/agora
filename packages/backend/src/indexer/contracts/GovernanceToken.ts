@@ -1,14 +1,9 @@
-import { efficientLengthEncodingNaturalNumbers } from "../utils/efficientLengthEncoding";
-import {
-  makeEntityDefinition,
-  makeIndexerDefinition,
-  StorageHandleForIndexer,
-} from "../process";
+import { makeIndexerDefinition } from "../process";
 import { makeContractInstance } from "../../contracts";
 import { BigNumber, ethers } from "ethers";
-import * as serde from "../serde";
 import { RuntimeType } from "../serde";
 import { ENSToken__factory } from "../../contracts/generated/factories/ENSToken__factory";
+import { entityDefinitions, Handle, saveAccount } from "./entityDefinitions";
 
 const governanceTokenContract = makeContractInstance({
   iface: ENSToken__factory.createInterface(),
@@ -18,53 +13,9 @@ const governanceTokenContract = makeContractInstance({
 
 export const governanceTokenIndexer = makeIndexerDefinition(
   governanceTokenContract,
+  entityDefinitions,
   {
     name: "ENS",
-
-    entities: {
-      Aggregates: makeEntityDefinition({
-        serde: serde.object({
-          totalSupply: serde.bigNumber,
-          delegatedSupply: serde.bigNumber,
-        }),
-        indexes: [],
-      }),
-      Address: makeEntityDefinition({
-        serde: serde.object({
-          address: serde.string,
-          tokensOwned: serde.bigNumber,
-          tokensRepresented: serde.bigNumber,
-          delegatingTo: serde.string,
-          accountsRepresentedCount: serde.bigNumber,
-        }),
-        indexes: [
-          {
-            indexName: "byTokensOwned",
-            indexKey(entity) {
-              return efficientLengthEncodingNaturalNumbers(
-                entity.tokensOwned.mul(-1)
-              );
-            },
-          },
-          {
-            indexName: "byTokensRepresented",
-            indexKey(entity) {
-              return efficientLengthEncodingNaturalNumbers(
-                entity.tokensRepresented.mul(-1)
-              );
-            },
-          },
-          {
-            indexName: "byTokenHoldersRepresented",
-            indexKey(entity) {
-              return efficientLengthEncodingNaturalNumbers(
-                entity.accountsRepresentedCount.mul(-1)
-              );
-            },
-          },
-        ],
-      }),
-    },
 
     eventHandlers: [
       {
@@ -167,34 +118,23 @@ export const governanceTokenIndexer = makeIndexerDefinition(
 
 export function defaultAccount(
   from: string
-): RuntimeType<typeof governanceTokenIndexer["entities"]["Address"]["serde"]> {
+): RuntimeType<typeof entityDefinitions["Address"]["serde"]> {
   return {
     address: from,
     tokensOwned: ethers.BigNumber.from(0),
     tokensRepresented: ethers.BigNumber.from(0),
     accountsRepresentedCount: BigNumber.from(1),
     delegatingTo: ethers.constants.AddressZero,
+    votesCasted: BigNumber.from(0),
   };
 }
 
 async function loadAccount(
   // @ts-ignore
-  handle: StorageHandleForIndexer<typeof governanceTokenIndexer>,
+  handle: Handle,
   from: string
-): Promise<
-  RuntimeType<typeof governanceTokenIndexer["entities"]["Address"]["serde"]>
-> {
+): Promise<RuntimeType<typeof entityDefinitions["Address"]["serde"]>> {
   return (await handle.loadEntity("Address", from)) ?? defaultAccount(from);
-}
-
-function saveAccount(
-  // @ts-ignore
-  handle: StorageHandleForIndexer<typeof governanceTokenIndexer>,
-  entity: RuntimeType<
-    typeof governanceTokenIndexer["entities"]["Address"]["serde"]
-  >
-) {
-  return handle.saveEntity("Address", entity.address, entity);
 }
 
 export const aggregateCumulativeId = "CUMULATIVE";
@@ -208,7 +148,7 @@ export function makeDefaultAggregate() {
 
 async function loadAggregate(
   // @ts-ignore
-  handle: StorageHandleForIndexer<typeof governanceTokenIndexer>
+  handle: Handle
 ) {
   const cumulativeAggregate = await handle.loadEntity(
     "Aggregates",
@@ -220,10 +160,8 @@ async function loadAggregate(
 
 function saveAggregate(
   // @ts-ignore
-  handle: StorageHandleForIndexer<typeof governanceTokenIndexer>,
-  entity: RuntimeType<
-    typeof governanceTokenIndexer["entities"]["Aggregates"]["serde"]
-  >
+  handle: Handle,
+  entity: RuntimeType<typeof entityDefinitions["Aggregates"]["serde"]>
 ) {
   return handle.saveEntity("Aggregates", aggregateCumulativeId, entity);
 }

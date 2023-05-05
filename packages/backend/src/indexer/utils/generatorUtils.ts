@@ -163,3 +163,11 @@ export async function takeLast<T>(gen: AsyncIterable<T>): Promise<T | null> {
 
   return lastValue;
 }
+
+export async function* flatten<T>(gen: AsyncGenerator<T[]>): AsyncGenerator<T> {
+  for await (const items of gen) {
+    for (const item of items) {
+      yield item;
+    }
+  }
+}

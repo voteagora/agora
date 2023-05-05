@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { filterForEventHandlers, makeReducers } from "../snapshot";
-import { getAllLogs } from "../events";
+import { getAllLogsGenerator } from "../events";
 import { promises as fs } from "fs";
 
 async function main() {
@@ -21,7 +21,7 @@ async function main() {
 
     const handle = await fs.open(`${reducer.name}.logs.json`, "a+");
 
-    for await (const logs of getAllLogs(
+    for await (const logs of getAllLogsGenerator(
       provider,
       filter,
       latestBlockNumber,

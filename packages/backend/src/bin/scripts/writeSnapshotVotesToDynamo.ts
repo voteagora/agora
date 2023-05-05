@@ -5,7 +5,7 @@ import {
   spaceQuery,
   url,
   votesQuery,
-} from "./loadSnapshotVotes/queries";
+} from "../../lambdas/loadSnapshotVotes/queries";
 import { chunk } from "lodash";
 import { makeKey, marshaller } from "../../store/dynamo/utils";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";

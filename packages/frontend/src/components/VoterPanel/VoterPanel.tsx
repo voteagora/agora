@@ -12,6 +12,7 @@ import { VotePowerRow } from "./Rows/VotePowerRow";
 import { DelegateFromList } from "./Rows/DelegateFromListRow";
 import { DelegateProfileImage } from "../DelegateProfileImage";
 import { VoterPanelFragment$key } from "./__generated__/VoterPanelFragment.graphql";
+import { DelegatingTo } from "./Rows/DelegatingToRow";
 
 type Props = {
   fragment: VoterPanelFragment$key;
@@ -33,6 +34,7 @@ export function VoterPanel({ fragment }: Props) {
 
         ...DelegateProfileImageFragment
         ...VoterPanelActionsFragment
+        ...DelegatingToRowFragment
       }
     `,
     fragment
@@ -79,6 +81,8 @@ export function VoterPanel({ fragment }: Props) {
           <ProposalsCreatedRow fragment={delegate.delegateMetrics} />
 
           <DelegateFromList fragment={delegate.delegateMetrics} />
+
+          <DelegatingTo fragment={delegate} />
 
           <VoterPanelActions fragment={delegate} />
         </VStack>

@@ -30,29 +30,34 @@ const testContractInstance = makeContractInstance({
   startingBlock: finalizedBlockNumber + 1,
 });
 
-const testContractIndexer = makeIndexerDefinition(testContractInstance, {
-  name: "TestContract",
-  entities: {
-    LatestEvent: makeEntityDefinition({
-      serde: serde.object({
-        latestBlockNumber: serde.number,
-        latestBlockHash: serde.string,
-      }),
-      indexes: [],
+const entityDefinitions = {
+  LatestEvent: makeEntityDefinition({
+    serde: serde.object({
+      latestBlockNumber: serde.number,
+      latestBlockHash: serde.string,
     }),
-  },
-  eventHandlers: [
-    {
-      signature: "ALogEvent()",
-      async handle(handle, event, log) {
-        handle.saveEntity("LatestEvent", "id", {
-          latestBlockNumber: log.blockNumber,
-          latestBlockHash: log.blockHash,
-        });
+    indexes: [],
+  }),
+};
+
+const testContractIndexer = makeIndexerDefinition(
+  testContractInstance,
+  entityDefinitions,
+  {
+    name: "TestContract",
+    eventHandlers: [
+      {
+        signature: "ALogEvent()",
+        async handle(handle, event, log) {
+          handle.saveEntity("LatestEvent", "id", {
+            latestBlockNumber: log.blockNumber,
+            latestBlockHash: log.blockHash,
+          });
+        },
       },
-    },
-  ],
-});
+    ],
+  }
+);
 
 describe("followChain", () => {
   it("handles processing events", async () => {
@@ -73,6 +78,7 @@ describe("followChain", () => {
     const stepChainForward = followChain(
       entityStore,
       [testContractIndexer as any],
+      entityDefinitions,
       blockProvider,
       logProvider,
       storageArea

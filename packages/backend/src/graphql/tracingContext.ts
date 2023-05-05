@@ -4,8 +4,9 @@ import {
   GraphQLSchema,
   responsePathAsArray,
 } from "graphql";
-import { AgoraContextType, TracingContext } from "../model";
-import { Span } from "@cloudflare/workers-honeycomb-logger";
+import { AgoraContextType } from "../schema/context";
+import { TracingContext } from "../schema/transformers/tracingContext";
+import { Span } from "../utils/cache";
 
 export function attachTracingContextInjection(
   schema: GraphQLSchema

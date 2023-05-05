@@ -2,6 +2,13 @@ import { StoredEntry } from "../storage/dump";
 
 export type AdminMessage =
   | {
+      type: "RESET";
+    }
+  | {
+      type: "GET_KEYS";
+      cursor?: string;
+    }
+  | {
       type: "START";
     }
   | {

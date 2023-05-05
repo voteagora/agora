@@ -1,24 +1,22 @@
 import { css } from "@emotion/css";
-import * as Sentry from "@sentry/react";
 import * as theme from "../theme";
 import logo from "../logo.svg";
-import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
-import { PageHeaderFragment$key } from "./__generated__/PageHeaderFragment.graphql";
 import { ConnectKitButton } from "connectkit";
 import { useAccount } from "wagmi";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
-import { Suspense, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
-import { TokenAmountDisplay } from "./TokenAmountDisplay";
+import { icons } from "../icons/icons";
+import { ProfileDropDownButton } from "./ProfileDropDownButton";
 
 export const orgName = "ENS";
 
 export function PageHeader() {
   return (
     <HStack
+      alignItems="center"
       className={css`
         width: 100%;
         max-width: ${theme.maxWidth["6xl"]};
@@ -27,11 +25,6 @@ export function PageHeader() {
         justify-content: space-between;
         padding-left: ${theme.spacing["4"]};
         padding-right: ${theme.spacing["4"]};
-
-        @media (max-width: ${theme.maxWidth.md}) {
-          flex-direction: column;
-          text-align: center;
-        }
       `}
     >
       <Link
@@ -42,7 +35,7 @@ export function PageHeader() {
         `}
         to="/"
       >
-        <HStack gap="3">
+        <HStack gap="3" alignItems="center">
           <img alt="logo" src={logo} />
 
           <span
@@ -51,6 +44,9 @@ export function PageHeader() {
               font-size: ${theme.fontSize.base};
               font-weight: ${theme.fontWeight.semibold};
               color: ${theme.colors.gray["800"]};
+              @media (max-width: ${theme.maxWidth.md}) {
+                display: none;
+              }
             `}
           >
             {orgName} Agora
@@ -63,34 +59,35 @@ export function PageHeader() {
         gap="3"
         className={css`
           height: ${theme.spacing["6"]};
-
-          @media (max-width: ${theme.maxWidth.md}) {
-            height: auto;
-            flex-direction: column;
-            align-items: stretch;
-          }
         `}
       >
-        <HStack justifyContent="center">
-          <ConnectKitButton mode="light" />
+        <HStack
+          justifyContent="center"
+          className={css`
+            @media (max-width: ${theme.maxWidth.md}) {
+              display: none;
+            }
+          `}
+        >
+          <DesktopButton />
         </HStack>
-
-        <Suspense fallback={null}>
-          <PageHeaderContents />
-        </Suspense>
+        <HStack
+          justifyContent="center"
+          className={css`
+            @media (min-width: ${theme.maxWidth.md}) {
+              display: none;
+            }
+          `}
+        >
+          <MobileButton />
+        </HStack>
       </HStack>
     </HStack>
   );
 }
 
-function PageHeaderContents() {
+export const DesktopButton = () => {
   const { address: accountAddress } = useAccount();
-
-  useEffect(() => {
-    Sentry.setUser({
-      id: accountAddress,
-    });
-  }, [accountAddress]);
 
   const { delegate } = useLazyLoadQuery<PageHeaderQuery>(
     graphql`
@@ -100,7 +97,7 @@ function PageHeaderContents() {
             __typename
           }
 
-          ...PageHeaderFragment
+          ...ProfileDropDownButtonFragment
         }
       }
     `,
@@ -111,50 +108,77 @@ function PageHeaderContents() {
   );
 
   return (
-    <HStack gap="2" justifyContent="center">
-      {delegate && <OwnedValuePanel fragment={delegate} />}
-    </HStack>
+    <ConnectKitButton.Custom>
+      {({ isConnected, isConnecting, show, hide, address, ensName }) => (
+        <div
+          className={css`
+            background-color: ${theme.colors.gray.fa};
+            border-radius: ${theme.borderRadius.full};
+            cursor: pointer;
+            :hover {
+              background: ${theme.colors.gray[200]};
+            }
+          `}
+        >
+          {!accountAddress && (
+            <div
+              className={css`
+                padding: ${theme.spacing[2]} ${theme.spacing[5]};
+              `}
+              onClick={show}
+            >
+              Connect Wallet
+            </div>
+          )}
+          {accountAddress && delegate && (
+            <ProfileDropDownButton
+              isConnected={isConnected}
+              isConnecting={isConnecting}
+              show={show}
+              hide={hide}
+              address={address}
+              ensName={ensName}
+              fragment={delegate}
+              hasStatment={!!delegate.statement}
+            />
+          )}
+        </div>
+      )}
+    </ConnectKitButton.Custom>
   );
-}
-
-type OwnedValuePanelProps = {
-  fragment: PageHeaderFragment$key;
 };
 
-function OwnedValuePanel({ fragment }: OwnedValuePanelProps) {
-  const delegate = useFragment(
-    graphql`
-      fragment PageHeaderFragment on Delegate {
-        amountOwned {
-          amount {
-            ...TokenAmountDisplayFragment
-          }
-        }
-      }
-    `,
-    fragment
-  );
-
+export const MobileButton = () => {
   return (
-    <HStack
-      className={css`
-        border-color: ${theme.colors.gray["300"]};
-        border-width: ${theme.spacing.px};
-        border-radius: ${theme.borderRadius.lg};
-        box-shadow: ${theme.boxShadow.newDefault};
-        background: ${theme.colors.white};
-      `}
-    >
-      <HStack
-        gap="1"
-        className={css`
-          align-items: center;
-
-          padding: ${theme.spacing["1"]} ${theme.spacing["2"]};
-        `}
-      >
-        <TokenAmountDisplay fragment={delegate.amountOwned.amount} />
-      </HStack>
-    </HStack>
+    <ConnectKitButton.Custom>
+      {({ isConnected, isConnecting, show, hide, address, ensName }) => {
+        return (
+          <div
+            className={css`
+              margin-top: 13px;
+            `}
+            onClick={show}
+          >
+            {isConnected ? (
+              <img
+                src={icons.walletConnected}
+                alt="connect wallet button"
+                className={css`
+                  opacity: 1;
+                `}
+              />
+            ) : (
+              <img
+                src={icons.wallet}
+                alt="connect wallet button"
+                className={css`
+                  opacity: 0.6;
+                `}
+              />
+            )}
+          </div>
+        );
+      }}
+    </ConnectKitButton.Custom>
   );
-}
+};

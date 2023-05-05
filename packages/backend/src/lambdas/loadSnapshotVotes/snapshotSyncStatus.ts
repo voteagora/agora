@@ -2,7 +2,11 @@ import {
   UpdateExpression,
   ExpressionAttributes,
 } from "@aws/dynamodb-expressions";
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import {
+  AttributeValue,
+  DynamoDB,
+  GetItemCommand,
+} from "@aws-sdk/client-dynamodb";
 import {
   makeKey,
   marshaller,
@@ -11,19 +15,19 @@ import {
   withAttributes,
 } from "../../store/dynamo/utils";
 
-export async function updateSnapshotUpdateStatus(
-  latestBlockSynced: number,
+export async function updateSnapshotSyncStatus(
+  latestTSSynced: number,
   dynamo: DynamoDB
 ) {
   const attributes = new ExpressionAttributes();
   await dynamo.updateItem({
     TableName,
-    Key: snapshotUpdateStatusKey,
+    Key: snapshotUpdateStatusKey as Record<string, AttributeValue>,
     UpdateExpression: (() => {
       const updateExpression = new UpdateExpression();
 
       setFields(updateExpression, {
-        latestBlockSynced,
+        latestTSSynced,
       });
 
       return updateExpression.serialize(attributes);
@@ -33,16 +37,16 @@ export async function updateSnapshotUpdateStatus(
 }
 
 const snapshotUpdateStatusKey = makeKey({
-  PartitionKey: "SnapshotUpdateStatus",
+  PartitionKey: "SnapshotSyncStatus",
   SortKey: "fixed",
 });
 
-export async function fetchSnapshotUpdateStatus(
+export async function fetchSnapshotSyncStatus(
   dynamo: DynamoDB
-): Promise<{ latestBlockSynced: number } | null> {
+): Promise<{ latestTSSynced: number } | null> {
   const result = await dynamo.getItem({
     TableName,
-    Key: snapshotUpdateStatusKey,
+    Key: snapshotUpdateStatusKey as Record<string, AttributeValue>,
     ConsistentRead: true,
   });
 
@@ -50,5 +54,5 @@ export async function fetchSnapshotUpdateStatus(
     return null;
   }
 
-  return marshaller.unmarshallItem(result.Item);
+  return marshaller.unmarshallItem(result.Item) as any;
 }

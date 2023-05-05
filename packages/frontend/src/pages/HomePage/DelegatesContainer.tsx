@@ -30,6 +30,8 @@ type Props = {
 const orderNames: { [K in DelegatesOrder]?: string } = {
   mostVotingPower: "Most voting power",
   mostDelegates: "Most delegates",
+  mostVotes: "Most votes",
+  mostVotesMostPower: "Most votes | Most voting power",
 };
 
 const filterNames = [
@@ -94,7 +96,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
       @argumentDefinitions(
         first: { type: "Int", defaultValue: 30 }
         after: { type: "String" }
-        orderBy: { type: "DelegatesOrder", defaultValue: mostVotingPower }
+        orderBy: { type: "DelegatesOrder", defaultValue: mostVotesMostPower }
         filterBy: { type: "DelegatesWhere" }
       )
       @refetchable(queryName: "DelegatesContainerPaginationQuery") {
@@ -257,8 +259,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                 startTransition(() => {
                   navigate({
                     search: {
-                      orderBy:
-                        orderBy === "mostVotingPower" ? null : orderBy ?? null,
+                      orderBy: orderBy ?? null,
                     },
                   });
                 });

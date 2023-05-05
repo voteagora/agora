@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { formSchema } from "./formSchema";
-import { StoredStatement } from "./model";
+import { StoredStatement } from "./schema/model";
 
 export function initialFields(): z.TypeOf<typeof formSchema> {
   return {

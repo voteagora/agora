@@ -3,11 +3,12 @@ import { ENSGovernor__factory, ENSToken__factory } from "./contracts/generated";
 import { ENSGovernorInterface } from "./contracts/generated/ENSGovernor";
 import { ENSTokenInterface } from "./contracts/generated/ENSToken";
 import { BigNumber } from "ethers";
-import { ToucanInterface, withSentryScope } from "./sentry";
+import { withSentryScope } from "./sentry";
 import { getAllLogsGenerator } from "./events";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { isEqual, chunk } from "lodash";
 import { makeUpdateForAccount } from "./store/dynamo/delegates";
+import { Toucan } from "toucan-js";
 
 export interface TypedInterface extends ethers.utils.Interface {
   events: Record<string, ethers.utils.EventFragment<Record<string, any>>>;
@@ -641,7 +642,7 @@ export function filterForEventHandlers<InterfaceType extends TypedInterface>(
 }
 
 async function updateSnapshotForIndexers<Snapshot extends any>(
-  sentry: ToucanInterface,
+  sentry: Toucan,
   provider: ethers.providers.Provider,
   snapshot: Snapshot
 ): Promise<Snapshot> {
@@ -703,7 +704,7 @@ async function updateSnapshotForIndexers<Snapshot extends any>(
 }
 
 export async function updateSnapshot<Snapshot extends any>(
-  sentry: ToucanInterface,
+  sentry: Toucan,
   provider: ethers.providers.Provider,
   snapshot: Snapshot
 ): Promise<Snapshot> {

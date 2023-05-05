@@ -33,7 +33,6 @@ type IndexerDefinitionArgs<
    * Name, used for logging and storing prefetched logs.
    */
   name: string;
-  entities: Entities;
   eventHandlers: EventHandler<InterfaceType, Entities>[];
 };
 
@@ -54,8 +53,8 @@ export type IndexDefinition<
   indexKey: (entity: RuntimeType<Type>) => string;
 };
 
-export type StorageHandleForIndexer<T extends IndexerDefinition> =
-  StorageHandle<StorageHandleEntities<T["entities"]>>;
+export type StorageHandleForEntityDefinition<T extends EntitiesType> =
+  StorageHandle<StorageHandleEntities<T>>;
 
 type EventHandler<
   InterfaceType extends TypedInterface,
@@ -91,6 +90,7 @@ export function makeIndexerDefinition<
   Entities extends EntitiesType
 >(
   contractInstance: ContractInstance<InterfaceType>,
+  entities: Entities,
   args: IndexerDefinitionArgs<InterfaceType, Entities>
 ): IndexerDefinition<InterfaceType, Entities> {
   return {

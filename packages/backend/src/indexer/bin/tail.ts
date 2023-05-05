@@ -5,6 +5,7 @@ import { LevelEntityStore } from "../storage/level/levelEntityStore";
 import { timeout } from "../utils/asyncUtils";
 import { EthersBlockProvider } from "../blockProvider/blockProvider";
 import { EthersLogProvider } from "../logProvider/logProvider";
+import { entityDefinitions } from "../contracts/entityDefinitions";
 
 /**
  * Processes and writes updates for finalized blocks from stored logs.
@@ -23,6 +24,7 @@ async function main() {
   const iter = followChain(
     store,
     indexers,
+    entityDefinitions,
     blockProvider,
     logProvider,
     storageArea
