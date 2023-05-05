@@ -13,7 +13,6 @@ export interface Env {
   /**
    * Knobs for tuning stuff.
    */
-  BLOCK_STEP_SIZE?: string;
   ALLOW_READS_PERCENTAGE?: string;
   USE_CACHE_PERCENTAGE?: string;
 
@@ -25,10 +24,6 @@ export interface Env {
   AWS_ACCESS_KEY_ID: string;
   AWS_SECRET_ACCESS_KEY: string;
   DD_API_KEY: string;
-}
-
-export function safelyLoadBlockStepSize(env: Env): number | undefined {
-  return safelyLoadValueFromEnv(env.BLOCK_STEP_SIZE);
 }
 
 export function shouldUseCache(env: Env) {

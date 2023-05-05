@@ -5,9 +5,9 @@ compatibility_flags = [ "nodejs_compat" ]
 
 [env.dev]
 name = "nouns-agora-dev"
-account_id = "86fdf8ef811b4d0aa8954fa036684ea3"
+account_id = "f843baa950d11ddb130ad0f649fc1fa2"
 kv_namespaces = [
-    { binding = "EMAILS", id = "4f97982037324363a82d515a65605d40", preview_id = "bb754b77fdac44b4a17521045bd056ad" }
+    { binding = "EMAILS", id = "2e5addad8c4a4527bab2b98267b27851" }
 ]
 durable_objects.bindings = [
     { name = "STORAGE_OBJECT", class_name = "StorageDurableObjectV1" }
@@ -19,34 +19,8 @@ analytics_engine_datasets = [
 [env.dev.vars]
 ENVIRONMENT = "dev"
 DEPLOYMENT = "nouns"
-HONEYCOMB_DATASET = "nouns-agora-dev"
 ADMIN_API_KEY = ''
-PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'stable4'
-BLOCK_STEP_SIZE = "100"
-ALLOW_READS_PERCENTAGE = "100"
-USE_CACHE_PERCENTAGE = "100"
-
-[env.staging]
-name = "nouns-agora-staging"
-account_id = "86fdf8ef811b4d0aa8954fa036684ea3"
-
-kv_namespaces = [
-    { binding = "EMAILS", id = "bb85e58040c74a11af5eb80a29eaf30c" }
-]
-durable_objects.bindings = [
-    { name = "STORAGE_OBJECT", class_name = "StorageDurableObjectV1" }
-]
-analytics_engine_datasets = [
-    { binding = "STORAGE_ANALYTICS" }
-]
-
-[env.staging.vars]
-ENVIRONMENT = "staging"
-DEPLOYMENT = "nouns"
-HONEYCOMB_DATASET = "nouns-agora-dev"
-ADMIN_API_KEY = ''
-PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'stable1'
-BLOCK_STEP_SIZE = "100"
+PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'stable'
 ALLOW_READS_PERCENTAGE = "100"
 USE_CACHE_PERCENTAGE = "100"
 
@@ -66,9 +40,7 @@ analytics_engine_datasets = [
 [env.prod.vars]
 ENVIRONMENT = "prod"
 DEPLOYMENT = "nouns"
-HONEYCOMB_DATASET = "nouns-agora-prod"
 PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'stable6'
-BLOCK_STEP_SIZE = "100"
 ALLOW_READS_PERCENTAGE = "100"
 USE_CACHE_PERCENTAGE = "100"
 

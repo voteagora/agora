@@ -18,7 +18,7 @@ function hostForEnv(env: "prod" | "dev") {
     case "prod":
       return "agora-prod.workers.dev";
     case "dev":
-      return "act.workers.dev";
+      return "agora-dev.workers.dev";
     default:
       throw new Error(`invalid env: ${env}`);
   }
