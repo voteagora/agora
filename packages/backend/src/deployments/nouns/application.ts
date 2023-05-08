@@ -11,16 +11,14 @@ import { nounsModule } from "../../schema/modules/nouns/module";
 import { Prettify } from "../../shared/utils/unionToIntersection";
 import { LatestBlockFetcher } from "../../shared/schema/context/latestBlockFetcher";
 import { ErrorReporter } from "../../shared/schema/helpers/nonFatalErrors";
-import { loadAggregate } from "../../shared/contracts/indexers/IVotes/entities/aggregate";
-import { bpsOf } from "../../utils/bps";
 import { loadAccount } from "../../shared/contracts/indexers/ERC721Votes/entities/address";
 import { StatementStorage } from "../../schema/modules/delegateStatement/context/statementStorage";
 import { EmailStorage } from "../../schema/modules/delegateStatement/context/emailStorage";
 
-import { loadGovernanceAggregate } from "./indexers/NounsDAO/entities/governorAggregates";
 import { daoContract } from "./indexers/NounsDAO/NounsDAO";
 import { makeNounsNameResolver } from "./nameResolver";
 import { makeLiquidDelegationDelegatesLoader } from "./delegatesLoader";
+import { fetchLatestQuorum, fetchQuorumForProposal } from "./quorumFetcher";
 
 export const modules = <const>[
   commonModule,
@@ -65,10 +63,15 @@ export function makeContext(
     },
     quorumFetcher: {
       async fetchQuorum(proposalId) {
-        const govAgg = await loadGovernanceAggregate(reader);
-        const agg = await loadAggregate(reader);
+        if (proposalId) {
+          return fetchQuorumForProposal(proposalId, args.provider);
+        }
 
-        return bpsOf(govAgg.quorumFloorBps, agg.totalSupply);
+        return fetchLatestQuorum(
+          args.provider,
+          args.latestBlockFetcher,
+          reader
+        );
       },
     },
   };

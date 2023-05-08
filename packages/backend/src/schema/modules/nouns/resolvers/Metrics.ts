@@ -24,10 +24,9 @@ export const Metrics: Resolvers["Metrics"] = {
     return aggregate.totalSupply;
   },
 
-  async quorumFloor(_parent, _args, { reader }) {
-    const govAgg = await loadGovernanceAggregate(reader);
-    const agg = await loadAggregate(reader);
-    return bpsOfSupply(govAgg.quorumFloorBps, agg);
+  async quorumFloor(_parent, _args, { quorumFetcher }) {
+    const quorum = await quorumFetcher.fetchQuorum();
+    return quorum;
   },
 
   async quorumCeiling(_parent, _args, { reader }) {

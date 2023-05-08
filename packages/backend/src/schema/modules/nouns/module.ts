@@ -9,6 +9,7 @@ import { Reader } from "../../../shared/indexer/storage/reader/type";
 import { AccountLoader } from "../../context/accountLoader";
 import { EntityRuntimeType } from "../../../shared/indexer/process/process";
 import { IVotesAddressSnapshot } from "../../../shared/contracts/indexers/ERC721Votes/entities/addressSnapshot";
+import { QuorumFetcher } from "../../../shared/schema/context/quorumFetcher";
 
 import typeDefs from "./schema.graphql";
 import { NounsModule } from "./generated-types/module-types";
@@ -28,6 +29,7 @@ type Dependencies = {
     IGovernorProposal: typeof IGovernorProposal;
     IVotesAddressSnapshot: typeof IVotesAddressSnapshot;
   }>;
+  quorumFetcher: QuorumFetcher;
 };
 
 type ResolversAssignable = ReplaceContextAllResolvers<

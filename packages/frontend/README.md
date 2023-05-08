@@ -1,5 +1,9 @@
 # frontend
 
+## Prerequisites
+
+[Watchman](https://facebook.github.io/watchman/docs/install)
+
 ## Running
 
 ```sh

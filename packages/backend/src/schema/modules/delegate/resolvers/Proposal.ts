@@ -58,8 +58,8 @@ export const Proposal: Resolvers["Proposal"] = {
     );
   },
 
-  async quorumVotes({}, _args, { quorumFetcher }) {
-    return quorumFetcher.fetchQuorum();
+  quorumVotes({ proposalId }, _args, { quorumFetcher }) {
+    return quorumFetcher.fetchQuorum(proposalId);
   },
 
   totalValue({ transactions }) {
