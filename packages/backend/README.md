@@ -48,6 +48,27 @@ backfill ended, only processing logs not seen before.
 
 ## Local Development
 
+### Configure AWS Credential
+
+```
+                   Organization
+                        |
+        ---------------------------------
+        |       |       |       |       |
+      Nouns  Uniswap Optimism  ENS  agora-prod
+```
+
+`agora-prod` project contains test data for all projects and can be used for local development
+
+1. Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+2. Create new user under the `agora-prod` project in [AWS IAM](https://console.aws.amazon.com/iam/)
+3. Follow [AWS Guide](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-appendix-sign-up.html) to create new Access Key pair
+4. Run `aws configure --profile agora-prod` in terminal and paste credentials from Step 3. Set region to `us-east-2`
+
+### Run Locally
+
+Declare env variables: `AWS_PROFILE=agora-prod` `AWS_REGION=us-east-2`
+
 ```
 $ yarn start
 ```
