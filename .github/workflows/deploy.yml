@@ -34,6 +34,7 @@ jobs:
           REACT_APP_ALCHEMY_ID: ${{ secrets.ALCHEMY_KEY }}
 
       - uses: getsentry/action-release@v1
+        continue-on-error: true
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -64,6 +65,7 @@ jobs:
       - run: yarn workspace nouns-agora-backend run build-worker
 
       - uses: getsentry/action-release@v1
+        continue-on-error: true
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
