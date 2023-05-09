@@ -33,13 +33,13 @@ jobs:
           VITE_GOOGLE_ANALYTICS_ID: ${{ secrets.GOOGLE_ANALYTICS_ID }}
           VITE_OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
 
-      # - uses: getsentry/action-release@v1
-      #   env:
-      #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      #     SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-      #     SENTRY_PROJECT: frontend
-      #   with:
-      #     sourcemaps: "./packages/frontend/dist/"
+      - uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: frontend
+        with:
+          sourcemaps: "./packages/frontend/dist/"
 
       - uses: actions/upload-artifact@v3
         with:
@@ -84,13 +84,13 @@ jobs:
 
       - run: yarn workspace @agora/backend run build-worker
 
-      # - uses: getsentry/action-release@v1
-      #   env:
-      #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      #     SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-      #     SENTRY_PROJECT: backend
-      #   with:
-      #     sourcemaps: "./packages/backend/dist/"
+      - uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: backend
+        with:
+          sourcemaps: "./packages/backend/dist/"
 
       - uses: actions/upload-artifact@v3
         with:
