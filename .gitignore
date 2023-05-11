@@ -6,5 +6,7 @@ packages/backend/src/contracts/generated
 packages/frontend/src/contracts/generated
 packages/backend/dist
 
+.toml
+
 packages/frontend/build
 __generated__
