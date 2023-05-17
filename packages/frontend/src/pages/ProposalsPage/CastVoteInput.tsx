@@ -18,14 +18,14 @@ type Props = {
     reason: string
   ) => void;
   className: string;
-  framgnetRef: CastVoteInputVoteButtonsFragment$key;
+  fragmentRef: CastVoteInputVoteButtonsFragment$key;
   queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
 };
 
 export function CastVoteInput({
   onVoteClick,
   className,
-  framgnetRef,
+  fragmentRef,
   queryFragmentRef,
 }: Props) {
   const [reason, setReason] = useState<string>("");
@@ -65,7 +65,7 @@ export function CastVoteInput({
       >
         <VoteButtons
           onClick={(supportType) => onVoteClick(supportType, reason)}
-          fragmentRef={framgnetRef}
+          fragmentRef={fragmentRef}
           queryFragmentRef={queryFragmentRef}
         />
       </VStack>

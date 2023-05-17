@@ -36,12 +36,19 @@ export function VoteDetails({ voteFragment }: Props) {
         transaction {
           timestamp
         }
+        options {
+          description
+        }
 
         proposal {
           number
           title
 
           totalValue
+
+          proposalData {
+            __typename
+          }
         }
       }
     `,
@@ -50,7 +57,10 @@ export function VoteDetails({ voteFragment }: Props) {
 
   const proposalHref = `https://www.tally.xyz/governance/eip155:1:0x323A76393544d5ecca80cd6ef2A560C6a395b7E3/proposal/${vote.proposal.number}`;
 
-  const supportType = toSupportType(vote.supportDetailed);
+  const supportType = toSupportType(
+    vote.supportDetailed,
+    vote.proposal.proposalData.__typename === "StandardProposalData"
+  );
 
   // This is a hack to hide a proposal formatting mistake from the OP Foundation
   const proposalsWithBadFormatting = [
@@ -105,26 +115,63 @@ export function VoteDetails({ voteFragment }: Props) {
             <a href={proposalHref}>{shortTitle}</a>
           </VoteTitle>
 
-          <span
-            className={css`
-              color: ${colorForSupportType(supportType)};
-              font-size: ${theme.fontSize.xs};
-              font-weight: ${theme.fontWeight.medium};
-            `}
-          >
-            <span
+          {vote.proposal.proposalData.__typename ===
+            "ApprovalVotingProposalData" && (
+            <div
               className={css`
-                text-transform: capitalize;
+                font-size: ${theme.fontSize.xs};
+                font-weight: ${theme.fontWeight.medium};
+                color: #66676b;
               `}
             >
-              {supportType.toLowerCase()}
-            </span>{" "}
-            with{" "}
-            {pluralizeVote(
-              BigNumber.from(vote.votes.amount.amount),
-              vote.votes.amount.decimals
-            )}
-          </span>
+              Voted :{" "}
+              {vote.options?.map((option, i) => (
+                <>
+                  {option.description}
+                  {/* add a coma here if not last option */}
+                  {i !== vote.options!.length - 1 && ", "}
+                </>
+              ))}
+              {vote.options?.length === 0 && "Abstain"}
+              <span
+                className={css`
+                  color: ${colorForSupportType(supportType)};
+                  font-size: ${theme.fontSize.xs};
+                  font-weight: ${theme.fontWeight.medium};
+                `}
+              >
+                {" "}
+                with{" "}
+                {pluralizeVote(
+                  BigNumber.from(vote.votes.amount.amount),
+                  vote.votes.amount.decimals
+                )}
+              </span>
+            </div>
+          )}
+
+          {vote.proposal.proposalData.__typename === "StandardProposalData" && (
+            <span
+              className={css`
+                color: ${colorForSupportType(supportType)};
+                font-size: ${theme.fontSize.xs};
+                font-weight: ${theme.fontWeight.medium};
+              `}
+            >
+              <span
+                className={css`
+                  text-transform: capitalize;
+                `}
+              >
+                {supportType.toLowerCase()}
+              </span>{" "}
+              with{" "}
+              {pluralizeVote(
+                BigNumber.from(vote.votes.amount.amount),
+                vote.votes.amount.decimals
+              )}
+            </span>
+          )}
         </VStack>
 
         {vote.reason && (

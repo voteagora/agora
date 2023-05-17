@@ -27,6 +27,10 @@ export type AdminMessage =
     };
 
 export async function sendAdminMessage(message: AdminMessage) {
+  if (!process.env.DURABLE_OBJECT_INSTANCE_NAME) {
+    throw new Error("DURABLE_OBJECT_INSTANCE_NAME is not set");
+  }
+
   while (true) {
     try {
       const response = await fetch(

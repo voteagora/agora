@@ -98,7 +98,7 @@ function VoteText({ fragmentRef }: { fragmentRef: VoteRowTextFragment$key }) {
     fragmentRef
   );
 
-  const supportType = toSupportType(supportDetailed);
+  const supportType = toSupportType(supportDetailed, true);
 
   return (
     <div

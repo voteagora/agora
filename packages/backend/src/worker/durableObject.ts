@@ -217,7 +217,8 @@ export class StorageDurableObjectV1 {
           indexers,
           blockProvider,
           logProvider,
-          storageArea
+          storageArea,
+          this.env.ENVIRONMENT
         );
       })());
 

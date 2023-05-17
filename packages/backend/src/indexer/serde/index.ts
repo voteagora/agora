@@ -5,3 +5,4 @@ export * from "./array";
 export * from "./primitives";
 export * from "./constant";
 export * from "./bigNumber";
+export * from "./discriminatedUnion";

@@ -22,8 +22,8 @@ type Delegate {
   delegatingTo: Delegate!
   statement: DelegateStatement
   amountOwned: VotingPower!
-  delegatingTo: Delegate!
   tokensRepresented: VotingPower!
+  tokensRepresentedSnapshot(proposalId: ID!): VotingPower!
   delegateMetrics: DelegateMetrics!
   proposed: [Proposal!]!
   votes: [Vote!]!
@@ -78,6 +78,7 @@ type Vote {
   proposal: Proposal!
   voter: Delegate!
   transaction: Transaction!
+  options: [ApprovalVotingProposalOption!]
 }
 
 type Transaction {
@@ -206,19 +207,13 @@ scalar Bytes
 type Proposal {
   id: ID!
   number: BigInt!
-  forVotes: TokenAmount!
-  againstVotes: TokenAmount!
-  abstainVotes: TokenAmount!
   title: String!
   description: String!
   voteEndsAt: Timestamp!
   voteStartsAt: Timestamp!
   quorumVotes: TokenAmount!
   totalVotes: BigInt!
-  targets: [Bytes!]
-  values: [BigInt!]
-  signatures: [String!]
-  calldatas: [Bytes!]
+  proposalData: ProposalData!
   status: ProposalStatus!
   totalValue: BigInt!
   proposer: Delegate!
@@ -234,6 +229,61 @@ enum ProposalStatus {
   EXECUTED
   DEFEATED
   EXPIRED
+}
+
+enum ProposalType {
+  STANDARD
+  APPROVAL_VOTING
+}
+
+union ProposalData = StandardProposalData | ApprovalVotingProposalData
+
+type StandardProposalData {
+  transactions: [ProposalTransaction!]
+  forVotes: TokenAmount!
+  againstVotes: TokenAmount!
+  abstainVotes: TokenAmount!
+}
+
+type ApprovalVotingProposalData {
+  settings: ApprovalVotingProposalSettings!
+  options: [ApprovalVotingProposalOption!]!
+  forVotes: TokenAmount!
+  abstainVotes: TokenAmount!
+}
+
+type ProposalTransaction {
+  target: Address!
+  value: BigInt!
+  signature: String!
+  calldata: Bytes!
+  functionName: String!
+  functionArgs: [String]!
+}
+
+type ApprovalVotingProposalSettings {
+  maxApprovals: Int!
+  criteria: ApprovalVotingCriteria!
+  budget: TokenAmount!
+}
+
+type ThresholdVotingCriteria {
+  threshold: TokenAmount!
+}
+
+type TopChoicesVotingCriteria {
+  topChoices: Int!
+}
+
+union ApprovalVotingCriteria =
+    ThresholdVotingCriteria
+  | TopChoicesVotingCriteria
+
+type ApprovalVotingProposalOption {
+  votes: TokenAmount!
+  description: String!
+  transactions: [ProposalTransaction!]
+  budgetTokensSpent: TokenAmount!
 }
 
 type Mutation {

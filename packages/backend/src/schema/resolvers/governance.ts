@@ -1,26 +1,47 @@
 import {
+  ApprovalVotingProposalDataResolvers,
+  ApprovalVotingProposalOptionResolvers,
+  ApprovalVotingProposalSettingsResolvers,
   DelegateResolvers,
   DelegatesOrder,
   MetricsResolvers,
+  ProposalDataResolvers,
   ProposalResolvers,
   ProposalStatus,
+  ProposalTransactionResolvers,
+  ProposalType,
   QueryResolvers,
+  StandardProposalDataResolvers,
+  ThresholdVotingCriteriaResolvers,
+  TopChoicesVotingCriteriaResolvers,
   VoteResolvers,
   VotingPowerResolvers,
 } from "./generated/types";
 import { BigNumber, ethers } from "ethers";
 import {
+  TApprovalVoteCriteria,
+  approvalVotingOption,
+  approvalVotingSettings,
   governanceAggregatesKey,
+  governorIndexer,
   makeDefaultGovernanceAggregate,
-} from "../../indexer/contracts/OptimismGovernorV1";
+  proposalDataTypes,
+  proposalTransactionType,
+  toApprovalVotingSupportType,
+  toSupportType,
+} from "../../indexer/contracts/OptimismGovernor";
 import {
   aggregateCumulativeId,
   defaultAccount,
+  governanceTokenIndexer,
   makeDefaultAggregate,
 } from "../../indexer/contracts/GovernanceToken";
 import { exactIndexValue, Reader } from "../../indexer/storage/reader";
 import { entityDefinitions } from "../../indexer/contracts";
-import { RuntimeType } from "../../indexer/serde";
+import {
+  DiscriminatedUnionResolverRuntimeType,
+  RuntimeType,
+} from "../../indexer/serde";
 import {
   collectGenerator,
   filterGenerator,
@@ -34,11 +55,18 @@ import { approximateBlockTimestampForBlock } from "../../utils/blockTimestamp";
 import { makeCompoundKey } from "../../indexer/indexKey";
 import { intersection } from "../../utils/set";
 import { efficientLengthEncodingNaturalNumbers } from "../../indexer/utils/efficientLengthEncoding";
+import {
+  GovernanceToken__factory,
+  OptimismGovernorV5__factory,
+} from "../../contracts/generated";
+import { ApprovalVotingCriteriaResolvers } from "./generated/types";
+import {
+  decodeArgsFromCalldata,
+  knownSigHashes,
+  knownTokens,
+} from "../../utils/abiUtils";
 
-const amountSpec = {
-  currency: "OP",
-  decimals: 18,
-};
+const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
 const quorumDenominator = BigNumber.from(100000);
 
@@ -61,8 +89,11 @@ export const VotingPower: VotingPowerResolvers = {
     return bpsOf(value, aggregate.delegatedSupply);
   },
 
-  async bpsOfQuorum(value, _args, { reader }) {
-    const quorum = await getQuorum(reader, null);
+  async bpsOfQuorum(value, _args, { latestBlockFetcher, provider }) {
+    const quorum = await getQuorum(
+      provider,
+      await latestBlockFetcher.getLatestBlockNumber()
+    );
     return bpsOf(value, quorum);
   },
 };
@@ -82,8 +113,11 @@ export const Metrics: MetricsResolvers = {
     const aggregate = await getAggregate(reader);
     return asTokenAmount(aggregate.totalSupply);
   },
-  quorum(_parent, _args, { reader }) {
-    return getQuorum(reader, null);
+  async quorum(_parent, _args, { reader, provider, latestBlockFetcher }) {
+    return await getQuorum(
+      provider,
+      await latestBlockFetcher.getLatestBlockNumber()
+    );
   },
 };
 
@@ -180,6 +214,20 @@ export const Delegate: DelegateResolvers = {
     return tokensRepresented;
   },
 
+  async tokensRepresentedSnapshot(
+    { address },
+    { proposalId },
+    { provider, reader }
+  ) {
+    const proposal = await reader.getEntity("Proposal", proposalId);
+    const normalizedAddress = ethers.utils.getAddress(address);
+    return await getTokensRepresentedAtBlock(
+      provider,
+      normalizedAddress,
+      proposal!.startBlock
+    );
+  },
+
   async delegatingTo({ delegatingTo }, _args, { reader }) {
     return (
       (await reader.getEntity("Address", delegatingTo)) ??
@@ -213,12 +261,12 @@ export const Delegate: DelegateResolvers = {
       votes.map((vote) => vote.proposalId.toString())
     );
 
+    const voteCount = await countVotes(votes, reader);
+
     return {
       tokenHoldersRepresentedCount: accountsRepresentedCount.toNumber(),
       totalVotes: votes.length,
-      forVotes: votes.filter((vote) => vote.support === 1).length,
-      againstVotes: votes.filter((vote) => vote.support === 0).length,
-      abstainVotes: votes.filter((vote) => vote.support === 2).length,
+      ...voteCount,
       ofLastTenProps: intersection(votedProposals, new Set(lastTenProposals))
         .size,
       ofTotalProps: totalProposals
@@ -264,34 +312,6 @@ export const Proposal: ProposalResolvers = {
     return description;
   },
 
-  calldatas({ transactions }) {
-    return transactions.map((tx) => tx.calldata);
-  },
-
-  values({ transactions }) {
-    return transactions.map((tx) => tx.value);
-  },
-
-  targets({ transactions }) {
-    return transactions.map((tx) => tx.target);
-  },
-
-  signatures({ transactions }) {
-    return [];
-  },
-
-  forVotes({ aggregates: { forVotes } }, _args) {
-    return asTokenAmount(forVotes);
-  },
-
-  againstVotes({ aggregates: { againstVotes } }, _args) {
-    return asTokenAmount(againstVotes);
-  },
-
-  abstainVotes({ aggregates: { abstainVotes } }, _args) {
-    return asTokenAmount(abstainVotes);
-  },
-
   async voteStartsAt({ startBlock }, _args, { provider }) {
     return approximateBlockTimestampForBlock(provider, startBlock.toNumber());
   },
@@ -300,35 +320,56 @@ export const Proposal: ProposalResolvers = {
     return approximateBlockTimestampForBlock(provider, endBlock.toNumber());
   },
 
-  async quorumVotes({ startBlock }, _args, { reader }) {
+  async quorumVotes({ startBlock }, _args, { reader, provider }) {
     return {
-      amount: await getQuorum(reader, startBlock),
-      ...amountSpec,
+      amount: await getQuorum(provider, startBlock),
+      ...knownTokens[OP_TOKEN_ADDRESS],
     };
   },
 
-  totalValue({ transactions }) {
-    return transactions.reduce(
-      (acc, tx) => acc.add(tx.value),
-      BigNumber.from(0)
-    );
+  totalValue({ proposalData }) {
+    switch (proposalData.key) {
+      case "STANDARD": {
+        return proposalData.kind.transactions.reduce((acc, trx) => {
+          return acc.add(trx.value);
+        }, ethers.BigNumber.from(0));
+      }
+      case "APPROVAL_VOTING": {
+        return proposalData.kind.options.reduce((acc, option) => {
+          return acc.add(
+            option.transactions.reduce((sum, trx) => {
+              return sum.add(trx.value);
+            }, ethers.BigNumber.from(0))
+          );
+        }, ethers.BigNumber.from(0));
+      }
+    }
   },
 
   title({ description }) {
     return getTitleFromProposalDescription(description);
   },
 
-  async totalVotes(
-    { aggregates: { forVotes, abstainVotes, againstVotes } },
-    _args
-  ) {
-    return forVotes.add(abstainVotes).add(againstVotes);
+  async totalVotes({ proposalData }, _args) {
+    switch (proposalData.key) {
+      case "STANDARD": {
+        return proposalData.kind.aggregates.forVotes.add(
+          proposalData.kind.aggregates.againstVotes
+        );
+      }
+
+      case "APPROVAL_VOTING": {
+        return proposalData.kind.aggregates.forVotes.add(
+          proposalData.kind.aggregates.abstainVotes
+        );
+      }
+    }
   },
 
   async status(
-    { proposalId, status, startBlock, endBlock, aggregates },
+    { status, startBlock, endBlock, proposalData },
     _args,
-    { reader }
+    { reader, provider }
   ) {
     const latestBlock = reader.getLatestBlock();
 
@@ -350,22 +391,299 @@ export const Proposal: ProposalResolvers = {
           return ProposalStatus.Active;
         }
 
-        const quorum = await getQuorum(reader, startBlock);
-        const { forVotes, abstainVotes, againstVotes } = aggregates;
+        const quorum = await getQuorum(provider, startBlock);
 
-        const proposalQuorumVotes = forVotes.add(abstainVotes);
+        switch (proposalData.key) {
+          case "STANDARD": {
+            const { forVotes, abstainVotes, againstVotes } =
+              proposalData.kind.aggregates;
+            const proposalQuorumVotes = forVotes.add(abstainVotes);
 
-        if (proposalQuorumVotes.lt(quorum)) {
-          return ProposalStatus.Defeated;
-        }
+            if (proposalQuorumVotes.lt(quorum)) {
+              return ProposalStatus.Defeated;
+            }
 
-        if (forVotes.gt(againstVotes)) {
-          return ProposalStatus.Succeeded;
+            if (forVotes.gt(againstVotes)) {
+              return ProposalStatus.Succeeded;
+            }
+
+            break;
+          }
+          case "APPROVAL_VOTING": {
+            const { forVotes, abstainVotes } = proposalData.kind.aggregates;
+            const proposalQuorumVotes = forVotes.add(abstainVotes);
+
+            if (proposalQuorumVotes.lt(quorum)) {
+              return ProposalStatus.Defeated;
+            }
+
+            if (proposalData.kind.proposalSettings.criteria === "THRESHOLD") {
+              proposalData.kind.options.forEach((option) => {
+                if (
+                  option.votes.gt(
+                    proposalData.kind.proposalSettings.criteriaValue
+                  )
+                ) {
+                  return ProposalStatus.Succeeded;
+                }
+              });
+
+              return ProposalStatus.Defeated;
+            } else {
+              return ProposalStatus.Succeeded;
+            }
+          }
         }
 
         return ProposalStatus.Queued;
       }
     }
+  },
+
+  proposalData(proposal) {
+    return {
+      proposal,
+      proposalData: proposal.proposalData,
+    };
+  },
+};
+
+export type ProposalDataModel = {
+  proposal: ProposalModel;
+  proposalData: ProposalModel["proposalData"];
+};
+
+export const ProposalData: ProposalDataResolvers = {
+  __resolveType({ proposalData }) {
+    switch (proposalData.key) {
+      case ProposalType.Standard:
+        return "StandardProposalData";
+
+      case ProposalType.ApprovalVoting:
+        return "ApprovalVotingProposalData";
+
+      default:
+        throw new Error(`unknown event type ${proposalData.key}`);
+    }
+  },
+};
+
+export type StandardProposalDataModel = {
+  proposal: ProposalModel;
+  proposalData: DiscriminatedUnionResolverRuntimeType<
+    typeof proposalDataTypes,
+    "STANDARD"
+  >;
+};
+
+export const StandardProposalData: StandardProposalDataResolvers = {
+  transactions({
+    proposalData: {
+      kind: { transactions },
+    },
+  }) {
+    return transactions;
+  },
+
+  forVotes({ proposalData: { kind } }) {
+    return asTokenAmount(kind.aggregates.forVotes);
+  },
+
+  againstVotes({ proposalData: { kind } }) {
+    return asTokenAmount(kind.aggregates.againstVotes);
+  },
+
+  abstainVotes({ proposalData: { kind } }) {
+    return asTokenAmount(kind.aggregates.abstainVotes);
+  },
+};
+
+export type ApprovalVotingProposalDataModel = {
+  proposal: ProposalModel;
+  proposalData: DiscriminatedUnionResolverRuntimeType<
+    typeof proposalDataTypes,
+    "APPROVAL_VOTING"
+  >;
+};
+
+export const ApprovalVotingProposalData: ApprovalVotingProposalDataResolvers = {
+  settings({
+    proposalData: {
+      kind: { proposalSettings },
+    },
+  }) {
+    return proposalSettings;
+  },
+
+  options({
+    proposalData: {
+      kind: { options, proposalSettings },
+    },
+  }) {
+    return options.map((option) => {
+      return { ...option, budgetToken: proposalSettings.budgetToken };
+    });
+  },
+
+  forVotes({ proposalData: { kind } }) {
+    return asTokenAmount(kind.aggregates.forVotes);
+  },
+
+  abstainVotes({ proposalData: { kind } }) {
+    return asTokenAmount(kind.aggregates.abstainVotes);
+  },
+};
+
+export type ApprovalVotingProposalOptionModel = RuntimeType<
+  typeof approvalVotingOption
+> & { budgetToken: string };
+
+export const ApprovalVotingProposalOption: ApprovalVotingProposalOptionResolvers =
+  {
+    votes({ votes }) {
+      return asTokenAmount(votes);
+    },
+
+    description({ description }) {
+      return description;
+    },
+
+    transactions({ transactions }) {
+      return transactions;
+    },
+
+    budgetTokensSpent({ transactions, budgetToken }) {
+      const budgetTokenSpec = knownTokens[budgetToken];
+      if (budgetTokenSpec && budgetTokenSpec.currency === "ETH") {
+        const amount = transactions.reduce(
+          (acc, tx) => acc.add(tx.value),
+          BigNumber.from(0)
+        );
+        return asTokenAmountFromSpec(budgetTokenSpec, amount);
+      } else {
+        const amount = transactions.reduce((acc, tx) => {
+          const decoded = decodeArgsFromCalldata(tx.calldata);
+          for (const val of decoded) {
+            if (val instanceof BigNumber) {
+              return acc.add(val);
+            }
+          }
+          return acc;
+        }, BigNumber.from(0));
+
+        if (!budgetTokenSpec) {
+          return asUnknownTokenAmount(amount, budgetToken);
+        }
+
+        return asTokenAmountFromSpec(budgetTokenSpec, amount);
+      }
+    },
+  };
+
+export type ApprovalVotingProposalSettingsModel = RuntimeType<
+  typeof approvalVotingSettings
+>;
+
+export const ApprovalVotingProposalSettings: ApprovalVotingProposalSettingsResolvers =
+  {
+    maxApprovals({ maxApprovals }) {
+      return maxApprovals;
+    },
+
+    criteria(criteria) {
+      return criteria;
+    },
+
+    budget({ budgetToken, budgetAmount }) {
+      const currencySpec = knownTokens[budgetToken];
+      if (currencySpec) {
+        return asTokenAmountFromSpec(currencySpec, budgetAmount);
+      }
+      return asUnknownTokenAmount(budgetAmount, budgetToken);
+    },
+  };
+
+export type ApprovalVotingCriteriaModel = {
+  criteria: TApprovalVoteCriteria;
+  criteriaValue: BigNumber;
+  budgetToken: string;
+};
+
+export const ApprovalVotingCriteria: ApprovalVotingCriteriaResolvers = {
+  __resolveType({ criteria, criteriaValue }) {
+    switch (criteria) {
+      case "THRESHOLD":
+        return "ThresholdVotingCriteria";
+      case "TOP_CHOICES":
+        return "TopChoicesVotingCriteria";
+      default:
+        throw new Error(`unknown criteria ${criteria}`);
+    }
+  },
+};
+
+export type ThresholdVotingCriteriaModel = ApprovalVotingCriteriaModel;
+
+export const ThresholdVotingCriteria: ThresholdVotingCriteriaResolvers = {
+  threshold({ criteriaValue, budgetToken }) {
+    const currencySpec = knownTokens[budgetToken];
+    if (currencySpec) {
+      return asTokenAmountFromSpec(currencySpec, criteriaValue);
+    }
+    return asUnknownTokenAmount(criteriaValue, budgetToken);
+  },
+};
+
+export type TopChoicesVotingCriteriaModel = ApprovalVotingCriteriaModel;
+
+export const TopChoicesVotingCriteria: TopChoicesVotingCriteriaResolvers = {
+  topChoices({ criteriaValue }) {
+    return criteriaValue.toNumber();
+  },
+};
+
+export type ProposalTransactionModel = RuntimeType<
+  typeof proposalTransactionType
+>;
+
+export const ProposalTransaction: ProposalTransactionResolvers = {
+  target({ target }) {
+    return { address: target };
+  },
+
+  signature({ calldata }) {
+    const signatureFromKnownSigHashes = knownSigHashes[calldata.slice(0, 10)];
+    if (signatureFromKnownSigHashes) {
+      return signatureFromKnownSigHashes;
+    }
+
+    return calldata.slice(0, 10);
+  },
+
+  calldata({ calldata }) {
+    return "0x" + calldata.slice(10);
+  },
+
+  functionName({ calldata }) {
+    const signatureFromKnownSigHashes = knownSigHashes[calldata.slice(0, 10)];
+    if (signatureFromKnownSigHashes) {
+      return signatureFromKnownSigHashes.split("(")[0];
+    }
+
+    return "unknown";
+  },
+
+  functionArgs({ calldata }) {
+    const decoded = decodeArgsFromCalldata(calldata);
+    return Array.from(decoded).map((arg) => {
+      if (arg instanceof BigNumber) {
+        return arg.toString();
+      } else if (typeof arg === "object") {
+        return JSON.stringify(arg);
+      } else {
+        return arg.toString();
+      }
+    });
   },
 };
 
@@ -400,6 +718,20 @@ export const Vote: VoteResolvers = {
       (await reader.getEntity("Address", voterAddress)) ??
       defaultAccount(voterAddress)
     );
+  },
+
+  async options({ params, proposalId }, _arg, { reader }) {
+    const proposal = await reader.getEntity("Proposal", proposalId.toString());
+    const propoalData = proposal?.proposalData;
+    if (propoalData?.key === "APPROVAL_VOTING") {
+      return params.map((idx) => {
+        return {
+          ...propoalData.kind.options[idx],
+          budgetToken: propoalData.kind.proposalSettings.budgetToken,
+        };
+      });
+    }
+    return [];
   },
 };
 
@@ -496,21 +828,27 @@ async function getTotalSupplySnapshot(
 }
 
 async function getQuorum(
-  reader: Reader<typeof entityDefinitions>,
-  blockNumber: BigNumber | null
+  provider: ethers.providers.BaseProvider,
+  blockNumber: BigNumber
 ): Promise<BigNumber> {
-  const quorumNumeratorSnapshot = await getQuorumNumeratorSnapshot(
-    reader,
-    blockNumber
+  const governor = OptimismGovernorV5__factory.connect(
+    governorIndexer.address,
+    provider
   );
-  const quorumNumerator =
-    quorumNumeratorSnapshot?.value.quorumNumerator ?? BigNumber.from(0);
 
-  const totalSupplySnapshot = await getTotalSupplySnapshot(reader, blockNumber);
-  const totalSupply =
-    totalSupplySnapshot?.value?.totalSupply ?? BigNumber.from(0);
+  return await governor.quorum(blockNumber);
+}
 
-  return totalSupply.mul(quorumNumerator).div(quorumDenominator);
+async function getTokensRepresentedAtBlock(
+  provider: ethers.providers.BaseProvider,
+  address: string,
+  blockNumber: BigNumber
+): Promise<BigNumber> {
+  const governor = GovernanceToken__factory.connect(
+    governanceTokenIndexer.address,
+    provider
+  );
+  return await governor.getPastVotes(address, blockNumber);
 }
 
 async function getAggregate(reader: Reader<typeof entityDefinitions>) {
@@ -545,6 +883,66 @@ function bpsOf(top: BigNumber, bottom: BigNumber): number {
 function asTokenAmount(amount: BigNumber) {
   return {
     amount,
-    ...amountSpec,
+    ...knownTokens[OP_TOKEN_ADDRESS],
   };
+}
+
+type TokenSpec = {
+  currency: string;
+  decimals: number;
+};
+
+function asTokenAmountFromSpec(spec: TokenSpec, amount: BigNumber) {
+  return {
+    amount,
+    ...spec,
+  };
+}
+
+function asUnknownTokenAmount(amount: BigNumber, currency: string) {
+  return {
+    amount,
+    currency,
+    decimals: 0,
+  };
+}
+
+async function countVotes(
+  votes: RuntimeType<typeof entityDefinitions["Vote"]["serde"]>[],
+  reader: Reader<typeof entityDefinitions>
+) {
+  return await votes.reduce(async (accPromise, vote) => {
+    const acc = await accPromise;
+    const proposal = await reader.getEntity(
+      "Proposal",
+      vote.proposalId.toString()
+    );
+
+    const voteSupportType = resolveForAgainstAbstain(vote, proposal!);
+
+    switch (voteSupportType) {
+      case "FOR":
+        return { ...acc, forVotes: acc.forVotes + 1 };
+      case "ABSTAIN":
+        return { ...acc, abstainVotes: acc.abstainVotes + 1 };
+      case "AGAINST":
+        return { ...acc, againstVotes: acc.againstVotes + 1 };
+    }
+  }, Promise.resolve({ forVotes: 0, abstainVotes: 0, againstVotes: 0 }));
+}
+
+function resolveForAgainstAbstain(
+  vote: RuntimeType<typeof entityDefinitions["Vote"]["serde"]>,
+  proposal: RuntimeType<typeof entityDefinitions["Proposal"]["serde"]>
+) {
+  console.log(vote, proposal);
+
+  switch (proposal.proposalData.key) {
+    case "APPROVAL_VOTING": {
+      return toApprovalVotingSupportType(vote.support);
+    }
+    case "STANDARD": {
+      return toSupportType(vote.support);
+    }
+  }
 }

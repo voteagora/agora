@@ -26,11 +26,21 @@ export function OnChainProposalRow({
         number
         status
         title
-        forVotes {
-          ...TokenAmountDisplayFragment
-        }
-        againstVotes {
-          ...TokenAmountDisplayFragment
+        proposalData {
+          __typename
+          ... on StandardProposalData {
+            forVotes {
+              ...TokenAmountDisplayFragment
+            }
+            againstVotes {
+              ...TokenAmountDisplayFragment
+            }
+          }
+          ... on ApprovalVotingProposalData {
+            options {
+              __typename
+            }
+          }
         }
         voteStartsAt
         voteEndsAt
@@ -134,17 +144,31 @@ function Activity({
         voteEndsAt
         status
         voteStartsAt
-        forVotes {
-          ...TokenAmountDisplayFragment
-        }
-        againstVotes {
-          ...TokenAmountDisplayFragment
+        proposalData {
+          __typename
+          ... on StandardProposalData {
+            forVotes {
+              ...TokenAmountDisplayFragment
+            }
+            againstVotes {
+              ...TokenAmountDisplayFragment
+            }
+          }
+          ... on ApprovalVotingProposalData {
+            forVotes {
+              ...TokenAmountDisplayFragment
+            }
+            options {
+              __typename
+            }
+          }
         }
       }
     `,
     fragmentRef
   );
 
+  const proposalData = proposal.proposalData;
   const voteEndsAt = new Date(proposal.voteEndsAt);
   const voteStartsAt = new Date(proposal.voteStartsAt);
   return (
@@ -164,34 +188,54 @@ function Activity({
     >
       <HStack>
         {(() => {
-          if (proposal.status === "PENDING") {
-            return `Starts in ${formatDistanceToNow(new Date(voteStartsAt))}`;
-          } else {
-            return (
-              <HStack gap="1">
-                <span>
-                  <TokenAmountDisplay
-                    fragment={proposal.forVotes}
-                  ></TokenAmountDisplay>{" "}
-                  For
-                </span>
+          switch (proposalData.__typename) {
+            // TODO - change the condition once data is available
+            case "StandardProposalData": {
+              if (proposal.status === "PENDING") {
+                return `Starts in ${formatDistanceToNow(
+                  new Date(voteStartsAt)
+                )}`;
+              } else {
+                return (
+                  <HStack gap="1">
+                    <span>
+                      <TokenAmountDisplay
+                        fragment={proposalData.forVotes}
+                      ></TokenAmountDisplay>{" "}
+                      For
+                    </span>
 
-                <span
-                  className={css`
-                    color: ${theme.colors.gray[500]};
-                  `}
-                >
-                  -
-                </span>
+                    <span
+                      className={css`
+                        color: ${theme.colors.gray[500]};
+                      `}
+                    >
+                      -
+                    </span>
 
-                <span>
-                  <TokenAmountDisplay
-                    fragment={proposal.againstVotes}
-                  ></TokenAmountDisplay>{" "}
-                  Against
-                </span>
-              </HStack>
-            );
+                    <span>
+                      <TokenAmountDisplay
+                        fragment={proposalData.againstVotes}
+                      ></TokenAmountDisplay>{" "}
+                      Against
+                    </span>
+                  </HStack>
+                );
+              }
+            }
+            case "ApprovalVotingProposalData": {
+              if (proposal.status === "PENDING") {
+                return `Starts in ${formatDistanceToNow(
+                  new Date(voteStartsAt)
+                )}`;
+              } else {
+                return (
+                  <HStack gap="1">
+                    <p>{proposalData.options.length} Options</p>
+                  </HStack>
+                );
+              }
+            }
           }
         })()}
       </HStack>

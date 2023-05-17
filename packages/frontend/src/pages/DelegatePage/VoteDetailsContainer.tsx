@@ -64,12 +64,25 @@ export type SupportTextProps = {
   supportType: "FOR" | "AGAINST" | "ABSTAIN";
 };
 
-export function toSupportType(value: number): "FOR" | "AGAINST" | "ABSTAIN" {
+export function toSupportType(
+  value: number,
+  hasAgainst: boolean
+): "FOR" | "AGAINST" | "ABSTAIN" {
+  // Approval proposal: for=0, Abstain=1
+  // Standard proposal: against=0, for=1, Abstain=2
   switch (value) {
     case 0:
-      return "AGAINST";
+      if (hasAgainst) {
+        return "AGAINST";
+      } else {
+        return "FOR";
+      }
     case 1:
-      return "FOR";
+      if (hasAgainst) {
+        return "FOR";
+      } else {
+        return "ABSTAIN";
+      }
     case 2:
       return "ABSTAIN";
     default:

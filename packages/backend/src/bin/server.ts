@@ -19,6 +19,7 @@ import { LevelReader } from "../indexer/storage/level/levelReader";
 import { timeout } from "../indexer/utils/asyncUtils";
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
+import { makeLatestBlockFetcher } from "../schema/latestBlockFetcher";
 
 // p0
 // todo: where are delegate statements going to be stored?
@@ -49,7 +50,8 @@ async function main() {
     indexers,
     blockProvider,
     logProvider,
-    storageArea
+    storageArea,
+    process.argv[2] || "dev"
   );
   const _ = (async () => {
     while (true) {
@@ -79,6 +81,7 @@ async function main() {
             process.env.ALCHEMY_API_KEY
           )
         ),
+        latestBlockFetcher: makeLatestBlockFetcher(baseProvider),
         provider,
         reader,
         snapshotVoteStorage: makeSnapshotVoteStorage(dynamoDb),

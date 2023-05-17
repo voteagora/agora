@@ -34,6 +34,15 @@ generates:
         SnapshotVoteChoiceApproval: ../snapshot#SnapshotVoteChoiceModel
         SnapshotVoteChoiceWeighted: ../snapshot#SnapshotVoteChoiceModel
         WeightedSelectedChoice: ../snapshot#WeightedSelectedChoiceModel
+        ProposalData: ../governance#ProposalDataModel
+        StandardProposalData: ../governance#StandardProposalDataModel
+        ApprovalVotingProposalData: ../governance#ApprovalVotingProposalDataModel
+        ProposalTransaction: ../governance#ProposalTransactionModel
+        ApprovalVotingProposalOption: ../governance#ApprovalVotingProposalOptionModel
+        ApprovalVotingProposalSettings: ../governance#ApprovalVotingProposalSettingsModel
+        ApprovalVotingCriteria: ../governance#ApprovalVotingCriteriaModel
+        ThresholdVotingCriteria: ../governance#ThresholdVotingCriteriaModel
+        TopChoicesVotingCriteria: ../governance#TopChoicesVotingCriteriaModel
 
         VotingPower: ../governance#VotingPowerModel
         Metrics: ../governance#MetricsModel

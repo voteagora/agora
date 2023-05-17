@@ -14,7 +14,7 @@ import {
 } from "../DelegatePage/VoteDetailsContainer";
 import { CastVoteDialogQuery } from "./__generated__/CastVoteDialogQuery.graphql";
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
-import { OptimismGovernorV1 } from "../../contracts/generated";
+import { OptimismGovernorV5 } from "../../contracts/generated";
 import { governorTokenContract } from "../../contracts/contracts";
 import { useContractWrite } from "../../hooks/useContractWrite";
 import { useAccount } from "wagmi";
@@ -75,7 +75,11 @@ function CastVoteDialogContents({
 
   const { delegate } = useLazyLoadQuery<CastVoteDialogQuery>(
     graphql`
-      query CastVoteDialogQuery($accountAddress: String!, $skip: Boolean!) {
+      query CastVoteDialogQuery(
+        $accountAddress: String!
+        $skip: Boolean!
+        $proposalId: ID!
+      ) {
         delegate(addressOrEnsName: $accountAddress) @skip(if: $skip) {
           statement {
             __typename
@@ -87,7 +91,7 @@ function CastVoteDialogContents({
             }
           }
 
-          tokensRepresented {
+          tokensRepresentedSnapshot(proposalId: $proposalId) {
             amount {
               ...TokenAmountDisplayFragment
             }
@@ -98,11 +102,12 @@ function CastVoteDialogContents({
     {
       accountAddress: accountAddress ?? "",
       skip: !accountAddress,
+      proposalId,
     }
   );
 
   const { write, isLoading, isSuccess, isError } = useContractWrite<
-    OptimismGovernorV1,
+    OptimismGovernorV5,
     "castVoteWithReason"
   >(
     governorTokenContract,
@@ -160,7 +165,7 @@ function CastVoteDialogContents({
           >
             <div>
               <TokenAmountDisplay
-                fragment={delegate.tokensRepresented.amount}
+                fragment={delegate.tokensRepresentedSnapshot.amount}
               />
             </div>
             <div
@@ -182,58 +187,8 @@ function CastVoteDialogContents({
         </div>
       </VStack>
       {/* TO DO: ADD IS SUCCESS STATE */}
-      {isLoading && (
-        <HStack
-          justifyContent="space-between"
-          alignItems="center"
-          className={css`
-            width: 100%;
-            z-index: 1;
-            position: relative;
-            padding: ${theme.spacing["4"]};
-            border-radius: ${theme.spacing["2"]};
-            border: 1px solid ${theme.colors.gray.eb};
-          `}
-        >
-          <div
-            className={css`
-              font-weight: ${theme.fontWeight.medium};
-            `}
-          >
-            Submitting your vote
-          </div>
-          <img src={icons.spinner} alt={icons.spinner} />
-        </HStack>
-      )}
-      {isSuccess && (
-        <HStack
-          justifyContent="space-between"
-          alignItems="center"
-          className={css`
-            width: 100%;
-            z-index: 1;
-            position: relative;
-            padding: ${theme.spacing["4"]};
-            border-radius: ${theme.spacing["2"]};
-            border: 1px solid ${theme.colors.gray.eb};
-          `}
-        >
-          <div
-            className={css`
-              font-weight: ${theme.fontWeight.medium};
-            `}
-          >
-            Vote Submitted!
-          </div>
-          <img
-            src={icons.ballot}
-            alt={icons.ballot}
-            className={css`
-              height: 20px;
-            `}
-          />
-        </HStack>
-      )}
+      {isLoading && <LoadingVote />}
+      {isSuccess && <SuccessMessage />}
       {!isLoading && !isSuccess && (
         <div>
           {delegate.statement ? (
@@ -257,7 +212,7 @@ function CastVoteDialogContents({
                 >
                   Using{" "}
                   <TokenAmountDisplay
-                    fragment={delegate.tokensRepresented.amount}
+                    fragment={delegate.tokensRepresentedSnapshot.amount}
                   />
                 </div>
                 <div
@@ -272,26 +227,7 @@ function CastVoteDialogContents({
               <VoteButton onClick={write}>Vote</VoteButton>
             </HStack>
           ) : (
-            <VStack
-              className={css`
-                width: 100%;
-                z-index: 1;
-                position: relative;
-                padding: ${theme.spacing["4"]};
-                border-radius: ${theme.spacing["2"]};
-                border: 1px solid ${theme.colors.gray.eb};
-              `}
-            >
-              You do not have a delegate statement.{" "}
-              <Link
-                to="/create"
-                className={css`
-                  text-decoration: underline;
-                `}
-              >
-                Please set one up in order to vote.
-              </Link>
-            </VStack>
+            <NoStatementView />
           )}
         </div>
       )}
@@ -336,3 +272,87 @@ const VoteButton = ({
     </div>
   );
 };
+
+export function SuccessMessage() {
+  return (
+    <HStack
+      justifyContent="space-between"
+      alignItems="center"
+      className={css`
+        width: 100%;
+        z-index: 1;
+        position: relative;
+        padding: ${theme.spacing["4"]};
+        border-radius: ${theme.spacing["2"]};
+        border: 1px solid ${theme.colors.gray.eb};
+      `}
+    >
+      <div
+        className={css`
+          font-weight: ${theme.fontWeight.medium};
+        `}
+      >
+        Success! Your vote has been cast. It will appear once the transaction is
+        confirmed.
+      </div>
+      <img
+        src={icons.ballot}
+        alt={icons.ballot}
+        className={css`
+          height: 20px;
+        `}
+      />
+    </HStack>
+  );
+}
+
+export function LoadingVote() {
+  return (
+    <HStack
+      justifyContent="space-between"
+      alignItems="center"
+      className={css`
+        width: 100%;
+        z-index: 1;
+        position: relative;
+        padding: ${theme.spacing["4"]};
+        border-radius: ${theme.spacing["2"]};
+        border: 1px solid ${theme.colors.gray.eb};
+      `}
+    >
+      <div
+        className={css`
+          font-weight: ${theme.fontWeight.medium};
+        `}
+      >
+        Writing your vote to the chain
+      </div>
+      <img src={icons.spinner} alt={icons.spinner} />
+    </HStack>
+  );
+}
+
+export function NoStatementView() {
+  return (
+    <VStack
+      className={css`
+        width: 100%;
+        z-index: 1;
+        position: relative;
+        padding: ${theme.spacing["4"]};
+        border-radius: ${theme.spacing["2"]};
+        border: 1px solid ${theme.colors.gray.eb};
+      `}
+    >
+      You do not have a delegate statement.{" "}
+      <Link
+        to="/create"
+        className={css`
+          text-decoration: underline;
+        `}
+      >
+        Please set one up in order to vote.
+      </Link>
+    </VStack>
+  );
+}
