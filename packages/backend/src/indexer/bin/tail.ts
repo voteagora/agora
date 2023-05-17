@@ -25,7 +25,8 @@ async function main() {
     indexers,
     blockProvider,
     logProvider,
-    storageArea
+    storageArea,
+    process.argv[2] || "dev"
   );
 
   while (true) {

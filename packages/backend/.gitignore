@@ -2,3 +2,7 @@ src/schema/resolvers/generated
 src/contracts/generated
 dist
 .serverless
+
+**/generated-types
+**/proto
+**/gen

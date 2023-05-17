@@ -1,5 +1,5 @@
 import { makeContractInstance } from "../hooks/useContractWrite";
-import { OptimismGovernorV1__factory } from "./generated";
+import { OptimismGovernorV5__factory } from "./generated";
 import { GovernanceToken__factory } from "./generated/factories/GovernanceToken__factory";
 
 export const governanceTokenContract = makeContractInstance({
@@ -9,7 +9,9 @@ export const governanceTokenContract = makeContractInstance({
 });
 
 export const governorTokenContract = makeContractInstance({
-  factory: OptimismGovernorV1__factory,
-  address: "0xcDF27F107725988f2261Ce2256bDfCdE8B382B10",
-  startingBlock: 71801427,
+  factory: OptimismGovernorV5__factory,
+  address:
+    process.env.REACT_APP_OP_GOV_ADDRESS ||
+    "0x6E17cdef2F7c1598AD9DfA9A8acCF84B1303f43f",
+  startingBlock: Number(process.env.REACT_APP_OP_GOV_START_BLOCK || 96417216),
 });

@@ -10,30 +10,30 @@ import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { utils, BigNumber } from "ethers";
 import { defaultAbiCoder, Result } from "ethers/lib/utils";
 
+export const ProposalDetailPanelFragment = graphql`
+  fragment ProposalDetailPanelFragment on Proposal {
+    title
+    number
+    description
+    proposer {
+      address {
+        resolvedName {
+          ...NounResolvedLinkFragment
+          address
+        }
+      }
+    }
+  }
+`;
+
 export function ProposalDetailPanel({
   fragmentRef,
+  codeChangesFragment,
 }: {
   fragmentRef: ProposalDetailPanelFragment$key;
+  codeChangesFragment: ProposalDetailPanelCodeChangesFragment$key;
 }) {
-  const result = useFragment(
-    graphql`
-      fragment ProposalDetailPanelFragment on Proposal {
-        title
-        number
-        description
-        proposer {
-          address {
-            resolvedName {
-              ...NounResolvedLinkFragment
-              address
-            }
-          }
-        }
-        ...ProposalDetailPanelCodeChangesFragment
-      }
-    `,
-    fragmentRef
-  );
+  const result = useFragment(ProposalDetailPanelFragment, fragmentRef);
   const { title, number, description, proposer } = result;
 
   const proposalsWithBadDescription = [
@@ -94,7 +94,7 @@ export function ProposalDetailPanel({
           </div>
         </VStack>
         <VStack gap="2">
-          <CodeChanges fragmentRef={result} />
+          <CodeChanges fragmentRef={codeChangesFragment} />
           <Markdown
             markdown={stripTitleFromDescription(title, patchedDescription)}
           />
@@ -109,13 +109,16 @@ function CodeChanges({
 }: {
   fragmentRef: ProposalDetailPanelCodeChangesFragment$key;
 }) {
-  const { targets, signatures, calldatas, values } = useFragment(
+  const proposalData = useFragment(
     graphql`
-      fragment ProposalDetailPanelCodeChangesFragment on Proposal {
-        targets
-        signatures
-        calldatas
-        values
+      fragment ProposalDetailPanelCodeChangesFragment on StandardProposalData {
+        transactions {
+          target {
+            address
+          }
+          calldata
+          value
+        }
       }
     `,
     fragmentRef
@@ -141,15 +144,15 @@ function CodeChanges({
         Proposed Transactions
       </div>
       <VStack>
-        {targets &&
-          targets.map((target, idx) => {
+        {proposalData.transactions &&
+          proposalData.transactions.map((transaction: any, idx: any) => {
             return (
               <CodeChange
                 key={idx}
-                target={target}
-                signature={signatures?.[idx]}
-                calldata={calldatas?.[idx]}
-                value={values?.[idx]!}
+                target={transaction.target.address}
+                signature={transaction.signature}
+                calldata={transaction.calldata}
+                value={transaction.value}
               />
             );
           })}

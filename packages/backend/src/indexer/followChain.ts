@@ -28,17 +28,28 @@ import {
 } from "./utils/generatorUtils";
 import { ethers } from "ethers";
 import { StructuredError } from "./utils/errorUtils";
+import { Env } from "../worker/env";
 
 export function followChain(
   store: EntityStore,
   indexers: IndexerDefinition[],
   blockProvider: BlockProvider,
   logProvider: LogProvider,
-  storageArea: StorageArea
+  storageArea: StorageArea,
+  env: String
 ) {
-  const entityDefinitions = combineEntities(indexers);
+  const envIndexers = indexers.flatMap((it) => {
+    if (it.env && it.env !== env) {
+      return [];
+    }
+    return it;
+  });
 
-  const filter = topicFilterForIndexers(indexers);
+  console.log({ envIndexers });
+
+  const entityDefinitions = combineEntities(envIndexers);
+
+  const filter = topicFilterForIndexers(envIndexers);
 
   async function processBlock(
     block: BlockProviderBlock,
@@ -57,7 +68,7 @@ export function followChain(
         ...filter,
       }));
     for (const log of logs) {
-      const indexer = indexers.find(
+      const indexer = envIndexers.find(
         (it) => it.address.toLowerCase() === log.address.toLowerCase()
       )!;
 

@@ -70,6 +70,7 @@ export const colors = {
     eb: "#ebebeb",
     "4f": "#4f4f4f",
     af: "#afafaf",
+    eo: "#e0e0e0",
     fa: "#fafafa",
     100: "#f7fafc",
     200: "#edf2f7",
@@ -281,6 +282,7 @@ export const fontFamily = {
     "monospace",
   ]),
   partner: makeFontString(["Rubik"]),
+  inter: makeFontString(["Inter"]),
 };
 
 function makeFontString(fonts: string[]): string {

@@ -11,17 +11,22 @@ import { ProposalVotesSummaryVotesBarFragment$key } from "./__generated__/Propos
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
 import { BigNumber } from "ethers";
 import { generateBarsForVote } from "./generateBarsForVote";
+import { ProposalVotesSummaryQuorumFragment$key } from "./__generated__/ProposalVotesSummaryQuorumFragment.graphql";
 
 export function ProposalVotesSummary({
   fragmentRef,
   className,
+  quorumVotesRef,
+  propVotesSummaryRef,
 }: {
   fragmentRef: ProposalVotesSummaryFragment$key;
   className: string;
+  quorumVotesRef: ProposalVotesSummaryQuorumFragment$key;
+  propVotesSummaryRef: ProposalVotesSummaryVoteTimeFragment$key;
 }) {
-  const proposal = useFragment(
+  const proposalData = useFragment(
     graphql`
-      fragment ProposalVotesSummaryFragment on Proposal {
+      fragment ProposalVotesSummaryFragment on StandardProposalData {
         forVotes {
           ...TokenAmountDisplayFragment
         }
@@ -30,11 +35,22 @@ export function ProposalVotesSummary({
         }
 
         ...ProposalVotesSummaryVotesBarFragment
-        ...ProposalVotesSummaryVoteTimeFragment
       }
     `,
     fragmentRef
   );
+
+  const quorumData = useFragment(
+    graphql`
+      fragment ProposalVotesSummaryQuorumFragment on Proposal {
+        quorumVotes {
+          ...TokenAmountDisplayFragment
+        }
+      }
+    `,
+    quorumVotesRef
+  );
+
   return (
     <VStack
       gap="2"
@@ -56,25 +72,27 @@ export function ProposalVotesSummary({
             color: ${colorForSupportType("FOR")};
           `}
         >
-          FOR <TokenAmountDisplay fragment={proposal.forVotes} />
+          FOR <TokenAmountDisplay fragment={proposalData.forVotes} />
         </div>
         <div
           className={css`
             color: ${colorForSupportType("AGAINST")};
           `}
         >
-          AGAINST <TokenAmountDisplay fragment={proposal.againstVotes} />
+          AGAINST <TokenAmountDisplay fragment={proposalData.againstVotes} />
         </div>
       </HStack>
-      <VotesBar fragmentRef={proposal} />
+      <VotesBar fragmentRef={proposalData} />
       <HStack
         justifyContent="space-between"
         className={css`
           color: ${theme.colors.gray["4f"]};
         `}
       >
-        <div>QUORUM 11.9M OP</div>
-        <VoteTime fragmentRef={proposal} />
+        <div>
+          QUORUM <TokenAmountDisplay fragment={quorumData.quorumVotes} />
+        </div>
+        <VoteTime fragmentRef={propVotesSummaryRef} />
       </HStack>
     </VStack>
   );
@@ -121,9 +139,9 @@ function VotesBar({
 }: {
   fragmentRef: ProposalVotesSummaryVotesBarFragment$key;
 }) {
-  const { forVotes, againstVotes, abstainVotes } = useFragment(
+  const proposalData = useFragment(
     graphql`
-      fragment ProposalVotesSummaryVotesBarFragment on Proposal {
+      fragment ProposalVotesSummaryVotesBarFragment on StandardProposalData {
         forVotes {
           amount
           ...TokenAmountDisplayFragment
@@ -145,9 +163,9 @@ function VotesBar({
     <HStack justifyContent="space-between">
       {Array.from(
         generateBarsForVote(
-          BigNumber.from(forVotes.amount),
-          BigNumber.from(abstainVotes.amount),
-          BigNumber.from(againstVotes.amount)
+          BigNumber.from(proposalData.forVotes.amount),
+          BigNumber.from(proposalData.abstainVotes.amount),
+          BigNumber.from(proposalData.againstVotes.amount)
         )
       ).map((value, idx) => (
         <div

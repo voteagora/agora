@@ -5,6 +5,7 @@ export type ContractInstance<InterfaceType extends TypedInterface> = {
   iface: InterfaceType;
   address: string;
   startingBlock: number;
+  env?: string;
 };
 
 export interface TypedInterface extends ethers.utils.Interface {

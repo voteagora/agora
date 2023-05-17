@@ -19,14 +19,23 @@ import { VoterCard } from "../HomePage/VoterCard";
 import { VotesCastPanelQueryFragment$key } from "./__generated__/VotesCastPanelQueryFragment.graphql";
 import { VotesCastPanelOwnVoteFragment$key } from "./__generated__/VotesCastPanelOwnVoteFragment.graphql";
 import { useAccount } from "wagmi";
+import { CastVoteInputVoteButtonsFragment$key } from "./__generated__/CastVoteInputVoteButtonsFragment.graphql";
+import { ProposalVotesSummaryVoteTimeFragment$key } from "./__generated__/ProposalVotesSummaryVoteTimeFragment.graphql";
+import { VotesCastPanelPropSummaryFragment$key } from "./__generated__/VotesCastPanelPropSummaryFragment.graphql";
 
 export function VotesCastPanel({
   fragmentRef,
   queryFragmentRef,
+  castVoteInputRef,
+  propVotesSummaryRef,
   expanded,
+  proposalFragmentRef,
 }: {
   fragmentRef: VotesCastPanelFragment$key;
   queryFragmentRef: VotesCastPanelQueryFragment$key;
+  castVoteInputRef: CastVoteInputVoteButtonsFragment$key;
+  propVotesSummaryRef: ProposalVotesSummaryVoteTimeFragment$key;
+  proposalFragmentRef: VotesCastPanelPropSummaryFragment$key;
   expanded: boolean;
 }) {
   const queryResult = useFragment(
@@ -69,13 +78,20 @@ export function VotesCastPanel({
   const startTransitionRoute = useStartTransition();
   const openDialog = useOpenDialog();
 
+  const propSummary = useFragment(
+    graphql`
+      fragment VotesCastPanelPropSummaryFragment on Proposal {
+        number
+        ...ProposalVotesSummaryQuorumFragment
+      }
+    `,
+    proposalFragmentRef
+  );
+
   const result = useFragment(
     graphql`
-      fragment VotesCastPanelFragment on Proposal {
-        number
-
+      fragment VotesCastPanelFragment on StandardProposalData {
         ...ProposalVotesSummaryFragment
-        ...CastVoteInputVoteButtonsFragment
       }
     `,
     fragmentRef
@@ -181,13 +197,15 @@ export function VotesCastPanel({
 
           <ProposalVotesSummary
             fragmentRef={result}
+            quorumVotesRef={propSummary}
+            propVotesSummaryRef={propVotesSummaryRef}
             className={css`
               flex-shrink: 0;
             `}
           />
 
           <VotesCastPanelOwnVote
-            proposalId={result.number}
+            proposalId={propSummary.number}
             fragmentRef={queryResult}
           />
 
@@ -202,7 +220,7 @@ export function VotesCastPanel({
         {!expanded && (
           <CastVoteInput
             queryFragmentRef={queryResult}
-            framgnetRef={result}
+            fragmentRef={castVoteInputRef}
             className={css`
               flex-shrink: 0;
               margin-left: ${theme.spacing["4"]};
@@ -215,7 +233,7 @@ export function VotesCastPanel({
                   params: {
                     reason,
                     supportType,
-                    proposalId: result.number,
+                    proposalId: propSummary.number,
                   },
                 });
               });
@@ -293,6 +311,9 @@ function VotesCastPanelVotes({
                 address {
                   address
                 }
+              }
+              proposal {
+                ...ProposalVotesSummaryQuorumFragment
               }
               ...VoteRowFragment
             }
@@ -383,7 +404,7 @@ type HoveredVoterProps = {
   contentClassName: string;
 };
 
-function HoveredVoter({
+export function HoveredVoter({
   hoveredVoterAddress,
   contentClassName,
 }: HoveredVoterProps) {
@@ -409,7 +430,7 @@ type LoadingProps = {
   onVisible: () => void;
 };
 
-function LoadMoreSentinel({ onVisible }: LoadingProps) {
+export function LoadMoreSentinel({ onVisible }: LoadingProps) {
   return (
     <InView
       onChange={(inView) => {

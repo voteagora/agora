@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { TransactionRequest } from "@ethersproject/abstract-provider";
-import { Multicall2__factory } from "./contracts/generated";
 import DataLoader from "dataloader";
+import { Multicall3__factory } from "./contracts/generated/factories/Multicall3__factory";
 
 type CallRequest = {
   target: string;
@@ -13,22 +13,22 @@ type CallResult = {
   returnData: string;
 };
 
-function makeMultiCall2(provider: ethers.providers.Provider) {
-  return Multicall2__factory.connect(
-    "0x5ba1e12693dc8f9c48aad8770482f4739beed696",
+function makeMultiCall3(provider: ethers.providers.Provider) {
+  return Multicall3__factory.connect(
+    "0xcA11bde05977b3631167028862bE2a173976CA11",
     provider
   );
 }
 
 class CallDataLoader extends DataLoader<CallRequest, CallResult, string> {
   constructor(provider: ethers.providers.Provider) {
-    const multiCall = makeMultiCall2(provider);
+    const multiCall = makeMultiCall3(provider);
 
     super(
       async (batch) => {
-        return await multiCall.callStatic.tryAggregate(
-          false,
+        return await multiCall.callStatic.aggregate3(
           batch.map((item) => ({
+            allowFailure: true,
             callData: item.data,
             target: item.target,
           })),
@@ -71,10 +71,6 @@ export class TransparentMultiCallProvider extends ethers.providers
           data: ethers.utils.hexlify(callParams.transaction.data!),
           target: callParams.transaction.to!,
         });
-
-        if (!result.success) {
-          throw new Error("failed");
-        }
 
         return result.returnData;
       }

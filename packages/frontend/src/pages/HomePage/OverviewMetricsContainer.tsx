@@ -22,11 +22,19 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
       fragment OverviewMetricsContainerFragment on Query {
         metrics {
           delegatedSupply {
+            amount
             ...TokenAmountDisplayFragment
           }
 
           totalSupply {
+            amount
             ...TokenAmountDisplayFragment
+          }
+
+          quorum {
+            amount {
+              ...TokenAmountDisplayFragment
+            }
           }
         }
       }
@@ -69,7 +77,15 @@ export function OverviewMetricsContainer({ fragmentRef }: Props) {
         }
       />
 
-      <MetricContainer icon="ballot" title="Quorum" body={<>{"11.9M OP"}</>} />
+      <MetricContainer
+        icon="ballot"
+        title="Quorum"
+        body={
+          <>
+            <TokenAmountDisplay fragment={metrics.quorum.amount} />
+          </>
+        }
+      />
 
       <a
         href="https://github.com/ethereum-optimism/OPerating-manual/blob/main/manual.md"

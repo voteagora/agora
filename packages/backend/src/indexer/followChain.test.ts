@@ -75,7 +75,8 @@ describe("followChain", () => {
       [testContractIndexer as any],
       blockProvider,
       logProvider,
-      storageArea
+      storageArea,
+      "dev"
     );
 
     appendBlocksWithLogs(initialFinalizedBlock, blocks, [

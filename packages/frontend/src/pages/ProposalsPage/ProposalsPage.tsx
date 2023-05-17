@@ -1,19 +1,15 @@
 import { useLazyLoadQuery } from "react-relay/hooks";
 import graphql from "babel-plugin-relay/macro";
 import { ProposalsPageDetailQuery } from "./__generated__/ProposalsPageDetailQuery.graphql";
-import { HStack, VStack } from "../../components/VStack";
-import { css } from "@emotion/css";
-import * as theme from "../../theme";
-import { ProposalDetailPanel } from "./ProposalDetailPanel";
-import { VotesCastPanel } from "./VotesCastPanel";
-import { ProposalsListPanel } from "./ProposalsListPanel";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { motion } from "framer-motion";
 import {
   useNavigate,
   useParams,
 } from "../../components/HammockRouter/HammockRouter";
 import { useAccount } from "wagmi";
+import ProposalsPageStandard from "./ProposalsPageStandard";
+import ProposalsPageApproval from "./ApprovalProposal/ProposalsPageApproval";
 
 export default function ProposalsPage() {
   const { proposalId } = useParams();
@@ -25,7 +21,8 @@ export default function ProposalsPage() {
       navigate({ path: `/proposals/${newProposalID}` });
     });
   };
-  const [proposalsListExpanded, setExpanded] = useState<boolean>(!proposalId);
+
+  // TODO: refer to https://github.com/0xcaff/nouns-agora/blob/deployment/uniswap/packages/frontend/src/components/ActivityFeed/ActivityRow.tsx#L76
 
   const result = useLazyLoadQuery<ProposalsPageDetailQuery>(
     graphql`
@@ -35,17 +32,51 @@ export default function ProposalsPage() {
         $skipAddress: Boolean!
       ) {
         firstProposal: proposal(id: $proposalId) {
+          proposalData {
+            __typename
+            ... on StandardProposalData {
+              ...ProposalsPageStandardDataFragment
+            }
+            ... on ApprovalVotingProposalData {
+              ...ProposalsPageApprovalDataFragment
+            }
+          }
+          # eslint-disable-next-line relay/unused-fields
           number
+          # eslint-disable-next-line relay/must-colocate-fragment-spreads
+          ...VotesCastPanelPropSummaryFragment
+          # eslint-disable-next-line relay/must-colocate-fragment-spreads
           ...ProposalDetailPanelFragment
-          ...VotesCastPanelFragment
+          # eslint-disable-next-line relay/must-colocate-fragment-spreads
+          ...ProposalVotesSummaryVoteTimeFragment
+          # eslint-disable-next-line relay/must-colocate-fragment-spreads
+          ...CastVoteInputVoteButtonsFragment
+          # eslint-disable-next-line relay/must-colocate-fragment-spreads
+          ...ApprovalProposalCriteriaQuorumVotesFragment
+          # eslint-disable-next-line relay/must-colocate-fragment-spreads
+          ...ApprovalCastVoteButtonFragment
+          # eslint-disable-next-line relay/must-colocate-fragment-spreads
+          ...OptionsResultsPanelStatusFragment
         }
+        # eslint-disable-next-line relay/must-colocate-fragment-spreads
         ...ProposalsListPanelFragment
+        # eslint-disable-next-line relay/must-colocate-fragment-spreads
         ...VotesCastPanelQueryFragment
           @arguments(
             address: $address
             skipAddress: $skipAddress
             proposalId: $proposalId
           )
+        # eslint-disable-next-line relay/must-colocate-fragment-spreads
+        ...VotesListPanelQueryFragment
+          @arguments(
+            #  address: $address
+            #  skipAddress: $skipAddress
+            proposalId: $proposalId
+          )
+        # eslint-disable-next-line relay/must-colocate-fragment-spreads
+        ...ApprovalCastVoteButtonDelegateFragment
+          @arguments(address: $address, skipAddress: $skipAddress)
       }
     `,
     {
@@ -70,63 +101,36 @@ export default function ProposalsPage() {
       animate={{ opacity: isPending ? 0.3 : 1 }}
       transition={{ duration: 0.3, delay: isPending ? 0.3 : 0 }}
     >
-      <HStack
-        gap="16"
-        justifyContent="space-between"
-        alignItems="flex-start"
-        className={css`
-          padding-left: ${theme.spacing["4"]};
-          padding-right: ${theme.spacing["4"]};
-          max-width: ${theme.maxWidth["6xl"]};
-          @media (max-width: ${theme.maxWidth["2xl"]}) {
-            flex-direction: column;
-            align-items: stretch;
-            justify-content: flex-end;
+      {(() => {
+        switch (selectedProposal?.proposalData.__typename) {
+          // TODO - change the condition once data is available
+          case "ApprovalVotingProposalData": {
+            return (
+              <ProposalsPageApproval
+                result={result}
+                fragmentRef={selectedProposal.proposalData}
+                proposalRef={selectedProposal}
+                buttonFragmentRef={selectedProposal}
+                delegateFragmentRef={result}
+                queryFragmentRef={result}
+                statusRef={selectedProposal}
+              />
+            );
           }
-        `}
-      >
-        <ProposalDetailPanel fragmentRef={selectedProposal!} />
-
-        <VStack
-          justifyContent="space-between"
-          className={css`
-            position: sticky;
-            top: ${theme.spacing["20"]};
-            max-height: calc(100vh - 148px);
-            flex-shrink: 0;
-            width: ${theme.maxWidth.sm};
-            background-color: ${theme.colors.white};
-            border: 1px solid ${theme.colors.gray.eb};
-            border-radius: ${theme.borderRadius["xl"]};
-            box-shadow: ${theme.boxShadow.newDefault};
-            margin-bottom: ${theme.spacing["8"]};
-            @media (max-width: ${theme.maxWidth["2xl"]}) {
-              align-items: stretch;
-              justify-content: flex-end;
-              width: 100%;
-              height: auto;
-            }
-          `}
-        >
-          <ProposalsListPanel
-            fragmentRef={result}
-            selectedProposalId={selectedProposal?.number ?? null}
-            expanded={proposalsListExpanded}
-            setSelectedProposalID={(nextProposalID: string) => {
-              startTransition(() => {
-                setExpanded(false);
-                setSelectedProposalID(nextProposalID);
-              });
-            }}
-            toggleExpanded={() => setExpanded((expanded) => !expanded)}
-          />
-          <VotesCastPanel
-            fragmentRef={selectedProposal!}
-            queryFragmentRef={result}
-            expanded={proposalsListExpanded}
-          />
-        </VStack>
-      </HStack>
+          case "StandardProposalData": {
+            return (
+              <ProposalsPageStandard
+                startTransition={startTransition}
+                selectedProposal={selectedProposal!}
+                result={result}
+                proposalId={proposalId}
+                setSelectedProposalID={setSelectedProposalID}
+                fragmentRef={selectedProposal.proposalData}
+              />
+            );
+          }
+        }
+      })()}
     </motion.div>
   );
 }

@@ -5,3 +5,6 @@ packages/backend/dist
 
 packages/frontend/build
 
+.yarn/
+.DS_Store
+**/generated
