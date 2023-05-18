@@ -330,29 +330,83 @@ export const governorIndexerTest = makeIndexerDefinition(governorContractTest, {
               },
             },
           });
-        } else {
-          throw new Error(`vote cast non-standard proposal: ${proposalId}`);
-        }
 
-        const voteId = [log.transactionHash, log.logIndex].join("|");
-        handle.saveEntity("Vote", voteId, {
-          id: voteId,
-          voterAddress: event.args.voter,
-          proposalId: event.args.proposalId,
-          support: event.args.support,
-          weight: event.args.weight,
-          reason: (() => {
-            try {
-              return event.args.reason;
-            } catch (e) {
-              // todo: warn somewhere more visible
-              console.warn(e);
-              return "";
-            }
-          })(),
-          transactionHash: log.transactionHash,
-          params: [],
-        });
+          const voteId = [log.transactionHash, log.logIndex].join("|");
+          handle.saveEntity("Vote", voteId, {
+            id: voteId,
+            voterAddress: event.args.voter,
+            proposalId: event.args.proposalId,
+            support: event.args.support,
+            weight: event.args.weight,
+            reason: (() => {
+              try {
+                return event.args.reason;
+              } catch (e) {
+                // todo: warn somewhere more visible
+                console.warn(e);
+                return "";
+              }
+            })(),
+            transactionHash: log.transactionHash,
+            params: [],
+          });
+        } else if (proposal.proposalData.key === "APPROVAL_VOTING") {
+          switch (supportType) {
+            case "FOR":
+              // Handle FOR
+              handle.saveEntity("Proposal", proposalId, {
+                ...proposal,
+                proposalData: {
+                  ...proposal.proposalData,
+                  kind: {
+                    ...proposal.proposalData.kind,
+                    aggregates: {
+                      ...proposal.proposalData.kind.aggregates,
+                      forVotes:
+                        proposal.proposalData.kind.aggregates.forVotes.add(
+                          event.args.weight || 0
+                        ),
+                    },
+                  },
+                },
+              });
+              break;
+            case "ABSTAIN":
+              // Handle ABSTAIN
+              handle.saveEntity("Proposal", proposalId, {
+                ...proposal,
+                proposalData: {
+                  ...proposal.proposalData,
+                  kind: {
+                    ...proposal.proposalData.kind,
+                    aggregates: {
+                      ...proposal.proposalData.kind.aggregates,
+                      abstainVotes:
+                        proposal.proposalData.kind.aggregates.abstainVotes.add(
+                          event.args.weight
+                        ),
+                    },
+                  },
+                },
+              });
+
+              break;
+            default:
+              throw new Error("Unsupported support type");
+          }
+
+          const voteId = [log.transactionHash, log.logIndex].join("|");
+          handle.saveEntity("Vote", voteId, {
+            id: voteId,
+            voterAddress: event.args.voter,
+            proposalId: event.args.proposalId,
+            support: event.args.support,
+            weight: event.args.weight,
+            reason: event.args.reason,
+            transactionHash: log.transactionHash,
+            params: [],
+          });
+        }
       },
     },
     {
