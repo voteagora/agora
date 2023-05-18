@@ -7,8 +7,7 @@ import { useFragment } from "react-relay";
 import { ProposalDetailPanelFragment$key } from "./__generated__/ProposalDetailPanelFragment.graphql";
 import { ProposalDetailPanelCodeChangesFragment$key } from "./__generated__/ProposalDetailPanelCodeChangesFragment.graphql";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
-import { utils, BigNumber } from "ethers";
-import { defaultAbiCoder, Result } from "ethers/lib/utils";
+import { CodeChange } from "./ApprovalProposal/ApprovalProposalDetailPanel";
 
 export const ProposalDetailPanelFragment = graphql`
   fragment ProposalDetailPanelFragment on Proposal {
@@ -118,11 +117,21 @@ function CodeChanges({
           }
           calldata
           value
+          functionName
+          functionArgs
         }
       }
     `,
     fragmentRef
   );
+
+  // If there are no transactions attached to the calldata,
+  // don't show the code changes section
+  const hasNoTransactions = proposalData.transactions?.length === 0;
+
+  if (hasNoTransactions) {
+    return null;
+  }
 
   return (
     <VStack
@@ -150,95 +159,16 @@ function CodeChanges({
               <CodeChange
                 key={idx}
                 target={transaction.target.address}
-                signature={transaction.signature}
                 calldata={transaction.calldata}
                 value={transaction.value}
+                functionName={transaction.functionName}
+                functionArgs={transaction.functionArgs}
               />
             );
           })}
       </VStack>
     </VStack>
   );
-}
-
-// todo: clean up this
-function CodeChange({
-  target,
-  signature,
-  calldata,
-  value,
-}: {
-  target: string;
-  signature?: string;
-  calldata: string;
-  value: string;
-}) {
-  const [name, types] =
-    signature?.substring(0, signature.length - 1)?.split("(") ?? [];
-
-  let functionSig: string, callData: Result, valueAmount: string | undefined;
-  if (!name || !types) {
-    functionSig =
-      name === "" ? "transfer" : name === undefined ? "unknown" : name;
-    callData = types
-      ? [types]
-      : value
-      ? [`${utils.formatEther(value)} ETH`]
-      : [];
-  } else {
-    const valueBN = BigNumber.from(value);
-    callData = defaultAbiCoder
-      .decode(types.split(","), calldata)
-      .join(",")
-      .split(",");
-    functionSig = name;
-    valueAmount = valueBN.gt(0)
-      ? `{ value: ${utils.formatEther(valueBN)} ETH }`
-      : undefined;
-  }
-  return (
-    <div
-      className={css`
-        word-break: break-word;
-        font-size: ${theme.fontSize.xs};
-        font-family: ${theme.fontFamily.mono};
-        font-weight: ${theme.fontWeight.medium};
-        color: ${theme.colors.gray["4f"]};
-        line-height: ${theme.lineHeight["4"]};
-        margin-top: ${theme.spacing[2]};
-        margin-bottom: ${theme.spacing[2]};
-      `}
-    >
-      {linkIfAddress(target)}.{functionSig}
-      {valueAmount}(
-      <br />
-      {callData.map((content, idx) => {
-        return (
-          <div key={idx}>
-            <span>&emsp;{linkIfAddress(content)},</span>
-            <br />
-          </div>
-        );
-      })}
-      )
-    </div>
-  );
-}
-
-function linkIfAddress(content: string) {
-  // TODO: This doesn't handle ENS addresses
-  if (utils.isAddress(content)) {
-    return (
-      <a
-        href={`https://etherscan.io/address/${content}`}
-        target="_blank"
-        rel="noreferrer"
-      >
-        {content}
-      </a>
-    );
-  }
-  return <span>{content}</span>;
 }
 
 function stripTitleFromDescription(title: string, description: string) {

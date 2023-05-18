@@ -123,6 +123,16 @@ function ApprovalCodeChanges({
       : setDisplayedOptions(1);
   };
 
+  // If there are no transactions attached to the calldata,
+  // don't show the code changes section
+  const hasNoTransactions = proposalData.options.every(
+    (option: any) => option.transactions.length === 0
+  );
+
+  if (hasNoTransactions) {
+    return null;
+  }
+
   return (
     <VStack
       gap="1"
@@ -163,7 +173,7 @@ function ApprovalCodeChanges({
                   {"//"} {option.description}
                 </p>
                 {option.transactions.map((transaction: any, idx: any) => (
-                  <ApprovalCodeChange
+                  <CodeChange
                     key={idx}
                     target={transaction.target.address}
                     calldata={transaction.calldata}
@@ -200,8 +210,7 @@ function ApprovalCodeChanges({
   );
 }
 
-// todo: clean up this
-function ApprovalCodeChange({
+export function CodeChange({
   target,
   calldata,
   value,
