@@ -175,8 +175,8 @@ function SingleOption({
               height: 6px;
               background-color: ${isApproved
                 ? status === "EXECUTED"
-                  ? "#23b100"
-                  : theme.colors.yellow["500"]
+                  ? theme.colors.green["600"]
+                  : theme.colors.orange["400"]
                 : theme.colors.gray["4f"]};
               position: absolute;
               border-radius: 10px;
