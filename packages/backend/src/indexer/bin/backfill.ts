@@ -20,11 +20,19 @@ import { makeProgressBar } from "../utils/progressBarUtils";
 async function main() {
   const store = await LevelEntityStore.open();
 
-  const highestCommonBlock = await calculateHighestCommonBlock(indexers);
+  const envIndexers = indexers.flatMap((it) => {
+    if (it.env && it.env !== process.argv[2]) {
+      return [];
+    }
+    return it;
+  });
+
+  console.log({ envIndexers });
+
+  const highestCommonBlock = await calculateHighestCommonBlock(envIndexers);
   if (!highestCommonBlock) {
     return;
   }
-
   const entityStoreFinalizedBlock = await store.getFinalizedBlock();
   if (
     entityStoreFinalizedBlock &&
