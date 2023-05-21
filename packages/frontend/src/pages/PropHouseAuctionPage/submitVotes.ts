@@ -65,7 +65,7 @@ export async function submitVotes(
             },
             blockNumber,
             assignment.votingAddress.lots[0].authorityChain.slice(),
-            provider
+            typedSigner
           );
         }
       }

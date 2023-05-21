@@ -63,12 +63,15 @@ export async function* signLiquidDelegatedVotes(
   assignment: AddressVoteAssignment,
   blockNumber: number,
   authorityChain: string[],
-  signer: ethers.providers.Provider
+  typedSigner: ethers.Signer & TypedDataSigner
 ) {
   const payload = makePayload(assignment.votes, blockNumber);
   const serializedPayload = serializePayload(payload);
 
-  const alligator = Alligator__factory.connect(nounsAlligator.address, signer);
+  const alligator = Alligator__factory.connect(
+    nounsAlligator.address,
+    typedSigner
+  );
   const transaction = await alligator.sign(
     authorityChain,
     ethers.utils.hashMessage(serializedPayload)
