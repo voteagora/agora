@@ -144,7 +144,16 @@ function SingleOption({
           margin-bottom: ${theme.spacing["1"]};
         `}
       >
-        <p>{description}</p>
+        <p
+          className={css`
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            max-width: 50%;
+          `}
+        >
+          {description}
+        </p>
         <div>
           <TokenAmountDisplay fragment={votes} />
           <span
