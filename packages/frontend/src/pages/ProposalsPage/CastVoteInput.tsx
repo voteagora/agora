@@ -346,7 +346,7 @@ function VoteButtons({
   ];
 
   if (!proposalVoteLots.length) {
-    return <DisabledVoteButton reason="No available lots" />;
+    return <DisabledVoteButton reason="No available votes" />;
   }
 
   return (

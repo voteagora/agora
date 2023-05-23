@@ -496,7 +496,7 @@ function PlaceBid({ market }: { market: any }) {
     args: [auctionId, value],
   });
 
-  const write = useContractWrite(
+  const { write } = useContractWrite(
     zoraAuctionHouse,
     "createBid",
     [auctionId, value],

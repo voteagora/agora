@@ -14,6 +14,7 @@ import wallet from "./wallet.svg";
 import walletConnected from "./walletConnected.svg";
 import vote from "./vote.svg";
 import liquid from "./liquid.svg";
+import spinner from "./spinner.svg";
 import power from "./power.svg";
 
 export const icons = {
@@ -33,5 +34,6 @@ export const icons = {
   walletConnected,
   vote,
   liquid,
+  spinner,
   power,
 };

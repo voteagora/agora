@@ -4,7 +4,6 @@ import { UserIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
 import { motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
-import { ReactNode } from "react";
 import { nounsAlligator, nounsDao } from "@agora/common";
 import { Address } from "@wagmi/core";
 import { BigNumber } from "ethers";
@@ -21,6 +20,7 @@ import { DialogProps } from "../../components/DialogProvider/types";
 import { CastVoteDialogQuery } from "./__generated__/CastVoteDialogQuery.graphql";
 import { CastVoteDialogTokenDelegationLotVoteCellFragment$key } from "./__generated__/CastVoteDialogTokenDelegationLotVoteCellFragment.graphql";
 import { CastVoteDialogLiquidDelegationLotVoteCellFragment$key } from "./__generated__/CastVoteDialogLiquidDelegationLotVoteCellFragment.graphql";
+import { CastVoteLayout } from "./CastVoteLayout";
 
 type Props = DialogProps<CastVoteDialogType>;
 export default function CastVoteDialog(props: Props) {
@@ -271,7 +271,7 @@ function LiquidDelegationLotVoteCell({
     ];
   });
 
-  const writeLiquid = useContractWrite(
+  const { write, isLoading, isError, isSuccess, canExecute } = useContractWrite(
     nounsAlligator,
     "castRefundableVotesWithReasonBatched",
     [
@@ -292,26 +292,22 @@ function LiquidDelegationLotVoteCell({
   }
 
   return (
-    <HStack
-      className={css`
-        padding: ${theme.spacing["4"]};
-      `}
-      justifyContent="space-between"
-      alignItems="center"
+    <CastVoteLayout
+      isError={isError}
+      isSuccess={isSuccess}
+      isLoading={isLoading}
+      canExecute={canExecute}
+      write={write}
     >
-      <HStack alignItems="center">
-        <NounGridChildren
-          liquidRepresentation={[]}
-          totalNouns={nouns.length}
-          count={4}
-          nouns={nouns}
-          imageSize="8"
-          overflowFontSize="xs"
-        />
-      </HStack>
-
-      <VoteButton onClick={() => writeLiquid()}>Vote</VoteButton>
-    </HStack>
+      <NounGridChildren
+        totalNouns={nouns.length}
+        liquidRepresentation={[]}
+        nouns={nouns}
+        count={4}
+        imageSize="8"
+        overflowFontSize="xs"
+      />
+    </CastVoteLayout>
   );
 }
 
@@ -345,7 +341,7 @@ function TokenDelegationLotVoteCell({
     fragment
   );
 
-  const writeTokenVote = useContractWrite(
+  const { write, isLoading, isError, isSuccess, canExecute } = useContractWrite(
     nounsDao,
     "castRefundableVoteWithReason",
     [BigNumber.from(proposalId), supportType, reason],
@@ -359,67 +355,21 @@ function TokenDelegationLotVoteCell({
   }
 
   return (
-    <HStack
-      className={css`
-        padding: ${theme.spacing["4"]};
-      `}
-      justifyContent="space-between"
-      alignItems="center"
+    <CastVoteLayout
+      isError={isError}
+      isSuccess={isSuccess}
+      isLoading={isLoading}
+      canExecute={canExecute}
+      write={write}
     >
-      <HStack alignItems="center">
-        {/* TODO: These don't overlap like in the design */}
-        <NounGridChildren
-          nouns={delegate.delegateSnapshot.nounsRepresented}
-          liquidRepresentation={[]}
-          count={4}
-          imageSize="8"
-          overflowFontSize="xs"
-        />
-      </HStack>
-
-      {/* TODO: There are a lot of reasons why write is unavailable. We've captured
-        most of them by disable the vote buttons in the VotesCastPanel, so we're assuming
-        the user already voted if write is unavailable */}
-      {/* TODO: Make it obvious that the user already voted. Right now the button is just disabled
-        Haven't done-so yet because the text "Already Voted" makes the button look ugly*/}
-      <VoteButton onClick={() => writeTokenVote()}>Vote</VoteButton>
-    </HStack>
+      {/* TODO: These don't overlap like in the design */}
+      <NounGridChildren
+        liquidRepresentation={[]}
+        nouns={delegate.delegateSnapshot.nounsRepresented}
+        count={4}
+        imageSize="8"
+        overflowFontSize="xs"
+      />
+    </CastVoteLayout>
   );
 }
-
-const VoteButton = ({
-  children,
-  onClick,
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-}) => {
-  return (
-    <div
-      onClick={onClick}
-      className={css`
-        text-align: center;
-        border-radius: ${theme.spacing["2"]};
-        border: 1px solid ${theme.colors.gray.eb};
-        font-weight: ${theme.fontWeight.semibold};
-        font-size: ${theme.fontSize.xs};
-        color: ${theme.colors.black};
-        padding: ${theme.spacing["2"]} ${theme.spacing["6"]};
-        cursor: pointer;
-
-        ${!onClick &&
-        css`
-          background: ${theme.colors.gray.eb};
-          color: ${theme.colors.gray["700"]};
-          cursor: not-allowed;
-        `}
-
-        :hover {
-          background: ${theme.colors.gray.eb};
-        }
-      `}
-    >
-      {children}
-    </div>
-  );
-};

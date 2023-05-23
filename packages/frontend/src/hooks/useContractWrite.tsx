@@ -11,6 +11,7 @@ import {
 import {
   usePrepareContractWrite as usePrepareContractWriteUNSAFE,
   useContractWrite as useContractWriteUNSAFE,
+  useWaitForTransaction as useWaitForTransactionUNSAFE,
 } from "wagmi";
 import { CallOverrides } from "ethers";
 import { useCallback } from "react";
@@ -33,7 +34,7 @@ export function useContractWrite<
   onSuccess: () => void,
   overrides?: CallOverrides
 ) {
-  const { config } = usePrepareContractWriteUNSAFE({
+  const { config, error } = usePrepareContractWriteUNSAFE({
     address: instance.address as any,
     abi: instance.abi as any,
     functionName: name,
@@ -48,7 +49,7 @@ export function useContractWrite<
     overrides,
   });
 
-  const { write } = useContractWriteUNSAFE({
+  const { data, write } = useContractWriteUNSAFE({
     ...config,
     request: (() => {
       if (!config.request) {
@@ -72,9 +73,21 @@ export function useContractWrite<
     },
   });
 
-  return useCallback(() => {
+  const { isLoading, isSuccess, isError } = useWaitForTransactionUNSAFE({
+    hash: data?.hash,
+  });
+
+  const writeFn = useCallback(() => {
     write?.();
   }, [write]);
+
+  return {
+    write: writeFn,
+    isLoading,
+    isSuccess,
+    isError,
+    canExecute: !error,
+  };
 }
 
 export function useContractWriteFn<
