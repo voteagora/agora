@@ -27,7 +27,7 @@ export const useGenerateChatGpt = () => {
           temperature: 0.7,
           messages,
         },
-        { apiKey: process.env.VITE_OPENAI_KEY }
+        { apiKey: import.meta.env.VITE_OPENAI_KEY }
       );
 
       for await (const chunk of yieldStream(stream)) {

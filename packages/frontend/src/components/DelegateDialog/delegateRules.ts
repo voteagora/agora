@@ -53,6 +53,9 @@ export function delegateRulesToContractState(
           case "VOTE_ALL":
             return PERMISSION_VOTE | PERMISSION_SIGN | PERMISSION_PROPOSE;
 
+          case "PROPOSE_ONLY":
+            return PERMISSION_PROPOSE;
+
           case "VOTE_PROPHOUSE":
             return PERMISSION_SIGN;
         }

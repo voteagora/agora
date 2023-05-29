@@ -7,7 +7,10 @@ import {
   toPermissions,
 } from "../../../../VoterPanel/Rows/DelegatedToListRow/PermissionsRule";
 
-export type VotingScopeSettingType = "VOTE_ALL" | "VOTE_PROPHOUSE";
+export type VotingScopeSettingType =
+  | "VOTE_ALL"
+  | "PROPOSE_ONLY"
+  | "VOTE_PROPHOUSE";
 
 export type WrappedVotingScopeSetting =
   | {
@@ -30,6 +33,11 @@ export function VotingScopeSelector({ value, onChange }: Props) {
       title: "Delegate can vote on anything",
       subTitle: "They can vote onchain and on Prop House rounds.",
       value: "VOTE_ALL" as const,
+    },
+    {
+      title: "Delegate can only create proposals",
+      subTitle: "They can only create onchain proposals.",
+      value: "PROPOSE_ONLY" as const,
     },
     {
       title: "Delegate can vote only on Prop House",
@@ -101,6 +109,13 @@ export function existingContractStateIntoVotingScopeSetting(
           return {
             kind: "CHOOSEN",
             type: "VOTE_ALL",
+          };
+        }
+
+        if (rules.permissionPropose) {
+          return {
+            kind: "CHOOSEN",
+            type: "PROPOSE_ONLY",
           };
         }
 

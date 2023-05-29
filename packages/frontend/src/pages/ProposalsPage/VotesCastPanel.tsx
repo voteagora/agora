@@ -284,7 +284,12 @@ function VotesCastPanelVotes({
   }
 `;
   return (
-    <VStack gap="4">
+    <VStack
+      gap="4"
+      className={css`
+        padding-bottom: ${theme.spacing["6"]};
+      `}
+    >
       {items.map((item, idx) => {
         switch (item.type) {
           case "LOADING": {
