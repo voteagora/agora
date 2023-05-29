@@ -18,7 +18,11 @@ import {
   defaultAccount,
   makeDefaultAggregate,
 } from "../../indexer/contracts/GovernanceToken";
-import { exactIndexValue, Reader } from "../../indexer/storage/reader";
+import {
+  exactIndexValue,
+  IndexedValue,
+  Reader,
+} from "../../indexer/storage/reader";
 import { entityDefinitions } from "../../indexer/contracts/entityDefinitions";
 import { RuntimeType } from "../../indexer/serde";
 import { collectGenerator } from "../../indexer/utils/generatorUtils";
@@ -27,6 +31,7 @@ import { driveReaderByIndex } from "../pagination";
 import { formSchema } from "../../formSchema";
 import { approximateBlockTimestampForBlock } from "../../utils/blockTimestamp";
 import { makeCompoundKey } from "../../indexer/indexKey";
+import { DelegatesWhere } from "./generated/types";
 
 const amountSpec = {
   currency: "ENS",
@@ -120,7 +125,39 @@ export const Query: QueryResolvers = {
     ).map((it) => it.value);
   },
 
-  async delegates(_, { orderBy, first, where, after }, { reader }) {
+  async delegates(
+    _,
+    { orderBy, first, where, after },
+    { reader, delegateStorage }
+  ) {
+    const filterFn = async (
+      value: IndexedValue<
+        Readonly<RuntimeType<typeof entityDefinitions["Address"]["serde"]>>
+      >
+    ) => {
+      if (!where) {
+        return true;
+      }
+      const normalizedAddress = ethers.utils.getAddress(value.value.address);
+      const statement = await delegateStorage.getDelegate(normalizedAddress);
+
+      if (
+        !statement ||
+        !statement.statement ||
+        !statement.statement.signedPayload
+      ) {
+        return where === DelegatesWhere.WithoutStatement;
+      }
+
+      const parsedStatement = JSON.parse(statement.statement.signedPayload);
+
+      if (parsedStatement.delegateStatement) {
+        return where === DelegatesWhere.WithStatement;
+      } else {
+        return where === DelegatesWhere.WithoutStatement;
+      }
+    };
+
     return await driveReaderByIndex(
       reader,
       "Address",
@@ -140,7 +177,9 @@ export const Query: QueryResolvers = {
         }
       })(),
       first,
-      after ?? null
+      after ?? null,
+      undefined,
+      filterFn
     );
   },
 };

@@ -1,7 +1,12 @@
-import { EntityDefinitions, Reader } from "../indexer/storage/reader";
+import {
+  EntityDefinitions,
+  IndexedValue,
+  Reader,
+} from "../indexer/storage/reader";
 import { RuntimeType } from "../indexer/serde";
 import {
   collectGenerator,
+  filterGenerator,
   limitGenerator,
   skipGenerator,
 } from "../indexer/utils/generatorUtils";
@@ -34,35 +39,43 @@ export async function driveReaderByIndex<
   indexName: IndexName,
   first: number,
   after: string | null,
-  prefix?: IndexKeyType
+  prefix?: IndexKeyType,
+  filterFn?: (
+    item: IndexedValue<
+      Readonly<RuntimeType<EntityDefinitions[EntityName]["serde"]>>
+    >
+  ) => Promise<boolean> | boolean
 ): Promise<Connection<RuntimeType<EntityDefinitions[EntityName]["serde"]>>> {
   const edges = (
     await collectGenerator(
       limitGenerator(
-        skipGenerator(
-          reader.getEntitiesByIndex(entityName, indexName, {
-            prefix,
+        filterGenerator(
+          skipGenerator(
+            reader.getEntitiesByIndex(entityName, indexName, {
+              prefix,
 
-            starting: (() => {
-              if (after) {
-                const [indexKey, entityId] = after.split("|");
+              starting: (() => {
+                if (after) {
+                  const [indexKey, entityId] = after.split("|");
 
-                return {
-                  indexKey,
-                  entityId,
-                };
-              }
+                  return {
+                    indexKey,
+                    entityId,
+                  };
+                }
 
-              if (prefix) {
-                return {
-                  indexKey: prefix.indexKey,
-                };
-              }
+                if (prefix) {
+                  return {
+                    indexKey: prefix.indexKey,
+                  };
+                }
 
-              return undefined;
-            })(),
-          }),
-          after ? 1 : 0
+                return undefined;
+              })(),
+            }),
+            after ? 1 : 0
+          ),
+          filterFn || (() => true)
         ),
         first
       )
