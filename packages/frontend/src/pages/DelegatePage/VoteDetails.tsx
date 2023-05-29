@@ -43,7 +43,8 @@ export function VoteDetails({ voteFragment }: Props) {
 
           ...ProposalLinkFragment
 
-          totalValue
+          ethValue
+          usdcValue
         }
       }
     `,
@@ -82,8 +83,11 @@ export function VoteDetails({ voteFragment }: Props) {
             <ProposalLink fragmentRef={vote.proposal}>
               Prop {vote.proposal.number}
             </ProposalLink>
-            <ValuePart value={vote.proposal.totalValue} />-{" "}
-            {formatDistanceToNow(new Date(vote.approximateTimestamp))} ago
+            <ValuePart
+              ethValue={vote.proposal.ethValue}
+              usdcValue={vote.proposal.usdcValue}
+            />
+            - {formatDistanceToNow(new Date(vote.approximateTimestamp))} ago
           </div>
 
           <VoteTitle>

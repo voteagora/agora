@@ -90,6 +90,8 @@ type Proposal {
   status: ProposalStatus!
 
   totalValue: BigInt!
+  ethValue: BigInt!
+  usdcValue: BigInt!
 
   proposer: Delegate!
 }

@@ -21,7 +21,8 @@ export function OnChainProposalRow({
         number
         status
         title
-        totalValue
+        ethValue
+        usdcValue
         proposer {
           address {
             resolvedName {
@@ -35,14 +36,30 @@ export function OnChainProposalRow({
     fragmentRef
   );
 
+  const titleAmount = () => {
+    if (proposal.usdcValue !== "0" && proposal.ethValue !== "0") {
+      return `${parseFloat(
+        utils.formatUnits(proposal.usdcValue, 6)
+      ).toLocaleString("en-US")} USDC + ${parseFloat(
+        utils.formatEther(proposal.ethValue)
+      ).toFixed(1)} ETH`;
+    } else if (proposal.usdcValue !== "0") {
+      return `${parseFloat(
+        utils.formatUnits(proposal.usdcValue, 6)
+      ).toLocaleString("en-US")} USDC`;
+    } else {
+      return `${parseFloat(utils.formatEther(proposal.ethValue)).toFixed(
+        1
+      )} ETH`;
+    }
+  };
+
   return (
     <ProposalRow
       proposerResolvedName={proposal.proposer.address.resolvedName}
       onClick={onClick}
       selected={selected}
-      typeTitle={`Prop ${proposal.number} for ${utils.formatEther(
-        proposal.totalValue
-      )} ETH`}
+      typeTitle={`Prop ${proposal.number} for ${titleAmount()}`}
       status={proposal.status}
       statusColor={colorForOnChainProposalStatus(proposal.status)}
       title={proposal.title}

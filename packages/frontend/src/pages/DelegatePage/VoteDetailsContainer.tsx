@@ -48,17 +48,44 @@ export function VoteTitle({ children }: VoteTitleProps) {
 }
 
 export type ValuePartProps = {
-  value: string;
+  ethValue: string;
+  usdcValue: string;
 };
 
-export function ValuePart({ value }: ValuePartProps) {
-  const amount = useMemo(() => BigNumber.from(value), [value]);
+export function ValuePart({ ethValue, usdcValue }: ValuePartProps) {
+  const ethAmount = useMemo(() => BigNumber.from(ethValue), [ethValue]);
+  const usdcAmount = useMemo(() => BigNumber.from(usdcValue), [usdcValue]);
 
   return (
     <>
-      {!amount.isZero() ? (
-        <> requesting {parseFloat(utils.formatEther(amount)).toFixed(1)} ETH</>
-      ) : null}{" "}
+      {!usdcAmount.isZero() && !ethAmount.isZero() ? (
+        <>
+          {" "}
+          requesting{" "}
+          {parseFloat(utils.formatUnits(usdcAmount, 6)).toLocaleString(
+            "en-US"
+          )}{" "}
+          USDC + {parseFloat(utils.formatEther(ethAmount)).toFixed(1)} ETH
+        </>
+      ) : !usdcAmount.isZero() ? (
+        <>
+          {" "}
+          requesting{" "}
+          {parseFloat(utils.formatUnits(usdcAmount, 6)).toLocaleString(
+            "en-US"
+          )}{" "}
+          USDC{" "}
+        </>
+      ) : !ethAmount.isZero() ? (
+        <>
+          {" "}
+          requesting {parseFloat(utils.formatEther(ethAmount)).toFixed(
+            1
+          )} ETH{" "}
+        </>
+      ) : (
+        ""
+      )}
     </>
   );
 }

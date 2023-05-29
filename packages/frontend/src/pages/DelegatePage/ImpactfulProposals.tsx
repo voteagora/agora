@@ -132,7 +132,8 @@ function Proposal({ fragment }: ProposalProps) {
       fragment ImpactfulProposalsProposalFragment on Proposal {
         number
         title
-        totalValue
+        ethValue
+        usdcValue
 
         ...ProposalLinkFragment
       }
@@ -157,7 +158,11 @@ function Proposal({ fragment }: ProposalProps) {
             color: #66676b;
           `}
         >
-          {"Prop " + proposal.number} <ValuePart value={proposal.totalValue} />
+          {"Prop " + proposal.number}{" "}
+          <ValuePart
+            ethValue={proposal.ethValue}
+            usdcValue={proposal.usdcValue}
+          />
         </div>
         {proposal.title}
       </VStack>

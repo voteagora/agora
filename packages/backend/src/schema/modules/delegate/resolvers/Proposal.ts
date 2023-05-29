@@ -6,6 +6,7 @@ import {
   proposalStatus,
 } from "../../../../shared/contracts/indexers/IGovernor/entities/proposal";
 import { Resolvers } from "../module";
+import { decodeUSDCTransaction } from "../../../../utils/decodeUSDC";
 
 export type ProposalModel = EntityRuntimeType<typeof IGovernorProposal>;
 
@@ -64,6 +65,27 @@ export const Proposal: Resolvers["Proposal"] = {
 
   totalValue({ transactions }) {
     return transactions.reduce((acc, tx) => acc + tx.value, 0n);
+  },
+
+  ethValue({ transactions }) {
+    return transactions.reduce((acc, tx) => {
+      if (tx.target !== "0x4f2aCdc74f6941390d9b1804faBc3E780388cfe5") {
+        return acc + tx.value;
+      }
+      return acc;
+    }, 0n);
+  },
+
+  usdcValue({ transactions }) {
+    return transactions.reduce((acc, tx) => {
+      if (tx.target === "0xd97Bcd9f47cEe35c0a9ec1dc40C1269afc9E8E1D") {
+        const decoded = decodeUSDCTransaction(tx.signature, tx.calldata);
+        if (decoded && decoded.amount) {
+          return acc + decoded.amount.toBigInt();
+        }
+      }
+      return acc;
+    }, 0n);
   },
 
   title({ description }) {

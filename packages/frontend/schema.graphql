@@ -124,6 +124,8 @@ type Proposal {
   transactions: [ProposalTransaction!]!
   status: ProposalStatus!
   totalValue: BigInt!
+  ethValue: BigInt!
+  usdcValue: BigInt!
   proposer: Delegate!
 }
 

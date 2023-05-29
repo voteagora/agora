@@ -25,7 +25,7 @@ export const Delegate: Resolvers["Delegate"] = {
       return {
         id: `PropHouseRoundVotes|${address}|${vote.auction.id}`,
         address: { address },
-        createdAt: new Date(vote.createdAt),
+        createdAt: new Date(parseInt(vote.createdAt)),
         round: vote.auction,
         votes: vote.votes.map((vote) => ({
           address: { address },

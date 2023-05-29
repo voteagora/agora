@@ -26,7 +26,8 @@ export function OnChainProposalRow({
         number
         status
         title
-        totalValue
+        ethValue
+        usdcValue
         forVotes {
           amount
         }
@@ -41,6 +42,24 @@ export function OnChainProposalRow({
     `,
     fragmentRef
   );
+
+  const requestingAmount = () => {
+    if (proposal.usdcValue !== "0" && proposal.ethValue !== "0") {
+      return `${parseFloat(
+        utils.formatUnits(proposal.usdcValue, 6)
+      ).toLocaleString("en-US")} USDC + ${parseFloat(
+        utils.formatEther(proposal.ethValue)
+      ).toFixed(1)} ETH`;
+    } else if (proposal.usdcValue !== "0") {
+      return `${parseFloat(
+        utils.formatUnits(proposal.usdcValue, 6)
+      ).toLocaleString("en-US")} USDC`;
+    } else {
+      return `${parseFloat(utils.formatEther(proposal.ethValue)).toFixed(
+        1
+      )} ETH`;
+    }
+  };
 
   return (
     <Row path={`/proposals/${proposal.number}`}>
@@ -83,9 +102,7 @@ export function OnChainProposalRow({
         </StatusText>
       </RowValue>
 
-      <RowValue title={"Requesting"}>
-        {parseFloat(utils.formatEther(proposal.totalValue)).toFixed(1)} ETH
-      </RowValue>
+      <RowValue title={"Requesting"}>{requestingAmount()}</RowValue>
 
       <Activity fragmentRef={proposal} />
     </Row>
