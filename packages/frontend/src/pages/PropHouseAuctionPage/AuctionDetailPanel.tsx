@@ -250,7 +250,7 @@ function AuctionProposal({
                       ...Array.from(oldValue.entries()),
                       [
                         proposal.number,
-                        BigNumber.from(event.target.value ?? "0").toNumber(),
+                        BigNumber.from(event.target.value || "0").toNumber(),
                       ],
                     ])
                 )
