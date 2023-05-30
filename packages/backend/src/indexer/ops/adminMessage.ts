@@ -28,15 +28,18 @@ export type AdminMessage =
 export async function sendAdminMessage(message: AdminMessage) {
   while (true) {
     try {
-      const response = await fetch("https://agora.ensdao.org/admin/ops", {
-        method: "POST",
-        body: JSON.stringify(message),
-        headers: {
-          "x-admin-api-key": process.env.ADMIN_API_KEY!,
-          "x-durable-object-instance-name":
-            process.env.DURABLE_OBJECT_INSTANCE_NAME!,
-        },
-      });
+      const response = await fetch(
+        "https://ens-agora-dev.agora-dev.workers.dev/admin/ops",
+        {
+          method: "POST",
+          body: JSON.stringify(message),
+          headers: {
+            "x-admin-api-key": process.env.ADMIN_API_KEY!,
+            "x-durable-object-instance-name":
+              process.env.DURABLE_OBJECT_INSTANCE_NAME!,
+          },
+        }
+      );
       if (response.status !== 200) {
         throw new Error(
           `non-200 response ${response.status} ${
