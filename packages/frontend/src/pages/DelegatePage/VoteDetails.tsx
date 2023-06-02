@@ -55,7 +55,7 @@ export function VoteDetails({ voteFragment }: Props) {
     voteFragment
   );
 
-  const proposalHref = `https://www.tally.xyz/governance/eip155:1:0x323A76393544d5ecca80cd6ef2A560C6a395b7E3/proposal/${vote.proposal.number}`;
+  const proposalHref = `https://www.tally.xyz/gov/optimism/proposal/${vote.proposal.number}`;
 
   const supportType = toSupportType(
     vote.supportDetailed,
