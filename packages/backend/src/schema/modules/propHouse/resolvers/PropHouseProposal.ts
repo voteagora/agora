@@ -26,8 +26,8 @@ export const PropHouseProposal: Resolvers["PropHouseProposal"] = {
     return createdDate;
   },
 
-  voteCount({ voteCount }) {
-    return voteCount;
+  voteCount({ voteCountFor, voteCountAgainst }) {
+    return voteCountFor + voteCountAgainst;
   },
 
   proposer({ address }) {

@@ -32,5 +32,6 @@ export const proposal = z.object({
   createdDate: z.string(),
   lastUpdatedDate: z.string().or(z.null()),
   visible: z.boolean(),
-  voteCount: z.number(),
+  voteCountFor: z.number(),
+  voteCountAgainst: z.number(),
 });
