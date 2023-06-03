@@ -55,7 +55,7 @@ export function VoteDetails({ voteFragment }: Props) {
     voteFragment
   );
 
-  const proposalHref = `https://www.tally.xyz/gov/optimism/proposal/${vote.proposal.number}`;
+  const proposalHref = `/proposals/${vote.proposal.number}`;
 
   const supportType = toSupportType(
     vote.supportDetailed,
