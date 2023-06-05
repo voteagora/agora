@@ -625,12 +625,12 @@ export const ApprovalVotingCriteria: ApprovalVotingCriteriaResolvers = {
 export type ThresholdVotingCriteriaModel = ApprovalVotingCriteriaModel;
 
 export const ThresholdVotingCriteria: ThresholdVotingCriteriaResolvers = {
-  threshold({ criteriaValue, budgetToken }) {
-    const currencySpec = knownTokens[budgetToken];
+  threshold({ criteriaValue }) {
+    const currencySpec = knownTokens[OP_TOKEN_ADDRESS];
     if (currencySpec) {
       return asTokenAmountFromSpec(currencySpec, criteriaValue);
     }
-    return asUnknownTokenAmount(criteriaValue, budgetToken);
+    return asUnknownTokenAmount(criteriaValue, OP_TOKEN_ADDRESS);
   },
 };
 
