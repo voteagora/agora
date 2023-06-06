@@ -1,6 +1,5 @@
 import { ethers } from "ethers";
 import { BlockIdentifier } from "../storageHandle";
-import { compareBy } from "../utils/sortUtils";
 import { executeWithRetries } from "../utils/asyncUtils";
 
 export type BlockProviderBlock = {
@@ -13,15 +12,6 @@ export interface BlockProvider {
   getBlockByHash(hash: string): Promise<BlockProviderBlock>;
   getBlockByNumber(number: number): Promise<BlockProviderBlock | null>;
   getLatestBlock(): Promise<BlockProviderBlock>;
-
-  /**
-   * Returns a list of blocks, sorted in ascending order of
-   * {@link BlockProviderBlock#number}.
-   */
-  getBlockRange(
-    fromBlockInclusive: number,
-    toBlockInclusive: number
-  ): Promise<BlockProviderBlock[]>;
 }
 
 export const maxBlockRange = 1000;
@@ -42,23 +32,6 @@ export class EthersBlockProvider implements BlockProvider {
     }
 
     return transformResponse(raw);
-  }
-
-  async getBlockRange(
-    fromBlockInclusive: number,
-    toBlockInclusive: number
-  ): Promise<BlockProviderBlock[]> {
-    const blocks: any[] = await executeWithRetries(() =>
-      this.provider.send("eth_getBlockRange", [
-        toHexNumber(fromBlockInclusive),
-        toHexNumber(toBlockInclusive),
-        false,
-      ])
-    );
-
-    return blocks
-      .map((block) => transformResponse(block))
-      .sort(compareBy((it) => it.number));
   }
 
   async getBlockByNumber(number: number): Promise<BlockProviderBlock> {
