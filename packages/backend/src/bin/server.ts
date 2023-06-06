@@ -9,14 +9,16 @@ import { loggingErrorReporter } from "../shared/schema/helpers/nonFatalErrors";
 import { makeContext, nounsDeployment } from "../deployments/nouns";
 import { executeServer } from "../shared/indexer/bin/server";
 import { pathForDeployment } from "../shared/indexer/paths";
+import { Env } from "../shared/types";
 
 async function main() {
-  const provider = makeProvider();
+  const env = (process.env.ENVIRONMENT || "dev") as Env;
   const deployment = "nouns";
   const dataDirectory = pathForDeployment(deployment);
+  const provider = makeProvider();
 
   await executeServer({
-    ...nounsDeployment,
+    ...nounsDeployment(env),
 
     store: await LevelEntityStore.open(dataDirectory),
     provider,

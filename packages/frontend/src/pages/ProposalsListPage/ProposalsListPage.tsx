@@ -137,13 +137,12 @@ export default function ProposalsListPage({
               {proposals.map((proposal, idx) => {
                 switch (proposal.type) {
                   case "PROP_HOUSE_AUCTION":
-                    return (
+                    return import.meta.env.VITE_DEPLOY_ENV === "prod" ? (
                       <PropHouseAuctionRow
                         key={idx}
                         fragmentRef={proposal.auction}
                       />
-                    );
-
+                    ) : null;
                   case "ON_CHAIN":
                     return (
                       <OnChainProposalRow

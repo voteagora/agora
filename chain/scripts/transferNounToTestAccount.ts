@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
 import { NounsToken__factory } from "./generated";
+import { constants } from "@agora/common/src/constants";
 
 async function main() {
   const noun12Address = "0x008c84421dA5527F462886cEc43D2717B686A7e4";
@@ -9,7 +10,7 @@ async function main() {
   const signer = await ethers.getImpersonatedSigner(noun12Address);
 
   const nounsToken = NounsToken__factory.connect(
-    "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03",
+    constants("dev").nounsToken.address,
     signer
   );
 

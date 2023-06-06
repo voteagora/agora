@@ -1,7 +1,7 @@
 import { createServer, Plugin } from "@graphql-yoga/common";
 import { Toucan } from "toucan-js";
 import { ethers } from "ethers";
-import { TransparentMultiCallProvider } from "@agora/common";
+import { formatAlchemyUrl, TransparentMultiCallProvider } from "@agora/common";
 
 import { AnalyticsEngineReporter } from "../shared/indexer/storage/entityStore/durableObjects/storageInterface/analyticsEngineReporter";
 import { useSentry } from "../shared/workers/sentry/useSentry";
@@ -57,9 +57,8 @@ export class StorageDurableObjectV1 {
   private readonly tracer: DatadogTracer;
 
   constructor(state: DurableObjectState, env: Env) {
-    const provider = new ethers.providers.AlchemyProvider(
-      "mainnet",
-      env.ALCHEMY_API_KEY
+    const provider = new ethers.providers.JsonRpcProvider(
+      formatAlchemyUrl(env.ENVIRONMENT, env.ALCHEMY_API_KEY)
     );
 
     this.state = state;
@@ -73,8 +72,8 @@ export class StorageDurableObjectV1 {
     this.followChainDriver = new FollowChainDriver(
       this.storageWithAnalyticsEngineReporter,
       provider,
-      nounsDeployment.indexers,
-      nounsDeployment.entityDefinitions
+      nounsDeployment(this.env.ENVIRONMENT).indexers,
+      nounsDeployment(this.env.ENVIRONMENT).entityDefinitions
     );
 
     this.tracer = new DatadogTracer(
@@ -106,7 +105,8 @@ export class StorageDurableObjectV1 {
             makeGraphQLHandler(
               this.storageWithAnalyticsEngineReporter,
               sentry,
-              span
+              span,
+              this.provider
             ),
             ...makeAdminRoutes(this.state, this.followChainDriver),
           ],
@@ -148,16 +148,12 @@ export class StorageDurableObjectV1 {
 function makeGraphQLHandler(
   storage: AnalyticsEngineReporter,
   sentry: Toucan,
-  span: ReadOnlySpan
+  span: ReadOnlySpan,
+  provider: ethers.providers.JsonRpcProvider
 ): RouteDefinition<Env> {
   return {
     matcher: exactPathMatcher("/graphql"),
     handle: async (request, env) => {
-      const provider = new ethers.providers.AlchemyProvider(
-        "mainnet",
-        env.ALCHEMY_API_KEY
-      );
-
       const dynamo = makeDynamoClient({
         secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
         accessKeyId: env.AWS_ACCESS_KEY_ID,
@@ -167,19 +163,20 @@ function makeGraphQLHandler(
       const storageArea = await makeInitialStorageArea(entityStore);
       const allowRead = shouldAllowRead(env);
 
-      const reader = (() => {
+      const reader = () => {
         if (!allowRead) {
+          const deployment = nounsDeployment(env.ENVIRONMENT);
           return new NopReader(storageArea) as Reader<
-            typeof nounsDeployment.entityDefinitions
+            typeof deployment.entityDefinitions
           >;
         }
 
         return makeReader(
           entityStore,
           storageArea,
-          nounsDeployment.entityDefinitions
+          nounsDeployment(env.ENVIRONMENT).entityDefinitions
         );
-      })();
+      };
 
       try {
         const isProduction = env.ENVIRONMENT === "prod";
@@ -194,11 +191,11 @@ function makeGraphQLHandler(
             statementStorage: makeDynamoStatementStorage(dynamo),
             errorReporter: loggingErrorReporter(),
           },
-          new CachedReader(reader)
+          new CachedReader(reader())
         );
 
         const server = createServer({
-          schema: getSchema(),
+          schema: getSchema(env.ENVIRONMENT),
           context,
           maskedErrors: isProduction,
           graphiql: !isProduction,

@@ -1,7 +1,8 @@
 import { ethers, TypedDataField } from "ethers";
 import { TypedDataSigner } from "@ethersproject/abstract-signer";
 import { Alligator__factory } from "@agora/common/src/contracts/generated";
-import { nounsAlligator } from "@agora/common";
+
+import { contracts } from "../../utils/contracts";
 
 import { COMMUNITY_ADDRESS } from "./PropHouseAuctionPage";
 
@@ -69,7 +70,8 @@ export async function* signLiquidDelegatedVotes(
   const serializedPayload = serializePayload(payload);
 
   const alligator = Alligator__factory.connect(
-    nounsAlligator.address,
+    // TODO: FIX
+    contracts.nounsAlligator.address,
     typedSigner
   );
   const transaction = await alligator.sign(

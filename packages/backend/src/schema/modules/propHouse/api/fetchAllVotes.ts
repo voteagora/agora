@@ -10,7 +10,7 @@ export const vote = z.object({
   auctionId: z.number(),
   address: z.string(),
 
-  direction: z.literal(1),
+  direction: z.number(),
   weight: z.number(),
   signedData,
 

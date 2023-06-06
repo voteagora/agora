@@ -1,8 +1,8 @@
-import { nounsToken, nounsAlligator } from "@agora/common";
 import { Address } from "@wagmi/core";
 import { useCallback } from "react";
 
 import { useContractWriteFn } from "../../hooks/useContractWrite";
+import { contracts } from "../../utils/contracts";
 
 import { DelegationContractState, Rules } from "./delegateRules";
 import { LiquidDelegationStepTargetDelegateFragment$key } from "./pages/CommitMultiStepDelegation/steps/__generated__/LiquidDelegationStepTargetDelegateFragment.graphql";
@@ -20,8 +20,14 @@ export type LiquidDelegationAction = {
 };
 
 export function useExecuteAction() {
-  const writeLiquidDelegate = useContractWriteFn(nounsAlligator, "subDelegate");
-  const writeTokenDelegation = useContractWriteFn(nounsToken, "delegate");
+  const writeLiquidDelegate = useContractWriteFn(
+    contracts.nounsAlligator,
+    "subDelegate"
+  );
+  const writeTokenDelegation = useContractWriteFn(
+    contracts.nounsToken,
+    "delegate"
+  );
 
   return useCallback(
     (action: TokenDelegationAction | LiquidDelegationAction) => {

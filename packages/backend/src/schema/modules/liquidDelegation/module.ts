@@ -30,7 +30,7 @@ type Dependencies = {
 };
 
 type LiquidDelegationArgs = {
-  daoContract: Address;
+  daoContract(): Promise<Address>;
 };
 
 type ResolversAssignable = ReplaceContextAllResolvers<

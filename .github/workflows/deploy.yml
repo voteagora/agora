@@ -28,7 +28,7 @@ jobs:
         env:
           VITE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           VITE_GITHUB_SHA: ${{ github.sha }}
-          VITE_DEPLOY_ENV: ${{ github.event.inputs.environment || 'staging' }}
+          VITE_DEPLOY_ENV: ${{ github.event.inputs.environment || 'dev' }}
           VITE_ALCHEMY_ID: ${{ secrets.ALCHEMY_KEY }}
           VITE_GOOGLE_ANALYTICS_ID: ${{ secrets.GOOGLE_ANALYTICS_ID }}
           VITE_OPENAI_KEY: ${{ secrets.OPENAI_KEY }}

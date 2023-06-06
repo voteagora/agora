@@ -1,6 +1,7 @@
 import { ethers } from "hardhat";
 import { NounsDAOLogicV2__factory } from "./generated";
 import dedent from "dedent";
+import { constants } from "@agora/common/src/constants";
 
 async function main() {
   const signer = await ethers.getImpersonatedSigner(
@@ -8,7 +9,7 @@ async function main() {
   );
 
   const daoContract = NounsDAOLogicV2__factory.connect(
-    "0x6f3E6272A167e8AcCb32072d08E0957F9c79223d",
+    constants("dev").nounsDao.address,
     signer
   );
 

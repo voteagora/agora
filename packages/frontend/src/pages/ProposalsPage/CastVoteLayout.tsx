@@ -1,13 +1,5 @@
-import { useFragment, useLazyLoadQuery } from "react-relay/hooks";
-import { graphql } from "react-relay";
-import { UserIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
-import { motion } from "framer-motion";
-import { Dialog } from "@headlessui/react";
 import { ReactNode } from "react";
-import { nounsAlligator, nounsDao } from "@agora/common";
-import { Address } from "@wagmi/core";
-import { BigNumber } from "ethers";
 
 import * as theme from "../../theme";
 import { HStack } from "../../components/VStack";

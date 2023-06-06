@@ -4,10 +4,10 @@ import { UserIcon } from "@heroicons/react/20/solid";
 import { css } from "@emotion/css";
 import { motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
-import { nounsAlligator, nounsDao } from "@agora/common";
 import { Address } from "@wagmi/core";
 import { BigNumber } from "ethers";
 
+import { contracts } from "../../utils/contracts";
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
 import { NounGridChildren } from "../../components/NounGrid";
@@ -272,7 +272,7 @@ function LiquidDelegationLotVoteCell({
   });
 
   const { write, isLoading, isError, isSuccess, canExecute } = useContractWrite(
-    nounsAlligator,
+    contracts.nounsAlligator,
     "castRefundableVotesWithReasonBatched",
     [
       lots.map((lot) => lot.lot.authorityChain.map((it) => it as Address)),
@@ -342,7 +342,7 @@ function TokenDelegationLotVoteCell({
   );
 
   const { write, isLoading, isError, isSuccess, canExecute } = useContractWrite(
-    nounsDao,
+    contracts.nounsDao,
     "castRefundableVoteWithReason",
     [BigNumber.from(proposalId), supportType, reason],
     () => closeDialog()

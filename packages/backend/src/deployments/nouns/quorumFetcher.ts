@@ -4,7 +4,7 @@ import { NounsDAOLogicV2__factory } from "@agora/common/src/contracts/generated"
 import { LatestBlockFetcher } from "../../shared/schema/context/latestBlockFetcher";
 import { loadAggregate } from "../../shared/contracts/indexers/IVotes/entities/aggregate";
 
-import { daoContract } from "./indexers/NounsDAO/NounsDAO";
+import { daoContract, daoContractSepolia } from "./indexers/NounsDAO/NounsDAO";
 import { Context } from "./application";
 
 export async function fetchQuorumForProposal(
@@ -12,7 +12,9 @@ export async function fetchQuorumForProposal(
   provider: ethers.providers.BaseProvider
 ) {
   const nounsDaoContract = NounsDAOLogicV2__factory.connect(
-    daoContract.address,
+    (await provider.getNetwork()).chainId == 1
+      ? daoContract.address
+      : daoContractSepolia.address,
     provider
   );
 
@@ -25,7 +27,9 @@ export async function fetchLatestQuorum(
   reader: Context["reader"]
 ) {
   const nounsDaoContract = NounsDAOLogicV2__factory.connect(
-    daoContract.address,
+    (await provider.getNetwork()).chainId == 1
+      ? daoContract.address
+      : daoContractSepolia.address,
     provider
   );
 

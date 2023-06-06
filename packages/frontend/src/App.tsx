@@ -1,4 +1,5 @@
 import React, { Suspense } from "react";
+import { mainnet, sepolia } from "@wagmi/core/chains";
 import { RelayEnvironmentProvider } from "react-relay/hooks";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createClient, WagmiConfig } from "wagmi";
@@ -19,6 +20,7 @@ import { DialogProvider } from "./components/DialogProvider/DialogProvider";
 const wagmiClient = createClient(
   getDefaultClient({
     appName: "Nouns Agora",
+    chains: import.meta.env.VITE_DEPLOY_ENV !== "prod" ? [sepolia] : [mainnet],
     alchemyId: import.meta.env.VITE_ALCHEMY_ID,
   })
 );

@@ -1,8 +1,10 @@
 import { random } from "lodash";
 import { AnalyticsEngineDataset } from "@cloudflare/workers-types";
 
+import { Env as Environment } from "../shared/types";
+
 export interface Env {
-  ENVIRONMENT: "prod" | "dev" | "staging";
+  ENVIRONMENT: Environment;
   PRIMARY_DURABLE_OBJECT_INSTANCE_NAME: string;
   DEPLOYMENT: string;
   SENTRY_DSN: string;

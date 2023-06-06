@@ -1,5 +1,6 @@
-import { nounsToken } from "@agora/common";
+import { nounsToken, nounsTokenSepolia } from "@agora/common";
 
+import { Env } from "../../../../shared/types";
 import { makeIndexerDefinition } from "../../../../shared/indexer";
 import { intoContractInstance } from "../../../../shared/indexer/process/contractInstance";
 import { makeERC721VotesIndexerDefinition } from "../../../../shared/contracts/indexers/ERC721Votes/ERC721Votes";
@@ -8,15 +9,16 @@ import { erc721EntityDefinitions } from "../../../../shared/contracts/indexers/E
 import { Noun } from "./entities/noun";
 
 const nounsTokenContract = intoContractInstance(nounsToken);
+const nounsTokenContractSepolia = intoContractInstance(nounsTokenSepolia);
 
-export const nounsTokenIndexer = (() => {
+const makeNounsTokenIndexer = (env: Env) => {
   const def = makeERC721VotesIndexerDefinition(
-    nounsTokenContract,
+    env === "prod" ? nounsTokenContract : nounsTokenContractSepolia,
     "NounsToken"
   );
 
   return makeIndexerDefinition(
-    nounsTokenContract,
+    env === "prod" ? nounsTokenContract : nounsTokenContractSepolia,
     { Noun, ...erc721EntityDefinitions },
     {
       name: def.name,
@@ -41,4 +43,7 @@ export const nounsTokenIndexer = (() => {
       },
     }
   );
-})();
+};
+
+export const nounsTokenIndexer = makeNounsTokenIndexer("prod");
+export const nounsTokenIndexerSepolia = makeNounsTokenIndexer("dev");

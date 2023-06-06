@@ -5,6 +5,7 @@ import { graphql } from "react-relay";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import { useAccount } from "wagmi";
 
+import { contracts } from "../../utils/contracts";
 import { HStack, VStack } from "../../components/VStack";
 import * as theme from "../../theme";
 import {
@@ -21,11 +22,7 @@ import { PropHouseAuctionPageQuery } from "./__generated__/PropHouseAuctionPageQ
 import { PropHousePastVotes } from "./PropHousePastVotes";
 import { PendingVotesProvider } from "./PendingVotesContext";
 
-// nouns
-// const stagingCommunityAddress = "0x0000000000000000000000000000000000000000";
-const productionCommunityAddress = "0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03";
-
-export const COMMUNITY_ADDRESS = productionCommunityAddress;
+export const COMMUNITY_ADDRESS = contracts.nounsToken.address;
 
 export default function PropHouseAuctionPage() {
   const { auctionId } = useParams();

@@ -4,9 +4,9 @@ import { css } from "@emotion/css";
 import { BigNumber } from "ethers";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { useAccount } from "wagmi";
-import { nounsAlligator, nounsToken } from "@agora/common";
 import { Address } from "@wagmi/core";
 
+import { contracts } from "../../../utils/contracts";
 import {
   handlingError,
   useContractWriteFn,
@@ -116,8 +116,14 @@ export function DelegatedToListRow({
     })(),
   ];
 
-  const writeLiquidDelegate = useContractWriteFn(nounsAlligator, "subDelegate");
-  const writeTokenDelegation = useContractWriteFn(nounsToken, "delegate");
+  const writeLiquidDelegate = useContractWriteFn(
+    contracts.nounsAlligator,
+    "subDelegate"
+  );
+  const writeTokenDelegation = useContractWriteFn(
+    contracts.nounsToken,
+    "delegate"
+  );
 
   return (
     <VStack gap="1">

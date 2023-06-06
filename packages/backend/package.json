@@ -108,7 +108,6 @@
     "@graphql-yoga/node": "^2.13.12",
     "@sentry/integrations": "7.28.1",
     "abitype": "^0.7.1",
-    "alchemy-sdk": "^2.2.5",
     "aws-sdk": "^2.1254.0",
     "dataloader": "^2.1.0",
     "date-fns": "^2.29.3",

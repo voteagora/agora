@@ -1,5 +1,5 @@
 import { Alligator__factory } from "@agora/common/src/contracts/generated";
-import { nounsAlligator } from "@agora/common";
+import { nounsAlligator, nounsAlligatorSepolia } from "@agora/common";
 import { groupBy } from "lodash";
 import { Address } from "viem";
 
@@ -69,7 +69,7 @@ export const Delegate: Resolvers["Delegate"] = {
             !(await filterForProposal(
               filter,
               lot,
-              daoContract,
+              await daoContract(),
               address as Address,
               provider,
               latestBlockFetcher,
@@ -93,7 +93,9 @@ export const Delegate: Resolvers["Delegate"] = {
 
   async liquidDelegationProxyAddress({ address }, _args, { provider }) {
     const alligator = Alligator__factory.connect(
-      nounsAlligator.address,
+      (await provider.getNetwork()).chainId == 1
+        ? nounsAlligator.address
+        : nounsAlligatorSepolia.address,
       provider
     );
     const proxyAddress = await alligator.proxyAddress(address);

@@ -1,5 +1,6 @@
-import { nounsDao } from "@agora/common";
+import { nounsDao, nounsDaoSepolia } from "@agora/common";
 
+import { Env } from "../../../../shared/types";
 import { makeIndexerDefinition } from "../../../../shared/indexer";
 import { intoContractInstance } from "../../../../shared/indexer/process/contractInstance";
 import { makeGovernorIndexer } from "../../../../shared/contracts/indexers/IGovernor/IGovernor";
@@ -12,12 +13,16 @@ import {
 } from "./entities/governorAggregates";
 
 export const daoContract = intoContractInstance(nounsDao);
+export const daoContractSepolia = intoContractInstance(nounsDaoSepolia);
 
-export const governorIndexer = (() => {
-  const sharedIndexer = makeGovernorIndexer(daoContract, "NounsDAO");
+const makeGovernorIndex = (env: Env) => {
+  const sharedIndexer = makeGovernorIndexer(
+    env === "prod" ? daoContract : daoContractSepolia,
+    "NounsDAO"
+  );
 
   return makeIndexerDefinition(
-    daoContract,
+    env === "prod" ? daoContract : daoContractSepolia,
     { ...IGovernorEntities, GovernorAggregates },
     {
       name: sharedIndexer.name,
@@ -47,4 +52,7 @@ export const governorIndexer = (() => {
       },
     }
   );
-})();
+};
+
+export const governorIndexer = makeGovernorIndex("prod");
+export const governorIndexerSepolia = makeGovernorIndex("dev");

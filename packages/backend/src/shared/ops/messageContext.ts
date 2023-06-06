@@ -1,3 +1,4 @@
+import { Env } from "../types";
 import { requiredValue } from "../utils/requiredValue";
 
 export type MessageContext = {
@@ -8,12 +9,10 @@ export type MessageContext = {
 
 type AgoraInstanceUrlArgs = {
   deployment: string;
-  env: Envs;
+  env: Env;
 };
 
-type Envs = "prod" | "dev";
-
-function hostForEnv(env: "prod" | "dev") {
+function hostForEnv(env: Env) {
   switch (env) {
     case "prod":
       return "agora-prod.workers.dev";

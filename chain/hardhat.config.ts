@@ -11,7 +11,9 @@ const config: HardhatUserConfig = {
         interval: 10_000,
       },
       forking: {
-        url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+        url: `https://eth-${
+          process.env.VITE_DEPLOY_ENV === "prod" ? "mainnet" : "sepolia"
+        }.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
         blockNumber: 16757248,
       },
     },

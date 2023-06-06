@@ -15,7 +15,7 @@ import { loadAccount } from "../../shared/contracts/indexers/ERC721Votes/entitie
 import { StatementStorage } from "../../schema/modules/delegateStatement/context/statementStorage";
 import { EmailStorage } from "../../schema/modules/delegateStatement/context/emailStorage";
 
-import { daoContract } from "./indexers/NounsDAO/NounsDAO";
+import { daoContract, daoContractSepolia } from "./indexers/NounsDAO/NounsDAO";
 import { makeNounsNameResolver } from "./nameResolver";
 import { makeLiquidDelegationDelegatesLoader } from "./delegatesLoader";
 import { fetchLatestQuorum, fetchQuorumForProposal } from "./quorumFetcher";
@@ -53,7 +53,11 @@ export function makeContext(
     reader,
     nameResolver: makeNounsNameResolver(args.provider),
     liquidDelegation: {
-      daoContract: daoContract.address as Address,
+      async daoContract() {
+        return (await args.provider.getNetwork()).chainId == 1
+          ? (daoContract.address as Address)
+          : (daoContractSepolia.address as Address);
+      },
     },
     delegatesLoader: makeLiquidDelegationDelegatesLoader(reader),
     accountLoader: {

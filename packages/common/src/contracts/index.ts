@@ -11,7 +11,7 @@ export const nounsDao = makeContractInstance({
 
 export const nounsToken = makeContractInstance({
   abi: NounsToken,
-  address: "0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03",
+  address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03",
   startingBlock: 12985438,
 });
 
@@ -19,6 +19,24 @@ export const nounsAlligator = makeContractInstance({
   abi: Alligator,
   address: "0xb6D1EB1A7BE7d55224bB1942C74a5251E6c9Dab3",
   startingBlock: 16996023,
+});
+
+export const nounsDaoSepolia = makeContractInstance({
+  abi: NounsDAOLogicV2,
+  address: "0x461208f0073e3b1C9Cec568DF2fcACD0700C9B7a",
+  startingBlock: 3589193,
+});
+
+export const nounsTokenSepolia = makeContractInstance({
+  abi: NounsToken,
+  address: "0x05d570185F6e2d29AdaBa1F36435f50Bc44A6f17",
+  startingBlock: 3589193,
+});
+
+export const nounsAlligatorSepolia = makeContractInstance({
+  abi: Alligator,
+  address: "0x40Cc6dA4FE4000997cF1ca72e30181eAD6154F83",
+  startingBlock: 3589193,
 });
 
 export * from "./types";
