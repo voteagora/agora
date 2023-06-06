@@ -74,6 +74,12 @@ export function makeLiquidDelegationDelegatesLoader(
 
             case "mostDelegates":
               return flipComparator(compareBy((it) => it.accountsRepresented));
+
+            case "mostVotesCast":
+              return flipComparator(compareBy((it) => it.votesCast));
+
+            case "leastVotesCast":
+              return flipComparator(compareBy((it) => it.votesCast * -1n));
           }
         })()
       );
@@ -110,6 +116,7 @@ export async function sortParamsForDelegate(
         yield {
           tokensRepresented: proxyAddress.tokensRepresented,
           accountsRepresented: proxyAddress.accountsRepresentedCount,
+          votesCast: proxyAddress.votesCast,
         };
       }
     );
@@ -119,10 +126,12 @@ export async function sortParamsForDelegate(
       (acc, it) => ({
         tokensRepresented: it.tokensRepresented + acc.tokensRepresented,
         accountsRepresented: it.accountsRepresented + acc.accountsRepresented,
+        votesCast: it.votesCast + acc.votesCast,
       }),
       {
         tokensRepresented: 0n,
         accountsRepresented: 0n,
+        votesCast: 0n,
       }
     );
   })();
@@ -133,6 +142,7 @@ export async function sortParamsForDelegate(
     return {
       tokensRepresented: delegate?.tokensRepresented ?? 0n,
       accountsRepresented: delegate?.accountsRepresentedCount ?? 0n,
+      votesCast: delegate?.votesCast ?? 0n,
     };
   })();
 
@@ -144,5 +154,8 @@ export async function sortParamsForDelegate(
     accountsRepresented:
       liquidDelegationComparatorValues.accountsRepresented +
       tokenDelegationComparatorValues.accountsRepresented,
+    votesCast:
+      liquidDelegationComparatorValues.votesCast +
+      tokenDelegationComparatorValues.votesCast,
   };
 }

@@ -34,9 +34,15 @@ export const Vote: Resolvers["Vote"] = {
     return weight;
   },
 
-  async voter({ voterAddress }, _args, { reader }) {
+  async voter({ voterAddress }, _args) {
     return {
       address: voterAddress,
+    };
+  },
+
+  async executor({ executorAddress }, _args) {
+    return {
+      address: executorAddress,
     };
   },
 };

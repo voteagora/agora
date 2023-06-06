@@ -7,7 +7,7 @@ import {
 import { exactIndexValue } from "../../../../shared/indexer/storage/indexQueryArgs";
 import { intersection } from "../../../../shared/utils/set";
 import { countConsecutiveValues } from "../../../../shared/utils/countConsecutiveValues";
-import { votesForAddress } from "../../../../shared/contracts/indexers/IGovernor/entities/vote";
+import { allVotesForAddress } from "../../../../shared/contracts/indexers/IGovernor/entities/vote";
 import { proposedByAddress } from "../../../../shared/contracts/indexers/IGovernor/entities/proposal";
 import { loadGovernanceAggregate } from "../../../../shared/contracts/indexers/IGovernor/entities/aggregate";
 
@@ -63,7 +63,7 @@ export const Delegate: Resolvers["Delegate"] = {
       address
     );
 
-    const votes = await votesForAddress(reader, address);
+    const votes = await allVotesForAddress(reader, address);
     const proposed = await proposedByAddress(reader, address);
     const totalProposals = (await loadGovernanceAggregate(reader))
       .totalProposals;
@@ -107,7 +107,7 @@ export const Delegate: Resolvers["Delegate"] = {
   },
 
   async votes({ address }, _args, { reader }) {
-    return await votesForAddress(reader, address);
+    return await allVotesForAddress(reader, address);
   },
 
   async delegateSnapshot({ address }, { proposalId }) {

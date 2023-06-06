@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { createModule } from "../../../shared/schema/modules";
 import { ReplaceContextAllResolvers } from "../../../shared/schema/helpers/replaceContextResolvers";
 import { IGovernorEntities } from "../../../shared/contracts/indexers/IGovernor/entities";
+import { alligatorEntityDefinitions } from "../../../shared/contracts/indexers/Alligator/entities/entities";
 import { erc721EntityDefinitions } from "../../../shared/contracts/indexers/ERC721Votes/entities";
 import { LatestBlockFetcher } from "../../../shared/schema/context/latestBlockFetcher";
 import { NameResolver } from "../../../shared/schema/context/nameResolver";
@@ -24,7 +25,8 @@ import { Vote } from "./resolvers/Vote";
 type Dependencies = {
   reader: Reader<
     typeof IGovernorEntities &
-      Pick<typeof erc721EntityDefinitions, "IVotesAddress">
+      Pick<typeof erc721EntityDefinitions, "IVotesAddress"> &
+      typeof alligatorEntityDefinitions
   >;
   accountLoader: AccountLoader<EntityRuntimeType<typeof IVotesAddress>>;
   latestBlockFetcher: LatestBlockFetcher;

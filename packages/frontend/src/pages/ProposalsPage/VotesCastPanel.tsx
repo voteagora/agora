@@ -257,11 +257,6 @@ function VotesCastPanelVotes({
           @connection(key: "VotesCastPanelFragment_votes") {
           edges {
             node {
-              voter {
-                address {
-                  address
-                }
-              }
               ...VoteRowFragment
             }
           }
@@ -311,13 +306,11 @@ function VotesCastPanelVotes({
 
           case "ITEMS": {
             return (
-              <div
-                key={idx}
-                onMouseEnter={() =>
-                  onVoterHovered(item.items.node.voter.address.address)
-                }
-              >
-                <VoteRow fragmentRef={item.items.node} />
+              <div key={idx}>
+                <VoteRow
+                  fragmentRef={item.items.node}
+                  onVoterHovered={onVoterHovered}
+                />
               </div>
             );
           }

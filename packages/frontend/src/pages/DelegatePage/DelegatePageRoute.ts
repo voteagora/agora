@@ -11,6 +11,10 @@ export const query = graphql`
       ...VoterPanelFragment
       ...PastVotesFragment
 
+      liquidDelegationProxy {
+        __typename
+      }
+
       statement {
         statement
 

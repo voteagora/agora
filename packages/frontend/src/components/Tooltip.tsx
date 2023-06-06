@@ -3,7 +3,7 @@ import { css, cx } from "@emotion/css";
 import * as theme from "../../src/theme";
 
 type TooltipProps = {
-  text: string;
+  text: string | JSX.Element;
   className?: string;
 };
 

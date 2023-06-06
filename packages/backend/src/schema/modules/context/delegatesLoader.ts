@@ -5,7 +5,11 @@ import {
 import { Reader } from "../../../shared/indexer/storage/reader/type";
 import { IVotesAddress } from "../../../shared/contracts/indexers/ERC20Votes/entities/address";
 
-export type DelegatesLoaderOrderBy = "mostDelegates" | "mostVotingPower";
+export type DelegatesLoaderOrderBy =
+  | "mostDelegates"
+  | "mostVotingPower"
+  | "mostVotesCast"
+  | "leastVotesCast";
 
 export type DelegatesLoader = {
   loadDelegates(args: {
@@ -30,6 +34,12 @@ export function makeSimpleDelegatesLoader(
 
             case "mostVotingPower":
               return "byTokensRepresented";
+
+            case "mostVotesCast":
+              return "byVotesCastDesc";
+
+            case "leastVotesCast":
+              return "byVotesCastAsc";
           }
         })(),
         first,

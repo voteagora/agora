@@ -6,6 +6,7 @@ import {
 } from "../../../indexer/process/contractInstance";
 import { makeIndexerDefinition } from "../../../indexer";
 import { loadAggregate } from "../IVotes/entities/aggregate";
+import { loadAccount, saveAccount } from "../ERC721Votes/entities/address";
 
 import { IGovernorAbi } from "./IGovernorAbi";
 import { IGovernorEntities } from "./entities";
@@ -112,12 +113,22 @@ export function makeGovernorIndexer(
             handle.saveEntity("IGovernorVote", voteId, {
               id: voteId,
               voterAddress: voter,
+              executorAddress: voter,
               proposalId,
               support,
               weight,
               reason,
               transactionHash: log.transactionHash,
               blockNumber: log.blockNumber,
+            });
+          }
+
+          // TODO: this implies that Votes contract is ERC721. Depending on the modularization strategy, this might need to be refactored to be more generic
+          {
+            const address = await loadAccount(handle, voter);
+            saveAccount(handle, {
+              ...address,
+              votesCast: address.votesCast + 1n,
             });
           }
         },

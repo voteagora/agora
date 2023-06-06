@@ -13,6 +13,7 @@ export const IVotesAddress = makeEntityDefinition({
     tokensRepresented: serde.bigint,
     delegatingTo: serde.string,
     accountsRepresentedCount: serde.bigint,
+    votesCast: serde.bigint,
   }),
   indexes: {
     byTokensOwned: {
@@ -39,6 +40,20 @@ export const IVotesAddress = makeEntityDefinition({
     byDelegatingTo: {
       indexKey(entity) {
         return entity.delegatingTo;
+      },
+    },
+    byVotesCastDesc: {
+      indexKey(entity) {
+        return efficientLengthEncodingNaturalNumbers(
+          ethers.BigNumber.from(entity.votesCast * -1n)
+        );
+      },
+    },
+    byVotesCastAsc: {
+      indexKey(entity) {
+        return efficientLengthEncodingNaturalNumbers(
+          ethers.BigNumber.from(entity.votesCast)
+        );
       },
     },
   },
@@ -74,5 +89,6 @@ export function defaultAccount(
     delegatingTo: initialDelegatingTo,
     tokensRepresented: 0n,
     accountsRepresentedCount: from === initialDelegatingTo ? 1n : 0n,
+    votesCast: 0n,
   };
 }

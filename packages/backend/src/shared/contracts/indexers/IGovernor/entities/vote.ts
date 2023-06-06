@@ -6,6 +6,7 @@ import { efficientLengthEncodingNaturalNumbers } from "../../../../utils/efficie
 import { exactIndexValue } from "../../../../indexer/storage/indexQueryArgs";
 import {
   collectGenerator,
+  filterGenerator,
   mapGenerator,
 } from "../../../../utils/generatorUtils";
 import { Reader } from "../../../../indexer/storage/reader/type";
@@ -14,6 +15,7 @@ export const IGovernorVote = makeEntityDefinition({
   serde: serde.object({
     id: serde.string,
     voterAddress: serde.string,
+    executorAddress: serde.string,
     proposalId: serde.bigint,
     support: serde.number,
     weight: serde.bigint,
@@ -37,6 +39,11 @@ export const IGovernorVote = makeEntityDefinition({
         return entity.voterAddress;
       },
     },
+    byExecutor: {
+      indexKey(entity) {
+        return entity.executorAddress;
+      },
+    },
   },
 });
 
@@ -44,7 +51,7 @@ type EntityTypes = {
   IGovernorVote: typeof IGovernorVote;
 };
 
-export async function votesForAddress(
+export async function votesForVoter(
   reader: Reader<EntityTypes>,
   address: string
 ) {
@@ -58,4 +65,33 @@ export async function votesForAddress(
       (it) => it.value
     )
   );
+}
+
+export async function votesForExecutor(
+  reader: Reader<EntityTypes>,
+  address: string
+) {
+  return await collectGenerator(
+    filterGenerator(
+      mapGenerator(
+        reader.getEntitiesByIndex(
+          "IGovernorVote",
+          "byExecutor",
+          exactIndexValue(address)
+        ),
+        (it) => it.value
+      ),
+      (it) => it.executorAddress !== it.voterAddress
+    )
+  );
+}
+
+export async function allVotesForAddress(
+  reader: Reader<EntityTypes>,
+  address: string
+) {
+  return [
+    ...(await votesForVoter(reader, address)),
+    ...(await votesForExecutor(reader, address)),
+  ];
 }

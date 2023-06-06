@@ -88,7 +88,9 @@ export default function DelegatePage({
                       font-weight: bold;
                     `}
                   >
-                    Delegate statement
+                    {result.delegate.liquidDelegationProxy
+                      ? "About Delegation proxies"
+                      : "Delegate statement"}
                   </h2>
 
                   <Markdown markdown={result.delegate.statement.statement} />

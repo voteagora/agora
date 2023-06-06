@@ -54,6 +54,8 @@ enum DelegatesWhere {
 
 enum DelegatesOrder {
   mostVotingPower
+  mostVotesCast
+  leastVotesCast
   mostDelegates
 }
 
@@ -123,6 +125,8 @@ type Vote {
 
   proposal: Proposal!
   voter: Delegate!
+  executor: Delegate!
+
   approximateTimestamp: Timestamp!
 }
 

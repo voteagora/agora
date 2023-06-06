@@ -2,6 +2,7 @@ import { Address } from "viem";
 
 import { makeEntityDefinition, serde } from "../../../../indexer";
 import { StorageHandle } from "../../../../indexer/process/storageHandle";
+import { IGovernorVote } from "../../IGovernor/entities/vote";
 
 import { rules, RulesType } from "./rules";
 
@@ -41,6 +42,8 @@ export const alligatorEntityDefinitions = {
   }),
 
   AlligatorSubDelegation,
+
+  IGovernorVote,
 };
 
 export function storeSubdelegation(

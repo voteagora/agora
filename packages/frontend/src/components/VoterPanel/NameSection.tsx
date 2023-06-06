@@ -1,5 +1,4 @@
 import { useFragment, graphql } from "react-relay";
-import React from "react";
 import { css } from "@emotion/css";
 import { Textfit } from "react-textfit";
 
@@ -7,6 +6,7 @@ import { HStack, VStack } from "../VStack";
 import { shortAddress } from "../../utils/address";
 import * as theme from "../../theme";
 import { icons } from "../../icons/icons";
+import { Tooltip } from "../../components/Tooltip";
 
 import { NameSectionFragment$key } from "./__generated__/NameSectionFragment.graphql";
 
@@ -41,22 +41,24 @@ export function NameSection({ resolvedName }: NameSectionProps) {
   const renderedAddress = shortAddress(address);
 
   return (
-    <HStack alignItems="center" justifyContent="space-between" gap="2">
-      <a href={etherscanAddressUrl(address)}>
-        <VStack>
-          {name && (
-            <div
-              className={css`
-                color: #66676b;
-                font-size: ${theme.fontSize.xs};
-                font-weight: ${theme.fontWeight.medium};
-                line-height: ${theme.lineHeight.relaxed};
-              `}
-            >
-              {renderedAddress}
-            </div>
-          )}
+    <VStack>
+      {(name || liquidDelegationProxy) && (
+        <a href={etherscanAddressUrl(address)} target="_blank" rel="noreferrer">
+          <div
+            className={css`
+              color: #66676b;
+              font-size: ${theme.fontSize.xs};
+              font-weight: ${theme.fontWeight.medium};
+              line-height: ${theme.lineHeight.relaxed};
+            `}
+          >
+            {renderedAddress}
+          </div>
+        </a>
+      )}
 
+      <HStack justifyContent="space-between" gap="2">
+        <a href={etherscanAddressUrl(address)} target="_blank" rel="noreferrer">
           <div
             className={css`
               font-weight: ${theme.fontWeight.black};
@@ -66,25 +68,51 @@ export function NameSection({ resolvedName }: NameSectionProps) {
             `}
           >
             <Textfit min={16} max={24} mode="single">
-              {name ?? renderedAddress}
+              {liquidDelegationProxy
+                ? "Delegation Proxy"
+                : name ?? renderedAddress}
             </Textfit>
           </div>
-        </VStack>
-      </a>
+        </a>
 
-      {liquidDelegationProxy && (
-        <img
-          src={icons.liquid}
-          alt="liquid delegation proxy indicator"
-          title="liquid delegation proxy"
-          className={css`
-            width: ${theme.spacing["4"]};
-          `}
-        />
-      )}
-    </HStack>
+        {liquidDelegationProxy && (
+          <div
+            className={css`
+              position: relative;
+
+              &:hover > #tooltip {
+                visibility: visible;
+              }
+            `}
+          >
+            <img
+              src={icons.info}
+              alt="liquid delegation proxy indicator"
+              className={css`
+                width: ${theme.spacing["4"]};
+              `}
+            />
+
+            <Tooltip
+              text={LIQUID_DELEGATION_TOOLTIP_TEXT}
+              className={css`
+                right: 0;
+                font-size: ${theme.fontSize.xs};
+              `}
+            />
+          </div>
+        )}
+      </HStack>
+    </VStack>
   );
 }
 export function etherscanAddressUrl(address: string) {
   return `https://etherscan.io/address/${address}`;
 }
+
+const LIQUID_DELEGATION_TOOLTIP_TEXT = (
+  <>
+    This address is a liquid delegation contract, and <br /> votes on behalf of
+    potentially multiple <br /> delegates.
+  </>
+);

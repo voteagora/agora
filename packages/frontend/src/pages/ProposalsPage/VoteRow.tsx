@@ -8,11 +8,18 @@ import * as theme from "../../theme";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { VoteReason } from "../../components/VoteReason";
 import { colorForSupportType } from "../DelegatePage/VoteDetailsContainer";
+import { icons } from "../../icons/icons";
 
 import { VoteRowFragment$key } from "./__generated__/VoteRowFragment.graphql";
 import { VoteRowTextFragment$key } from "./__generated__/VoteRowTextFragment.graphql";
 
-export function VoteRow({ fragmentRef }: { fragmentRef: VoteRowFragment$key }) {
+export function VoteRow({
+  fragmentRef,
+  onVoterHovered,
+}: {
+  fragmentRef: VoteRowFragment$key;
+  onVoterHovered: (address: string) => void;
+}) {
   const vote = useFragment(
     graphql`
       fragment VoteRowFragment on Vote {
@@ -24,8 +31,25 @@ export function VoteRow({ fragmentRef }: { fragmentRef: VoteRowFragment$key }) {
             amount
           }
         }
+
         voter {
           address {
+            address
+            resolvedName {
+              ...NounResolvedLinkFragment
+            }
+          }
+        }
+
+        voter {
+          address {
+            address
+          }
+        }
+
+        executor {
+          address {
+            address
             resolvedName {
               ...NounResolvedLinkFragment
             }
@@ -51,7 +75,26 @@ export function VoteRow({ fragmentRef }: { fragmentRef: VoteRowFragment$key }) {
           `}
         >
           <HStack>
-            <NounResolvedLink resolvedName={vote.voter.address.resolvedName} />
+            <div
+              onMouseEnter={() => onVoterHovered(vote.voter.address.address)}
+            >
+              <NounResolvedLink
+                resolvedName={vote.voter.address.resolvedName}
+              />
+            </div>
+            {vote.executor.address.address !== vote.voter.address.address && (
+              <div
+                onMouseEnter={() =>
+                  onVoterHovered(vote.executor.address.address)
+                }
+              >
+                {"("}
+                <NounResolvedLink
+                  resolvedName={vote.executor.address.resolvedName}
+                />
+                {")"}
+              </div>
+            )}
 
             <VoteText fragmentRef={vote} />
           </HStack>
@@ -74,6 +117,15 @@ export function VoteRow({ fragmentRef }: { fragmentRef: VoteRowFragment$key }) {
             >
               <UserIcon />
             </div>
+            {vote.voter.address.address !== vote.executor.address.address && (
+              <img
+                src={icons.liquid}
+                alt="liquid delegation proxy indicator"
+                className={css`
+                  width: ${theme.spacing["3"]};
+                `}
+              />
+            )}
           </HStack>
         </HStack>
       </VStack>

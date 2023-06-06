@@ -38,6 +38,50 @@ export function makeAlligatorIndexer(
           storeSubdelegation(handle, from, to, toRules(rules));
         },
       },
+      VoteCast: {
+        async handle(handle, [proxy, voter, _athority, proposalId, _support]) {
+          {
+            const voteId = [proposalId.toString(), proxy].join("-");
+            const vote = await handle.getEntity("IGovernorVote", voteId);
+            if (vote) {
+              handle.saveEntity("IGovernorVote", voteId, {
+                ...vote,
+                executorAddress: voter,
+              });
+            }
+          }
+        },
+      },
+      // Voter actually comes in first eventhough it's the second argument in the Event signature
+      VotesCast: {
+        async handle(
+          handle,
+          [voter, proxies, _athorities, proposalId, _support]
+        ) {
+          // Because proxies is acutally an array of proxies
+          if (Array.isArray(proxies)) {
+            for (const proxy of proxies) {
+              const voteId = [proposalId.toString(), proxy].join("-");
+              const vote = await handle.getEntity("IGovernorVote", voteId);
+              if (vote) {
+                handle.saveEntity("IGovernorVote", voteId, {
+                  ...vote,
+                  executorAddress: [voter].flat()[0],
+                });
+              }
+            }
+          } else {
+            const voteId = [proposalId.toString(), proxies].join("-");
+            const vote = await handle.getEntity("IGovernorVote", voteId);
+            if (vote) {
+              handle.saveEntity("IGovernorVote", voteId, {
+                ...vote,
+                executorAddress: [voter].flat()[0],
+              });
+            }
+          }
+        },
+      },
     },
   });
 }
