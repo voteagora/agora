@@ -24,6 +24,7 @@ import {
 } from "./utils/generatorUtils";
 import { ethers } from "ethers";
 import { StructuredError } from "./utils/errorUtils";
+import { Toucan } from "toucan-js";
 
 export function followChain(
   store: EntityStore,
@@ -32,7 +33,8 @@ export function followChain(
   blockProvider: BlockProvider,
   logProvider: LogProvider,
   storageArea: StorageArea,
-  env: String
+  env: String,
+  sentry?: Toucan
 ) {
   const envIndexers = indexers.flatMap((it) => {
     if (it.env && it.env !== env) {
@@ -199,6 +201,9 @@ export function followChain(
       };
     } catch (e) {
       console.error(e);
+      if (sentry) {
+        sentry.captureException(e);
+      }
     }
   };
 }

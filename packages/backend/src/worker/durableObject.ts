@@ -210,6 +210,14 @@ export class StorageDurableObjectV1 {
         );
         const blockProvider = new EthersBlockProvider(this.provider);
         const logProvider = new EthersLogProvider(this.provider);
+        const toucan = new Toucan(
+          makeToucanOptions({ env: this.env, ctx: this.state })
+        );
+
+        toucan.setTags({
+          deployment: this.env.DEPLOYMENT,
+          entrypoint: "StorageDurableObjectV1.alarm",
+        });
         return followChain(
           this.stepChainEntityStore,
           indexers,
@@ -217,7 +225,8 @@ export class StorageDurableObjectV1 {
           blockProvider,
           logProvider,
           storageArea,
-          this.env.ENVIRONMENT
+          this.env.ENVIRONMENT,
+          toucan
         );
       })());
 
