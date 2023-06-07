@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { BlockIdentifier } from "../storageHandle";
 import { executeWithRetries } from "../utils/asyncUtils";
+import { Toucan } from "toucan-js";
 
 export type BlockProviderBlock = {
   number: number;
@@ -34,13 +35,22 @@ export class EthersBlockProvider implements BlockProvider {
     return transformResponse(raw);
   }
 
-  async getBlockByNumber(number: number): Promise<BlockProviderBlock> {
+  async getBlockByNumber(
+    number: number,
+    sentry?: Toucan
+  ): Promise<BlockProviderBlock> {
     const raw = await executeWithRetries(() =>
       this.provider.send("eth_getBlockByNumber", [
         ethers.BigNumber.from(number).toHexString(),
         false,
       ])
     );
+    if (!raw) {
+      if (sentry) {
+        sentry.captureException("block not found");
+      }
+      throw new Error(`unknown block number ${number}`);
+    }
     return transformResponse(raw);
   }
 
