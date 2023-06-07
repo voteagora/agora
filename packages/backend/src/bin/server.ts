@@ -48,6 +48,7 @@ async function main() {
   const iter = followChain(
     store,
     indexers,
+    entityDefinitions,
     blockProvider,
     logProvider,
     storageArea,

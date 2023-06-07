@@ -30,17 +30,19 @@ const testContractInstance = makeContractInstance({
   startingBlock: finalizedBlockNumber + 1,
 });
 
+const entityDefinitions = {
+  LatestEvent: makeEntityDefinition({
+    serde: serde.object({
+      latestBlockNumber: serde.number,
+      latestBlockHash: serde.string,
+    }),
+    indexes: [],
+  }),
+};
+
 const testContractIndexer = makeIndexerDefinition(testContractInstance, {
   name: "TestContract",
-  entities: {
-    LatestEvent: makeEntityDefinition({
-      serde: serde.object({
-        latestBlockNumber: serde.number,
-        latestBlockHash: serde.string,
-      }),
-      indexes: [],
-    }),
-  },
+  entities: entityDefinitions,
   eventHandlers: [
     {
       signature: "ALogEvent()",
@@ -73,10 +75,10 @@ describe("followChain", () => {
     const stepChainForward = followChain(
       entityStore,
       [testContractIndexer as any],
+      entityDefinitions,
       blockProvider,
       logProvider,
-      storageArea,
-      "dev"
+      storageArea
     );
 
     appendBlocksWithLogs(initialFinalizedBlock, blocks, [
@@ -154,8 +156,8 @@ describe("followChain", () => {
 
       expect(result).toMatchInlineSnapshot(`
         {
-          "depth": -1,
-          "nextBlock": 13,
+          "depth": 9,
+          "nextBlock": 3,
           "type": "MORE",
         }
       `);
@@ -172,50 +174,10 @@ describe("followChain", () => {
               "blockNumber": 1,
               "hash": "0x1",
             },
-            "0x3" => {
-              "blockNumber": 2,
-              "hash": "0x2",
-            },
-            "0x4" => {
-              "blockNumber": 3,
-              "hash": "0x3",
-            },
-            "0x5" => {
-              "blockNumber": 4,
-              "hash": "0x4",
-            },
-            "0x6" => {
-              "blockNumber": 5,
-              "hash": "0x5",
-            },
-            "0x7" => {
-              "blockNumber": 6,
-              "hash": "0x6",
-            },
-            "0x8" => {
-              "blockNumber": 7,
-              "hash": "0x7",
-            },
-            "0x9" => {
-              "blockNumber": 8,
-              "hash": "0x8",
-            },
-            "0xa" => {
-              "blockNumber": 9,
-              "hash": "0x9",
-            },
-            "0xb" => {
-              "blockNumber": 10,
-              "hash": "0xa",
-            },
-            "0xc" => {
-              "blockNumber": 11,
-              "hash": "0xb",
-            },
           },
           "tipBlock": {
-            "blockNumber": 12,
-            "hash": "0xc",
+            "blockNumber": 2,
+            "hash": "0x2",
           },
         }
       `);
@@ -239,7 +201,9 @@ describe("followChain", () => {
 
       expect(result).toMatchInlineSnapshot(`
         {
-          "type": "TIP",
+          "depth": 8,
+          "nextBlock": 4,
+          "type": "MORE",
         }
       `);
     }

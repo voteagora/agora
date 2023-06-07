@@ -1,9 +1,6 @@
+import { EntityStore, EntityWithMetadata } from "./storage/entityStore";
 import {
-  combineEntities,
-  EntityStore,
-  EntityWithMetadata,
-} from "./storage/entityStore";
-import {
+  EntitiesType,
   IndexerDefinition,
   isBlockDepthFinalized,
   maxReorgBlocksDepth,
@@ -13,7 +10,6 @@ import {
   blockIdentifierFromParentBlock,
   BlockProvider,
   BlockProviderBlock,
-  maxBlockRange,
 } from "./blockProvider/blockProvider";
 import { LogProvider, topicFilterForIndexers } from "./logProvider/logProvider";
 import {
@@ -28,11 +24,11 @@ import {
 } from "./utils/generatorUtils";
 import { ethers } from "ethers";
 import { StructuredError } from "./utils/errorUtils";
-import { Env } from "../worker/env";
 
 export function followChain(
   store: EntityStore,
   indexers: IndexerDefinition[],
+  entityDefinitions: EntitiesType,
   blockProvider: BlockProvider,
   logProvider: LogProvider,
   storageArea: StorageArea,
@@ -46,8 +42,6 @@ export function followChain(
   });
 
   console.log({ envIndexers });
-
-  const entityDefinitions = combineEntities(envIndexers);
 
   const filter = topicFilterForIndexers(envIndexers);
 
@@ -68,7 +62,7 @@ export function followChain(
         ...filter,
       }));
     for (const log of logs) {
-      const indexer = envIndexers.find(
+      const indexer = indexers.find(
         (it) => it.address.toLowerCase() === log.address.toLowerCase()
       )!;
 
@@ -153,7 +147,7 @@ export function followChain(
 
   let nextBlockNumber = storageArea.finalizedBlock.blockNumber + 1;
 
-  return async (maxStepSize: number = maxBlockRange) => {
+  return async () => {
     const latestBlock = await blockProvider.getLatestBlock();
 
     if (nextBlockNumber > latestBlock.number) {
@@ -162,47 +156,40 @@ export function followChain(
       };
     }
 
-    // stepSize will be 1 <= stepSize <= maxBlockRange
-    const stepSize = Math.max(1, Math.min(maxStepSize, maxBlockRange));
-
-    const fetchTill = Math.min(latestBlock.number, nextBlockNumber + stepSize);
-
-    const blocks = await blockProvider.getBlockRange(
-      nextBlockNumber,
-      fetchTill
-    );
+    const nextBlock = await blockProvider.getBlockByNumber(nextBlockNumber);
+    if (!nextBlock) {
+      throw new Error("block not found");
+    }
 
     const logs = await logProvider.getLogs({
       ...filter,
       fromBlock: nextBlockNumber,
-      toBlock: fetchTill,
+      toBlock: nextBlockNumber,
     });
 
-    const logsCache = await makeLogsCache(logs, blocks);
+    const logsCache = await makeLogsCache(logs, [nextBlock]);
 
-    for (const nextBlock of blocks) {
-      await ensureParentsAvailable(blockIdentifierFromParentBlock(nextBlock));
+    await ensureParentsAvailable(blockIdentifierFromParentBlock(nextBlock));
 
-      addToParents(storageArea.parents, nextBlock);
+    addToParents(storageArea.parents, nextBlock);
 
-      await processBlock(nextBlock, logsCache);
+    await processBlock(nextBlock, logsCache);
 
-      await promoteFinalizedBlocks(
-        latestBlock.number,
-        blockIdentifierFromBlock(nextBlock),
-        storageArea.finalizedBlock
-      );
+    await promoteFinalizedBlocks(
+      latestBlock.number,
+      blockIdentifierFromBlock(nextBlock),
+      storageArea.finalizedBlock
+    );
 
-      // update storageArea.tipBlock
-      if (
-        !storageArea.tipBlock ||
-        nextBlock.number > storageArea.tipBlock.blockNumber
-      ) {
-        storageArea.tipBlock = blockIdentifierFromBlock(nextBlock);
-      }
-
-      nextBlockNumber = nextBlock.number + 1;
+    // update storageArea.tipBlock
+    if (
+      !storageArea.tipBlock ||
+      nextBlock.number > storageArea.tipBlock.blockNumber
+    ) {
+      storageArea.tipBlock = blockIdentifierFromBlock(nextBlock);
     }
+
+    nextBlockNumber = nextBlock.number + 1;
 
     return {
       type: "MORE" as const,
