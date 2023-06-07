@@ -43,8 +43,6 @@ export function followChain(
     return it;
   });
 
-  console.log({ envIndexers });
-
   const filter = topicFilterForIndexers(envIndexers);
 
   async function processBlock(
