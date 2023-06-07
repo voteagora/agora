@@ -78,7 +78,8 @@ describe("followChain", () => {
       entityDefinitions,
       blockProvider,
       logProvider,
-      storageArea
+      storageArea,
+      "dev"
     );
 
     appendBlocksWithLogs(initialFinalizedBlock, blocks, [
