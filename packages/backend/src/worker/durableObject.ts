@@ -10,7 +10,7 @@ import { ethers } from "ethers";
 import { followChain, makeInitialStorageArea } from "../indexer/followChain";
 import { DurableObjectEntityStore } from "../indexer/storage/durableObjects/durableObjectEntityStore";
 import { AdminMessage } from "../indexer/ops/adminMessage";
-import { indexers } from "../indexer/contracts";
+import { entityDefinitions, indexers } from "../indexer/contracts";
 import { listEntries } from "../indexer/storage/durableObjects/storageInterface";
 import {
   collectGenerator,
@@ -200,8 +200,6 @@ export class StorageDurableObjectV1 {
   }
 
   async stepChainForward(blockStepSize?: number) {
-    const resolvedStepSize = blockStepSize ?? safelyLoadBlockStepSize(this.env);
-
     await this.stepChainEntityStore.ensureConsistentState();
 
     const iter =
@@ -215,6 +213,7 @@ export class StorageDurableObjectV1 {
         return followChain(
           this.stepChainEntityStore,
           indexers,
+          entityDefinitions,
           blockProvider,
           logProvider,
           storageArea,
@@ -223,7 +222,7 @@ export class StorageDurableObjectV1 {
       })());
 
     try {
-      return await iter(resolvedStepSize);
+      return await iter();
     } finally {
     }
   }
