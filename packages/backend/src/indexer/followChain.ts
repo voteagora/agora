@@ -148,54 +148,58 @@ export function followChain(
   let nextBlockNumber = storageArea.finalizedBlock.blockNumber + 1;
 
   return async () => {
-    const latestBlock = await blockProvider.getLatestBlock();
+    try {
+      const latestBlock = await blockProvider.getLatestBlock();
 
-    if (nextBlockNumber > latestBlock.number) {
+      if (nextBlockNumber > latestBlock.number) {
+        return {
+          type: "TIP" as const,
+        };
+      }
+
+      const nextBlock = await blockProvider.getBlockByNumber(nextBlockNumber);
+      if (!nextBlock) {
+        throw new Error("block not found");
+      }
+
+      const logs = await logProvider.getLogs({
+        ...filter,
+        fromBlock: nextBlockNumber,
+        toBlock: nextBlockNumber,
+      });
+
+      const logsCache = await makeLogsCache(logs, [nextBlock]);
+
+      await ensureParentsAvailable(blockIdentifierFromParentBlock(nextBlock));
+
+      addToParents(storageArea.parents, nextBlock);
+
+      await processBlock(nextBlock, logsCache);
+
+      await promoteFinalizedBlocks(
+        latestBlock.number,
+        blockIdentifierFromBlock(nextBlock),
+        storageArea.finalizedBlock
+      );
+
+      // update storageArea.tipBlock
+      if (
+        !storageArea.tipBlock ||
+        nextBlock.number > storageArea.tipBlock.blockNumber
+      ) {
+        storageArea.tipBlock = blockIdentifierFromBlock(nextBlock);
+      }
+
+      nextBlockNumber = nextBlock.number + 1;
+
       return {
-        type: "TIP" as const,
+        type: "MORE" as const,
+        depth: latestBlock.number - nextBlockNumber,
+        nextBlock: nextBlockNumber,
       };
+    } catch (e) {
+      console.error(e);
     }
-
-    const nextBlock = await blockProvider.getBlockByNumber(nextBlockNumber);
-    if (!nextBlock) {
-      throw new Error("block not found");
-    }
-
-    const logs = await logProvider.getLogs({
-      ...filter,
-      fromBlock: nextBlockNumber,
-      toBlock: nextBlockNumber,
-    });
-
-    const logsCache = await makeLogsCache(logs, [nextBlock]);
-
-    await ensureParentsAvailable(blockIdentifierFromParentBlock(nextBlock));
-
-    addToParents(storageArea.parents, nextBlock);
-
-    await processBlock(nextBlock, logsCache);
-
-    await promoteFinalizedBlocks(
-      latestBlock.number,
-      blockIdentifierFromBlock(nextBlock),
-      storageArea.finalizedBlock
-    );
-
-    // update storageArea.tipBlock
-    if (
-      !storageArea.tipBlock ||
-      nextBlock.number > storageArea.tipBlock.blockNumber
-    ) {
-      storageArea.tipBlock = blockIdentifierFromBlock(nextBlock);
-    }
-
-    nextBlockNumber = nextBlock.number + 1;
-
-    return {
-      type: "MORE" as const,
-      depth: latestBlock.number - nextBlockNumber,
-      nextBlock: nextBlockNumber,
-    };
   };
 }
 
