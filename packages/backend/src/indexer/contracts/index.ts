@@ -15,5 +15,4 @@ export const indexers: IndexerDefinition[] = [
 export const entityDefinitions = {
   ...governanceTokenIndexer.entities,
   ...governorIndexer.entities,
-  ...governorIndexerTest.entities,
 };
