@@ -244,21 +244,19 @@ export class StorageDurableObjectV1 {
     }
 
     const result = await this.stepChainForward();
-    if (result) {
-      this.lastResult = result;
-      await this.state.storage.setAlarm(
-        (() => {
-          if (
-            result.type === "TIP" ||
-            (result.type === "MORE" && result.depth <= 0)
-          ) {
-            return Date.now() + 1000 * blockUpdateIntervalSeconds;
-          }
+    this.lastResult = result;
+    await this.state.storage.setAlarm(
+      (() => {
+        if (
+          result.type === "TIP" ||
+          (result.type === "MORE" && result.depth <= 0)
+        ) {
+          return Date.now() + 1000 * blockUpdateIntervalSeconds;
+        }
 
-          return Date.now();
-        })()
-      );
-    }
+        return Date.now();
+      })()
+    );
   }
 
   async fetch(request: Request): Promise<Response> {

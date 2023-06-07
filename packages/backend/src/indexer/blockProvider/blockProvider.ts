@@ -36,7 +36,10 @@ export class EthersBlockProvider implements BlockProvider {
 
   async getBlockByNumber(number: number): Promise<BlockProviderBlock> {
     const raw = await executeWithRetries(() =>
-      this.provider.send("eth_getBlockByNumber", [toHexNumber(number), false])
+      this.provider.send("eth_getBlockByNumber", [
+        ethers.BigNumber.from(number).toHexString(),
+        false,
+      ])
     );
     return transformResponse(raw);
   }

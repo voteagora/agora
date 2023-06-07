@@ -33,12 +33,9 @@ async function main() {
   while (true) {
     const value = await iter();
     console.log({ value });
-
-    if (value) {
-      switch (value.type) {
-        case "TIP": {
-          await timeout(1000);
-        }
+    switch (value.type) {
+      case "TIP": {
+        await timeout(1000);
       }
     }
   }
