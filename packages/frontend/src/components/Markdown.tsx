@@ -97,6 +97,9 @@ export function Markdown({ markdown }: Props) {
           p {
             word-break: break-word;
           }
+          pre {
+            white-space: pre-wrap;
+          }
         `
       )}
     />

@@ -108,8 +108,7 @@ export default function ProposalsPage() {
             @media (max-width: ${theme.maxWidth["2xl"]}) {
               position: fixed;
               left: 16px;
-              top: calc(100% - 204px);
-              height: 192px;
+              top: calc(100% - 180px);
               align-items: stretch;
               justify-content: flex-end;
               width: calc(100% - 32px);

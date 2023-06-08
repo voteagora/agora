@@ -100,9 +100,6 @@ export function PropHouseVoteDetails({ voteFragment }: Props) {
           className={css`
             overflow-y: scroll;
             overflow-x: scroll;
-            ::-webkit-scrollbar {
-              display: none;
-            }
 
             color: #66676b;
             font-size: ${theme.fontSize.xs};

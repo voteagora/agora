@@ -81,6 +81,7 @@ export function ProposalDetailPanel({
         <VStack
           gap="2"
           className={css`
+            margin-bottom: ${theme.spacing["16"]};
             @media (max-width: ${theme.maxWidth["2xl"]}) {
               margin-bottom: ${theme.spacing["48"]};
             }

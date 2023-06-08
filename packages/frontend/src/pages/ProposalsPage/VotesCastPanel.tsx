@@ -108,9 +108,6 @@ export function VotesCastPanel({
             padding-left: ${theme.spacing["4"]};
             padding-right: ${theme.spacing["4"]};
             overflow-y: scroll;
-            ::-webkit-scrollbar {
-              display: none;
-            }
             @media (max-width: ${theme.maxWidth["2xl"]}) {
               display: none;
             }
@@ -292,7 +289,7 @@ function VotesCastPanelVotes({
     <VStack
       gap="4"
       className={css`
-        padding-bottom: ${theme.spacing["6"]};
+        padding-bottom: ${theme.spacing["2"]};
       `}
     >
       {items.map((item, idx) => {

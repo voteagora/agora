@@ -119,9 +119,9 @@ export function CastVoteInput({
             display: none;
           }
           width: 100%;
-          height: ${theme.spacing["12"]};
+          height: ${theme.spacing["4"]};
           position: absolute;
-          top: -64px;
+          top: -32px;
           background: linear-gradient(
             0deg,
             rgba(255, 255, 255, 1) 0%,
@@ -129,64 +129,15 @@ export function CastVoteInput({
           );
         `}
       />
-      <button
-        className={
-          buttonStyles +
-          " " +
-          css`
-            position: absolute;
-            top: -${theme.spacing["5"]};
-            right: ${theme.spacing["4"]};
-            width: fit-content;
-            padding: ${theme.spacing["1"]} ${theme.spacing["3"]};
-
-            :disabled {
-              cursor: not-allowed;
-            }
-
-            &:hover > #tooltip {
-              visibility: visible;
-            }
-            @media (max-width: ${theme.maxWidth["2xl"]}) {
-              top: -${theme.spacing["8"]};
-            }
-          `
-        }
-        onClick={async () =>
-          statement && (await generateChatGpt(messages, setReason))
-        }
-        disabled={aiGenerationDisabled}
-      >
-        Auto-generate ✨
-        {aiGenerationDisabled && (
-          <Tooltip
-            text={(() => {
-              if (!address) {
-                return "Connect your wallet";
-              }
-              if (!userView) {
-                return "Delegate statement required to generate reason";
-              }
-              return "Generation in progress";
-            })()}
-            className={css`
-              right: 0;
-              font-size: ${theme.fontSize.xs};
-            `}
-          />
-        )}
-      </button>
       <VStack
-        className={cx(
-          css`
-            border: 1px solid #e0e0e0;
-            border-radius: ${theme.borderRadius.lg};
-            @media (max-width: ${theme.maxWidth["2xl"]}) {
-              margin-top: ${theme.spacing["1"]};
-            }
-          `,
-          className
-        )}
+        className={css`
+          border: 1px solid #e0e0e0;
+          border-radius: ${theme.borderRadius.lg};
+          margin: 0 ${theme.spacing["4"]};
+          @media (max-width: ${theme.maxWidth["2xl"]}) {
+            margin-top: ${theme.spacing["1"]};
+          }
+        `}
       >
         <textarea
           className={css`

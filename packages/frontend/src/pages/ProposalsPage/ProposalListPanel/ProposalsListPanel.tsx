@@ -181,9 +181,6 @@ export function ProposalsListPanel({
               100vh - 317px
             ); //martin, this is kind of a hack, but it achieves the desired result lol, please don't remove this unless there's a better way
             overflow-y: scroll;
-            ::-webkit-scrollbar {
-              display: none;
-            }
             flex-shrink: 1;
             padding-left: ${theme.spacing["4"]};
             padding-right: ${theme.spacing["4"]};
