@@ -52,6 +52,9 @@ export function VotesCastPanel({
     string | null
   >(null);
 
+  const [reason, setReason] = useState("");
+  const [hasVoted, setHasVoted] = useState(false);
+
   function setHoveredVoterAddress(value: string | null) {
     startTransition(() => setHoveredVoterAddressValue(value));
   }
@@ -214,6 +217,9 @@ export function VotesCastPanel({
               margin-left: ${theme.spacing["4"]};
               margin-right: ${theme.spacing["4"]};
             `}
+            reason={reason}
+            setReason={(value) => setReason(value)}
+            hasVoted={hasVoted}
             onVoteClick={(supportType, reason, address) => {
               openDialog({
                 type: "CAST_VOTE",
@@ -222,6 +228,10 @@ export function VotesCastPanel({
                   reason,
                   supportType,
                   proposalId: BigNumber.from(result.number).toNumber(),
+                  onVoteSuccess: () => {
+                    setReason("");
+                    setHasVoted(true);
+                  },
                 },
               });
             }}

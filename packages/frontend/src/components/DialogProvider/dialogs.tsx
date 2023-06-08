@@ -31,6 +31,7 @@ export type CastVoteDialogType = {
     proposalId: number;
     reason: string;
     supportType: SupportTextProps["supportType"];
+    onVoteSuccess: () => void;
   };
 };
 

@@ -57,7 +57,7 @@ function CastVoteDialogContents({
   address,
   reason,
   supportType,
-  closeDialog,
+  onVoteSuccess,
 }: Props) {
   const proposalIdRaw = proposalId.toString();
 
@@ -184,19 +184,19 @@ function CastVoteDialogContents({
         `}
       >
         <TokenDelegationLotVoteCell
-          closeDialog={closeDialog}
           supportType={supportTypeRaw}
           proposalId={proposalIdRaw}
           reason={reason}
           fragment={delegate}
+          onVoteSuccess={onVoteSuccess}
         />
 
         <LiquidDelegationLotVoteCell
           reason={reason}
           proposalId={proposalIdRaw}
           supportType={supportTypeRaw}
-          closeDialog={closeDialog}
           fragment={delegate}
+          onVoteSuccess={onVoteSuccess}
         />
       </VStack>
     </VStack>
@@ -207,14 +207,14 @@ function LiquidDelegationLotVoteCell({
   proposalId,
   supportType,
   reason,
-  closeDialog,
   fragment,
+  onVoteSuccess,
 }: {
   proposalId: string;
   supportType: number;
   reason: string;
-  closeDialog: () => void;
   fragment: CastVoteDialogLiquidDelegationLotVoteCellFragment$key;
+  onVoteSuccess: () => void;
 }) {
   const { liquidRepresentation } = useFragment(
     graphql`
@@ -280,7 +280,9 @@ function LiquidDelegationLotVoteCell({
       supportType,
       reason,
     ],
-    () => closeDialog()
+    () => {
+      onVoteSuccess();
+    }
   );
 
   const nouns = lots.flatMap(
@@ -312,17 +314,17 @@ function LiquidDelegationLotVoteCell({
 }
 
 function TokenDelegationLotVoteCell({
-  closeDialog,
   proposalId,
   supportType,
   reason,
   fragment,
+  onVoteSuccess,
 }: {
   proposalId: string;
   supportType: number;
   reason: string;
-  closeDialog: () => void;
   fragment: CastVoteDialogTokenDelegationLotVoteCellFragment$key;
+  onVoteSuccess: () => void;
 }) {
   const delegate = useFragment(
     graphql`
@@ -345,7 +347,9 @@ function TokenDelegationLotVoteCell({
     contracts.nounsDao,
     "castRefundableVoteWithReason",
     [BigNumber.from(proposalId), supportType, reason],
-    () => closeDialog()
+    () => {
+      onVoteSuccess();
+    }
   );
 
   // todo: casting from the same proxy multiple times isn't blocked in the ui

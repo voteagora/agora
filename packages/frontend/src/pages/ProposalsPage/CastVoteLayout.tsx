@@ -25,10 +25,7 @@ export function CastVoteLayout({
       {isError ? (
         <DisplayMessage message="Transaction reverted" />
       ) : isSuccess ? (
-        <DisplayMessage
-          message="Success! Your vote has been cast. It will appear once the transaction is confirmed. This might take a few minutes."
-          icon={icons.ballot}
-        />
+        <DisplayMessage message="Success! Your vote has been cast. It will appear once the transaction is confirmed. This might take a few minutes." />
       ) : isLoading ? (
         <DisplayMessage message="Casting vote" icon={icons.spinner} />
       ) : !canExecute ? (

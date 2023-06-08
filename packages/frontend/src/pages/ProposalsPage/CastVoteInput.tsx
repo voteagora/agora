@@ -1,5 +1,5 @@
 import { css, cx } from "@emotion/css";
-import { useState } from "react";
+import React, { useState } from "react";
 import { graphql } from "react-relay";
 import { useFragment } from "react-relay/hooks";
 import { useAccount } from "wagmi";
@@ -27,6 +27,9 @@ type Props = {
     reason: string,
     address: string
   ) => void;
+  setReason: (value: React.SetStateAction<string>) => void;
+  reason: string;
+  hasVoted: boolean;
   className: string;
   fragmentRef: CastVoteInputVoteButtonsFragment$key;
   queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
@@ -36,14 +39,15 @@ type Props = {
 
 export function CastVoteInput({
   onVoteClick,
+  setReason,
+  reason,
+  hasVoted,
   className,
   fragmentRef,
   queryFragmentRef,
   delegateFragmentRef,
   proposalFragmentRef,
 }: Props) {
-  const [reason, setReason] = useState("");
-
   const { generateChatGpt, isLoading } = useGenerateChatGpt();
 
   const { address } = useAccount();
@@ -222,6 +226,7 @@ export function CastVoteInput({
             }
             fragmentRef={fragmentRef}
             queryFragmentRef={queryFragmentRef}
+            hasVoted={hasVoted}
           />
         </VStack>
       </VStack>
@@ -233,6 +238,7 @@ function VoteButtons({
   onClick,
   fragmentRef,
   queryFragmentRef,
+  hasVoted,
 }: {
   onClick: (
     nextSupportType: SupportTextProps["supportType"],
@@ -240,6 +246,7 @@ function VoteButtons({
   ) => void;
   fragmentRef: CastVoteInputVoteButtonsFragment$key;
   queryFragmentRef: CastVoteInputVoteButtonsQueryFragment$key;
+  hasVoted: boolean;
 }) {
   const result = useFragment(
     graphql`
@@ -347,6 +354,10 @@ function VoteButtons({
 
   if (!proposalVoteLots.length) {
     return <DisabledVoteButton reason="No available votes" />;
+  }
+
+  if (hasVoted) {
+    return <DisabledVoteButton reason="Already voted" />;
   }
 
   return (
