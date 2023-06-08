@@ -32,7 +32,9 @@ export function PastVotes({ fragment }: Props) {
         votes {
           id
           transaction {
-            timestamp
+            block {
+              timestamp
+            }
           }
           proposal {
             totalValue
@@ -58,7 +60,7 @@ export function PastVotes({ fragment }: Props) {
       })),
       ...votes.map((vote) => ({
         type: "ON_CHAIN" as const,
-        createdAt: vote.transaction.timestamp,
+        createdAt: vote.transaction.block.timestamp,
         amountEth: BigNumber.from(vote.proposal.totalValue),
         vote,
       })),
