@@ -7,8 +7,6 @@ import { Markdown } from "../../components/Markdown";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { ProposalTransactionDisplay } from "../../components/ProposalTransactionDisplay";
 
-const TOKEN_BUYER_CONTRACT_ADDRESS =
-  "0x4f2aCdc74f6941390d9b1804faBc3E780388cfe5";
 import { ProposalDetailPanelFragment$key } from "./__generated__/ProposalDetailPanelFragment.graphql";
 
 export function ProposalDetailPanel({
@@ -22,11 +20,7 @@ export function ProposalDetailPanel({
         title
         description
         transactions {
-          target {
-            resolvedName {
-              address
-            }
-          }
+          signature
           ...ProposalTransactionDisplayFragment
         }
 
@@ -43,15 +37,12 @@ export function ProposalDetailPanel({
     fragmentRef
   );
 
-  const usdcRefilTransaction = proposal.transactions.find(
-    (transaction) =>
-      transaction.target.resolvedName.address === TOKEN_BUYER_CONTRACT_ADDRESS
-  );
-
-  const displayedTransactions = proposal.transactions.filter(
-    (transaction) =>
-      transaction.target.resolvedName.address !== TOKEN_BUYER_CONTRACT_ADDRESS
-  );
+  const hasStreamTransaction = proposal.transactions.some((tx) => {
+    return (
+      tx.signature ==
+      "createStream(address,uint256,address,uint256,uint256,uint8,address)"
+    );
+  });
 
   return (
     <>
@@ -98,9 +89,9 @@ export function ProposalDetailPanel({
           <VStack
             gap="1"
             className={css`
-              /* border: 1px solid #e0e0e0; */
+              border: 1px solid #e0e0e0;
               border-radius: ${theme.borderRadius.lg};
-              background-color: #f7f7f7;
+              background-color: ${theme.colors.gray["fa"]};
             `}
           >
             <VStack
@@ -112,36 +103,25 @@ export function ProposalDetailPanel({
               <div
                 className={css`
                   font-size: ${theme.fontSize.xs};
+                  font-family: ${theme.fontFamily.mono};
                   font-weight: ${theme.fontWeight.medium};
                   color: ${theme.colors.gray.af};
+                  line-height: ${theme.lineHeight["4"]};
+                  margin-bottom: ${theme.spacing[2]};
                 `}
               >
                 Proposed Transactions
               </div>
               <VStack>
-                {displayedTransactions.map((tx, idx) => (
-                  <ProposalTransactionDisplay key={idx} fragment={tx} />
+                {proposal.transactions.map((tx, idx) => (
+                  <ProposalTransactionDisplay
+                    key={idx}
+                    fragment={tx}
+                    hasStreamTransaction={hasStreamTransaction}
+                  />
                 ))}
               </VStack>
             </VStack>
-
-            {usdcRefilTransaction && (
-              <a
-                href={`https://etherscan.io/address/${TOKEN_BUYER_CONTRACT_ADDRESS}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={css`
-                  font-size: ${theme.fontSize.xs};
-                  font-weight: ${theme.fontWeight.medium};
-                  color: ${theme.colors.gray.af};
-                  border-top: 1px solid ${theme.colors.gray.eb};
-                  padding: ${theme.spacing["4"]};
-                `}
-              >
-                Includes an additional hidden transaction to refill the USDC
-                TokenBuyer, which the proposer does not receive.
-              </a>
-            )}
           </VStack>
           <Markdown
             markdown={stripTitleFromDescription(
