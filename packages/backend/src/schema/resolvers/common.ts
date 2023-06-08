@@ -44,10 +44,6 @@ export const Transaction: TransactionResolvers = {
     return hash;
   },
 
-  timestamp({ timestamp }) {
-    return timestamp ? new Date(timestamp * 1000) : new Date();
-  },
-
   async block({ blockHash }, _args, { provider }) {
     return await provider.getBlock(blockHash!);
   },

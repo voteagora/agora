@@ -34,7 +34,9 @@ export function VoteDetails({ voteFragment }: Props) {
           }
         }
         transaction {
-          timestamp
+          block {
+            timestamp
+          }
         }
         options {
           description
@@ -105,9 +107,9 @@ export function VoteDetails({ voteFragment }: Props) {
               Prop {shortenId(vote.proposal.number)}
             </a>
             <ValuePart value={vote.proposal.totalValue} />
-            {vote.transaction.timestamp &&
+            {vote.transaction.block.timestamp &&
               ` - ${formatDistanceToNow(
-                new Date(vote.transaction.timestamp)
+                new Date(vote.transaction.block.timestamp)
               )} ago`}
           </div>
 
