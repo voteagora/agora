@@ -9,3 +9,6 @@ data/state
 
 yarn.lock
 yarn-error.log
+**/generated-types
+**/proto
+**/gen
