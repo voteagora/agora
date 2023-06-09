@@ -125,6 +125,7 @@ export const colors = {
     700: "#2f855a",
     800: "#276749",
     900: "#22543d",
+    positive: "#23B100",
   },
   teal: {
     100: "#e6fffa",

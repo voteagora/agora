@@ -13,17 +13,6 @@ import { BigNumber } from "ethers";
 import { OptionsResultsPanelStatusFragment$key } from "./__generated__/OptionsResultsPanelStatusFragment.graphql";
 import { ProposalStatus } from "./__generated__/ApprovalCastVoteButtonFragment.graphql";
 
-export type Filter =
-  | "PENDING"
-  | "ACTIVE"
-  | "CANCELLED"
-  | "VETOED"
-  | "QUEUED"
-  | "EXECUTED"
-  | "DEFEATED"
-  | "EXPIRED"
-  | "ALL";
-
 export type Sort = "desc" | "asc";
 
 type Props = {
@@ -265,8 +254,8 @@ export function ProgressBar({
               .toString()}%;
             height: 6px;
             background-color: ${isApproved
-              ? status === "EXECUTED"
-                ? theme.colors.green["600"]
+              ? status === "EXECUTED" || status === "SUCCEEDED"
+                ? theme.colors.green.positive
                 : theme.colors.orange["400"]
               : theme.colors.gray["4f"]};
             position: absolute;

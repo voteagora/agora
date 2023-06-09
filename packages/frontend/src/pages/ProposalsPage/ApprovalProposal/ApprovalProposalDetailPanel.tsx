@@ -139,8 +139,8 @@ function ApprovalCodeChanges({
       className={css`
         border: 1px solid #e0e0e0;
         border-radius: ${theme.borderRadius.lg};
-        padding: ${theme.spacing["4"]};
         background-color: ${theme.colors.gray["fa"]};
+        padding: ${theme.spacing["4"]} 0;
       `}
     >
       <p
@@ -151,11 +151,16 @@ function ApprovalCodeChanges({
           color: ${theme.colors.gray.af};
           line-height: ${theme.lineHeight["4"]};
           margin-bottom: ${theme.spacing[2]};
+          padding: 0 ${theme.spacing["4"]};
         `}
       >
         Proposed Transactions - only approved options will execute
       </p>
-      <VStack>
+      <VStack
+        className={css`
+          padding: 0 ${theme.spacing["4"]};
+        `}
+      >
         {proposalData.options
           .slice(0, displayedOptions)
           .map((option: any, index: any) => {
@@ -195,8 +200,8 @@ function ApprovalCodeChanges({
             font-weight: ${theme.fontWeight.medium};
             color: ${theme.colors.gray.af};
             line-height: ${theme.lineHeight["4"]};
-            padding-top: ${theme.spacing[4]};
-            padding-left: ${theme.spacing[2]};
+            padding: ${theme.spacing["4"]};
+            padding-bottom: 0;
             border-top: 1px solid ${theme.colors.gray.eo};
           `}
           onClick={toggleElements}
@@ -288,7 +293,7 @@ function linkIfAddress(content: string) {
   if (utils.isAddress(content)) {
     return (
       <a
-        href={`https://etherscan.io/address/${content}`}
+        href={`https://optimistic.etherscan.io/address/${content}`}
         target="_blank"
         rel="noreferrer"
       >
