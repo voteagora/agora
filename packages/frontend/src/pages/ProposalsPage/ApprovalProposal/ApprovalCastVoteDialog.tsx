@@ -10,7 +10,7 @@ import { ApprovalCastVoteDialogFragment$key } from "./__generated__/ApprovalCast
 import { useContractWrite } from "../../../hooks/useContractWrite";
 import { OptimismGovernorV5 } from "../../../contracts/generated";
 import { governorTokenContract } from "../../../contracts/contracts";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import {
   LoadingVote,
   NoStatementView,
@@ -40,6 +40,7 @@ export function ApprovalCastVoteDialog({
         options {
           description
           budgetTokensSpent {
+            amount
             ...TokenAmountDisplayFragment
           }
         }
@@ -145,17 +146,24 @@ export function ApprovalCastVoteDialog({
                   title={option.description}
                   description={
                     <p>
-                      Requesting{" "}
-                      {
-                        <TokenAmountDisplay
-                          fragment={option.budgetTokensSpent}
-                        />
-                      }{" "}
-                      tokens
+                      {BigNumber.from(
+                        option.budgetTokensSpent.amount
+                      ).isZero() ? (
+                        "No token transfer request"
+                      ) : (
+                        <>
+                          Requesting{" "}
+                          <TokenAmountDisplay
+                            fragment={option.budgetTokensSpent}
+                          />
+                        </>
+                      )}
                     </p>
                   }
                   checked={selectedOptions.includes(index)}
+                  checkedOptions={selectedOptions.length}
                   onClick={() => handleOnChange(index)}
+                  abstain={abstain}
                 />
               ))}
               {/* Abstain card */}
@@ -164,7 +172,9 @@ export function ApprovalCastVoteDialog({
                 title={"Abstain"}
                 description={"Vote for no options"}
                 checked={!!abstain}
+                checkedOptions={selectedOptions.length}
                 onClick={() => handleOnChange(abstainOptionId)}
+                abstain={abstain}
               />
             </VStack>
             <CastVoteWithReason
@@ -258,11 +268,15 @@ function CheckCard({
   checked,
   onClick,
   description,
+  checkedOptions,
+  abstain,
 }: {
   title: string;
   checked: boolean;
   onClick: () => void;
   description: string | JSX.Element;
+  checkedOptions: number;
+  abstain: boolean;
 }) {
   return (
     <div
@@ -271,7 +285,7 @@ function CheckCard({
         cursor: pointer;
         position: relative;
         padding-right: ${theme.spacing["12"]};
-        opacity: ${checked ? 1 : 0.5};
+        opacity: ${checked ? 1 : checkedOptions > 0 || abstain ? 0.5 : 1};
       `}
       onClick={onClick}
     >
