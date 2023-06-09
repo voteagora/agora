@@ -17,7 +17,7 @@ import {
   SuccessMessage,
 } from "../CastVoteDialog";
 import { buttonStyle } from "./ApprovalCastVoteButton";
-import { CheckCircleIcon } from "@heroicons/react/20/solid";
+import { CheckIcon } from "@heroicons/react/20/solid";
 import { TokenAmountDisplay } from "../../../components/TokenAmountDisplay";
 import { TokenAmountDisplayFragment$key } from "../../../components/__generated__/TokenAmountDisplayFragment.graphql";
 
@@ -128,7 +128,7 @@ export function ApprovalCastVoteDialog({
               className={css`
                 font-size: ${theme.fontSize["xl"]};
                 font-weight: ${theme.fontWeight.bold};
-                margin-bottom: ${theme.spacing["6"]};
+                margin-bottom: ${theme.spacing["4"]};
               `}
             >
               Select up to {maxChecked} option{maxChecked > 1 && "s"}
@@ -267,19 +267,11 @@ function CheckCard({
   return (
     <div
       className={css`
-        padding: ${theme.spacing["3"]} ${theme.spacing["4"]};
-        border-radius: ${theme.borderRadius.lg};
-        border: 2px solid
-          ${checked ? theme.colors.green[400] : theme.colors.gray[100]};
-        box-shadow: ${theme.boxShadow.default};
-        margin-bottom: ${theme.spacing["3"]};
+        padding: ${theme.spacing["2"]} 0;
         cursor: pointer;
         position: relative;
         padding-right: ${theme.spacing["12"]};
-
-        &:hover {
-          background-color: ${theme.colors.gray.fa};
-        }
+        opacity: ${checked ? 1 : 0.5};
       `}
       onClick={onClick}
     >
@@ -300,18 +292,37 @@ function CheckCard({
       >
         {description}
       </div>
-      {checked && (
-        <CheckCircleIcon
-          className={css`
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            right: ${theme.spacing["4"]};
-            width: 24px;
-            color: ${theme.colors.green[400]};
-          `}
-        />
-      )}
+      <div
+        className={css`
+          position: absolute;
+          right: ${theme.spacing["4"]};
+          top: 50%;
+          transform: translateY(-50%);
+          width: ${theme.spacing["7"]};
+          height: ${theme.spacing["7"]};
+          border-radius: ${theme.borderRadius.md};
+          border: 1px solid ${theme.colors.gray.eo};
+          background-color: ${theme.colors.gray.fa};
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        `}
+      >
+        {checked && (
+          <CheckIcon
+            className={css`
+              width: ${theme.spacing["5"]};
+              height: ${theme.spacing["5"]};
+              color: ${theme.colors.black};
+
+              & > path {
+                stroke-width: 2px;
+                stroke: ${theme.colors.black};
+              }
+            `}
+          />
+        )}
+      </div>
     </div>
   );
 }
