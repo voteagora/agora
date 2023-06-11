@@ -107,7 +107,7 @@ $ yarn indexer backfill
 $ yarn indexer dump
 ```
 
-(By default the ENVIRONEMNT is set to `dev`, and testnet (Sepolia) logs are fetched. To run for prod / mainnet, set `ENVIRONMENT=prod`)
+(By default ENVIRONMENT is set to `dev`, and testnet (Sepolia) logs are fetched. To run for prod / mainnet, set `ENVIRONMENT=prod`)
 
 This will create a file in packages/backend/data/deployments/nouns/dump.jsonl
 with a representation of all entities and indexes.
