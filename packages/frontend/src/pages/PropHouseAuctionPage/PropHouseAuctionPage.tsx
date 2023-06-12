@@ -22,7 +22,7 @@ import { PropHouseAuctionPageQuery } from "./__generated__/PropHouseAuctionPageQ
 import { PropHousePastVotes } from "./PropHousePastVotes";
 import { PendingVotesProvider } from "./PendingVotesContext";
 
-export const COMMUNITY_ADDRESS = contracts.nounsToken.address;
+export const COMMUNITY_ADDRESS = contracts.nounsToken.address.toLowerCase();
 
 export default function PropHouseAuctionPage() {
   const { auctionId } = useParams();
