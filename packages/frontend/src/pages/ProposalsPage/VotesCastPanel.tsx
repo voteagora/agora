@@ -1,4 +1,4 @@
-import { css, keyframes } from "@emotion/css";
+import { css, keyframes, cx } from "@emotion/css";
 import { useFragment, usePaginationFragment, graphql } from "react-relay";
 import { InView } from "react-intersection-observer";
 import { Suspense, useEffect, useState, useTransition } from "react";
@@ -102,16 +102,19 @@ export function VotesCastPanel({
       >
         <VStack
           gap="4"
-          className={css`
-            min-height: 0;
-            flex-shrink: 1;
-            padding-left: ${theme.spacing["4"]};
-            padding-right: ${theme.spacing["4"]};
-            overflow-y: scroll;
-            @media (max-width: ${theme.maxWidth["2xl"]}) {
-              display: none;
-            }
-          `}
+          className={cx(
+            css`
+              min-height: 0;
+              flex-shrink: 1;
+              padding-left: ${theme.spacing["4"]};
+              padding-right: ${theme.spacing["4"]};
+              overflow-y: scroll;
+              @media (max-width: ${theme.maxWidth["2xl"]}) {
+                /* display: none; */
+              }
+            `,
+            "mobile-web-scroll-div"
+          )}
         >
           {hoveredVoterAddress && (
             <div

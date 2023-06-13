@@ -11,6 +11,7 @@ import {
   useNavigate,
   useParams,
 } from "../../components/HammockRouter/HammockRouter";
+import { icons } from "../../icons/icons";
 
 import { ProposalsPageDetailQuery } from "./__generated__/ProposalsPageDetailQuery.graphql";
 import { ProposalDetailPanel } from "./ProposalDetailPanel";
@@ -66,6 +67,12 @@ export default function ProposalsPage() {
     });
     return null;
   }
+  const [isClicked, setIsClicked] = useState(false);
+  const handleClick = () => {
+    setIsClicked(!isClicked);
+    var div = document.getElementsByClassName("mobile-web-scroll-div")[0];
+    div.scrollTop = 0;
+  };
 
   return (
     <motion.div
@@ -96,7 +103,6 @@ export default function ProposalsPage() {
             position: sticky;
             top: ${theme.spacing["20"]};
             max-height: calc(100vh - 148px);
-
             flex-shrink: 0;
             width: ${theme.maxWidth.sm};
             background-color: ${theme.colors.white};
@@ -107,14 +113,44 @@ export default function ProposalsPage() {
 
             @media (max-width: ${theme.maxWidth["2xl"]}) {
               position: fixed;
+              top: auto;
               left: 16px;
-              top: calc(100% - 180px);
+              height: 480px;
+              bottom: ${isClicked ? "-16px" : "-412px"};
               align-items: stretch;
               justify-content: flex-end;
               width: calc(100% - 32px);
             }
           `}
         >
+          <button
+            onClick={handleClick}
+            className={css`
+              border: 1px solid ${theme.colors.gray.eb};
+              width: 40px;
+              height: 40px;
+              border-radius: ${theme.borderRadius.full};
+              background-color: ${theme.colors.white};
+              position: absolute;
+              top: -20px;
+              left: calc(50% - 20px);
+              box-shadow: ${theme.boxShadow.newDefault};
+              display: none;
+              @media (max-width: ${theme.maxWidth["2xl"]}) {
+                display: block;
+              }
+            `}
+          >
+            <HStack justifyContent="center">
+              <img
+                className={css`
+                  opacity: 60%;
+                `}
+                src={icons.expand}
+                alt="expand"
+              />
+            </HStack>
+          </button>
           <ProposalsListPanel
             fragmentRef={result}
             selectedProposal={{
