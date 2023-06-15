@@ -1,5 +1,6 @@
 import { css } from "@emotion/css";
 import { graphql, useFragment } from "react-relay";
+import { ethers } from "ethers";
 
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
@@ -7,7 +8,10 @@ import { Markdown } from "../../components/Markdown";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { ProposalTransactionDisplay } from "../../components/ProposalTransactionDisplay";
 
-import { ProposalDetailPanelFragment$key } from "./__generated__/ProposalDetailPanelFragment.graphql";
+import {
+  ProposalDetailPanelFragment$data,
+  ProposalDetailPanelFragment$key,
+} from "./__generated__/ProposalDetailPanelFragment.graphql";
 
 export function ProposalDetailPanel({
   fragmentRef,
@@ -19,8 +23,10 @@ export function ProposalDetailPanel({
       fragment ProposalDetailPanelFragment on Proposal {
         title
         description
+        # eslint-disable-next-line relay/unused-fields
         transactions {
           signature
+          calldata
           ...ProposalTransactionDisplayFragment
         }
 
@@ -36,13 +42,6 @@ export function ProposalDetailPanel({
     `,
     fragmentRef
   );
-
-  const hasStreamTransaction = proposal.transactions.some((tx) => {
-    return (
-      tx.signature ==
-      "createStream(address,uint256,address,uint256,uint256,uint8,address)"
-    );
-  });
 
   return (
     <>
@@ -118,7 +117,7 @@ export function ProposalDetailPanel({
                   <ProposalTransactionDisplay
                     key={idx}
                     fragment={tx}
-                    hasStreamTransaction={hasStreamTransaction}
+                    transactions={proposal.transactions}
                   />
                 ))}
               </VStack>

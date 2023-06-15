@@ -7,6 +7,7 @@ import { differenceInCalendarMonths, format } from "date-fns";
 
 import * as theme from "../theme";
 import { shortAddress } from "../utils/address";
+import { ProposalDetailPanelFragment$data } from "../pages/ProposalsPage/__generated__/ProposalDetailPanelFragment.graphql";
 
 import { etherscanAddressUrl } from "./VoterPanel/NameSection";
 import {
@@ -18,12 +19,27 @@ import { VStack } from "./VStack";
 const TOKEN_BUYER_CONTRACT_ADDRESS =
   "0x4f2aCdc74f6941390d9b1804faBc3E780388cfe5";
 
+const knownTokens: Record<string, { currency: string; decimals: number }> = {
+  "0x0000000000000000000000000000000000000000": {
+    currency: "ETH",
+    decimals: 18,
+  },
+  "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2": {
+    currency: "WETH",
+    decimals: 18,
+  },
+  "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": {
+    currency: "USDC",
+    decimals: 6,
+  },
+};
+
 export function ProposalTransactionDisplay({
   fragment,
-  hasStreamTransaction,
+  transactions,
 }: {
   fragment: ProposalTransactionDisplayFragment$key;
-  hasStreamTransaction?: boolean;
+  transactions: ProposalDetailPanelFragment$data["transactions"];
 }) {
   const proposalTransaction = useFragment(
     graphql`
@@ -45,31 +61,42 @@ export function ProposalTransactionDisplay({
 
   const decodingMetadata = useMemo(() => {
     try {
-      const functionFragment = ethers.utils.FunctionFragment.fromString(
-        proposalTransaction.signature
-      );
-
-      const decoded = ethers.utils.defaultAbiCoder.decode(
-        functionFragment.inputs,
+      return decodeCalldata(
+        proposalTransaction.signature,
         proposalTransaction.calldata
       );
-
-      return {
-        functionFragment,
-        values: functionFragment.inputs.map((type, index) => ({
-          type,
-          value: decoded[index],
-        })),
-      };
     } catch (e) {
       Sentry.captureException(e);
       return undefined;
     }
   }, [proposalTransaction]);
 
-  const transactionValue = decodingMetadata?.values.find(
-    (it) => it.type.type === "uint256"
-  )?.value;
+  const hasStreamTransaction = useMemo(
+    () =>
+      transactions.some((tx) => {
+        if (
+          tx.signature ==
+          "createStream(address,uint256,address,uint256,uint256,uint8,address)"
+        ) {
+          try {
+            const decodedTx = decodeCalldata(tx.signature, tx.calldata);
+
+            if (
+              decodedTx &&
+              decodingMetadata &&
+              decodedTx.values[6].value === decodingMetadata?.values[0].value
+            ) {
+              return true;
+            }
+          } catch (e) {
+            Sentry.captureException(e);
+
+            return false;
+          }
+        }
+      }),
+    [transactions, decodingMetadata]
+  );
 
   return (
     <div
@@ -116,7 +143,13 @@ export function ProposalTransactionDisplay({
           return;
         }
 
-        return <>.transfer( {ethers.utils.formatEther(value)} ETH )</>;
+        return (
+          <>
+            {proposalTransaction.signature
+              ? ""
+              : ".transfer( " + ethers.utils.formatEther(value) + " ETH )"}
+          </>
+        );
       })()}
       <VStack
         className={css`
@@ -143,9 +176,21 @@ export function ProposalTransactionDisplay({
             );
           }
 
+          const value = BigNumber.from(proposalTransaction.value);
+
           return (
             <>
-              .{decodingMetadata.functionFragment.name}(
+              .{decodingMetadata.functionFragment.name}
+              {""}
+              {(() => {
+                if (!value.isZero()) {
+                  return (
+                    <>{"( " + ethers.utils.formatEther(value) + " ETH )"}</>
+                  );
+                } else {
+                  return "(";
+                }
+              })()}
               <VStack
                 className={css`
                   margin-left: ${theme.spacing["4"]};
@@ -162,7 +207,7 @@ export function ProposalTransactionDisplay({
                   </>
                 ))}
               </VStack>
-              )
+              {value.isZero() ? ")" : ""}
             </>
           );
         })()}
@@ -249,6 +294,10 @@ function TransactionAnnotation({
       "createStream(address,uint256,address,uint256,uint256,uint8,address)" &&
     calldata
   ) {
+    const token =
+      knownTokens[calldata.values[2].value] ||
+      knownTokens["0x0000000000000000000000000000000000000000"];
+
     return (
       <p
         className={css`
@@ -262,9 +311,9 @@ function TransactionAnnotation({
       >
         // This transaction streams{" "}
         {parseFloat(
-          ethers.utils.formatUnits(calldata.values[1].value, 6)
+          ethers.utils.formatUnits(calldata.values[1].value, token.decimals)
         ).toLocaleString("en-US")}{" "}
-        USDC to{" "}
+        {token.currency} to{" "}
         <a
           className={css`
             :hover {
@@ -354,4 +403,24 @@ function TransactionAnnotation({
   }
 
   return null;
+}
+
+function decodeCalldata(
+  signature: ProposalTransactionDisplayFragment$data["signature"],
+  calldata: ProposalTransactionDisplayFragment$data["calldata"]
+) {
+  const functionFragment = ethers.utils.FunctionFragment.fromString(signature);
+
+  const decoded = ethers.utils.defaultAbiCoder.decode(
+    functionFragment.inputs,
+    calldata
+  );
+
+  return {
+    functionFragment,
+    values: functionFragment.inputs.map((type, index) => ({
+      type,
+      value: decoded[index],
+    })),
+  };
 }

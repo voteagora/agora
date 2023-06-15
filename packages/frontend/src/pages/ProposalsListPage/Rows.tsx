@@ -25,7 +25,7 @@ export function RowValue({
         padding: 0;
         ${primary &&
         css`
-          width: 50%;
+          width: 45%;
         `};
 
         ${!primary &&
