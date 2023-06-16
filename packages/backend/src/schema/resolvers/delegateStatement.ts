@@ -86,7 +86,7 @@ export const Mutation: MutationResolvers = {
     const validated = await validateSigned(provider, args.data.statement);
 
     const nextStatement: StoredStatement = {
-      address: validated.address,
+      address: validated.address.toLocaleLowerCase(),
       signedPayload: validated.value,
       signature: validated.signature,
       signatureType: validated.signatureType,
@@ -106,6 +106,10 @@ export const Mutation: MutationResolvers = {
       );
     }
 
-    return { ...delegate, statement: nextStatement };
+    return {
+      ...delegate,
+      address: validated.address,
+      statement: nextStatement,
+    };
   },
 };

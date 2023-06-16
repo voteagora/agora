@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "name": "nouns-agora-backend",
   "scripts": {
-    "generate-schema": "ts-node --require ./scripts/registerGraphQL.ts src/bin/scripts/generateSchema.ts > ../frontend/schema.graphql",
+    "generate-schema": "ts-node --require ./scripts/registerGraphQL.ts src/bin/generateSchema.ts > ../frontend/schema.graphql",
     "build-dump-namespace": "esbuild --bundle --platform=node src/bin/scripts/dumpNamespace.ts --outfile=dist/dump.js",
     "dump-namespace": "node dist/dump.js",
     "check": "tsc --noEmit",

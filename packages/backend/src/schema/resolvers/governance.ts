@@ -197,11 +197,20 @@ export const Delegate: DelegateResolvers = {
     return { address };
   },
 
-  async statement({ address }, _args, { delegateStorage }) {
+  async statement({ address }, _args, { delegateStorage, statementStorage }) {
     const delegate = await delegateStorage.getDelegate(address);
 
+    console.log({ delegate });
+
     if (!delegate || !delegate.statement || !delegate.statement.signedPayload) {
-      return null;
+      const statment = await statementStorage.getStatement(address);
+      if (!statment || !statment.signedPayload) {
+        return null;
+      }
+      return {
+        address: address,
+        values: formSchema.parse(JSON.parse(statment.signedPayload)),
+      };
     }
 
     return {

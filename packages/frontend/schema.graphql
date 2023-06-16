@@ -3,13 +3,15 @@ scalar BigInt
 scalar Timestamp
 
 type Query {
-  delegate(addressOrEnsName: String!): Delegate
+  delegate(addressOrEnsName: String!): Delegate!
   delegates(
     where: DelegatesWhere
     orderBy: DelegatesOrder!
     first: Int!
     after: String
   ): DelegatesConnection!
+  votes(proposalId: ID!, first: Int!, after: String): VotesConnection!
+  proposal(id: ID!): Proposal!
   proposals: [Proposal!]!
   metrics: Metrics!
 }
@@ -17,14 +19,11 @@ type Query {
 type Delegate {
   id: ID!
   address: Address!
-
-  # Delegate where voting power has been delegated. Can be delegated to a
-  # delegate with the same address as the account.
   delegatingTo: Delegate!
-
   statement: DelegateStatement
   amountOwned: VotingPower!
   tokensRepresented: VotingPower!
+  votesCasted: BigInt!
   delegateMetrics: DelegateMetrics!
   proposed: [Proposal!]!
   votes: [Vote!]!
@@ -32,6 +31,7 @@ type Delegate {
 }
 
 type Address {
+  address: String!
   resolvedName: ResolvedName!
   isContract: Boolean!
 }
@@ -76,12 +76,14 @@ type Vote {
   supportDetailed: Int!
   votes: VotingPower!
   proposal: Proposal!
+  voter: Delegate!
   transaction: Transaction!
 }
 
 type Transaction {
   id: ID!
   hash: String!
+  timestamp: Timestamp!
   block: Block!
 }
 
@@ -100,6 +102,7 @@ type TokenAmount {
 type VotingPower {
   amount: TokenAmount!
   bpsOfQuorum: Int!
+  bpsOfDelegatedSupply: Int!
   bpsOfTotal: Int!
 }
 
@@ -190,17 +193,53 @@ type PageInfo {
   endCursor: String
 }
 
+type VotesConnection {
+  pageInfo: PageInfo!
+  edges: [VotesEdge!]!
+}
+
+type VotesEdge {
+  node: Vote!
+  cursor: String!
+}
+
+scalar Bytes
+
 type Proposal {
   id: ID!
   number: BigInt!
+  forVotes: TokenAmount!
+  againstVotes: TokenAmount!
+  abstainVotes: TokenAmount!
   title: String!
+  description: String!
+  voteEndsAt: Timestamp!
+  voteStartsAt: Timestamp!
+  quorumVotes: TokenAmount!
   totalVotes: BigInt!
-  votes: [Vote!]!
+  targets: [Bytes!]
+  values: [BigInt!]
+  signatures: [String!]
+  calldatas: [Bytes!]
+  status: ProposalStatus!
   totalValue: BigInt!
+  proposer: Delegate!
+}
+
+enum ProposalStatus {
+  PENDING
+  ACTIVE
+  CANCELLED
+  VETOED
+  QUEUED
+  SUCCEEDED
+  EXECUTED
+  DEFEATED
+  EXPIRED
 }
 
 type Mutation {
-  createNewDelegateStatement(data: CreateNewDelegateStatementData): Delegate!
+  createNewDelegateStatement(data: CreateNewDelegateStatementData!): Delegate!
 }
 
 input CreateNewDelegateStatementData {
