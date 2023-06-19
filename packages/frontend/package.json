@@ -2,7 +2,7 @@
   "name": "nouns-agora",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://0.0.0.0:4001/",
+  "proxy": "https://agora.ensdao.org/",
   "dependencies": {
     "@emotion/css": "^11.10.0",
     "@ensdomains/ens-avatar": "^0.1.8",
@@ -24,7 +24,7 @@
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "@types/react-window-infinite-loader": "^1.0.6",
-    "connectkit": "^1.0.0",
+    "connectkit": "1.3.0",
     "date-fns": "^2.29.2",
     "ethers": "^5.7.2",
     "framer-motion": "^7.2.1",
@@ -46,8 +46,8 @@
     "relay-runtime": "^14.1.0",
     "remark-breaks": "^3.0.2",
     "source-map-explorer": "^2.5.2",
-    "typescript": "^4.4.2",
-    "wagmi": "^0.7.13",
+    "typescript": "4.9.4",
+    "wagmi": "^0.12.13",
     "web-vitals": "^2.1.0"
   },
   "relay": {
@@ -61,14 +61,14 @@
   },
   "scripts": {
     "analyze": "source-map-explorer 'build/static/js/*.js'",
-    "start": "yarn run codegen && react-scripts start",
-    "build": "yarn run codegen && react-scripts build",
+    "start": "yarn run codegen && react-app-rewired start",
+    "build": "yarn run codegen && react-app-rewired build",
     "relay": "yarn run relay-compiler",
     "check": "yarn run tsc --noEmit",
     "generate-typechain": "typechain --target ethers-v5 --out-dir src/contracts/generated src/contracts/abis/*.json",
     "codegen": "yarn run relay && yarn run generate-typechain",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "react-app-rewired test",
+    "eject": "react-app-rewired eject"
   },
   "eslintConfig": {
     "extends": [
@@ -97,11 +97,23 @@
     "@types/react-textfit": "^1.1.0",
     "@types/react-window": "^1.8.5",
     "@types/relay-runtime": "^14.1.2",
+    "assert": "^2.0.0",
     "autoprefixer": "^10.4.8",
     "babel-plugin-relay": "^14.1.0",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.0",
+    "https-browserify": "^1.0.0",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
     "postcss": "^8.4.16",
     "prettier": "^2.7.1",
+    "process": "^0.11.10",
+    "react-app-rewired": "^2.2.1",
     "relay-compiler": "^14.1.0",
-    "typechain": "^8.1.0"
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "typechain": "^8.1.0",
+    "url": "^0.11.1"
   }
 }

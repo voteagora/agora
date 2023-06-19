@@ -28,6 +28,7 @@ const wagmiClient = createClient(
   getDefaultClient({
     appName: "Agora",
     provider: multicallProvider,
+    walletConnectProjectId: process.env.REACT_APP_WALLET_CONNECT_ID || "",
   })
 );
 
@@ -39,7 +40,7 @@ function App() {
       <RecoilRoot>
         <QueryClientProvider client={queryClient}>
           <WagmiConfig client={wagmiClient}>
-            <ConnectKitProvider>
+            <ConnectKitProvider options={{ walletConnectCTA: "both" }}>
               <RelayEnvironmentProvider environment={relayEnvironment}>
                 <DialogProvider>
                   <HammockRouter>
