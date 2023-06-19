@@ -34,6 +34,7 @@ jobs:
           REACT_APP_ALCHEMY_ID: ${{ secrets.ALCHEMY_KEY }}
           REACT_APP_OP_GOV_ADDRESS: ${{ github.event.inputs.environment == 'prod' && '0xcDF27F107725988f2261Ce2256bDfCdE8B382B10' || '0x6E17cdef2F7c1598AD9DfA9A8acCF84B1303f43f' }}
           REACT_APP_OP_GOV_START_BLOCK: ${{ github.event.inputs.environment == 'prod' && '71801427' || '96417216' }}
+          REACT_APP_WALLETCONNECT_PROJECT_ID: ${{ secrets.WALLETCONNECT_PROJECT_ID }}
 
       - uses: getsentry/action-release@v1
         continue-on-error: true

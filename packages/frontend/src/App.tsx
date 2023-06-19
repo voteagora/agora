@@ -20,7 +20,8 @@ import { ENSAvatarProvider } from "./components/ENSAvatar";
 const wagmiClient = createClient(
   getDefaultClient({
     appName: "Agora",
-    alchemyId: process.env.REACT_APP_ALCHEMY_ID,
+    walletConnectProjectId: process.env.REACT_APP_WALLET_CONNECT_ID || "",
+    alchemyId: process.env.REACT_APP_ALCHEMY_ID || "",
     chains: [optimism],
   })
 );
@@ -34,7 +35,7 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <WagmiConfig client={wagmiClient}>
             <ENSAvatarProvider>
-              <ConnectKitProvider>
+              <ConnectKitProvider options={{ walletConnectCTA: "both" }}>
                 <RelayEnvironmentProvider environment={relayEnvironment}>
                   <HammockRouter>
                     <DialogProvider>
