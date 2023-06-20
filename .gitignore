@@ -12,6 +12,7 @@ packages/common/src/contracts/generated
 packages/frontend/dist
 packages/frontend/src/generated
 packages/frontend/src/contracts/generated
+packages/frontend/build
 
 packages/render-opengraph/target
 

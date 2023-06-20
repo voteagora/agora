@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { mainnet, sepolia } from "@wagmi/core/chains";
+import { mainnet, sepolia } from "wagmi/chains";
 import { RelayEnvironmentProvider } from "react-relay/hooks";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createClient, WagmiConfig } from "wagmi";
@@ -21,7 +21,8 @@ const wagmiClient = createClient(
   getDefaultClient({
     appName: "Nouns Agora",
     chains: import.meta.env.VITE_DEPLOY_ENV !== "prod" ? [sepolia] : [mainnet],
-    alchemyId: import.meta.env.VITE_ALCHEMY_ID,
+    walletConnectProjectId: import.meta.env.VITE_WALLET_CONNECT_ID || "",
+    alchemyId: import.meta.env.VITE_ALCHEMY_ID || "",
   })
 );
 
@@ -33,7 +34,7 @@ function App() {
       <RecoilRoot>
         <QueryClientProvider client={queryClient}>
           <WagmiConfig client={wagmiClient}>
-            <ConnectKitProvider>
+            <ConnectKitProvider options={{ walletConnectCTA: "both" }}>
               <RelayEnvironmentProvider environment={relayEnvironment}>
                 <HammockRouter>
                   <DialogProvider>

@@ -32,6 +32,7 @@ jobs:
           VITE_ALCHEMY_ID: ${{ secrets.ALCHEMY_KEY }}
           VITE_GOOGLE_ANALYTICS_ID: ${{ secrets.GOOGLE_ANALYTICS_ID }}
           VITE_OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+          VITE_WALLETCONNECT_PROJECT_ID: ${{ secrets.WALLETCONNECT_PROJECT_ID }}
 
       - uses: getsentry/action-release@v1
         continue-on-error: true
