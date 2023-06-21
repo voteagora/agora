@@ -9,3 +9,4 @@ packages/frontend/build
 .DS_Store
 **/generatedcloud/
 wrangler.toml
+.github/
