@@ -8,3 +8,4 @@ packages/frontend/build
 .yarn/
 .DS_Store
 **/generatedcloud/
+wrangler.toml
