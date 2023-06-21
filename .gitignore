@@ -7,4 +7,4 @@ packages/frontend/build
 
 .yarn/
 .DS_Store
-**/generated
+**/generatedcloud/
