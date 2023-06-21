@@ -3,3 +3,4 @@ node_modules
 .yarn/
 .DS_Store
 **/generatedcloud/
+wrangler.toml
