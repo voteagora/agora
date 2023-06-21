@@ -29,7 +29,7 @@ diff --git a/packages/frontend/vite.config.ts b/packages/frontend/vite.config.ts
    server: {
      proxy: {
 -      "/graphql": "http://0.0.0.0:4001/",
-+      "/graphql": "https://nouns-agora-dev.act.workers.dev/",
++      "/graphql": "https://nouns-agora-dev.agora-dev.workers.dev/",
      },
    },
  });
