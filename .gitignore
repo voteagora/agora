@@ -10,3 +10,4 @@ packages/frontend/build
 **/generatedcloud/
 wrangler.toml
 .github/
+cloud/
