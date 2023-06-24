@@ -4,6 +4,7 @@ import { graphql } from "react-relay";
 import { useFragment } from "react-relay/hooks";
 import { useAccount } from "wagmi";
 import { ChatCompletionRequestMessage } from "openai-streams";
+import { ConnectKitButton } from "connectkit";
 
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
@@ -262,7 +263,7 @@ function VoteButtons({
   }
 
   if (!delegate) {
-    return <DisabledVoteButton reason="Connect wallet to vote" />;
+    return <ConnectWalletButton reason="Connect wallet to vote" />;
   }
 
   const proposalVoteLots = [
@@ -361,6 +362,25 @@ export function DisabledVoteButton({ reason }: { reason: string }) {
     >
       {reason}
     </button>
+  );
+}
+
+export function ConnectWalletButton({ reason }: { reason: string }) {
+  return (
+    <ConnectKitButton.Custom>
+      {({ show }) => (
+        <div
+          className={css`
+            ${voteButtonStyles};
+            box-shadow: none;
+            width: 100%;
+          `}
+          onClick={show}
+        >
+          {reason}
+        </div>
+      )}
+    </ConnectKitButton.Custom>
   );
 }
 
