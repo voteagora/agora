@@ -1,10 +1,8 @@
 import { useFragment, graphql } from "react-relay";
 import { css } from "@emotion/css";
-import { useEnsAvatar } from "wagmi";
 import { BigNumber } from "ethers";
 
 import * as theme from "../theme";
-import { icons } from "../icons/icons";
 
 import { DelegateProfileImageFragment$key } from "./__generated__/DelegateProfileImageFragment.graphql";
 import { NounsRepresentedGrid } from "./NounGrid";
@@ -19,11 +17,6 @@ export function DelegateProfileImage({ fragment, dense }: Props) {
   const delegate = useFragment(
     graphql`
       fragment DelegateProfileImageFragment on Delegate {
-        address {
-          resolvedName {
-            address
-          }
-        }
         tokensRepresented {
           amount {
             amount
@@ -43,10 +36,6 @@ export function DelegateProfileImage({ fragment, dense }: Props) {
     fragment
   );
 
-  const avatar = useEnsAvatar({
-    address: delegate.address.resolvedName.address as any,
-  });
-
   const liquidRepresentedNouns = delegate.liquidRepresentation.flatMap(
     (liquidRepresentation) => liquidRepresentation.proxy.nounsRepresented
   );
@@ -65,20 +54,12 @@ export function DelegateProfileImage({ fragment, dense }: Props) {
         margin: ${theme.spacing["4"]} 0;
       `}
     >
-      <img
-        className={css`
-          width: 44px;
-          height: 44px;
-          border-radius: 100%;
-        `}
-        src={avatar.data || icons.anonNoun}
-        alt={"anon noun"}
-      />
       <div
         className={css`
-          font-size: ${theme.fontSize.sm};
+          font-size: ${theme.fontSize.xs};
           font-weight: ${theme.fontWeight.semibold};
-          padding: 0 ${theme.spacing["4"]};
+          color: ${theme.colors.gray["700"]};
+          padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
         `}
       >
         No delegation currently

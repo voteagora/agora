@@ -92,6 +92,7 @@ export function VotesCastPanel({
         gap="4"
         className={css`
           padding-top: ${theme.spacing["3"]};
+          height: 100%;
           padding-bottom: ${theme.spacing["6"]};
           font-size: ${theme.fontSize.xs};
           min-height: 0;
@@ -122,6 +123,7 @@ export function VotesCastPanel({
                 position: absolute;
                 width: calc(100% - 2 * ${theme.spacing["4"]});
                 right: calc(100% + ${theme.spacing["4"]});
+                font-size: ${theme.fontSize.base};
               `}
             >
               <Suspense
@@ -153,7 +155,7 @@ export function VotesCastPanel({
                           className={css`
                             width: 120px;
                             height: 12px;
-                            border-radius: ${theme.borderRadius.sm};
+                            border-radius: ${theme.borderRadius.xs};
                             background: ${theme.colors.gray["eb"]};
                           `}
                         />
@@ -161,7 +163,7 @@ export function VotesCastPanel({
                           className={css`
                             width: 64px;
                             height: 12px;
-                            border-radius: ${theme.borderRadius.sm};
+                            border-radius: ${theme.borderRadius.xs};
                             background: ${theme.colors.gray["eb"]};
                           `}
                         />
@@ -290,7 +292,7 @@ function VotesCastPanelVotes({
 `;
   return (
     <VStack
-      gap="4"
+      gap="6"
       className={css`
         padding-bottom: ${theme.spacing["2"]};
       `}

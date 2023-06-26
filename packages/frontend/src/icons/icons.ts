@@ -17,8 +17,10 @@ import liquid from "./liquid.svg";
 import spinner from "./spinner.svg";
 import power from "./power.svg";
 import info from "./info.svg";
+import contractVoter from "./contractVoter.svg";
 
 export const icons = {
+  contractVoter,
   expand,
   anonNoun,
   speakerCone,

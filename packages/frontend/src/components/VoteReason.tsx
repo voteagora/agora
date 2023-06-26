@@ -26,7 +26,7 @@ export function VoteReason({ fragmentKey }: Props) {
         font-size: ${theme.fontSize.xs};
         font-weight: ${theme.fontWeight.medium};
         white-space: pre-wrap;
-        color: #66676b;
+        color: ${theme.colors.gray["700"]};
         width: fit-content;
       `}
     >

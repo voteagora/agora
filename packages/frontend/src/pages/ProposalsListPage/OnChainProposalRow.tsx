@@ -28,6 +28,14 @@ export function OnChainProposalRow({
         title
         ethValue
         usdcValue
+        proposer {
+          address {
+            resolvedName {
+              ...NounResolvedNameFragment
+              address
+            }
+          }
+        }
         forVotes {
           amount
         }
@@ -66,8 +74,43 @@ export function OnChainProposalRow({
       <RowValue
         primary
         title={
-          <>
-            Prop {proposal.number}
+          <div>
+            <span>
+              <span
+                className={css`
+                  @media (max-width: ${theme.maxWidth["2xl"]}) {
+                    display: none;
+                  }
+                `}
+              >
+                Prop
+              </span>{" "}
+              {proposal.number} by{" "}
+              <NounResolvedName
+                resolvedName={proposal.proposer.address.resolvedName}
+              />
+              <span
+                className={css`
+                  @media (min-width: ${theme.maxWidth["2xl"]}) {
+                    display: none;
+                  }
+                `}
+              >
+                {" "}
+                /{" "}
+                <span
+                  className={css`
+                    text-transform: lowercase;
+                    ::first-letter {
+                      text-transform: capitalize;
+                    }
+                    color: ${colorForOnChainProposalStatus(proposal.status)};
+                  `}
+                >
+                  {proposal.status}
+                </span>
+              </span>
+            </span>
             <span
               className={css`
                 @media (min-width: ${theme.maxWidth["2xl"]}) {
@@ -75,18 +118,32 @@ export function OnChainProposalRow({
                 }
               `}
             >
-              {" "}
-              –{" "}
-              <span
-                className={css`
-                  text-transform: lowercase;
-                  color: ${colorForOnChainProposalStatus(proposal.status)};
-                `}
-              >
-                {proposal.status}
-              </span>
+              {proposal.status === "PENDING" ? (
+                ` / starts in ${formatDistanceToNow(
+                  new Date(proposal.voteStartsAt)
+                )}`
+              ) : (
+                <span>
+                  {" "}
+                  /{" "}
+                  <span>
+                    {BigNumber.from(proposal.forVotes.amount).toString()} For
+                  </span>
+                  <span
+                    className={css`
+                      color: ${theme.colors.gray[500]};
+                    `}
+                  >
+                    -
+                  </span>
+                  <span>
+                    {BigNumber.from(proposal.againstVotes.amount).toString()}{" "}
+                    Against
+                  </span>
+                </span>
+              )}
             </span>
-          </>
+          </div>
         }
       >
         {proposal.title}
@@ -194,7 +251,7 @@ export function colorForOnChainProposalStatus(status: ProposalStatus) {
       return theme.colors.green[600];
 
     case "PENDING":
-      return theme.colors.black;
+      return theme.colors.gray[700];
 
     case "ACTIVE":
       return theme.colors.blue[600];

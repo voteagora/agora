@@ -1,12 +1,14 @@
 import { css } from "@emotion/css";
 import { graphql, useFragment } from "react-relay";
 import { ethers } from "ethers";
+import { useEnsAvatar } from "wagmi";
 
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
 import { Markdown } from "../../components/Markdown";
 import { NounResolvedLink } from "../../components/NounResolvedLink";
 import { ProposalTransactionDisplay } from "../../components/ProposalTransactionDisplay";
+import { icons } from "../../icons/icons";
 
 import {
   ProposalDetailPanelFragment$data,
@@ -42,6 +44,9 @@ export function ProposalDetailPanel({
     `,
     fragmentRef
   );
+  const avatar = useEnsAvatar({
+    address: proposal.proposer.address.resolvedName.address as any,
+  });
 
   return (
     <>
@@ -64,18 +69,29 @@ export function ProposalDetailPanel({
           >
             {proposal.title}
           </h2>
-          <div
-            className={css`
-              font-size: ${theme.fontSize.xs};
-              font-weight: ${theme.fontWeight.semibold};
-              color: ${theme.colors.gray[700]};
-            `}
-          >
-            by&nbsp;
-            <NounResolvedLink
-              resolvedName={proposal.proposer.address.resolvedName}
+          <HStack gap="2" alignItems="center">
+            <img
+              className={css`
+                width: 24px;
+                height: 24px;
+                border-radius: ${theme.borderRadius.md};
+              `}
+              src={avatar.data || icons.anonNoun}
+              alt={"anon noun"}
             />
-          </div>
+            <div
+              className={css`
+                font-size: ${theme.fontSize.xs};
+                font-weight: ${theme.fontWeight.semibold};
+                color: ${theme.colors.gray[700]};
+              `}
+            >
+              by&nbsp;
+              <NounResolvedLink
+                resolvedName={proposal.proposer.address.resolvedName}
+              />
+            </div>
+          </HStack>
         </HStack>
         <VStack
           gap="2"

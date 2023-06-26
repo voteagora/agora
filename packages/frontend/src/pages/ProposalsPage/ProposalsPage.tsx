@@ -151,7 +151,7 @@ export default function ProposalsPage() {
               />
             </HStack>
           </button>
-          <ProposalsListPanel
+          {/* <ProposalsListPanel
             fragmentRef={result}
             selectedProposal={{
               type: "ON_CHAIN",
@@ -167,7 +167,7 @@ export default function ProposalsPage() {
               })
             }
             toggleExpanded={() => setExpanded((expanded) => !expanded)}
-          />
+          /> */}
           <VotesCastPanel
             fragmentRef={result.firstProposal}
             queryFragmentRef={result}

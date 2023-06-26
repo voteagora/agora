@@ -2,6 +2,7 @@ import { UserIcon } from "@heroicons/react/20/solid";
 import { useFragment, graphql } from "react-relay";
 import { css } from "@emotion/css";
 import { toSupportType } from "@agora/common";
+import { useEnsAvatar } from "wagmi";
 
 import { HStack, VStack } from "../../components/VStack";
 import * as theme from "../../theme";
@@ -36,6 +37,7 @@ export function VoteRow({
           address {
             address
             resolvedName {
+              address
               ...NounResolvedLinkFragment
             }
           }
@@ -63,24 +65,40 @@ export function VoteRow({
     fragmentRef
   );
 
+  const avatar = useEnsAvatar({
+    address: vote.voter.address.resolvedName.address as any,
+  });
+
   return (
     <VStack key={vote.id} gap="1">
       <VStack>
         <HStack
           justifyContent="space-between"
+          alignItems="center"
           className={css`
             color: ${theme.colors.gray["800"]};
             font-weight: ${theme.fontWeight.semibold};
             font-size: ${theme.fontSize.xs};
           `}
         >
-          <HStack>
+          <HStack alignItems="center">
             <div
               onMouseEnter={() => onVoterHovered(vote.voter.address.address)}
             >
-              <NounResolvedLink
-                resolvedName={vote.voter.address.resolvedName}
-              />
+              <HStack gap="2" alignItems="center">
+                <img
+                  className={css`
+                    width: 24px;
+                    height: 24px;
+                    border-radius: ${theme.borderRadius.md};
+                  `}
+                  src={avatar.data || icons.anonNoun}
+                  alt={"anon noun"}
+                />
+                <NounResolvedLink
+                  resolvedName={vote.voter.address.resolvedName}
+                />
+              </HStack>
             </div>
             {vote.executor.address.address !== vote.voter.address.address && (
               <div
