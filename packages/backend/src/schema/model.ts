@@ -6,6 +6,7 @@ export type StoredStatement = {
   signedPayload: string;
   signatureType?: "EOA" | "CONTRACT";
   updatedAt: number;
+  createdAt?: number;
 };
 
 export interface StatementStorage {

@@ -93,6 +93,14 @@ export const Mutation: MutationResolvers = {
       updatedAt,
     };
 
+    const existing = await statementStorage.getStatement(
+      validated.address.toLowerCase()
+    );
+
+    if (!existing) {
+      nextStatement.createdAt = updatedAt;
+    }
+
     const delegate = (await reader.getEntity(
       "Address",
       ethers.utils.getAddress(validated.address)
