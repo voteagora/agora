@@ -39,5 +39,8 @@ export const nounsAlligatorSepolia = makeContractInstance({
   startingBlock: 3589193,
 });
 
+export const GOVPOOL_CONTRACT_ADDRESS =
+  "0x6b2645b468A828a12fEA8C7D644445eB808Ec2B1";
+
 export * from "./types";
 export * from "./supportType";
