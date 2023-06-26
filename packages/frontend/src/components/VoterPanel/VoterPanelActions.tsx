@@ -43,15 +43,22 @@ export function VoterPanelActions({
       {statement && (
         <HStack gap="4" alignItems="center">
           {statement.twitter && (
-            <a
+            <button
               className={css`
                 padding: ${theme.spacing["1"]};
               `}
-              href={`https://twitter.com/${statement.twitter}`}
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(
+                  `https://twitter.com/${statement.twitter}`,
+                  "_blank",
+                  "noopener noreferrer"
+                );
+              }}
             >
               <img src={icons.twitter} alt="twitter" />
-            </a>
+            </button>
           )}
 
           {statement.discord && (
