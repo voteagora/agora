@@ -304,7 +304,7 @@ function VoteButtons({
       }))(),
   ];
 
-  if (hasVoted) {
+  if (hasVoted || (!!delegate.proposalVote && !proposalVoteLots.length)) {
     return <DisabledVoteButton reason="Already voted" />;
   }
 
