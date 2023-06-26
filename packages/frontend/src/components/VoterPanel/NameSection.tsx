@@ -2,6 +2,7 @@ import { useFragment, graphql } from "react-relay";
 import { css } from "@emotion/css";
 import { Textfit } from "react-textfit";
 import { useEnsAvatar } from "wagmi";
+import { GOVPOOL_CONTRACT_ADDRESS } from "@agora/common";
 
 import { HStack, VStack } from "../VStack";
 import { shortAddress } from "../../utils/address";
@@ -43,8 +44,7 @@ export function NameSection({ resolvedName }: NameSectionProps) {
   const avatar = useEnsAvatar({
     address: address as any,
   });
-  const isGovernancePool =
-    address === "0x6b2645b468A828a12fEA8C7D644445eB808Ec2B1";
+  const isGovernancePool = address === GOVPOOL_CONTRACT_ADDRESS;
 
   return (
     <HStack gap="3" alignItems="center">

@@ -7,6 +7,7 @@ import {
 } from "@heroicons/react/20/solid";
 import { ReactNode } from "react";
 import { BigNumber } from "ethers";
+import { GOVPOOL_CONTRACT_ADDRESS } from "@agora/common";
 
 import { NounResolvedName } from "../../components/NounResolvedName";
 import { DelegateProfileImage } from "../../components/DelegateProfileImage";
@@ -70,8 +71,7 @@ export function VoterCard({ fragmentRef, contentClassName }: VoterCardProps) {
   const votesCast = BigNumber.from(delegate.delegateMetrics.totalVotes);
   const votingStreak = delegate.delegateMetrics.consecutiveVotes;
   const isGovernancePool =
-    delegate.address.resolvedName.address ===
-    "0x6b2645b468A828a12fEA8C7D644445eB808Ec2B1";
+    delegate.address.resolvedName.address === GOVPOOL_CONTRACT_ADDRESS;
 
   return (
     <Link
