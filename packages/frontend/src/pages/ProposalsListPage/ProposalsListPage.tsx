@@ -1,6 +1,7 @@
 import { css } from "@emotion/css";
-import { usePreloadedQuery } from "react-relay";
+import { usePreloadedQuery, graphql, useLazyLoadQuery } from "react-relay";
 import { startTransition, useState } from "react";
+import { useAccount } from "wagmi";
 
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
@@ -21,11 +22,14 @@ import {
   ProposalTypeSelector,
 } from "./ProposalTypeSelector";
 import { proposalsListPageRoute, query } from "./ProposalsListPageRoute";
+import NonVotedProposalsListPage from "./NonVotedProposalsList";
 
 export default function ProposalsListPage({
   initialQueryRef,
 }: RoutePropsForRoute<typeof proposalsListPageRoute>) {
   const result = usePreloadedQuery(query, initialQueryRef);
+
+  const { address } = useAccount();
 
   const [sort, setSort] = useState<ProposalSortType>("NEWEST");
   const [filter, setFilter] = useState<ProposalStatusFilter>("ALL");
@@ -68,11 +72,16 @@ export default function ProposalsListPage({
           padding: 0 ${theme.spacing["4"]};
         `}
       >
+        {address && (
+          <NonVotedProposalsListPage
+            address={address}
+            initialQueryRef={initialQueryRef}
+          />
+        )}
         <HStack
           justifyContent="space-between"
           className={css`
-            margin-top: ${theme.spacing["16"]};
-            margin-bottom: ${theme.spacing["4"]};
+            margin-top: ${theme.spacing["8"]};
             @media (max-width: ${theme.maxWidth["lg"]}) {
               max-width: 100%;
               flex-direction: column;

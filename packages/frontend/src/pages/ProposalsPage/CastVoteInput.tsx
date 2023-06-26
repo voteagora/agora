@@ -304,10 +304,6 @@ function VoteButtons({
       }))(),
   ];
 
-  if (!proposalVoteLots.length) {
-    return <DisabledVoteButton reason="No available votes" />;
-  }
-
   if (hasVoted) {
     return <DisabledVoteButton reason="Already voted" />;
   }

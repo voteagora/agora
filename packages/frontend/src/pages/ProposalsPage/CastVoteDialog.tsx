@@ -353,9 +353,27 @@ function TokenDelegationLotVoteCell({
   );
 
   // todo: casting from the same proxy multiple times isn't blocked in the ui
+  // commenting this out to allow voting with no votes
   if (!delegate.delegateSnapshot.nounsRepresented.length) {
     // todo: handle this at a higher level so the dialog means something
-    return null;
+    return (
+      <CastVoteLayout
+        isError={isError}
+        isSuccess={isSuccess}
+        isLoading={isLoading}
+        canExecute={canExecute}
+        write={write}
+      >
+        <div
+          className={css`
+            color: ${theme.colors.gray["700"]};
+          `}
+        >
+          You have no votes at this prop, but can still vote to express your
+          view onchain.
+        </div>
+      </CastVoteLayout>
+    );
   }
 
   return (

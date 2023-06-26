@@ -8,6 +8,7 @@ import { ProposalsListPageRouteQuery } from "./__generated__/ProposalsListPageRo
 export const query = graphql`
   query ProposalsListPageRouteQuery {
     proposals {
+      id
       status
       voteStartsAt
 
@@ -15,6 +16,7 @@ export const query = graphql`
     }
 
     propHouseAuctions {
+      id
       startTime
       status
 
