@@ -99,6 +99,9 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
           edges {
             node {
               id
+              liquidDelegationProxy {
+                __typename
+              }
               ...VoterCardFragment
               ...VoterTabularFragment
             }
@@ -281,6 +284,9 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
             })()}
           >
             {voters.edges.map(({ node: voter }) => {
+              if (voter.liquidDelegationProxy) {
+                return null;
+              }
               switch (layoutMode) {
                 case "card":
                   return <VoterCard key={voter.id} fragmentRef={voter} />;
