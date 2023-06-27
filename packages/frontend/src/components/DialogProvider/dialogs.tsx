@@ -2,17 +2,18 @@ import { DialogDefinitions } from "./types";
 import { DelegateDialog } from "../DelegateDialog";
 import { FaqDialog } from "../../pages/HomePage/FaqDialog";
 import { SupportTextProps } from "../../pages/DelegatePage/VoteDetailsContainer";
-import React from "react";
 import { CastVoteDialog } from "../../pages/ProposalsPage/CastVoteDialog";
 import { ApprovalCastVoteDialog } from "../../pages/ProposalsPage/ApprovalProposal/ApprovalCastVoteDialog";
 import { ApprovalCastVoteDialogFragment$key } from "../../pages/ProposalsPage/ApprovalProposal/__generated__/ApprovalCastVoteDialogFragment.graphql";
 import { TokenAmountDisplayFragment$key } from "../__generated__/TokenAmountDisplayFragment.graphql";
+import { CastProposalDialog } from "../../pages/CreateProposalPage/CastProposalDialog";
 
 export type DialogType =
   | DelegateDialogType
   | CastVoteDialogType
   | ApprovalCastVoteDialogType
-  | FaqDialogType;
+  | FaqDialogType
+  | CastProposalDialogType;
 
 export type DelegateDialogType = {
   type: "DELEGATE";
@@ -45,6 +46,16 @@ export type ApprovalCastVoteDialogType = {
   };
 };
 
+export type CastProposalDialogType = {
+  type: "CAST_PROPOSAL";
+  params: {
+    isLoading: boolean;
+    isError: boolean;
+    isSuccess: boolean;
+    txHash?: string;
+  };
+};
+
 export const dialogs: DialogDefinitions<DialogType> = {
   DELEGATE: ({ target }, closeDialog) => {
     return <DelegateDialog target={target} completeDelegation={closeDialog} />;
@@ -57,5 +68,8 @@ export const dialogs: DialogDefinitions<DialogType> = {
   },
   FAQ: () => {
     return <FaqDialog />;
+  },
+  CAST_PROPOSAL: ({ ...props }, closeDialog) => {
+    return <CastProposalDialog {...props} closeDialog={closeDialog} />;
   },
 };

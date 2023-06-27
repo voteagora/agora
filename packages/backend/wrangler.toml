@@ -20,6 +20,8 @@ PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'approval-voting-migration'
 BLOCK_STEP_SIZE = "100"
 ALLOW_READS_PERCENTAGE = "100"
 USE_CACHE_PERCENTAGE = "100"
+TENDERLY_USER = "Dom-Mac"
+TENDERLY_PROJECT = "project"
 
 [env.prod]
 name = "optimism-agora-prod"
@@ -38,6 +40,8 @@ PRIMARY_DURABLE_OBJECT_INSTANCE_NAME = 'bedrock'
 BLOCK_STEP_SIZE = "1000"
 ALLOW_READS_PERCENTAGE = "100"
 USE_CACHE_PERCENTAGE = "100"
+TENDERLY_USER = "Dom-Mac"
+TENDERLY_PROJECT = "project"
 
 [[migrations]]
 tag = "v1" # Should be unique for each entry

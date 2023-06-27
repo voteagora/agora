@@ -1,6 +1,7 @@
 import { Env, shouldUseCache } from "./env";
 import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
 import { fetchThroughCache } from "./cache";
+import { simulateTransaction } from "./tenderly";
 
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
 const assetManifest = JSON.parse(manifestJSON);
@@ -10,6 +11,22 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
   const name =
     request.headers.get("x-durable-object-instance-name") ||
     env.PRIMARY_DURABLE_OBJECT_INSTANCE_NAME;
+
+  if (url.pathname === "/simulate") {
+    const body = await request.json();
+    const result = await simulateTransaction({
+      body,
+      user: env.TENDERLY_USER,
+      project: env.TENDERLY_PROJECT,
+      accessKey: env.TENDERLY_ACCESS_KEY,
+    });
+
+    return new Response(JSON.stringify(result), {
+      headers: {
+        "content-type": "application/json",
+      },
+    });
+  }
 
   if (
     url.pathname === "/graphql" ||

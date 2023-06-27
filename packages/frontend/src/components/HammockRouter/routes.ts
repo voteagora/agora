@@ -18,6 +18,14 @@ export const routes: Route[] = [
     params: editDelegatePageRoute,
   },
   {
+    path: "/proposals/create",
+    params: {
+      element: React.lazy(
+        () => import("../../pages/CreateProposalPage/CreateProposalPage")
+      ),
+    },
+  },
+  {
     path: "/proposals/:proposalId",
     params: {
       element: React.lazy(

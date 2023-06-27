@@ -256,7 +256,7 @@ export function ProgressBar({
             background-color: ${isApproved
               ? status === "EXECUTED" || status === "SUCCEEDED"
                 ? theme.colors.green.positive
-                : theme.colors.orange["400"]
+                : theme.colors.green.positive
               : theme.colors.gray["4f"]};
             position: absolute;
             border-radius: 10px;

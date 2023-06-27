@@ -22,6 +22,13 @@ export interface Env {
   STORAGE_OBJECT: DurableObjectNamespace;
   AWS_ACCESS_KEY_ID: string;
   AWS_SECRET_ACCESS_KEY: string;
+
+  /**
+   * Tenderly
+   */
+  TENDERLY_USER: string;
+  TENDERLY_PROJECT: string;
+  TENDERLY_ACCESS_KEY: string;
 }
 
 export function safelyLoadBlockStepSize(env: Env): number | undefined {
