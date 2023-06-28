@@ -271,19 +271,20 @@ function LiquidDelegationLotVoteCell({
     ];
   });
 
-  const { write, isLoading, isError, isSuccess, canExecute } = useContractWrite(
-    contracts.nounsAlligator,
-    "castRefundableVotesWithReasonBatched",
-    [
-      lots.map((lot) => lot.lot.authorityChain.map((it) => it as Address)),
-      BigNumber.from(proposalId),
-      supportType,
-      reason,
-    ],
-    () => {
-      onVoteSuccess();
-    }
-  );
+  const { write, isLoading, isError, isSuccess, canExecute, txHash } =
+    useContractWrite(
+      contracts.nounsAlligator,
+      "castRefundableVotesWithReasonBatched",
+      [
+        lots.map((lot) => lot.lot.authorityChain.map((it) => it as Address)),
+        BigNumber.from(proposalId),
+        supportType,
+        reason,
+      ],
+      () => {
+        onVoteSuccess();
+      }
+    );
 
   const nouns = lots.flatMap(
     (lot) => lot.proxy.delegateSnapshot.nounsRepresented
@@ -299,6 +300,7 @@ function LiquidDelegationLotVoteCell({
       isSuccess={isSuccess}
       isLoading={isLoading}
       canExecute={canExecute}
+      txHash={txHash}
       write={write}
     >
       <NounGridChildren
@@ -404,6 +406,7 @@ function TokenDelegationLotVoteCell({
         isSuccess={isSuccess}
         isLoading={isLoading}
         canExecute={canExecute}
+        txHash={txHash}
         write={write}
       >
         <div
