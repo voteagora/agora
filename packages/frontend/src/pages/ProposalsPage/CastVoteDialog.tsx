@@ -368,14 +368,15 @@ function TokenDelegationLotVoteCell({
     fragment
   );
 
-  const { write, isLoading, isError, isSuccess, canExecute } = useContractWrite(
-    contracts.nounsDao,
-    "castRefundableVoteWithReason",
-    [BigNumber.from(proposalId), supportType, reason],
-    () => {
-      onVoteSuccess();
-    }
-  );
+  const { write, isLoading, isError, isSuccess, canExecute, txHash } =
+    useContractWrite(
+      contracts.nounsDao,
+      "castRefundableVoteWithReason",
+      [BigNumber.from(proposalId), supportType, reason],
+      () => {
+        onVoteSuccess();
+      }
+    );
 
   const lots = delegate.liquidRepresentation.flatMap((lot) => {
     if (!lot.proxy.delegateSnapshot.nounsRepresented.length) {
@@ -428,6 +429,7 @@ function TokenDelegationLotVoteCell({
       isLoading={isLoading}
       canExecute={canExecute}
       write={write}
+      txHash={txHash}
     >
       {/* TODO: These don't overlap like in the design */}
       <NounGridChildren

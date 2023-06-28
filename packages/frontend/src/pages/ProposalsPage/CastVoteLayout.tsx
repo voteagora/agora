@@ -4,6 +4,10 @@ import { ReactNode } from "react";
 import * as theme from "../../theme";
 import { HStack } from "../../components/VStack";
 import { icons } from "../../icons/icons";
+import { contracts } from "../../utils/contracts";
+
+const successMessageText =
+  "Success! Your vote has been cast. It will appear once the transaction is confirmed. This might take a few minutes.";
 
 export function CastVoteLayout({
   write,
@@ -11,6 +15,7 @@ export function CastVoteLayout({
   isError,
   isSuccess,
   canExecute,
+  txHash,
   children,
 }: {
   write: () => void;
@@ -18,6 +23,7 @@ export function CastVoteLayout({
   isError: boolean;
   isSuccess: boolean;
   canExecute: boolean;
+  txHash?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -25,7 +31,17 @@ export function CastVoteLayout({
       {isError ? (
         <DisplayMessage message="Transaction reverted" />
       ) : isSuccess ? (
-        <DisplayMessage message="Success! Your vote has been cast. It will appear on Agora in a few minutes once the transaction is confirmed." />
+        <DisplayMessage
+          message={
+            txHash
+              ? messageWithLink({
+                  message: successMessageText,
+                  link: linkForTransaction(txHash),
+                  linkText: "View on Etherscan",
+                })
+              : successMessageText
+          }
+        />
       ) : isLoading ? (
         <DisplayMessage message="Casting vote" icon={icons.spinner} />
       ) : !canExecute ? (
@@ -84,7 +100,13 @@ const VoteButton = ({
   );
 };
 
-function DisplayMessage({ message, icon }: { message: string; icon?: string }) {
+function DisplayMessage({
+  message,
+  icon,
+}: {
+  message: string | JSX.Element;
+  icon?: string;
+}) {
   return (
     <HStack
       justifyContent="space-between"
@@ -111,4 +133,37 @@ function DisplayMessage({ message, icon }: { message: string; icon?: string }) {
       )}
     </HStack>
   );
+}
+
+function messageWithLink({
+  message,
+  link,
+  linkText,
+}: {
+  message: string;
+  link: string;
+  linkText?: string;
+}) {
+  return (
+    <>
+      {message}{" "}
+      <a
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={css`
+          font-weight: ${theme.fontWeight.medium};
+          color: ${theme.colors.gray["700"]};
+        `}
+      >
+        {linkText || link}
+      </a>
+    </>
+  );
+}
+
+function linkForTransaction(txHash: string) {
+  return `https://${
+    contracts.network === "sepolia" ? "sepolia." : ""
+  }etherscan.io/tx/${txHash}`;
 }

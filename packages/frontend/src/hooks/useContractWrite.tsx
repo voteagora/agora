@@ -87,6 +87,7 @@ export function useContractWrite<
     isSuccess,
     isError,
     canExecute: !error,
+    txHash: data?.hash,
   };
 }
 

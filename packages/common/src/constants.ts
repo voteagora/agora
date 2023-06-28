@@ -15,9 +15,11 @@ export const constants = (env: Env) =>
         nounsDao,
         nounsToken,
         nounsAlligator,
+        network: "mainnet",
       }
     : {
         nounsDao: nounsDaoSepolia,
         nounsToken: nounsTokenSepolia,
         nounsAlligator: nounsAlligatorSepolia,
+        network: "sepolia",
       };
