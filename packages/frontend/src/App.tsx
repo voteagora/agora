@@ -21,7 +21,7 @@ const wagmiClient = createClient(
   getDefaultClient({
     appName: "Nouns Agora",
     chains: import.meta.env.VITE_DEPLOY_ENV !== "prod" ? [sepolia] : [mainnet],
-    walletConnectProjectId: import.meta.env.VITE_WALLET_CONNECT_ID || "",
+    walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || "",
     alchemyId: import.meta.env.VITE_ALCHEMY_ID || "",
   })
 );
