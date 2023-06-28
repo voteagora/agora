@@ -151,7 +151,7 @@ export function CastVoteInput({
             }
 
             @media (min-width: ${theme.maxWidth["2xl"]}) {
-              height: ${reason ? theme.spacing["40"] : theme.spacing["12"]};
+              height: ${reason ? "320px" : theme.spacing["12"]};
               transition-property: height;
               transition-duration: 150ms;
             }

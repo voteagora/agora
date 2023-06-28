@@ -45,6 +45,7 @@ export default function ProposalsListPage({
           width: ${theme.maxWidth["6xl"]};
           @media (max-width: ${theme.maxWidth["lg"]}) {
             max-width: 100%;
+            display: none;
           }
         `}
       >

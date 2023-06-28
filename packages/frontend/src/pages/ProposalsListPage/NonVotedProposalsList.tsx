@@ -85,6 +85,7 @@ export default function NonVotedProposalsListPage({
                 max-width: 100%;
                 flex-direction: column;
                 margin-bottom: ${theme.spacing["1"]};
+                margin-top: ${theme.spacing["6"]};
               }
             `}
           >

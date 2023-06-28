@@ -338,6 +338,31 @@ function TokenDelegationLotVoteCell({
             ...NounImageFragment
           }
         }
+        liquidRepresentation(
+          filter: {
+            currentlyActive: true
+            canVote: true
+            forProposal: { proposalId: $proposalId, support: $support }
+          }
+        ) {
+          lots {
+            authorityChain
+          }
+          proxy {
+            proposalVote(proposalId: $proposalId) {
+              __typename
+            }
+
+            delegateSnapshot(proposalId: $proposalId) {
+              nounsRepresented {
+                # eslint-disable-next-line relay/unused-fields
+                id
+                # eslint-disable-next-line relay/must-colocate-fragment-spreads
+                ...NounImageFragment
+              }
+            }
+          }
+        }
       }
     `,
     fragment
@@ -352,9 +377,25 @@ function TokenDelegationLotVoteCell({
     }
   );
 
-  // todo: casting from the same proxy multiple times isn't blocked in the ui
-  // commenting this out to allow voting with no votes
-  if (!delegate.delegateSnapshot.nounsRepresented.length) {
+  const lots = delegate.liquidRepresentation.flatMap((lot) => {
+    if (!lot.proxy.delegateSnapshot.nounsRepresented.length) {
+      return [];
+    }
+
+    if (lot.proxy.proposalVote) {
+      return [];
+    }
+
+    return [
+      {
+        proxy: lot.proxy,
+        lot: lot.lots[0],
+      },
+    ];
+  });
+
+  // if no liquid and normal votes, allow normal votes with no power to indicate reason
+  if (!lots.length && !delegate.delegateSnapshot.nounsRepresented.length) {
     // todo: handle this at a higher level so the dialog means something
     return (
       <CastVoteLayout
@@ -375,7 +416,11 @@ function TokenDelegationLotVoteCell({
       </CastVoteLayout>
     );
   }
-
+  // if has liquid votes but no normal votes, then do not allow normal votes
+  else if (!delegate.delegateSnapshot.nounsRepresented.length) {
+    return null;
+  }
+  // if has normal votes, allow normal voting
   return (
     <CastVoteLayout
       isError={isError}

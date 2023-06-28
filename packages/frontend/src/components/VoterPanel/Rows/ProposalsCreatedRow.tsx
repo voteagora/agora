@@ -9,6 +9,7 @@ import * as theme from "../../../theme";
 import { ExpandItemsArrow } from "./DelegateFromListRow";
 import { ProposalsCreatedRowFragment$key } from "./__generated__/ProposalsCreatedRowFragment.graphql";
 import { PanelRow } from "./PanelRow";
+
 export function ProposalsCreatedRow({
   fragment,
 }: {
@@ -31,6 +32,9 @@ export function ProposalsCreatedRow({
 
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const sortedProposed = [...proposed].sort(
+    (a, b) => Number(a.number) - Number(b.number)
+  );
   return (
     <VStack gap="1">
       <PanelRow
@@ -59,7 +63,7 @@ export function ProposalsCreatedRow({
       />
       {isExpanded && (
         <VStack gap="1">
-          {proposed.map((proposal) => {
+          {sortedProposed.map((proposal) => {
             return (
               <Link to={`/proposals/${proposal.number}`}>
                 <HStack justifyContent="space-between">
