@@ -20,7 +20,8 @@ import { ENSAvatarProvider } from "./components/ENSAvatar";
 const wagmiClient = createClient(
   getDefaultClient({
     appName: "Agora",
-    walletConnectProjectId: process.env.REACT_APP_WALLET_CONNECT_ID || "",
+    walletConnectProjectId:
+      process.env.REACT_APP_WALLETCONNECT_PROJECT_ID || "",
     alchemyId: process.env.REACT_APP_ALCHEMY_ID || "",
     chains: [optimism],
   })
