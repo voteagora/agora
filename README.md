@@ -14,3 +14,5 @@ of the application.
 
 - [frontend](./packages/frontend/README.md)
 - [backend](./packages/backend/README.md)
+
+Note: `export VITE_DEPLOY_ENV=prod` to switch to Mainnet. Otherwise Nouns deployment defaults to Sepolia
