@@ -198,7 +198,11 @@ function SingleOption({
         >
           {description}
         </p>
-        <div>
+        <div
+          className={css`
+            color: ${theme.colors.gray[700]};
+          `}
+        >
           <TokenAmountDisplay fragment={votes} />
           <span
             className={css`

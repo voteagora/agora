@@ -41,6 +41,10 @@ export function ApprovalProposalCriteria({ fragmentRef, proposalRef }: Props) {
               topChoices
             }
           }
+          budget {
+            ...TokenAmountDisplayFragment
+          }
+          maxApprovals
         }
       }
     `,
@@ -84,7 +88,8 @@ export function ApprovalProposalCriteria({ fragmentRef, proposalRef }: Props) {
       >
         <div>
           <p>
-            QUORUM <TokenAmountDisplay fragment={quorumVotes.quorumVotes} />
+            QUORUM {totalVotingPower.toString()} /{" "}
+            <TokenAmountDisplay fragment={quorumVotes.quorumVotes} />
           </p>
         </div>
         <div>
@@ -99,23 +104,31 @@ export function ApprovalProposalCriteria({ fragmentRef, proposalRef }: Props) {
           font-weight: ${theme.fontWeight.semibold};
         `}
       >
+        {/* {totalVotingPower.toString()} */}
         {proposalData.settings.criteria.__typename ===
           "TopChoicesVotingCriteria" && (
           <p>
-            {totalVotingPower.toString()}/
-            <TokenAmountDisplay fragment={quorumVotes.quorumVotes} /> votes
-            required for top {proposalData.settings.criteria.topChoices} options
-            to execute.
+            In this top-choices style approval voting proposal, the top{" "}
+            {proposalData.settings.criteria.topChoices} options will be
+            executed. Each voter can select up to{" "}
+            {proposalData.settings.maxApprovals} options to vote for. If the
+            quorum is not met, no options will be executed.
           </p>
         )}
         {proposalData.settings.criteria.__typename ===
           "ThresholdVotingCriteria" && (
           <p>
-            All options with &gt;{" "}
+            In this threshold-based approval voting proposal, all options
+            passing the approval threshold of{" "}
             <TokenAmountDisplay
               fragment={proposalData.settings.criteria.threshold}
             />{" "}
-            will be approved.
+            votes will be executed in order from most to least popular, until
+            the total budget of{" "}
+            <TokenAmountDisplay fragment={proposalData.settings.budget} /> runs
+            out. Each voter can select up to{" "}
+            {proposalData.settings.maxApprovals} options to vote for. If the
+            quorum is not met, no options will be executed.
           </p>
         )}
       </div>
@@ -149,7 +162,7 @@ function VoteTime({
   } else {
     voteTime = result.voteEndsAt;
     if (result.voteEndsAt > now) {
-      voteTextPrefix = "VOTE ENDS IN";
+      voteTextPrefix = "VOTE ENDS";
     } else {
       voteTextPrefix = "VOTE ENDED";
     }
@@ -157,5 +170,14 @@ function VoteTime({
 
   const ago = formatDistanceToNowStrict(voteTime, { addSuffix: true });
   const text = `${voteTextPrefix} ${ago}`;
-  return <span title={formatISO9075(voteTime)}>{text}</span>;
+  return (
+    <span
+      className={css`
+        text-transform: uppercase;
+      `}
+      title={formatISO9075(voteTime)}
+    >
+      {text}
+    </span>
+  );
 }

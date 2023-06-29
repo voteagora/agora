@@ -5,11 +5,12 @@ import { Markdown } from "../../../components/Markdown";
 import graphql from "babel-plugin-relay/macro";
 import { useFragment } from "react-relay";
 import { NounResolvedLink } from "../../../components/NounResolvedLink";
-import { utils, BigNumber } from "ethers";
+import { utils, BigNumber, ethers } from "ethers";
 import { ProposalDetailPanelFragment$key } from "../__generated__/ProposalDetailPanelFragment.graphql";
 import { ProposalDetailPanelFragment } from "../ProposalDetailPanel";
 import { ApprovalProposalDetailPanelCodeChangesFragment$key } from "./__generated__/ApprovalProposalDetailPanelCodeChangesFragment.graphql";
 import { useState } from "react";
+import { shortAddress } from "../../../utils/address";
 
 export function ApprovalProposalDetailPanel({
   fragmentRef,
@@ -175,7 +176,7 @@ function ApprovalCodeChanges({
                     line-height: ${theme.lineHeight["4"]};
                   `}
                 >
-                  {"//"} {option.description}
+                  <OptionDescription option={option} />
                 </p>
                 {option.transactions.map((transaction: any, idx: any) => (
                   <CodeChange
@@ -311,4 +312,35 @@ function stripTitleFromDescription(title: string, description: string) {
     return newDescription;
   }
   return description;
+}
+
+function OptionDescription(option: any) {
+  // only describe transfers
+  let transferString = "";
+
+  if (
+    option.option.transactions.every(
+      (transaction: any) => transaction.functionName === "transfer"
+    )
+  ) {
+    // Loop through each transaction, create a new array with the functionArgs[1] and functionArgs[2] and then join them together
+    let optionTransfers = option.option.transactions.map((transaction: any) => [
+      // Warning – this dangerously assumes all tokens are OP. For now, ok, but won't always be the case
+      parseFloat(
+        ethers.utils.formatUnits(transaction.functionArgs[1], 18)
+      ).toLocaleString("en-US") + " OP",
+      shortAddress(transaction.functionArgs[0]),
+    ]);
+
+    // construction string from transfers
+    transferString = optionTransfers
+      .map((transfer: any) => "requesting " + transfer.join(" transfer to "))
+      .join(", ");
+  }
+
+  return (
+    <span>
+      {"//"} {option.option.description} {transferString}
+    </span>
+  );
 }
