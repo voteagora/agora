@@ -31,6 +31,16 @@ export const IVotesAddressSnapshot = makeEntityDefinition({
         );
       },
     },
+    byBlockNumberDescending: {
+      indexKey({ address, ordinal }) {
+        return makeCompoundKey(
+          address,
+          ...encodeOrdinal(ordinal).map((it) =>
+            efficientLengthEncodingNaturalNumbers(it)
+          )
+        );
+      },
+    },
   },
 });
 
@@ -57,19 +67,23 @@ export async function getSnapshotForAddress(
   reader: Reader<EntitiesType>
 ) {
   const snapshot = await takeFirst(
-    reader.getEntitiesByIndex("IVotesAddressSnapshot", "byBlockNumber", {
-      prefix: {
-        indexKey: makeCompoundKey(address, ""),
-      },
-      starting: {
-        indexKey: makeCompoundKey(
-          address,
-          efficientLengthEncodingNaturalNumbers(
-            ethers.BigNumber.from(startBlock).mul(-1)
-          )
-        ),
-      },
-    })
+    reader.getEntitiesByIndex(
+      "IVotesAddressSnapshot",
+      "byBlockNumberDescending",
+      {
+        prefix: {
+          indexKey: makeCompoundKey(address, ""),
+        },
+        starting: {
+          indexKey: makeCompoundKey(
+            address,
+            efficientLengthEncodingNaturalNumbers(
+              ethers.BigNumber.from(startBlock)
+            )
+          ),
+        },
+      }
+    )
   );
 
   if (!snapshot) {
