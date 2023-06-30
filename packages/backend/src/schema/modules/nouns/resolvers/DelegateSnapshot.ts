@@ -45,12 +45,13 @@ async function getSnapshotForAddressAndProposal(
   }>
 ) {
   const proposal = await loadProposal(reader, proposalId);
+
   if (!proposal) {
     throw new Error("Proposal not found");
   }
 
   return await getSnapshotForAddress(
-    { address, startBlock: proposal.startBlock },
+    { address, startBlock: BigInt(proposal.creationBlock) },
     reader
   );
 }
