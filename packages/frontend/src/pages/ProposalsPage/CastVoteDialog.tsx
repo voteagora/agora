@@ -290,7 +290,7 @@ function LiquidDelegationLotVoteCell({
     (lot) => lot.proxy.delegateSnapshot.nounsRepresented
   );
 
-  if (!nouns) {
+  if (!lots.length) {
     return null;
   }
 
