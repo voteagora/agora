@@ -50,7 +50,7 @@ export function VotesListPanel({
     <VStack
       className={css`
         max-height: calc(
-          100vh - 417px
+          100vh - 437px
         ); //martin, this is kind of a hack, but it achieves the desired result lol, please don't remove this unless there's a better way
         overflow-y: scroll;
         flex-shrink: 1;
@@ -202,6 +202,7 @@ function VotesCastPanelVotes({
                 key={idx}
                 className={css`
                   color: ${theme.colors.gray["700"]};
+                  font-size: ${theme.fontSize.xs};
                   font-weight: ${theme.fontWeight.medium};
                   animation: ${shimmer} 0.5s alternate-reverse infinite
                     ease-in-out;
@@ -282,7 +283,7 @@ function SingleVote({
         color: ${theme.colors.black};
         font-weight: ${theme.fontWeight.semibold};
         font-size: ${theme.fontSize.xs};
-        margin-bottom: ${theme.spacing["3"]};
+        margin-bottom: ${theme.spacing["5"]};
       `}
     >
       <HStack
@@ -308,6 +309,9 @@ function SingleVote({
       <VStack
         className={css`
           margin-bottom: ${reason ? theme.spacing["1"] : "0"};
+          color: ${theme.colors.gray[700]};
+          gap: ${theme.spacing["1"]};
+          font-weight: ${theme.fontWeight.medium};
         `}
       >
         {options?.map((option, index) => (
@@ -320,7 +324,7 @@ function SingleVote({
       {reason && (
         <p
           className={css`
-            color: ${theme.colors.gray["4f"]};
+            color: ${theme.colors.gray[700]};
             font-weight: ${theme.fontWeight.medium};
           `}
         >

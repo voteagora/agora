@@ -104,7 +104,7 @@ export function OptionsResultsPanel({ fragmentRef, statusRef }: Props) {
     <VStack
       className={css`
         max-height: calc(
-          100vh - 417px
+          100vh - 437px
         ); //martin, this is kind of a hack, but it achieves the desired result lol, please don't remove this unless there's a better way
         overflow-y: scroll;
         flex-shrink: 1;
@@ -183,21 +183,21 @@ function SingleOption({
       <HStack
         className={css`
           justify-content: space-between;
-          font-weight: ${theme.fontWeight.semibold};
+          font-weight: ${theme.fontWeight.medium};
           font-size: ${theme.fontSize.sm};
           margin-bottom: ${theme.spacing["1"]};
         `}
       >
-        <p
+        <div
           className={css`
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;
-            max-width: 50%;
+            max-width: ${theme.spacing["48"]};
           `}
         >
           {description}
-        </p>
+        </div>
         <div
           className={css`
             color: ${theme.colors.gray[700]};
@@ -206,7 +206,7 @@ function SingleOption({
           <TokenAmountDisplay fragment={votes} />
           <span
             className={css`
-              margin-left: ${theme.spacing["2"]};
+              margin-left: ${theme.spacing["1"]};
             `}
           >
             {percentage.isZero()

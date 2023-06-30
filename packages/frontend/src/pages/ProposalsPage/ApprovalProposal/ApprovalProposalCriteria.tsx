@@ -74,7 +74,7 @@ export function ApprovalProposalCriteria({ fragmentRef, proposalRef }: Props) {
     <VStack
       className={css`
         padding: ${theme.spacing["4"]};
-        padding-bottom: 0;
+        padding-bottom: ${theme.spacing["2"]};
         border-top: 1px solid ${theme.colors.gray.eb};
       `}
     >
@@ -83,7 +83,7 @@ export function ApprovalProposalCriteria({ fragmentRef, proposalRef }: Props) {
           justify-content: space-between;
           font-size: ${theme.fontSize.xs};
           font-weight: ${theme.fontWeight.semibold};
-          color: ${theme.colors.gray[800]};
+          color: ${theme.colors.gray[700]};
         `}
       >
         <div>
@@ -99,8 +99,8 @@ export function ApprovalProposalCriteria({ fragmentRef, proposalRef }: Props) {
       <div
         className={css`
           font-size: ${theme.fontSize.xs};
-          padding-top: ${theme.spacing["4"]};
-          color: ${theme.colors.gray["4f"]};
+          padding-top: ${theme.spacing["2"]};
+          color: ${theme.colors.gray[700]};
           font-weight: ${theme.fontWeight.semibold};
         `}
       >

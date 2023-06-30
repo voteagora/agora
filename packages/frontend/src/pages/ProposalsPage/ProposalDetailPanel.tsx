@@ -138,20 +138,23 @@ function CodeChanges({
       gap="1"
       className={css`
         /* border: 1px solid #e0e0e0; */
+        border: 1px solid #e0e0e0;
         border-radius: ${theme.borderRadius.lg};
+        background-color: ${theme.colors.gray["fa"]};
         padding: ${theme.spacing["4"]};
-        background-color: #f7f7f7;
       `}
     >
-      <div
+      <p
         className={css`
           font-size: ${theme.fontSize.xs};
+          font-family: ${theme.fontFamily.mono};
           font-weight: ${theme.fontWeight.medium};
           color: ${theme.colors.gray.af};
+          line-height: ${theme.lineHeight["4"]};
         `}
       >
         Proposed Transactions
-      </div>
+      </p>
       <VStack>
         {proposalData.transactions &&
           proposalData.transactions.map((transaction: any, idx: any) => {
