@@ -91,7 +91,7 @@ export function ApprovalCastVoteDialog({
       ? "0x"
       : ethers.utils.defaultAbiCoder.encode(
           ["uint256[]"],
-          [selectedOptions.sort()]
+          [selectedOptions.sort((a, b) => a - b)]
         );
     setEncodedParams(encoded);
   }, [selectedOptions, abstain]);
