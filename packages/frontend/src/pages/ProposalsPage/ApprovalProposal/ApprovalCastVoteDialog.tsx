@@ -83,8 +83,7 @@ export function ApprovalCastVoteDialog({
     governorTokenContract,
     "castVoteWithReasonAndParams",
     [proposalId, abstain ? 1 : 0, reason, encodedParams],
-    () => {},
-    { gasLimit: 1000000 } // Added in gasLimit here
+    () => {}
   );
 
   useEffect(() => {
