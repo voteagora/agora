@@ -50,7 +50,12 @@ export function ProposalDetailPanel({
 
   return (
     <>
-      <VStack gap="4">
+      <VStack
+        gap="4"
+        className={css`
+          width: 100%;
+        `}
+      >
         <HStack
           justifyContent="space-between"
           alignItems="center"

@@ -21,15 +21,15 @@ export function PageHeader() {
 
   const activePage = (() => {
     if (
-      location.pathname.startsWith("/proposals") ||
-      location.pathname.startsWith("/auction")
+      location.pathname.startsWith("/proposals")
+      //|| location.pathname.startsWith("/auction")
     ) {
       return "PROPOSALS";
     }
 
-    if (location.pathname.startsWith("/voteauction")) {
-      return "AUCTION";
-    }
+    // if (location.pathname.startsWith("/voteauction")) {
+    //   return "AUCTION";
+    // }
     if (
       location.pathname.startsWith("/voters") ||
       location.pathname.startsWith("/delegate")
@@ -106,11 +106,11 @@ export function PageHeader() {
           </LinkContents>
         </Link>
 
-        <Link to="/voteauction">
+        {/* <Link to="/voteauction">
           <LinkContents isActive={activePage === "AUCTION"}>
             Auction
           </LinkContents>
-        </Link>
+        </Link> */}
       </HStack>
 
       <HStack

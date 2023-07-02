@@ -79,12 +79,17 @@ export default function ProposalsPage() {
       initial={{ opacity: 1 }}
       animate={{ opacity: isPending ? 0.3 : 1 }}
       transition={{ duration: 0.3, delay: isPending ? 0.3 : 0 }}
+      className={css`
+        width: 100%;
+        max-width: ${theme.maxWidth["6xl"]};
+      `}
     >
       <HStack
         gap="16"
         justifyContent="space-between"
         alignItems="flex-start"
         className={css`
+          width: 100%;
           padding-left: ${theme.spacing["4"]};
           padding-right: ${theme.spacing["4"]};
           max-width: ${theme.maxWidth["6xl"]};
@@ -110,13 +115,15 @@ export default function ProposalsPage() {
             border-radius: ${theme.borderRadius["xl"]};
             box-shadow: ${theme.boxShadow.newDefault};
             margin-bottom: ${theme.spacing["8"]};
+            transition: bottom 600ms cubic-bezier(0, 0.975, 0.015, 0.995);
 
             @media (max-width: ${theme.maxWidth["2xl"]}) {
               position: fixed;
               top: auto;
               left: 16px;
-              height: 480px;
-              bottom: ${isClicked ? "-16px" : "-412px"};
+              max-height: calc(100% - 116px);
+              height: calc(100% - 116px);
+              bottom: ${isClicked ? "-16px" : "calc(-100% + 184px)"};
               align-items: stretch;
               justify-content: flex-end;
               width: calc(100% - 32px);
@@ -151,23 +158,6 @@ export default function ProposalsPage() {
               />
             </HStack>
           </button>
-          {/* <ProposalsListPanel
-            fragmentRef={result}
-            selectedProposal={{
-              type: "ON_CHAIN",
-              identifier: result.firstProposal.number.toString(),
-            }}
-            expanded={proposalsListExpanded}
-            onProposalSelected={(nextSelected) =>
-              startTransition(() => {
-                setExpanded(false);
-                navigate({
-                  path: selectedProposalToPath(nextSelected),
-                });
-              })
-            }
-            toggleExpanded={() => setExpanded((expanded) => !expanded)}
-          /> */}
           <VotesCastPanel
             fragmentRef={result.firstProposal}
             queryFragmentRef={result}

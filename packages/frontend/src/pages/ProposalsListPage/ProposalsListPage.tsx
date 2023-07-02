@@ -69,6 +69,7 @@ export default function ProposalsListPage({
 
       <VStack
         className={css`
+          margin-top: ${theme.spacing["4"]};
           max-width: ${theme.maxWidth["6xl"]};
           padding: 0 ${theme.spacing["4"]};
         `}
@@ -99,9 +100,18 @@ export default function ProposalsListPage({
               }
             `}
           >
-            All Proposals
+            Proposals
           </h1>
-          <HStack gap="4">
+          <HStack
+            gap="4"
+            className={css`
+              @media (max-width: ${theme.maxWidth["lg"]}) {
+                width: 100%;
+                margin-top: ${theme.spacing["1"]};
+                justify-content: space-between;
+              }
+            `}
+          >
             <ProposalTypeSelector
               value={filterProposalType}
               onChange={(newFilterType) =>
@@ -129,6 +139,9 @@ export default function ProposalsListPage({
         <VStack
           className={css`
             margin: ${theme.spacing["4"]} 0 ${theme.spacing["12"]} 0;
+            @media (max-width: ${theme.maxWidth["lg"]}) {
+              margin-top: ${theme.spacing["3"]};
+            }
             border: 1px solid ${theme.colors.gray[300]};
             border-radius: ${theme.borderRadius["xl"]};
             box-shadow: ${theme.boxShadow["newDefault"]};

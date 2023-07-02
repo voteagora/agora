@@ -80,12 +80,12 @@ export default function NonVotedProposalsListPage({
           <HStack
             justifyContent="space-between"
             className={css`
-              margin-top: ${theme.spacing["12"]};
+              margin-top: ${theme.spacing["10"]};
               @media (max-width: ${theme.maxWidth["lg"]}) {
                 max-width: 100%;
                 flex-direction: column;
                 margin-bottom: ${theme.spacing["1"]};
-                margin-top: ${theme.spacing["6"]};
+                margin-top: ${theme.spacing["0"]};
               }
             `}
           >
@@ -94,7 +94,7 @@ export default function NonVotedProposalsListPage({
                 font-size: ${theme.fontSize["2xl"]};
                 font-weight: ${theme.fontWeight["extrabold"]};
                 @media (max-width: ${theme.maxWidth["lg"]}) {
-                  margin-bottom: ${theme.spacing["1"]};
+                  margin-bottom: ${theme.spacing["0"]};
                 }
               `}
             >
@@ -109,6 +109,9 @@ export default function NonVotedProposalsListPage({
               border-radius: ${theme.borderRadius["xl"]};
               box-shadow: ${theme.boxShadow["newDefault"]};
               overflow: hidden;
+              @media (max-width: ${theme.maxWidth["lg"]}) {
+                margin-top: ${theme.spacing["2"]};
+              }
             `}
           >
             <table

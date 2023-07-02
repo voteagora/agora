@@ -61,7 +61,7 @@ export function Markdown({ markdown }: Props) {
           }
 
           code {
-            color: ${theme.colors.gray["800"]};
+            color: ${theme.colors.gray["700"]};
           }
 
           ul,

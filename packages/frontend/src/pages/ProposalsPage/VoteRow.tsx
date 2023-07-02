@@ -53,6 +53,7 @@ export function VoteRow({
           address {
             address
             resolvedName {
+              address
               ...NounResolvedLinkFragment
             }
           }
@@ -68,6 +69,9 @@ export function VoteRow({
   const avatar = useEnsAvatar({
     address: vote.voter.address.resolvedName.address as any,
   });
+  const executorAvatar = useEnsAvatar({
+    address: vote.executor.address.resolvedName.address as any,
+  });
 
   return (
     <VStack key={vote.id} gap="1">
@@ -82,35 +86,43 @@ export function VoteRow({
           `}
         >
           <HStack alignItems="center">
-            <div
-              onMouseEnter={() => onVoterHovered(vote.voter.address.address)}
-            >
-              <HStack gap="2" alignItems="center">
-                <img
-                  className={css`
-                    width: 24px;
-                    height: 24px;
-                    border-radius: ${theme.borderRadius.md};
-                  `}
-                  src={avatar.data || icons.anonNoun}
-                  alt={"anon noun"}
-                />
-                <NounResolvedLink
-                  resolvedName={vote.voter.address.resolvedName}
-                />
-              </HStack>
-            </div>
-            {vote.executor.address.address !== vote.voter.address.address && (
+            {vote.executor.address.address !== vote.voter.address.address ? (
               <div
-                onMouseEnter={() =>
-                  onVoterHovered(vote.executor.address.address)
-                }
+                onMouseEnter={() => onVoterHovered(vote.voter.address.address)}
               >
-                {"("}
-                <NounResolvedLink
-                  resolvedName={vote.executor.address.resolvedName}
-                />
-                {")"}
+                <HStack gap="2" alignItems="center">
+                  <img
+                    className={css`
+                      width: 24px;
+                      height: 24px;
+                      border-radius: ${theme.borderRadius.md};
+                    `}
+                    src={executorAvatar.data || icons.anonNoun}
+                    alt={"anon noun"}
+                  />
+                  <NounResolvedLink
+                    resolvedName={vote.executor.address.resolvedName}
+                  />
+                </HStack>
+              </div>
+            ) : (
+              <div
+                onMouseEnter={() => onVoterHovered(vote.voter.address.address)}
+              >
+                <HStack gap="2" alignItems="center">
+                  <img
+                    className={css`
+                      width: 24px;
+                      height: 24px;
+                      border-radius: ${theme.borderRadius.md};
+                    `}
+                    src={avatar.data || icons.anonNoun}
+                    alt={"anon noun"}
+                  />
+                  <NounResolvedLink
+                    resolvedName={vote.voter.address.resolvedName}
+                  />
+                </HStack>
               </div>
             )}
 

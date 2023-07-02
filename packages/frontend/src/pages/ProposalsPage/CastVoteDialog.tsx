@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
 import { Address } from "@wagmi/core";
 import { BigNumber } from "ethers";
+import { useEnsAvatar } from "wagmi";
 
 import { contracts } from "../../utils/contracts";
 import * as theme from "../../theme";
@@ -16,6 +17,7 @@ import { colorForSupportType } from "../DelegatePage/VoteDetailsContainer";
 import { useContractWrite } from "../../hooks/useContractWrite";
 import { CastVoteDialogType } from "../../components/DialogProvider/dialogs";
 import { DialogProps } from "../../components/DialogProvider/types";
+import { icons } from "../../icons/icons";
 
 import { CastVoteDialogQuery } from "./__generated__/CastVoteDialogQuery.graphql";
 import { CastVoteDialogTokenDelegationLotVoteCellFragment$key } from "./__generated__/CastVoteDialogTokenDelegationLotVoteCellFragment.graphql";
@@ -28,7 +30,7 @@ export default function CastVoteDialog(props: Props) {
     <VStack
       alignItems="center"
       className={css`
-        padding: ${theme.spacing["8"]};
+        padding: ${theme.spacing["4"]};
       `}
     >
       <Dialog.Panel
@@ -40,10 +42,12 @@ export default function CastVoteDialog(props: Props) {
         animate={{ translateY: 0, scale: 1 }}
         className={css`
           width: 100%;
-          max-width: ${theme.maxWidth.xs};
+          max-width: ${theme.maxWidth.sm};
           background: ${theme.colors.white};
           border-radius: ${theme.spacing["3"]};
-          padding: ${theme.spacing["6"]};
+          border: 1px solid ${theme.colors.gray[300]};
+          box-shadow: ${theme.boxShadow.newDefault};
+          padding: ${theme.spacing["4"]};
         `}
       >
         <CastVoteDialogContents {...props} />
@@ -72,6 +76,7 @@ function CastVoteDialogContents({
           address {
             resolvedName {
               ...NounResolvedLinkFragment
+              address
             }
           }
 
@@ -120,9 +125,12 @@ function CastVoteDialogContents({
 
   const supportTypeRaw = ["AGAINST", "FOR", "ABSTAIN"].indexOf(supportType);
 
+  const avatar = useEnsAvatar({
+    address: delegate.address.resolvedName.address as any,
+  });
   return (
     <VStack
-      gap="6"
+      gap="4"
       className={css`
         font-size: ${theme.fontSize["xs"]};
       `}
@@ -135,14 +143,26 @@ function CastVoteDialogContents({
             font-weight: ${theme.fontWeight.semibold};
             line-height: ${theme.lineHeight.none};
           `}
+          alignItems="center"
         >
           <HStack
             className={css`
               color: ${theme.colors.black};
             `}
+            alignItems="center"
           >
-            <NounResolvedLink resolvedName={delegate.address.resolvedName} />
-
+            <HStack gap="2" alignItems="center">
+              <img
+                className={css`
+                  width: 24px;
+                  height: 24px;
+                  border-radius: ${theme.borderRadius.md};
+                `}
+                src={avatar.data || icons.anonNoun}
+                alt={"anon noun"}
+              />
+              <NounResolvedLink resolvedName={delegate.address.resolvedName} />
+            </HStack>
             <div
               className={css`
                 color: ${colorForSupportType(supportType)};
@@ -155,6 +175,7 @@ function CastVoteDialogContents({
             className={css`
               color: #66676b;
             `}
+            alignItems="center"
           >
             <div>{totalVotes}</div>
 
@@ -170,10 +191,21 @@ function CastVoteDialogContents({
         </HStack>
         <div
           className={css`
-            color: ${theme.colors.gray["4f"]};
+            color: ${theme.colors.gray[700]};
+            margin-top: ${theme.spacing["1"]};
           `}
         >
-          {reason ? reason : "No reason provided"}
+          {reason ? (
+            <div
+              className={css`
+                white-space: pre-wrap;
+              `}
+            >
+              {reason}
+            </div>
+          ) : (
+            "No reason provided"
+          )}
         </div>
       </VStack>
 

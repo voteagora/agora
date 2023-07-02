@@ -110,9 +110,6 @@ export function VotesCastPanel({
               padding-left: ${theme.spacing["4"]};
               padding-right: ${theme.spacing["4"]};
               overflow-y: scroll;
-              @media (max-width: ${theme.maxWidth["2xl"]}) {
-                /* display: none; */
-              }
             `,
             "mobile-web-scroll-div"
           )}
