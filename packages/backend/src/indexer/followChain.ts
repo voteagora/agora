@@ -62,7 +62,7 @@ export function followChain(
         ...filter,
       }));
     for (const log of logs) {
-      const indexer = indexers.find(
+      const indexer = envIndexers.find(
         (it) => it.address.toLowerCase() === log.address.toLowerCase()
       )!;
 

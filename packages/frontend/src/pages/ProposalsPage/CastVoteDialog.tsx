@@ -64,13 +64,6 @@ function CastVoteDialogContents({
   supportType,
   closeDialog,
 }: Props) {
-  // Ideal flow (not implemented yet):
-  // 1. Check that user doesn't have a delegate
-  // 2. Check that user has >0 Nouns
-  // 3. Check that user has not already voted
-  // Notes:
-  // If user has no nouns, fields are null
-
   const { address: accountAddress } = useAccount();
 
   const { delegate } = useLazyLoadQuery<CastVoteDialogQuery>(
@@ -106,7 +99,7 @@ function CastVoteDialogContents({
     }
   );
 
-  const { write, isLoading, isSuccess, isError } = useContractWrite<
+  const { write, isLoading, isSuccess } = useContractWrite<
     OptimismGovernorV5,
     "castVoteWithReason"
   >(
@@ -120,9 +113,6 @@ function CastVoteDialogContents({
     // todo: log
     return null;
   }
-  console.log(isLoading);
-  console.log(isSuccess);
-  console.log(isError);
 
   return (
     <VStack

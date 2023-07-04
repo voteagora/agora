@@ -3,7 +3,7 @@ import { css } from "@emotion/css";
 import { motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
 import { VStack } from "../../../components/VStack";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { ApprovalCastVoteDialogFragment$key } from "./__generated__/ApprovalCastVoteDialogFragment.graphql";
@@ -54,20 +54,28 @@ export function ApprovalCastVoteDialog({
 
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
   const [reason, setReason] = useState<string>("");
-  const [abstain, setAbstain] = useState<boolean>(false);
+  const [abstain, setAbstain] = useState<boolean>(true);
   const [encodedParams, setEncodedParams] = useState<string>("");
   const maxChecked = proposalData.settings.maxApprovals;
   const abstainOptionId = proposalData.options.length; // Abstain option is always last
 
   const handleOnChange = (optionId: number) => {
     if (optionId === abstainOptionId) {
+      if (abstain) {
+        setSelectedOptions([proposalData.options.length - 1]);
+      } else {
+        setSelectedOptions([]);
+      }
       setAbstain((prev) => !prev);
-      setSelectedOptions([]);
     } else {
       if (selectedOptions.includes(optionId)) {
         setSelectedOptions((prev) =>
           prev.filter((value) => value !== optionId)
         );
+
+        if (selectedOptions.length === 1) {
+          setAbstain(true);
+        }
       } else if (selectedOptions.length < maxChecked) {
         setAbstain(false);
         setSelectedOptions((prev) => [...prev, optionId]);
@@ -86,7 +94,7 @@ export function ApprovalCastVoteDialog({
     () => {}
   );
 
-  useEffect(() => {
+  useMemo(() => {
     const encoded = abstain
       ? "0x"
       : ethers.utils.defaultAbiCoder.encode(
