@@ -9,7 +9,7 @@ export function withCache<Env>(
   seconds: number
 ): Handler<Env> {
   return async (request, env, ctx) => {
-    if (shouldCache(env)) {
+    if (!shouldCache(env)) {
       return await handler(request, env, ctx);
     }
 
