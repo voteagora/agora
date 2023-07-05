@@ -4,6 +4,7 @@ import { InView } from "react-intersection-observer";
 import { Suspense, useEffect, useState, useTransition } from "react";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import { BigNumber } from "ethers";
+import { useAccount } from "wagmi";
 
 import { VStack, HStack } from "../../components/VStack";
 import * as theme from "../../theme";
@@ -18,6 +19,7 @@ import { VoteRow } from "./VoteRow";
 import { VotesCastPanelVotesFragment$key } from "./__generated__/VotesCastPanelVotesFragment.graphql";
 import { VotesCastPanelHoveredVoterQuery } from "./__generated__/VotesCastPanelHoveredVoterQuery.graphql";
 import { VotesCastPanelQueryFragment$key } from "./__generated__/VotesCastPanelQueryFragment.graphql";
+import { VotesCastPanelOwnVotesFragment$key } from "./__generated__/VotesCastPanelOwnVotesFragment.graphql";
 
 export function VotesCastPanel({
   fragmentRef,
@@ -40,6 +42,8 @@ export function VotesCastPanel({
         ...CastVoteInputQueryFragment
           @arguments(address: $address, skipAddress: $skipAddress)
         ...CastVoteInputVoteButtonsQueryFragment
+          @arguments(address: $address, skipAddress: $skipAddress)
+        ...VotesCastPanelOwnVotesFragment
           @arguments(address: $address, skipAddress: $skipAddress)
       }
     `,
@@ -152,7 +156,7 @@ export function VotesCastPanel({
                           className={css`
                             width: 120px;
                             height: 12px;
-                            border-radius: ${theme.borderRadius.xs};
+                            border-radius: ${theme.borderRadius.sm};
                             background: ${theme.colors.gray["eb"]};
                           `}
                         />
@@ -160,7 +164,7 @@ export function VotesCastPanel({
                           className={css`
                             width: 64px;
                             height: 12px;
-                            border-radius: ${theme.borderRadius.xs};
+                            border-radius: ${theme.borderRadius.sm};
                             background: ${theme.colors.gray["eb"]};
                           `}
                         />
@@ -194,6 +198,11 @@ export function VotesCastPanel({
             className={css`
               flex-shrink: 0;
             `}
+          />
+
+          <VotesCastPanelOwnVotes
+            proposalId={result.number}
+            fragmentRef={queryResult}
           />
 
           {!expanded && (
@@ -241,6 +250,52 @@ export function VotesCastPanel({
   );
 }
 
+function VotesCastPanelOwnVotes({
+  proposalId,
+  fragmentRef,
+}: {
+  proposalId: string;
+  fragmentRef: VotesCastPanelOwnVotesFragment$key;
+}) {
+  const { delegate } = useFragment(
+    graphql`
+      fragment VotesCastPanelOwnVotesFragment on Query
+      @argumentDefinitions(
+        address: { type: "String!" }
+        skipAddress: { type: "Boolean!" }
+      ) {
+        delegate(addressOrEnsName: $address) @skip(if: $skipAddress) {
+          votes {
+            proposal {
+              id
+            }
+            ...VoteRowFragment
+          }
+        }
+      }
+    `,
+    fragmentRef
+  );
+
+  const ownVotes = delegate?.votes.filter((it) => {
+    const idParts = it.proposal.id.split("|");
+    const actualId = idParts[idParts.length - 1];
+    return actualId === proposalId;
+  });
+
+  if (ownVotes) {
+    return (
+      <>
+        {ownVotes.map((it) => (
+          <VoteRow isUser={true} fragmentRef={it} onVoterHovered={() => {}} />
+        ))}
+      </>
+    );
+  } else {
+    return null;
+  }
+}
+
 function VotesCastPanelVotes({
   onVoterHovered,
   fragmentRef,
@@ -266,6 +321,11 @@ function VotesCastPanelVotes({
           @connection(key: "VotesCastPanelFragment_votes") {
           edges {
             node {
+              executor {
+                address {
+                  address
+                }
+              }
               ...VoteRowFragment
             }
           }
@@ -277,12 +337,14 @@ function VotesCastPanelVotes({
 
   const pageSize = 100;
 
+  const { address } = useAccount();
+
   const items = makePaginationItems(votes.edges, isLoadingNext, hasNext);
   const shimmer = keyframes`
   from {
     opacity: 0.4;
   }
-  
+
   to {
     opacity: 0.7;
   }
@@ -314,14 +376,22 @@ function VotesCastPanelVotes({
           }
 
           case "ITEMS": {
-            return (
-              <div key={idx}>
-                <VoteRow
-                  fragmentRef={item.items.node}
-                  onVoterHovered={onVoterHovered}
-                />
-              </div>
-            );
+            if (
+              address &&
+              address === item.items.node.executor.address.address
+            ) {
+              return null;
+            } else {
+              return (
+                <div key={idx}>
+                  <VoteRow
+                    isUser={false}
+                    fragmentRef={item.items.node}
+                    onVoterHovered={onVoterHovered}
+                  />
+                </div>
+              );
+            }
           }
 
           case "LOAD_MORE_SENTINEL": {

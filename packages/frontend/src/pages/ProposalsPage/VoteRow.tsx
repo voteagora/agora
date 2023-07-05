@@ -15,9 +15,11 @@ import { VoteRowFragment$key } from "./__generated__/VoteRowFragment.graphql";
 import { VoteRowTextFragment$key } from "./__generated__/VoteRowTextFragment.graphql";
 
 export function VoteRow({
+  isUser,
   fragmentRef,
   onVoterHovered,
 }: {
+  isUser: boolean;
   fragmentRef: VoteRowFragment$key;
   onVoterHovered: (address: string) => void;
 }) {
@@ -125,6 +127,7 @@ export function VoteRow({
                 </HStack>
               </div>
             )}
+            {isUser && "\u00A0(you)"}
 
             <VoteText fragmentRef={vote} />
           </HStack>
