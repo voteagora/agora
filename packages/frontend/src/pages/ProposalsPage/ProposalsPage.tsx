@@ -8,12 +8,16 @@ import { useAccount } from "wagmi";
 import { HStack, VStack } from "../../components/VStack";
 import * as theme from "../../theme";
 import {
+  useLocation,
   useNavigate,
   useParams,
 } from "../../components/HammockRouter/HammockRouter";
 import { icons } from "../../icons/icons";
 
-import { ProposalsPageDetailQuery } from "./__generated__/ProposalsPageDetailQuery.graphql";
+import {
+  ProposalsPageDetailQuery,
+  VotesOrder,
+} from "./__generated__/ProposalsPageDetailQuery.graphql";
 import { ProposalDetailPanel } from "./ProposalDetailPanel";
 import { VotesCastPanel } from "./VotesCastPanel";
 import {
@@ -24,6 +28,8 @@ import {
 export default function ProposalsPage() {
   const { proposalId } = useParams();
   const { address } = useAccount();
+  const votesSort =
+    (useLocation().search["votesSort"] as VotesOrder) || "mostRecent";
 
   const [isPending, startTransition] = useTransition();
   const navigate = useNavigate();
@@ -36,6 +42,7 @@ export default function ProposalsPage() {
         $proposalId: ID!
         $address: String!
         $skipAddress: Boolean!
+        $orderBy: VotesOrder!
       ) {
         firstProposal: proposal(id: $proposalId) {
           number
@@ -49,13 +56,15 @@ export default function ProposalsPage() {
             address: $address
             skipAddress: $skipAddress
             proposalId: $proposalId
+            orderBy: $orderBy
           )
       }
     `,
     {
-      proposalId,
+      proposalId: proposalId,
       address: address ?? "",
       skipAddress: !address,
+      orderBy: votesSort,
     }
   );
 
@@ -162,6 +171,20 @@ export default function ProposalsPage() {
             fragmentRef={result.firstProposal}
             queryFragmentRef={result}
             expanded={proposalsListExpanded}
+            votesSort={votesSort}
+            setVotesOrder={(order) => {
+              startTransition(() => {
+                navigate({
+                  path: selectedProposalToPath({
+                    type: "ON_CHAIN",
+                    identifier: result.firstProposal.number.toString(),
+                  }),
+                  search: {
+                    votesSort: order,
+                  },
+                });
+              });
+            }}
           />
         </VStack>
       </HStack>

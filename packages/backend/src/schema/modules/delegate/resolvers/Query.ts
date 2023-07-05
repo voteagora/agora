@@ -5,11 +5,20 @@ import { collectGenerator } from "../../../../shared/utils/generatorUtils";
 import { loadProposal } from "../../../../shared/contracts/indexers/IGovernor/entities/proposal";
 
 export const Query: Resolvers["Query"] = {
-  async votes(_, { proposalId, first, after }, { reader }) {
+  async votes(_, { proposalId, orderBy, first, after }, { reader }) {
     return driveReaderByIndex(
       reader,
       "IGovernorVote",
-      "byProposalByVotes",
+      (() => {
+        switch (orderBy) {
+          case "mostRecent":
+            return "byProposalByBlock";
+          case "mostVotes":
+            return "byProposalByVotes";
+          default:
+            throw new Error("unknown order by");
+        }
+      })(),
       first,
       after ?? null,
       {

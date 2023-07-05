@@ -8,7 +8,12 @@ type Query {
     after: String
   ): DelegatesConnection!
 
-  votes(proposalId: ID!, first: Int!, after: String): VotesConnection!
+  votes(
+    proposalId: ID!
+    orderBy: VotesOrder! = mostRecent
+    first: Int!
+    after: String
+  ): VotesConnection!
 
   proposal(id: ID!): Proposal!
   proposals: [Proposal!]!
@@ -138,4 +143,9 @@ type VotesConnection {
 type VotesEdge {
   node: Vote!
   cursor: String!
+}
+
+enum VotesOrder {
+  mostRecent
+  mostVotes
 }

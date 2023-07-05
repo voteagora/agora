@@ -44,6 +44,16 @@ export const IGovernorVote = makeEntityDefinition({
         return entity.executorAddress;
       },
     },
+    byProposalByBlock: {
+      indexKey(entity) {
+        return makeCompoundKey(
+          entity.proposalId.toString(),
+          efficientLengthEncodingNaturalNumbers(
+            ethers.BigNumber.from(entity.blockNumber).mul(-1)
+          )
+        );
+      },
+    },
   },
 });
 

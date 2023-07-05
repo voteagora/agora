@@ -11,6 +11,7 @@ import * as theme from "../../theme";
 import { useOpenDialog } from "../../components/DialogProvider/DialogProvider";
 import { makePaginationItems } from "../../hooks/pagination";
 import { VoterCard } from "../HomePage/VoterCard";
+import { VoteSortSelector } from "../ProposalsListPage/VoteSortSelector";
 
 import { VotesCastPanelFragment$key } from "./__generated__/VotesCastPanelFragment.graphql";
 import { CastVoteInput } from "./CastVoteInput";
@@ -19,16 +20,21 @@ import { VoteRow } from "./VoteRow";
 import { VotesCastPanelVotesFragment$key } from "./__generated__/VotesCastPanelVotesFragment.graphql";
 import { VotesCastPanelHoveredVoterQuery } from "./__generated__/VotesCastPanelHoveredVoterQuery.graphql";
 import { VotesCastPanelQueryFragment$key } from "./__generated__/VotesCastPanelQueryFragment.graphql";
+import { VotesOrder } from "./__generated__/ProposalsPageDetailQuery.graphql";
 import { VotesCastPanelOwnVotesFragment$key } from "./__generated__/VotesCastPanelOwnVotesFragment.graphql";
 
 export function VotesCastPanel({
   fragmentRef,
   queryFragmentRef,
   expanded,
+  votesSort,
+  setVotesOrder,
 }: {
   fragmentRef: VotesCastPanelFragment$key;
   queryFragmentRef: VotesCastPanelQueryFragment$key;
   expanded: boolean;
+  votesSort: VotesOrder;
+  setVotesOrder: (order: VotesOrder) => void;
 }) {
   const queryResult = useFragment(
     graphql`
@@ -37,8 +43,10 @@ export function VotesCastPanel({
         address: { type: "String!" }
         proposalId: { type: "ID!" }
         skipAddress: { type: "Boolean!" }
+        orderBy: { type: "VotesOrder!" }
       ) {
-        ...VotesCastPanelVotesFragment @arguments(proposalId: $proposalId)
+        ...VotesCastPanelVotesFragment
+          @arguments(proposalId: $proposalId, orderBy: $orderBy)
         ...CastVoteInputQueryFragment
           @arguments(address: $address, skipAddress: $skipAddress)
         ...CastVoteInputVoteButtonsQueryFragment
@@ -118,6 +126,34 @@ export function VotesCastPanel({
             "mobile-web-scroll-div"
           )}
         >
+          <HStack
+            justifyContent="space-between"
+            alignItems="center"
+            className={css`
+              flex-shrink: 0;
+              padding-top: ${theme.spacing["4"]};
+              padding-left: ${theme.spacing["1"]};
+              padding-right: ${theme.spacing["1"]};
+            `}
+          >
+            <div
+              className={css`
+                font-size: ${theme.fontSize.base};
+                font-weight: ${theme.fontWeight.semibold};
+                line-height: ${theme.lineHeight.normal};
+              `}
+            >
+              Votes
+            </div>
+
+            <VoteSortSelector
+              value={votesSort}
+              onChange={(newSort) =>
+                startTransition(() => setVotesOrder(newSort))
+              }
+              size="m"
+            />
+          </HStack>
           {hoveredVoterAddress && (
             <div
               className={css`
@@ -209,6 +245,7 @@ export function VotesCastPanel({
             <VotesCastPanelVotes
               onVoterHovered={(address) => setHoveredVoterAddress(address)}
               fragmentRef={queryResult}
+              isPending={isPending}
             />
           )}
         </VStack>
@@ -299,9 +336,11 @@ function VotesCastPanelOwnVotes({
 function VotesCastPanelVotes({
   onVoterHovered,
   fragmentRef,
+  isPending,
 }: {
   onVoterHovered: (address: string) => void;
   fragmentRef: VotesCastPanelVotesFragment$key;
+  isPending?: boolean;
 }) {
   const {
     data: { votes },
@@ -315,10 +354,15 @@ function VotesCastPanelVotes({
         proposalId: { type: "ID!" }
         first: { type: "Int", defaultValue: 30 }
         after: { type: "String" }
+        orderBy: { type: "VotesOrder!" }
       )
       @refetchable(queryName: "VotesCastPanelPaginationQuery") {
-        votes(proposalId: $proposalId, first: $first, after: $after)
-          @connection(key: "VotesCastPanelFragment_votes") {
+        votes(
+          proposalId: $proposalId
+          orderBy: $orderBy
+          first: $first
+          after: $after
+        ) @connection(key: "VotesCastPanelFragment_votes") {
           edges {
             node {
               executor {
@@ -350,67 +394,77 @@ function VotesCastPanelVotes({
   }
 `;
   return (
-    <VStack
-      gap="6"
-      className={css`
-        padding-bottom: ${theme.spacing["2"]};
-      `}
-    >
-      {items.map((item, idx) => {
-        switch (item.type) {
-          case "LOADING": {
-            return (
-              <HStack
-                justifyContent="center"
-                key={idx}
-                className={css`
-                  color: ${theme.colors.gray["700"]};
-                  font-weight: ${theme.fontWeight.medium};
-                  animation: ${shimmer} 0.5s alternate-reverse infinite
-                    ease-in-out;
-                `}
-              >
-                Loading more votes
-              </HStack>
-            );
-          }
-
-          case "ITEMS": {
-            if (
-              address &&
-              address === item.items.node.executor.address.address
-            ) {
-              return null;
-            } else {
+    <>
+      <VStack
+        gap="4"
+        className={css`
+          padding-bottom: ${theme.spacing["2"]};
+        `}
+      >
+        {items.map((item, idx) => {
+          switch (item.type) {
+            case "LOADING": {
               return (
-                <div key={idx}>
-                  <VoteRow
-                    isUser={false}
-                    fragmentRef={item.items.node}
-                    onVoterHovered={onVoterHovered}
-                  />
-                </div>
+                <HStack
+                  justifyContent="center"
+                  key={idx}
+                  className={css`
+                    color: ${theme.colors.gray["700"]};
+                    font-weight: ${theme.fontWeight.medium};
+                    animation: ${shimmer} 0.5s alternate-reverse infinite
+                      ease-in-out;
+                  `}
+                >
+                  Loading more votes
+                </HStack>
               );
             }
-          }
 
-          case "LOAD_MORE_SENTINEL": {
-            return (
-              <LoadMoreSentinel
-                key={idx}
-                onVisible={() => {
-                  loadNext(pageSize);
-                }}
-              />
-            );
-          }
+            case "ITEMS": {
+              if (
+                address &&
+                address === item.items.node.executor.address.address
+              ) {
+                return null;
+              } else {
+                return (
+                  <div
+                    key={idx}
+                    className={css`
+                      ${isPending &&
+                      css`
+                        opacity: 0.2;
+                      `}
+                    `}
+                  >
+                    <VoteRow
+                      isUser={false}
+                      fragmentRef={item.items.node}
+                      onVoterHovered={onVoterHovered}
+                    />
+                  </div>
+                );
+              }
+            }
 
-          default: {
-            throw new Error("unknown");
+            case "LOAD_MORE_SENTINEL": {
+              return (
+                <LoadMoreSentinel
+                  key={idx}
+                  onVisible={() => {
+                    loadNext(pageSize);
+                  }}
+                />
+              );
+            }
+
+            default: {
+              throw new Error("unknown");
+            }
           }
-        }
-      })}
-    </VStack>
+        })}
+      </VStack>
+    </>
   );
 }
 
