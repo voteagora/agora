@@ -60,6 +60,8 @@ export function VotesCastPanel({
 
   const [isPending, startTransition] = useTransition();
 
+  const [isVoteSortPending, startVoteSortTransition] = useTransition();
+
   const [hoveredVoterAddress, setHoveredVoterAddressValue] = useState<
     string | null
   >(null);
@@ -149,7 +151,7 @@ export function VotesCastPanel({
             <VoteSortSelector
               value={votesSort}
               onChange={(newSort) =>
-                startTransition(() => setVotesOrder(newSort))
+                startVoteSortTransition(() => setVotesOrder(newSort))
               }
               size="m"
             />
@@ -246,6 +248,7 @@ export function VotesCastPanel({
               onVoterHovered={(address) => setHoveredVoterAddress(address)}
               fragmentRef={queryResult}
               isPending={isPending}
+              isVoteSortPending={isVoteSortPending}
             />
           )}
         </VStack>
@@ -337,10 +340,12 @@ function VotesCastPanelVotes({
   onVoterHovered,
   fragmentRef,
   isPending,
+  isVoteSortPending,
 }: {
   onVoterHovered: (address: string) => void;
   fragmentRef: VotesCastPanelVotesFragment$key;
   isPending?: boolean;
+  isVoteSortPending?: boolean;
 }) {
   const {
     data: { votes },
@@ -431,7 +436,7 @@ function VotesCastPanelVotes({
                   <div
                     key={idx}
                     className={css`
-                      ${isPending &&
+                      ${isVoteSortPending &&
                       css`
                         opacity: 0.2;
                       `}
