@@ -3,10 +3,9 @@ import * as readline from "readline";
 import path from "path";
 
 import { ethers } from "ethers";
-import Heap from "heap";
 
-import { Comparator, compareByTuple } from "../utils/sortUtils";
-import { takeLast } from "../utils/generatorUtils";
+import { compareByTuple } from "../utils/sortUtils";
+import { mergeGenerators, takeLast } from "../utils/generatorUtils";
 
 import { BlockIdentifier } from "./process/storageHandle";
 import { IndexerDefinition } from "./process/indexerDefinition";
@@ -97,49 +96,7 @@ export function loadMergedLogs(
   basePath: string
 ): AsyncGenerator<ethers.providers.Log> {
   return mergeGenerators(
-    compareByTuple((it) => [it.blockNumber, it.transactionIndex, it.logIndex]),
-    ...indexers.map((indexer) => loadReducerLogs(indexer, basePath))
+    indexers.map((indexer) => loadReducerLogs(indexer, basePath)),
+    compareByTuple((it) => [it.blockNumber, it.transactionIndex, it.logIndex])
   );
-}
-
-export async function* mergeGenerators<T>(
-  comparator: Comparator<T>,
-  ...generators: AsyncGenerator<T>[]
-): AsyncGenerator<T> {
-  const heap = new Heap<{ generator: AsyncGenerator<T>; nextItem: T }>(
-    ({ nextItem: lhs }, { nextItem: rhs }) => {
-      return comparator(lhs, rhs);
-    }
-  );
-
-  const initialItems = await Promise.all(
-    generators.map(async (generator) => ({
-      generator,
-      nextItem: await generator.next(),
-    }))
-  );
-  for (const item of initialItems) {
-    if (!item.nextItem.done) {
-      heap.push({ generator: item.generator, nextItem: item.nextItem.value });
-    }
-  }
-
-  while (true) {
-    const item = heap.pop();
-    if (!item) {
-      break;
-    }
-
-    const { nextItem, generator } = item;
-
-    yield nextItem;
-
-    const nextResult = await generator.next();
-    if (!nextResult.done) {
-      heap.push({
-        generator,
-        nextItem: nextResult.value,
-      });
-    }
-  }
 }

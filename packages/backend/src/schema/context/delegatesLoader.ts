@@ -1,9 +1,6 @@
-import {
-  Connection,
-  driveReaderByIndex,
-} from "../../../shared/schema/pagination";
-import { Reader } from "../../../shared/indexer/storage/reader/type";
-import { IVotesAddress } from "../../../shared/contracts/indexers/ERC20Votes/entities/address";
+import { Connection, driveReaderByIndex } from "../../shared/schema/pagination";
+import { Reader } from "../../shared/indexer/storage/reader/type";
+import { IVotesAddress } from "../../shared/contracts/indexers/ERC20Votes/entities/address";
 
 export type DelegatesLoaderOrderBy =
   | "mostDelegates"

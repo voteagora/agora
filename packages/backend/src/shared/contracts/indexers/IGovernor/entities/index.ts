@@ -1,5 +1,6 @@
 import { IVotesAggregate } from "../../IVotes/entities/aggregate";
 import { IVotesAddress } from "../../ERC721Votes/entities/address";
+import { IVotesAddressSnapshot } from "../../ERC721Votes/entities/addressSnapshot";
 
 import { IGovernorVote } from "./vote";
 import { IGovernorProposal } from "./proposal";
@@ -11,4 +12,5 @@ export const IGovernorEntities = {
   IGovernorProposal,
   IGovernorAggregate,
   IVotesAddress,
+  IVotesAddressSnapshot,
 };

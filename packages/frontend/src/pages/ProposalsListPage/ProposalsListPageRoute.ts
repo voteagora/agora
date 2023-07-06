@@ -7,22 +7,7 @@ import { ProposalsListPageRouteQuery } from "./__generated__/ProposalsListPageRo
 
 export const query = graphql`
   query ProposalsListPageRouteQuery {
-    proposals {
-      id
-      status
-      voteStartsAt
-
-      ...OnChainProposalRowFragment
-    }
-
-    propHouseAuctions {
-      id
-      startTime
-      status
-
-      ...PropHouseAuctionRowFragment
-    }
-
+    ...ProposalsListPageProposalsFragment
     ...OverviewMetricsContainerFragment
   }
 `;

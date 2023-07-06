@@ -63,7 +63,7 @@ export function ProposalsAIPanel({
 
   const proposal = useFragment(
     graphql`
-      fragment ProposalsAIPanelFragment on Proposal {
+      fragment ProposalsAIPanelFragment on OnChainProposal {
         description
       }
     `,

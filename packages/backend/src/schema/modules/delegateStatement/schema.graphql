@@ -24,8 +24,8 @@ type DelegateStatement {
   statement: String!
   summary: String
   topIssues: [TopIssue!]!
-  mostValuableProposals: [Proposal!]!
-  leastValuableProposals: [Proposal!]!
+  mostValuableProposals: [OnChainProposal!]!
+  leastValuableProposals: [OnChainProposal!]!
   twitter: String!
   discord: String!
   openToSponsoringProposals: Boolean

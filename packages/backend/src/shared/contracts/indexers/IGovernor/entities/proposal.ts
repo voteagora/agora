@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { ethers, BigNumber } from "ethers";
 
 import { makeEntityDefinition, serde } from "../../../../indexer";
 import { efficientLengthEncodingNaturalNumbers } from "../../../../utils/efficientLengthEncoding";
@@ -14,6 +14,13 @@ import {
   Reader,
   ReaderEntities,
 } from "../../../../indexer/storage/reader/type";
+import { getSnapshotForAddress } from "../../ERC721Votes/entities/addressSnapshot";
+import {
+  alligatorEntityDefinitions,
+  getLiquidDelegatatedVoteLotsForVoter,
+} from "../../Alligator/entities/entities";
+
+import { IGovernorEntities } from ".";
 
 export const IGovernorProposal = makeEntityDefinition({
   serde: serde.object({
@@ -165,4 +172,83 @@ export async function proposalStatus(
       return "DEFEATED";
     }
   }
+}
+
+async function hasRepresentedNounsAtSnapshot(
+  address: string,
+  proposalStartBlock: bigint,
+  reader: Reader<typeof IGovernorEntities & typeof alligatorEntityDefinitions>
+) {
+  const addressSnapshot = await getSnapshotForAddress(
+    { address, startBlock: proposalStartBlock },
+    reader
+  );
+  return !!addressSnapshot.tokensRepresentedIds.length;
+}
+
+async function hasAddressVoted(
+  address: string,
+  proposalId: string,
+  reader: Reader<typeof IGovernorEntities>
+) {
+  const ownVote = await reader.getEntity(
+    "IGovernorVote",
+    [proposalId, address].join("-")
+  );
+
+  return !!ownVote;
+}
+
+export async function needsToVote(
+  address: string,
+  proposal: EntityRuntimeType<typeof IGovernorProposal>,
+  reader: Reader<typeof IGovernorEntities & typeof alligatorEntityDefinitions>,
+  latestBlock: number
+): Promise<boolean> {
+  if (
+    proposal.status !== "PROPOSED" ||
+    latestBlock <= Number(proposal.startBlock) ||
+    latestBlock > Number(proposal.endBlock)
+  ) {
+    return false;
+  }
+
+  if (
+    await hasRepresentedNounsAtSnapshot(address, proposal.startBlock, reader)
+  ) {
+    if (
+      !(await hasAddressVoted(address, proposal.proposalId.toString(), reader))
+    ) {
+      return true;
+    }
+  }
+
+  const liquidDelegatedVoteLots = await getLiquidDelegatatedVoteLotsForVoter(
+    address,
+    proposal,
+    latestBlock,
+    reader
+  );
+
+  for await (let lot of liquidDelegatedVoteLots) {
+    if (
+      await hasRepresentedNounsAtSnapshot(
+        lot.proxy,
+        proposal.startBlock,
+        reader
+      )
+    ) {
+      if (
+        !(await hasAddressVoted(
+          lot.proxy,
+          proposal.proposalId.toString(),
+          reader
+        ))
+      ) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }

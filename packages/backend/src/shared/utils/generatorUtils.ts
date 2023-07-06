@@ -1,3 +1,7 @@
+import Heap from "heap";
+
+import { Comparator } from "./sortUtils";
+
 export async function* indexed<T>(
   asyncGenerator: AsyncIterable<T>
 ): AsyncGenerator<[number, T]> {
@@ -114,12 +118,24 @@ export async function* limitGenerator<T>(
 
 export async function* filterGenerator<T>(
   asyncIterable: AsyncIterable<T>,
-  checkFn: (item: T) => boolean
+  checkFn: (item: T) => Promise<boolean> | boolean
 ): AsyncGenerator<T> {
   for await (const item of asyncIterable) {
-    if (checkFn(item)) {
+    if (await checkFn(item)) {
       yield item;
     }
+  }
+}
+
+export async function* optimisticGenerator<T>(
+  asyncIterable: AsyncIterable<T>,
+  checkFn: (item: T) => Promise<boolean> | boolean
+): AsyncGenerator<T> {
+  for await (const item of asyncIterable) {
+    if (await checkFn(item)) {
+      break;
+    }
+    yield item;
   }
 }
 
@@ -235,4 +251,46 @@ export async function reduceGenerator<T, U>(
   }
 
   return acc;
+}
+
+export async function* mergeGenerators<T>(
+  generators: AsyncGenerator<T>[],
+  comparator: Comparator<T>
+): AsyncGenerator<T> {
+  const heap = new Heap<{ generator: AsyncGenerator<T>; nextItem: T }>(
+    ({ nextItem: lhs }, { nextItem: rhs }) => {
+      return comparator(lhs, rhs);
+    }
+  );
+
+  const initialItems = await Promise.all(
+    generators.map(async (generator) => ({
+      generator,
+      nextItem: await generator.next(),
+    }))
+  );
+  for (const item of initialItems) {
+    if (!item.nextItem.done) {
+      heap.push({ generator: item.generator, nextItem: item.nextItem.value });
+    }
+  }
+
+  while (true) {
+    const item = heap.pop();
+    if (!item) {
+      break;
+    }
+
+    const { nextItem, generator } = item;
+
+    yield nextItem;
+
+    const nextResult = await generator.next();
+    if (!nextResult.done) {
+      heap.push({
+        generator,
+        nextItem: nextResult.value,
+      });
+    }
+  }
 }

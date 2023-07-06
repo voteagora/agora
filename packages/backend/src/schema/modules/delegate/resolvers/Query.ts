@@ -1,8 +1,8 @@
 import { Resolvers } from "../module";
 import { driveReaderByIndex } from "../../../../shared/schema/pagination";
 import { makeCompoundKey } from "../../../../shared/indexer/storage/keys/indexKey";
-import { collectGenerator } from "../../../../shared/utils/generatorUtils";
 import { loadProposal } from "../../../../shared/contracts/indexers/IGovernor/entities/proposal";
+import { collectGenerator } from "../../../../shared/utils/generatorUtils";
 
 export const Query: Resolvers["Query"] = {
   async votes(_, { proposalId, orderBy, first, after }, { reader }) {
@@ -27,11 +27,11 @@ export const Query: Resolvers["Query"] = {
     );
   },
 
-  async proposal(_, { id }, { reader }) {
+  async onChainProposal(_, { id }, { reader }) {
     return loadProposal(reader, BigInt(id));
   },
 
-  async proposals(_, {}, { reader }) {
+  async onChainProposals(_parent, _args, { reader }) {
     return (
       await collectGenerator(
         reader.getEntitiesByIndex("IGovernorProposal", "byEndBlock", {})

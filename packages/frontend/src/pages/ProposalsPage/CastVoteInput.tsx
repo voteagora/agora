@@ -77,7 +77,7 @@ export function CastVoteInput({
 
   const proposal = useFragment(
     graphql`
-      fragment CastVoteInputFragment on Proposal {
+      fragment CastVoteInputFragment on OnChainProposal {
         description
       }
     `,
@@ -202,7 +202,7 @@ function VoteButtons({
 }) {
   const result = useFragment(
     graphql`
-      fragment CastVoteInputVoteButtonsFragment on Proposal {
+      fragment CastVoteInputVoteButtonsFragment on OnChainProposal {
         # eslint-disable-next-line relay/unused-fields
         id
         status

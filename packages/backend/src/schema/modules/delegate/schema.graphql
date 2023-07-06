@@ -16,7 +16,6 @@ type Query {
   ): VotesConnection!
 
   proposal(id: ID!): Proposal!
-  proposals: [Proposal!]!
 }
 
 type Delegate {
@@ -35,7 +34,7 @@ type Delegate {
   delegateSnapshot(proposalId: ID!): DelegateSnapshot!
 
   delegateMetrics: DelegateMetrics!
-  proposed: [Proposal!]!
+  proposed: [OnChainProposal!]!
 
   proposalVote(proposalId: ID!): Vote
 
@@ -76,7 +75,12 @@ type DelegateMetrics {
   tokenHoldersRepresentedCount: Int!
 }
 
-type Proposal {
+type Query {
+  onChainProposal(id: ID!): OnChainProposal!
+  onChainProposals: [OnChainProposal!]!
+}
+
+type OnChainProposal {
   id: ID!
   number: BigInt!
 
@@ -112,6 +116,7 @@ type ProposalTransaction {
 
 enum ProposalStatus {
   PENDING
+  NEEDS_MY_VOTE
   ACTIVE
   CANCELLED
   VETOED
@@ -121,6 +126,10 @@ enum ProposalStatus {
   EXPIRED
 }
 
+type Query {
+  votes(proposalId: ID!, first: Int!, after: String): VotesConnection!
+}
+
 type Vote {
   id: ID!
   reason: String!
@@ -128,7 +137,7 @@ type Vote {
   supportDetailed: Int!
   votes: VotingPower!
 
-  proposal: Proposal!
+  proposal: OnChainProposal!
   voter: Delegate!
   executor: Delegate!
 

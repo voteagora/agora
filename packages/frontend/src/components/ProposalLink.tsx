@@ -12,7 +12,7 @@ type Props = {
 export function ProposalLink({ children, fragmentRef }: Props) {
   const proposal = useFragment(
     graphql`
-      fragment ProposalLinkFragment on Proposal {
+      fragment ProposalLinkFragment on OnChainProposal {
         number
       }
     `,

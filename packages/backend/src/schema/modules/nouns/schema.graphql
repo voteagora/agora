@@ -19,6 +19,47 @@ type Delegate {
 
 type Query {
   metrics: Metrics!
+
+  proposals(
+    first: Int!
+    after: String
+    orderBy: ProposalOrder! = byStartTimeDesc
+    where: ProposalWhere
+  ): ProposalsConnection!
+
+  nonVotedProposals(addressOrEnsName: String!): [Proposal!]!
+}
+
+enum ProposalOrder {
+  byStartTimeDesc
+}
+
+enum ProposalWhere {
+  statusActive
+}
+
+type ProposalsConnection {
+  pageInfo: PageInfo!
+  edges: [ProposalsEdge!]!
+}
+
+type ProposalsEdge {
+  node: Proposal!
+  cursor: String!
+}
+
+interface Proposal {
+  id: ID!
+}
+
+type OnChainProposalType implements Proposal {
+  id: ID!
+  onChainProposal: OnChainProposal!
+}
+
+type PropHouseProposalType implements Proposal {
+  id: ID!
+  propHouseProposal: PropHouseAuction!
 }
 
 type Metrics {

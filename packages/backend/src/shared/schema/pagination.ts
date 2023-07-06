@@ -88,23 +88,25 @@ export async function driveReaderByIndex<
   };
 }
 
+function parseStartingIndexFromAfter(after: string | null) {
+  if (!after) {
+    return 0;
+  }
+
+  const parsedNumber = safeParseNumber(after);
+  if (parsedNumber === null) {
+    throw new Error(`invalid cursor ${after}`);
+  }
+
+  return parsedNumber + 1;
+}
+
 export function paginateArray<T>(
   items: T[],
   first: number,
   after: string | null
 ): Connection<T> {
-  const startingIndex = (() => {
-    if (!after) {
-      return 0;
-    }
-
-    const parsedNumber = safeParseNumber(after);
-    if (parsedNumber === null) {
-      throw new Error(`invalid cursor ${after}`);
-    }
-
-    return parsedNumber + 1;
-  })();
+  const startingIndex = parseStartingIndexFromAfter(after);
 
   const edges = Array.from(items.entries())
     .slice(startingIndex, startingIndex + first)
@@ -118,6 +120,41 @@ export function paginateArray<T>(
     pageInfo: {
       endCursor: edges[edges.length - 1]?.cursor ?? null,
       hasNextPage: items.length - startingIndex > first,
+      hasPreviousPage: false,
+      startCursor: null,
+    },
+  };
+}
+
+/**
+ * Paginate an async generator. This is not the most efficient way to create a
+ * connection as it scans the entire generator, generating values from the
+ * beginning to after + first, but it is more flexible.
+ *
+ * Prefer to use {@see driveReaderByIndex} or something which uses an index to
+ * remove the scan to find the first item to emit.
+ */
+export async function paginateGenerator<T>(
+  generator: AsyncGenerator<T>,
+  first: number,
+  after: string | null
+): Promise<Connection<T>> {
+  const startingIndex = parseStartingIndexFromAfter(after);
+
+  const items = await collectGenerator(
+    limitGenerator(skipGenerator(generator, startingIndex), first + 1)
+  );
+
+  const edges = items.slice(0, first).map((node, index) => ({
+    cursor: (startingIndex + index).toString(),
+    node,
+  }));
+
+  return {
+    edges,
+    pageInfo: {
+      endCursor: edges[edges.length - 1]?.cursor,
+      hasNextPage: !!items[first],
       hasPreviousPage: false,
       startCursor: null,
     },

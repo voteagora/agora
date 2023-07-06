@@ -1,6 +1,5 @@
 type Query {
   propHouseAuction(auctionId: String!): PropHouseAuction!
-  propHouseAuctions: [PropHouseAuction!]!
 }
 
 type Delegate {

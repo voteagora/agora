@@ -135,7 +135,7 @@ async function checkCustomRule(
   return possibleSelector == validateSighash;
 }
 
-async function checkBlocksBeforeVoteCloses(
+export async function checkBlocksBeforeVoteCloses(
   resolvedRule: ResolvedRules,
   proposal: EntityRuntimeType<typeof IGovernorProposal>,
   blockNumber: number

@@ -19,7 +19,7 @@ export function ProposalVotesSummary({
 }) {
   const proposal = useFragment(
     graphql`
-      fragment ProposalVotesSummaryFragment on Proposal {
+      fragment ProposalVotesSummaryFragment on OnChainProposal {
         forVotes {
           amount
         }
@@ -88,7 +88,7 @@ function VoteTime({
 }) {
   const result = useFragment(
     graphql`
-      fragment ProposalVotesSummaryVoteTimeFragment on Proposal {
+      fragment ProposalVotesSummaryVoteTimeFragment on OnChainProposal {
         voteStartsAt
         voteEndsAt
       }
@@ -124,7 +124,7 @@ function VotesBar({
 }) {
   const { forVotes, againstVotes, abstainVotes } = useFragment(
     graphql`
-      fragment ProposalVotesSummaryVotesBarFragment on Proposal {
+      fragment ProposalVotesSummaryVotesBarFragment on OnChainProposal {
         forVotes {
           amount
         }

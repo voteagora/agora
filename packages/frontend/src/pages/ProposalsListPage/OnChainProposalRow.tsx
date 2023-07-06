@@ -22,7 +22,7 @@ export function OnChainProposalRow({
 }) {
   const proposal = useFragment(
     graphql`
-      fragment OnChainProposalRowFragment on Proposal {
+      fragment OnChainProposalRowFragment on OnChainProposal {
         number
         status
         title
@@ -173,7 +173,7 @@ function Activity({
 }) {
   const proposal = useFragment(
     graphql`
-      fragment OnChainProposalRowActivityFragment on Proposal {
+      fragment OnChainProposalRowActivityFragment on OnChainProposal {
         voteEndsAt
         status
         voteStartsAt

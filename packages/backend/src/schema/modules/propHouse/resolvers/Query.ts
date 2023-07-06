@@ -9,19 +9,4 @@ export const Query: Resolvers["Query"] = {
 
     return auctions.find((it) => it.id.toString() === auctionId)!;
   },
-
-  async propHouseAuctions(
-    _parent,
-    _args,
-    { errorReporter, propHouse: { communityId } }
-  ) {
-    try {
-      return await fetchAuctions({
-        communityId,
-      });
-    } catch (e) {
-      errorReporter.captureException(e);
-      return [];
-    }
-  },
 };

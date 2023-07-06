@@ -11,7 +11,7 @@ import { Delegate } from "./resolvers/Delegate";
 
 export type Resolvers = Required<ResolversAssignable>;
 
-type PropHouseArgs = {
+export type PropHouseArgs = {
   communityId: number;
 };
 

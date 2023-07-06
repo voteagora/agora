@@ -89,7 +89,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
     graphql`
       fragment DelegatesContainerFragment on Query
       @argumentDefinitions(
-        first: { type: "Int", defaultValue: 30 }
+        first: { type: "Int", defaultValue: 13 }
         after: { type: "String" }
         orderBy: { type: "DelegatesOrder", defaultValue: mostVotingPower }
       )

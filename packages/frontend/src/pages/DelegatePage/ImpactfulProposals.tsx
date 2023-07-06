@@ -129,7 +129,7 @@ type ProposalProps = {
 function Proposal({ fragment }: ProposalProps) {
   const proposal = useFragment(
     graphql`
-      fragment ImpactfulProposalsProposalFragment on Proposal {
+      fragment ImpactfulProposalsProposalFragment on OnChainProposal {
         number
         title
         ethValue

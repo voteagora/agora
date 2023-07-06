@@ -28,7 +28,7 @@ generates:
 
         Delegate: ../modules/delegate/resolvers/Delegate#DelegateModel
         DelegateSnapshot: ../modules/delegate/resolvers/Delegate#DelegateSnapshotModel
-        Proposal: ../modules/delegate/resolvers/Proposal#ProposalModel
+        OnChainProposal: ../modules/delegate/resolvers/OnChainProposal#OnChainProposalModel
         ProposalTransaction: ../modules/delegate/resolvers/ProposalTransaction#ProposalTransactionModel
         Vote: ../modules/delegate/resolvers/Vote#VoteModel
 
@@ -44,3 +44,7 @@ generates:
         LiquidDelegationRepresentation: ../modules/liquidDelegation/resolvers/LiquidDelegationRepresentation#LiquidDelegationRepresentationModel
         LiquidDelegationDelegation: ../modules/liquidDelegation/resolvers/LiquidDelegationDelegation#LiquidDelegationDelegationModel
         LiquidDelegationProxy: ../modules/liquidDelegation/resolvers/LiquidDelegationProxy#LiquidDelegationProxyModel
+
+        Proposal: ../modules/nouns/resolvers/Proposal#ProposalModel
+        PropHouseProposalType: ../modules/nouns/resolvers/PropHouseProposalType#PropHouseProposalTypeModel
+        OnChainProposalType: ../modules/nouns/resolvers/OnChainProposalType#OnChainProposalTypeModel

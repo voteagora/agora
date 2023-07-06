@@ -1,6 +1,7 @@
 import { css } from "@emotion/css";
-import { usePreloadedQuery, graphql, useLazyLoadQuery } from "react-relay";
-import { startTransition, useState } from "react";
+import { graphql, usePaginationFragment, usePreloadedQuery } from "react-relay";
+import InfiniteScroll from "react-infinite-scroller";
+import { useCallback } from "react";
 import { useAccount } from "wagmi";
 
 import * as theme from "../../theme";
@@ -11,17 +12,8 @@ import { RoutePropsForRoute } from "../../components/HammockRouter/HammockRouter
 
 import { PropHouseAuctionRow } from "./PropHouseAuctionRow";
 import { OnChainProposalRow } from "./OnChainProposalRow";
-import {
-  ProposalStatusFilter,
-  ProposalStatusSelector,
-} from "./ProposalStatusSelector";
-import { ProposalSortSelector, ProposalSortType } from "./ProposalSortSelector";
-import { useProposals } from "./useProposals";
-import {
-  ProposalTypeFilter,
-  ProposalTypeSelector,
-} from "./ProposalTypeSelector";
 import { proposalsListPageRoute, query } from "./ProposalsListPageRoute";
+import { ProposalsListPageProposalsFragment$key } from "./__generated__/ProposalsListPageProposalsFragment.graphql";
 import NonVotedProposalsListPage from "./NonVotedProposalsList";
 
 export default function ProposalsListPage({
@@ -31,12 +23,48 @@ export default function ProposalsListPage({
 
   const { address } = useAccount();
 
-  const [sort, setSort] = useState<ProposalSortType>("NEWEST");
-  const [filter, setFilter] = useState<ProposalStatusFilter>("ALL");
-  const [filterProposalType, setFilterProposalType] =
-    useState<ProposalTypeFilter>("ALL");
+  const {
+    data: { proposals },
+    loadNext,
+    hasNext,
+    isLoadingNext,
+  } = usePaginationFragment(
+    graphql`
+      fragment ProposalsListPageProposalsFragment on Query
+      @argumentDefinitions(
+        first: { type: "Int", defaultValue: 10 }
+        after: { type: "String" }
+        orderBy: { type: "ProposalOrder", defaultValue: byStartTimeDesc }
+      )
+      @refetchable(queryName: "ProposalsListPageProposalsPaginationQuery") {
+        proposals(after: $after, first: $first, orderBy: $orderBy)
+          @connection(key: "ProposalListPage_proposals") {
+          edges {
+            node {
+              __typename
 
-  const proposals = useProposals(result, sort, filterProposalType, filter);
+              ... on OnChainProposalType {
+                onChainProposal {
+                  ...OnChainProposalRowFragment
+                }
+              }
+
+              ... on PropHouseProposalType {
+                propHouseProposal {
+                  ...PropHouseAuctionRowFragment
+                }
+              }
+            }
+          }
+        }
+      }
+    `,
+    result as ProposalsListPageProposalsFragment$key
+  );
+
+  const loadMore = useCallback(() => {
+    loadNext(30);
+  }, [loadNext]);
 
   return (
     <>
@@ -102,38 +130,6 @@ export default function ProposalsListPage({
           >
             Proposals
           </h1>
-          <HStack
-            gap="4"
-            className={css`
-              @media (max-width: ${theme.maxWidth["lg"]}) {
-                width: 100%;
-                margin-top: ${theme.spacing["1"]};
-                justify-content: space-between;
-              }
-            `}
-          >
-            <ProposalTypeSelector
-              value={filterProposalType}
-              onChange={(newFilterType) =>
-                startTransition(() => setFilterProposalType(newFilterType))
-              }
-              size="l"
-            />
-
-            <ProposalStatusSelector
-              value={filter}
-              onChange={(newFilter) => {
-                startTransition(() => setFilter(newFilter));
-              }}
-              size="l"
-            />
-
-            <ProposalSortSelector
-              value={sort}
-              onChange={(newSort) => startTransition(() => setSort(newSort))}
-              size="l"
-            />
-          </HStack>
         </HStack>
 
         <VStack
@@ -148,39 +144,53 @@ export default function ProposalsListPage({
             overflow: hidden;
           `}
         >
-          <table
+          <InfiniteScroll loadMore={loadMore} hasMore={hasNext}>
+            <table
+              className={css`
+                table-layout: fixed;
+                width: 100%;
+                border-collapse: collapse;
+                background-color: ${theme.colors.white};
+              `}
+            >
+              <tbody>
+                {proposals.edges.map(({ node: proposal }, idx) => {
+                  switch (proposal.__typename) {
+                    case "OnChainProposalType":
+                      return (
+                        <OnChainProposalRow
+                          key={idx}
+                          fragmentRef={proposal.onChainProposal}
+                        />
+                      );
+
+                    case "PropHouseProposalType":
+                      return (
+                        <PropHouseAuctionRow
+                          key={idx}
+                          fragmentRef={proposal.propHouseProposal}
+                        />
+                      );
+
+                    default:
+                      throw new Error(`unknown proposal type`);
+                  }
+                })}
+              </tbody>
+            </table>
+          </InfiniteScroll>
+        </VStack>
+
+        {isLoadingNext && (
+          <HStack
+            justifyContent="center"
             className={css`
-              table-layout: fixed;
-              width: 100%;
-              border-collapse: collapse;
-              background-color: ${theme.colors.white};
+              padding: ${theme.spacing["8"]};
             `}
           >
-            <tbody>
-              {proposals.map((proposal, idx) => {
-                switch (proposal.type) {
-                  case "PROP_HOUSE_AUCTION":
-                    return import.meta.env.VITE_DEPLOY_ENV === "prod" ? (
-                      <PropHouseAuctionRow
-                        key={idx}
-                        fragmentRef={proposal.auction}
-                      />
-                    ) : null;
-                  case "ON_CHAIN":
-                    return (
-                      <OnChainProposalRow
-                        key={idx}
-                        fragmentRef={proposal.proposal}
-                      />
-                    );
-
-                  default:
-                    throw new Error(`unknown proposal type`);
-                }
-              })}
-            </tbody>
-          </table>
-        </VStack>
+            Loading...
+          </HStack>
+        )}
       </VStack>
     </>
   );

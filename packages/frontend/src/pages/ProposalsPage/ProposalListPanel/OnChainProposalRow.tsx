@@ -17,7 +17,7 @@ export function OnChainProposalRow({
 }) {
   const proposal = useFragment(
     graphql`
-      fragment OnChainProposalRowListFragment on Proposal {
+      fragment OnChainProposalRowListFragment on OnChainProposal {
         number
         status
         title

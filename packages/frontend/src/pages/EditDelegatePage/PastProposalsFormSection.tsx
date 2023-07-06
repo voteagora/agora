@@ -73,7 +73,7 @@ function ProposalList({
   const { allProposals } = useFragment(
     graphql`
       fragment PastProposalsFormSectionProposalListFragment on Query {
-        allProposals: proposals {
+        allProposals: onChainProposals {
           # eslint-disable-next-line relay/unused-fields
           id
           number

@@ -8,9 +8,9 @@ import {
 import { Resolvers } from "../module";
 import { decodeUSDCTransaction } from "../../../../utils/decodeUSDC";
 
-export type ProposalModel = EntityRuntimeType<typeof IGovernorProposal>;
+export type OnChainProposalModel = EntityRuntimeType<typeof IGovernorProposal>;
 
-export const Proposal: Resolvers["Proposal"] = {
+export const OnChainProposal: Resolvers["OnChainProposal"] = {
   id({ proposalId }) {
     return `Proposal|${proposalId.toString()}`;
   },

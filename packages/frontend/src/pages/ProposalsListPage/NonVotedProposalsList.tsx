@@ -6,7 +6,6 @@ import { RoutePropsForRoute } from "../../components/HammockRouter/HammockRouter
 import { HStack, VStack } from "../../components/VStack";
 
 import { proposalsListPageRoute, query } from "./ProposalsListPageRoute";
-import { useProposals } from "./useProposals";
 import { OnChainProposalRow } from "./OnChainProposalRow";
 import { PropHouseAuctionRow } from "./PropHouseAuctionRow";
 import { NonVotedProposalsListQuery } from "./__generated__/NonVotedProposalsListQuery.graphql";
@@ -20,23 +19,21 @@ export default function NonVotedProposalsListPage({
     typeof proposalsListPageRoute
   >["initialQueryRef"];
 }) {
-  const result = usePreloadedQuery(query, initialQueryRef);
-  const proposals = useProposals(result, "NEWEST", "ALL", "ALL");
-
-  const votesData = useLazyLoadQuery<NonVotedProposalsListQuery>(
+  const { nonVotedProposals } = useLazyLoadQuery<NonVotedProposalsListQuery>(
     graphql`
       query NonVotedProposalsListQuery($address: String!) {
-        delegate(addressOrEnsName: $address) {
-          propHouseVotes {
-            id
-            round {
-              id
+        nonVotedProposals(addressOrEnsName: $address) {
+          __typename
+
+          ... on OnChainProposalType {
+            onChainProposal {
+              ...OnChainProposalRowFragment
             }
           }
-          votes {
-            id
-            proposal {
-              id
+
+          ... on PropHouseProposalType {
+            propHouseProposal {
+              ...PropHouseAuctionRowFragment
             }
           }
         }
@@ -45,37 +42,9 @@ export default function NonVotedProposalsListPage({
     { address: address }
   );
 
-  const propHouseVoteIds = new Set(
-    votesData.delegate.propHouseVotes.map(
-      (vote: { round: any }) => vote.round.id
-    )
-  );
-
-  const votedProposalIds = new Set([
-    ...votesData.delegate.votes.map(
-      (vote: { proposal: { id: any } }) => vote.proposal.id
-    ),
-    ...Array.from(propHouseVoteIds),
-  ]);
-
-  const notVotedProposals = proposals.filter((item) => {
-    if (item.type === "ON_CHAIN") {
-      return (
-        !votedProposalIds.has(item.proposal.id) &&
-        item.proposal.status === "ACTIVE"
-      );
-    } else if (item.type === "PROP_HOUSE_AUCTION") {
-      return (
-        !votedProposalIds.has(item.auction.id) &&
-        item.auction.status === "ACTIVE"
-      );
-    }
-    return false;
-  });
-
   return (
     <>
-      {notVotedProposals.length > 0 && (
+      {nonVotedProposals.length > 0 && (
         <>
           <HStack
             justifyContent="space-between"
@@ -123,20 +92,20 @@ export default function NonVotedProposalsListPage({
               `}
             >
               <tbody>
-                {notVotedProposals.map((proposal, idx) => {
-                  switch (proposal.type) {
-                    case "PROP_HOUSE_AUCTION":
+                {nonVotedProposals.map((proposal, idx) => {
+                  switch (proposal.__typename) {
+                    case "PropHouseProposalType":
                       return import.meta.env.VITE_DEPLOY_ENV === "prod" ? (
                         <PropHouseAuctionRow
                           key={idx}
-                          fragmentRef={proposal.auction}
+                          fragmentRef={proposal.propHouseProposal}
                         />
                       ) : null;
-                    case "ON_CHAIN":
+                    case "OnChainProposalType":
                       return (
                         <OnChainProposalRow
                           key={idx}
-                          fragmentRef={proposal.proposal}
+                          fragmentRef={proposal.onChainProposal}
                         />
                       );
 

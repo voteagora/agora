@@ -5,6 +5,8 @@ const stagingBasePath = "https://communities-preview.backend.prop.house/";
 
 export const basePath = productionBasePath;
 
+export const COMMUNITY_ADDRESS = "0x9c8ff314c9bc7f6e59a9d9225fb22946427edc03";
+
 export const signedData = z.union([
   z.object({
     message: z.string(),

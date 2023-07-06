@@ -44,12 +44,12 @@ export default function ProposalsPage() {
         $skipAddress: Boolean!
         $orderBy: VotesOrder!
       ) {
-        firstProposal: proposal(id: $proposalId) {
+        firstProposal: onChainProposal(id: $proposalId) {
           number
           ...ProposalDetailPanelFragment
           ...VotesCastPanelFragment
         }
-        ...ProposalsListPanelFragment
+        ...ProposalsListPanelProposalsFragment
 
         ...VotesCastPanelQueryFragment
           @arguments(

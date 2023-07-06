@@ -84,7 +84,7 @@ export function VotesCastPanel({
 
   const result = useFragment(
     graphql`
-      fragment VotesCastPanelFragment on Proposal {
+      fragment VotesCastPanelFragment on OnChainProposal {
         number
 
         ...ProposalVotesSummaryFragment

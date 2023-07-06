@@ -2,7 +2,7 @@ import { flipComparator } from "@agora/frontend/src/utils/sorting";
 
 import { IVotesAddress } from "../../shared/contracts/indexers/ERC721Votes/entities/address";
 import { Reader } from "../../shared/indexer/storage/reader/type";
-import { DelegatesLoader } from "../../schema/modules/context/delegatesLoader";
+import { DelegatesLoader } from "../../schema/context/delegatesLoader";
 import { alligatorEntityDefinitions } from "../../shared/contracts/indexers/Alligator/entities/entities";
 import {
   collectGenerator,

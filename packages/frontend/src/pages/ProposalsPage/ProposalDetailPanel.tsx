@@ -22,7 +22,7 @@ export function ProposalDetailPanel({
 }) {
   const proposal = useFragment(
     graphql`
-      fragment ProposalDetailPanelFragment on Proposal {
+      fragment ProposalDetailPanelFragment on OnChainProposal {
         title
         description
         # eslint-disable-next-line relay/unused-fields

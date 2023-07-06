@@ -40,7 +40,7 @@ export default function PropHouseAuctionPage() {
           ...ActionButtonVoteButtonDelegateFragment
         }
 
-        ...ProposalsListPanelFragment
+        ...ProposalsListPanelProposalsFragment
 
         propHouseAuction(auctionId: $auctionId) {
           number

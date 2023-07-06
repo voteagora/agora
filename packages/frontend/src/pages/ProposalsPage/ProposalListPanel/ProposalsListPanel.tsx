@@ -1,29 +1,17 @@
 import { css } from "@emotion/css";
-import { graphql, useFragment } from "react-relay";
+import { graphql, usePaginationFragment } from "react-relay";
 import { motion } from "framer-motion";
-import { useState, useTransition } from "react";
+import { useCallback, useTransition } from "react";
+import InfiniteScroll from "react-infinite-scroller";
 
 import { icons } from "../../../icons/icons";
 import { HStack, VStack } from "../../../components/VStack";
 import * as theme from "../../../theme";
-import {
-  ProposalStatusFilter,
-  ProposalStatusSelector,
-} from "../../ProposalsListPage/ProposalStatusSelector";
-import {
-  ProposalTypeFilter,
-  ProposalTypeSelector,
-} from "../../ProposalsListPage/ProposalTypeSelector";
-import {
-  ProposalSortSelector,
-  ProposalSortType,
-} from "../../ProposalsListPage/ProposalSortSelector";
-import { useProposals } from "../../ProposalsListPage/useProposals";
 import { colorForPropHouseAuctionStatus } from "../../ProposalsListPage/PropHouseAuctionRow";
 
 import { OnChainProposalRow } from "./OnChainProposalRow";
 import { ProposalRow } from "./ProposalRow";
-import { ProposalsListPanelFragment$key } from "./__generated__/ProposalsListPanelFragment.graphql";
+import { ProposalsListPanelProposalsFragment$key } from "./__generated__/ProposalsListPanelProposalsFragment.graphql";
 
 export type SelectedProposal = {
   type: "ON_CHAIN" | "PROP_HOUSE_AUCTION";
@@ -31,7 +19,7 @@ export type SelectedProposal = {
 };
 
 type Props = {
-  fragmentRef: ProposalsListPanelFragment$key;
+  fragmentRef: ProposalsListPanelProposalsFragment$key;
   selectedProposal: SelectedProposal;
   onProposalSelected: (nextSelectedProposal: SelectedProposal) => void;
   expanded: boolean;
@@ -47,62 +35,51 @@ export function ProposalsListPanel({
 }: Props) {
   const [isPending, startTransition] = useTransition();
 
-  const result = useFragment(
+  const {
+    data: { proposals },
+    loadNext,
+    hasNext,
+    isLoadingNext,
+  } = usePaginationFragment(
     graphql`
-      fragment ProposalsListPanelFragment on Query {
-        # eslint-disable-next-line relay/unused-fields
-        proposals {
-          id
-          number
-          status
-          voteStartsAt
+      fragment ProposalsListPanelProposalsFragment on Query
+      @argumentDefinitions(
+        first: { type: "Int", defaultValue: 50 }
+        after: { type: "String" }
+        orderBy: { type: "ProposalOrder", defaultValue: byStartTimeDesc }
+      )
+      @refetchable(queryName: "ProposalsListPanelProposalsPaginationQuery") {
+        proposals(after: $after, first: $first, orderBy: $orderBy)
+          @connection(key: "ProposalListPage_proposals") {
+          edges {
+            node {
+              __typename
 
-          ...OnChainProposalRowListFragment
-        }
-        # eslint-disable-next-line relay/unused-fields
-        propHouseAuctions {
-          startTime
-          status
+              ... on OnChainProposalType {
+                onChainProposal {
+                  number
+                  ...OnChainProposalRowListFragment
+                }
+              }
 
-          number
-          title
-          proposalEndTime
-          votingEndTime
+              ... on PropHouseProposalType {
+                propHouseProposal {
+                  number
+                  title
+                  status
+                }
+              }
+            }
+          }
         }
       }
     `,
     fragmentRef
   );
 
-  const [sort, setSort] = useState<ProposalSortType>("NEWEST");
-  const [filter, setFilter] = useState<ProposalStatusFilter>("ALL");
-  const [filterProposalType, setFilterProposalType] =
-    useState<ProposalTypeFilter>("ALL");
-
-  const proposals = useProposals(result, sort, filterProposalType, filter);
-
-  const filteredProposals = proposals.filter((it) => {
-    if (expanded) {
-      return true;
-    }
-
-    switch (selectedProposal.type) {
-      case "ON_CHAIN":
-        return (
-          it.type === "ON_CHAIN" &&
-          it.proposal.number.toString() === selectedProposal.identifier
-        );
-
-      case "PROP_HOUSE_AUCTION":
-        return (
-          it.type === "PROP_HOUSE_AUCTION" &&
-          it.auction.number.toString() === selectedProposal.identifier
-        );
-
-      default:
-        throw new Error("unexpected");
-    }
-  });
+  const loadMore = useCallback(() => {
+    loadNext(30);
+  }, [loadNext]);
 
   return (
     <motion.div
@@ -149,35 +126,11 @@ export function ProposalsListPanel({
           >
             Proposals
           </div>
-
-          <HStack gap="3">
-            <ProposalTypeSelector
-              value={filterProposalType}
-              onChange={(newFilterType) =>
-                startTransition(() => setFilterProposalType(newFilterType))
-              }
-              size="m"
-            />
-
-            <ProposalStatusSelector
-              value={filter}
-              onChange={(newFilter) =>
-                startTransition(() => setFilter(newFilter))
-              }
-              size="m"
-            />
-
-            <ProposalSortSelector
-              value={sort}
-              onChange={(newSort) => startTransition(() => setSort(newSort))}
-              size="m"
-            />
-          </HStack>
         </HStack>
 
         <VStack
           className={css`
-            max-height: calc(
+            height: calc(
               100vh - 317px
             ); //martin, this is kind of a hack, but it achieves the desired result lol, please don't remove this unless there's a better way
             overflow-y: scroll;
@@ -187,58 +140,74 @@ export function ProposalsListPanel({
             padding-bottom: ${theme.spacing["4"]};
           `}
         >
-          {filteredProposals.map((proposal, idx) => {
-            switch (proposal.type) {
-              case "ON_CHAIN": {
-                return (
-                  <OnChainProposalRow
-                    key={idx}
-                    fragmentRef={proposal.proposal}
-                    selected={
-                      selectedProposal.type === "ON_CHAIN" &&
-                      selectedProposal.identifier ===
-                        proposal.proposal.number.toString()
-                    }
-                    onClick={() =>
-                      onProposalSelected({
-                        type: "ON_CHAIN",
-                        identifier: proposal.proposal.number.toString(),
-                      })
-                    }
-                  />
-                );
-              }
+          <InfiniteScroll loadMore={loadMore} hasMore={hasNext}>
+            <VStack
+              className={css`
+                ::-webkit-scrollbar {
+                  display: none;
+                }
+                flex-shrink: 1;
+                padding-left: ${theme.spacing["4"]};
+                padding-right: ${theme.spacing["4"]};
+                padding-bottom: ${theme.spacing["4"]};
+              `}
+            >
+              {proposals.edges.map(({ node: proposal }, idx) => {
+                switch (proposal.__typename) {
+                  case "OnChainProposalType": {
+                    return (
+                      <OnChainProposalRow
+                        key={idx}
+                        fragmentRef={proposal.onChainProposal}
+                        selected={
+                          selectedProposal.type === "ON_CHAIN" &&
+                          selectedProposal.identifier ===
+                            proposal.onChainProposal.number.toString()
+                        }
+                        onClick={() =>
+                          onProposalSelected({
+                            type: "ON_CHAIN",
+                            identifier:
+                              proposal.onChainProposal.number.toString(),
+                          })
+                        }
+                      />
+                    );
+                  }
 
-              case "PROP_HOUSE_AUCTION": {
-                return (
-                  <ProposalRow
-                    key={idx}
-                    selected={
-                      selectedProposal.type === "PROP_HOUSE_AUCTION" &&
-                      selectedProposal.identifier ===
-                        proposal.auction.number.toString()
-                    }
-                    onClick={() =>
-                      onProposalSelected({
-                        type: "PROP_HOUSE_AUCTION",
-                        identifier: proposal.auction.number.toString(),
-                      })
-                    }
-                    typeTitle={"Prop house round"}
-                    title={proposal.auction.title}
-                    status={proposal.auction.status}
-                    statusColor={colorForPropHouseAuctionStatus(
-                      proposal.auction.status
-                    )}
-                  />
-                );
-              }
+                  case "PropHouseProposalType": {
+                    return (
+                      <ProposalRow
+                        key={idx}
+                        selected={
+                          selectedProposal.type === "PROP_HOUSE_AUCTION" &&
+                          selectedProposal.identifier ===
+                            proposal.propHouseProposal.number.toString()
+                        }
+                        onClick={() =>
+                          onProposalSelected({
+                            type: "PROP_HOUSE_AUCTION",
+                            identifier:
+                              proposal.propHouseProposal.number.toString(),
+                          })
+                        }
+                        typeTitle={"Prop house round"}
+                        title={proposal.propHouseProposal.title}
+                        status={proposal.propHouseProposal.status}
+                        statusColor={colorForPropHouseAuctionStatus(
+                          proposal.propHouseProposal.status
+                        )}
+                      />
+                    );
+                  }
 
-              default: {
-                throw new Error("unknown error");
-              }
-            }
-          })}
+                  default: {
+                    throw new Error("unknown error");
+                  }
+                }
+              })}
+            </VStack>
+          </InfiniteScroll>
         </VStack>
 
         <button
