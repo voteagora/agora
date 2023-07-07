@@ -133,15 +133,16 @@ export function VotesCastPanel({
             alignItems="center"
             className={css`
               flex-shrink: 0;
-              padding-top: ${theme.spacing["4"]};
-              padding-left: ${theme.spacing["1"]};
-              padding-right: ${theme.spacing["1"]};
+              padding-top: ${theme.spacing["2"]};
+              @media (max-width: ${theme.maxWidth["2xl"]}) {
+                display: none;
+              }
             `}
           >
             <div
               className={css`
                 font-size: ${theme.fontSize.base};
-                font-weight: ${theme.fontWeight.semibold};
+                font-weight: ${theme.fontWeight.bold};
                 line-height: ${theme.lineHeight.normal};
               `}
             >
