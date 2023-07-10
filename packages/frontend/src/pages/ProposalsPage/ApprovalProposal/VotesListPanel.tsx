@@ -314,7 +314,8 @@ function SingleVote({
           color: ${theme.colors.gray[700]};
           gap: ${theme.spacing["1"]};
           font-weight: ${theme.fontWeight.medium};
-          padding: 0 ${theme.spacing["3"]} ${theme.spacing["3"]} ${theme.spacing["3"]};
+          padding: 0 ${theme.spacing["3"]} ${theme.spacing["3"]}
+            ${theme.spacing["3"]};
         `}
       >
         {options?.map((option, index) => (

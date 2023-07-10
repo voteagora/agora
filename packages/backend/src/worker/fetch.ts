@@ -2,6 +2,7 @@ import { Env, shouldUseCache } from "./env";
 import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
 import { fetchThroughCache } from "./cache";
 import { simulateTransaction } from "./tenderly";
+import { fetchMessage } from "./genosis";
 
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
 const assetManifest = JSON.parse(manifestJSON);
@@ -25,6 +26,33 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
       headers: {
         "content-type": "application/json",
       },
+    });
+  }
+
+  if (url.pathname === "/fetch_signature") {
+    const { safeMessageHash } = (await request.json()) as any;
+    if (safeMessageHash) {
+      const result = await fetchMessage({
+        safeMessageHash: safeMessageHash,
+      });
+
+      if (result.error) {
+        return new Response(JSON.stringify({ error: result.error }), {
+          status: 500,
+          headers: { "content-type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify(result.response), {
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+    }
+
+    return new Response(JSON.stringify({ message: "Invalid request" }), {
+      status: 400,
+      headers: { "content-type": "application/json" },
     });
   }
 

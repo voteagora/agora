@@ -388,11 +388,53 @@ function hashEnvelopeValue(value: string) {
   });
 }
 
-async function checkSafeSignature(safe: GnosisSafe, value: string) {
+type TransactionServiceSafeMessage = {
+  messageHash: string;
+  status: string;
+  logoUri: string | null;
+  name: string | null;
+  message: string; //| EIP712TypedData,
+  creationTimestamp: number;
+  modifiedTimestamp: number;
+  confirmationsSubmitted: number;
+  confirmationsRequired: number;
+  proposedBy: { value: string };
+  confirmations: [
+    {
+      owner: { value: string };
+      signature: string;
+    }
+  ];
+  preparedSignature: string | null;
+};
+
+async function tryFetchMessage(
+  safeMessageHash: string
+): Promise<TransactionServiceSafeMessage | undefined> {
+  const response = await fetch("/fetch_signature", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      safeMessageHash,
+    }),
+  });
+
+  return (await response.json()) as TransactionServiceSafeMessage | undefined;
+}
+
+async function getSafeSignature(safe: GnosisSafe, value: string) {
   const hashed = ethers.utils.hashMessage(value);
   const messageHash = await safe.getMessageHash(hashed);
-  const isSigned = await safe.signedMessages(messageHash);
-  return !isSigned.isZero();
+  console.log("messageHash", messageHash);
+  try {
+    const safeMessage = await tryFetchMessage(messageHash);
+    console.log("safeMessage", safeMessage);
+    return safeMessage?.preparedSignature;
+  } catch (e) {
+    return false;
+  }
 }
 
 async function makeSignedValue(
@@ -410,18 +452,21 @@ async function makeSignedValue(
       signerAddress,
       value,
       signature: await signer.signMessage(signaturePayload),
+      signatureType: "EOA",
     };
   }
 
   // some kind of multi-sig wallet, likely a gnosis safe.
   const gnosisSafe = GnosisSafe__factory.connect(signerAddress, provider);
-  const isSigned = await checkSafeSignature(gnosisSafe, signaturePayload);
-  if (isSigned) {
+  const safeSignature = await getSafeSignature(gnosisSafe, signaturePayload);
+  console.log("safeSignature", safeSignature);
+  if (safeSignature) {
     // already signed, post to backend
     return {
       signerAddress,
       value,
-      signature: "0x",
+      signature: safeSignature,
+      signatureType: "CONTRACT",
     };
   }
 
