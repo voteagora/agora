@@ -11,6 +11,8 @@ import { Link } from "./HammockRouter/Link";
 import { useLocation } from "./HammockRouter/HammockRouter";
 import { icons } from "../icons/icons";
 import { ProfileDropDownButton } from "./ProfileDropDownButton";
+import { MobileProfileDropDownButton } from "./MobileProfileDropDownButton";
+import React from "react";
 
 export const orgName = "Optimism";
 
@@ -217,31 +219,52 @@ export const DesktopButton = () => {
 };
 
 export const MobileButton = () => {
+  const { address: accountAddress } = useAccount();
+
+  const { delegate } = useLazyLoadQuery<PageHeaderQuery>(
+    graphql`
+      query PageHeaderMobileQuery($address: String!, $skip: Boolean!) {
+        delegate(addressOrEnsName: $address) @skip(if: $skip) {
+          statement {
+            __typename
+          }
+
+          ...MobileProfileDropDownButtonFragment
+        }
+      }
+    `,
+    {
+      address: accountAddress ?? "",
+      skip: !accountAddress,
+    }
+  );
+
   return (
     <ConnectKitButton.Custom>
       {({ isConnected, isConnecting, show, hide, address, ensName }) => {
         return (
-          <div
-            className={css`
-              margin-top: 13px;
-            `}
-            onClick={show}
-          >
-            {isConnected ? (
-              <img
-                src={icons.walletConnected}
-                alt="connect wallet button"
-                className={css`
-                  opacity: 1;
-                `}
-              />
-            ) : (
-              <img
-                src={icons.wallet}
-                alt="connect wallet button"
-                className={css`
-                  opacity: 0.6;
-                `}
+          <div>
+            {!isConnected && (
+              <div onClick={show}>
+                <img
+                  src={icons.wallet}
+                  alt="connect wallet button"
+                  className={css`
+                    opacity: 0.6;
+                  `}
+                />
+              </div>
+            )}
+            {accountAddress && delegate && (
+              <MobileProfileDropDownButton
+                isConnected={isConnected}
+                isConnecting={isConnecting}
+                show={show}
+                hide={hide}
+                address={address}
+                ensName={ensName}
+                fragment={delegate}
+                hasStatement={!!delegate.statement}
               />
             )}
           </div>
