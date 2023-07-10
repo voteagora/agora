@@ -45,12 +45,14 @@ export default function ProposalsListPage({
 
               ... on OnChainProposalType {
                 onChainProposal {
+                  id
                   ...OnChainProposalRowFragment
                 }
               }
 
               ... on PropHouseProposalType {
                 propHouseProposal {
+                  id
                   ...PropHouseAuctionRowFragment
                 }
               }
@@ -154,12 +156,14 @@ export default function ProposalsListPage({
               `}
             >
               <tbody>
-                {proposals.edges.map(({ node: proposal }, idx) => {
+                {proposals.edges.map(({ node: proposal }) => {
                   switch (proposal.__typename) {
                     case "OnChainProposalType":
                       return (
                         <OnChainProposalRow
-                          key={idx}
+                          key={
+                            "OnChainProposalType|" + proposal.onChainProposal.id
+                          }
                           fragmentRef={proposal.onChainProposal}
                         />
                       );
@@ -167,7 +171,10 @@ export default function ProposalsListPage({
                     case "PropHouseProposalType":
                       return (
                         <PropHouseAuctionRow
-                          key={idx}
+                          key={
+                            "PropHouseProposalType|" +
+                            proposal.propHouseProposal.id
+                          }
                           fragmentRef={proposal.propHouseProposal}
                         />
                       );

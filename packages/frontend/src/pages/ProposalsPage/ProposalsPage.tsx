@@ -49,7 +49,6 @@ export default function ProposalsPage() {
           ...ProposalDetailPanelFragment
           ...VotesCastPanelFragment
         }
-        ...ProposalsListPanelProposalsFragment
 
         ...VotesCastPanelQueryFragment
           @arguments(

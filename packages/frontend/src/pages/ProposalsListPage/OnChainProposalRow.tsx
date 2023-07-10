@@ -1,6 +1,6 @@
 import { useFragment, graphql } from "react-relay";
 import { css } from "@emotion/css";
-import { BigNumber, utils } from "ethers";
+import { utils } from "ethers";
 import { formatDistanceToNow } from "date-fns";
 
 import * as theme from "../../theme";
@@ -125,10 +125,7 @@ export function OnChainProposalRow({
               ) : (
                 <span>
                   {" "}
-                  /{" "}
-                  <span>
-                    {BigNumber.from(proposal.forVotes.amount).toString()} For
-                  </span>
+                  / <span>{proposal.forVotes.amount} For</span>
                   <span
                     className={css`
                       color: ${theme.colors.gray[500]};
@@ -136,10 +133,7 @@ export function OnChainProposalRow({
                   >
                     -
                   </span>
-                  <span>
-                    {BigNumber.from(proposal.againstVotes.amount).toString()}{" "}
-                    Against
-                  </span>
+                  <span>{proposal.againstVotes.amount} Against</span>
                 </span>
               )}
             </span>
@@ -213,9 +207,7 @@ function Activity({
           } else {
             return (
               <HStack gap="1">
-                <span>
-                  {BigNumber.from(proposal.forVotes.amount).toString()} For
-                </span>
+                <span>{proposal.forVotes.amount} For</span>
 
                 <span
                   className={css`
@@ -225,10 +217,7 @@ function Activity({
                   -
                 </span>
 
-                <span>
-                  {BigNumber.from(proposal.againstVotes.amount).toString()}{" "}
-                  Against
-                </span>
+                <span>{proposal.againstVotes.amount} Against</span>
               </HStack>
             );
           }
