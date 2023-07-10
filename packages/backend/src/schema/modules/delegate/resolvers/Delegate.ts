@@ -3,6 +3,7 @@ import {
   collectGenerator,
   filterGenerator,
   limitGenerator,
+  mapGenerator,
 } from "../../../../shared/utils/generatorUtils";
 import { exactIndexValue } from "../../../../shared/indexer/storage/indexQueryArgs";
 import { intersection } from "../../../../shared/utils/set";
@@ -33,17 +34,18 @@ export const Delegate: Resolvers["Delegate"] = {
   },
 
   async tokenHoldersRepresented({ address }, _args, { reader }) {
-    return (
-      await collectGenerator(
+    return await collectGenerator(
+      mapGenerator(
         reader.getEntitiesByIndex(
           "IVotesAddress",
           "byDelegatingTo",
           exactIndexValue(address)
-        )
+        ),
+        (it) => ({
+          address: it.value.address,
+        })
       )
-    ).map((it) => ({
-      address: it.value.address,
-    }));
+    );
   },
 
   async proposalVote({ address }, { proposalId }, { reader }) {
@@ -63,22 +65,24 @@ export const Delegate: Resolvers["Delegate"] = {
       address
     );
 
-    const votes = await allVotesForAddress(reader, address);
-    const proposed = await proposedByAddress(reader, address);
-    const totalProposals = (await loadGovernanceAggregate(reader))
-      .totalProposals;
+    const lastTenProposalsGenerator = mapGenerator(
+      limitGenerator(
+        filterGenerator(
+          reader.getEntitiesByIndex("IGovernorProposal", "byEndBlock", {}),
+          (value) => value.value.status !== "CANCELLED"
+        ),
+        10
+      ),
+      (it) => it.value.proposalId.toString()
+    );
 
-    const lastTenProposals = (
-      await collectGenerator(
-        limitGenerator(
-          filterGenerator(
-            reader.getEntitiesByIndex("IGovernorProposal", "byEndBlock", {}),
-            (value) => value.value.status !== "CANCELLED"
-          ),
-          10
-        )
-      )
-    ).map((it) => it.value.proposalId.toString());
+    const [votes, proposed, totalProposals, lastTenProposals] =
+      await Promise.all([
+        allVotesForAddress(reader, address),
+        proposedByAddress(reader, address),
+        loadGovernanceAggregate(reader),
+        collectGenerator(lastTenProposalsGenerator),
+      ]);
 
     const votedProposals = new Set(
       votes.map((vote) => vote.proposalId.toString())
@@ -95,8 +99,8 @@ export const Delegate: Resolvers["Delegate"] = {
       consecutiveVotes: countConsecutiveValues(
         votes.map((vote) => vote.proposalId)
       ),
-      ofTotalProps: totalProposals
-        ? Math.floor((votes.length / totalProposals) * 100)
+      ofTotalProps: totalProposals.totalProposals
+        ? Math.floor((votes.length / totalProposals.totalProposals) * 100)
         : 0,
       proposalsCreated: proposed.length,
     };

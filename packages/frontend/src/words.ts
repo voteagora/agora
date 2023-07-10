@@ -49,6 +49,14 @@ export function pluralizeOther(count: number) {
   }
 }
 
+export function pluralizeNouners(count: number) {
+  if (count === 1) {
+    return "1 Nouner";
+  } else {
+    return `${count} Nouners`;
+  }
+}
+
 export function formatDate(date: Date) {
   return format(date, "Pp");
 }

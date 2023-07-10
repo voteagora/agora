@@ -8,8 +8,7 @@ import { NounResolvedName } from "../../components/NounResolvedName";
 import { NounsRepresentedGrid } from "../../components/NounGrid";
 import { HStack, VStack } from "../../components/VStack";
 import { Link } from "../../components/HammockRouter/Link";
-import { pluralizeNoun, pluralizeProb, pluralizeOther } from "../../words";
-import { descendingValueComparator } from "../../utils/sorting";
+import { pluralizeNoun, pluralizeProb, pluralizeNouners } from "../../words";
 import { icons } from "../../icons/icons";
 import * as theme from "../../theme";
 import { DelegateButton } from "../../components/VoterPanel/VoterPanelActions";
@@ -52,20 +51,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
 
         delegateMetrics {
           totalVotes
-        }
-
-        tokenHoldersRepresented {
-          address {
-            resolvedName {
-              ...NounResolvedNameFragment
-            }
-          }
-
-          tokensOwned {
-            amount {
-              amount
-            }
-          }
+          tokenHoldersRepresentedCount
         }
       }
     `,
@@ -77,17 +63,6 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
   );
 
   const votesCast = BigNumber.from(delegate.delegateMetrics.totalVotes);
-
-  const tokenHolders = useMemo(() => {
-    return delegate.tokenHoldersRepresented
-      .map((it) => ({
-        tokensOwned: BigNumber.from(it.tokensOwned.amount.amount),
-        it,
-      }))
-      .filter((item) => item.tokensOwned.toNumber() > 0)
-      .slice()
-      .sort(descendingValueComparator((item) => item.tokensOwned.toNumber()));
-  }, [delegate]);
 
   return (
     <Link
@@ -190,7 +165,7 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
           </VStack>
 
           {(() => {
-            if (!tokenHolders?.length) {
+            if (!delegate.delegateMetrics.tokenHoldersRepresentedCount) {
               return (
                 <VStack
                   gap="1"
@@ -226,11 +201,9 @@ export function VoterTabular({ fragmentRef }: VoterTabularProps) {
                       font-weight: ${theme.fontWeight.semibold};
                     `}
                   >
-                    <NounResolvedName
-                      resolvedName={tokenHolders[0].it.address.resolvedName}
-                    />
-                    {tokenHolders.length > 1 &&
-                      ` and ${pluralizeOther(tokenHolders.length - 1)}`}
+                    {`${pluralizeNouners(
+                      delegate.delegateMetrics.tokenHoldersRepresentedCount
+                    )}`}
                   </div>
 
                   <div

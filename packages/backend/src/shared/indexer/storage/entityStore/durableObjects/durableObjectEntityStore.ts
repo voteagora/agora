@@ -39,7 +39,7 @@ export class DurableObjectEntityStore implements EntityStore {
     return (
       (await this.storage.get(makeEntityKey(entity, id), {
         allowConcurrency: true,
-        noCache: true,
+        noCache: false,
       })) ?? null
     );
   }
