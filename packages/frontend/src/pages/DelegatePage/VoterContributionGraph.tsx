@@ -5,7 +5,7 @@ import { Tooltip } from "react-tooltip";
 
 import * as theme from "../../theme";
 import { VStack, HStack } from "../../components/VStack";
-import { shadow } from "../../theme";
+import { NounResolvedName } from "../../components/NounResolvedName";
 
 import { VoterContributionGraphFragment$key } from "./__generated__/VoterContributionGraphFragment.graphql";
 import { OnChainProposal } from "./PastVotes";
@@ -101,9 +101,19 @@ export const VoterContributionGraph: FC<Props> = ({
   pastVotesFragmentRef,
   onChainProposals,
 }) => {
-  const { votes } = useFragment(
+  const { votes, address, delegateMetrics } = useFragment(
     graphql`
       fragment VoterContributionGraphFragment on Delegate {
+        address {
+          resolvedName {
+            ...NounResolvedNameFragment
+          }
+        }
+        delegateMetrics {
+          forVotes
+          againstVotes
+          abstainVotes
+        }
         votes {
           id
           supportDetailed
@@ -159,8 +169,35 @@ export const VoterContributionGraph: FC<Props> = ({
             font-weight: ${theme.fontWeight.semibold};
           `}
         >
-          Onchain vote history
+          <NounResolvedName resolvedName={address.resolvedName} />
+          's vote history
         </div>
+        <HStack
+          gap="1"
+          className={css`
+            font-size: ${theme.fontSize.xs};
+            color: ${theme.colors.gray[700]};
+            font-weight: ${theme.fontWeight.medium};
+          `}
+        >
+          <div>For {delegateMetrics.forVotes}</div>
+          <div
+            className={css`
+              color: ${theme.colors.gray[300]};
+            `}
+          >
+            |
+          </div>
+          <div>Against {delegateMetrics.againstVotes}</div>
+          <div
+            className={css`
+              color: ${theme.colors.gray[300]};
+            `}
+          >
+            |
+          </div>
+          <div>Abstain {delegateMetrics.abstainVotes}</div>
+        </HStack>
       </HStack>
       <div>
         <div
