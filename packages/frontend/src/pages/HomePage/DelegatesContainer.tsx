@@ -71,7 +71,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
       @argumentDefinitions(
         first: { type: "Int", defaultValue: 30 }
         after: { type: "String" }
-        orderBy: { type: "DelegatesOrder", defaultValue: mostVotingPower }
+        orderBy: { type: "DelegatesOrder", defaultValue: weightedRandom }
         seed: { type: "String" }
       )
       @refetchable(queryName: "DelegatesContainerPaginationQuery") {
@@ -188,7 +188,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
                   navigate({
                     search: {
                       orderBy:
-                        orderBy === "mostVotingPower" ? null : orderBy ?? null,
+                        orderBy === "weightedRandom" ? null : orderBy ?? null,
                     },
                   });
                 });
