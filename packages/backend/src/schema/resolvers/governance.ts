@@ -46,7 +46,10 @@ import {
   collectGenerator,
   filterGenerator,
   limitGenerator,
+  optimisticGenerator,
+  mapGenerator,
   takeLast,
+  skipFirst,
 } from "../../indexer/utils/generatorUtils";
 import { getTitleFromProposalDescription } from "../../utils/markdown";
 import { driveReaderByIndex } from "../pagination";
@@ -65,6 +68,7 @@ import {
   knownSigHashes,
   knownTokens,
 } from "../../utils/abiUtils";
+import { weightedRandomizerGenerator } from "../../utils/weightedRandomizer";
 
 const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
@@ -162,7 +166,57 @@ export const Query: QueryResolvers = {
     ).map((it) => it.value);
   },
 
-  async delegates(_, { orderBy, first, where, after }, { reader }) {
+  async delegates(_, { orderBy, first, where, after, seed }, { reader }) {
+    if (orderBy === DelegatesOrder.WeightedRandom) {
+      const readOptimizer = BigNumber.from("10000000000000000000000").div(
+        (parseInt(after ?? "0") / first) * 10 || 1
+      );
+      const delegates = mapGenerator(
+        optimisticGenerator(
+          reader.getEntitiesByIndex("Address", "byTokensRepresented", {}),
+          (it) => it.value.tokensRepresented.lt(readOptimizer)
+        ),
+        (it) => {
+          return {
+            ...it.value,
+            weight: Number(
+              parseFloat(
+                ethers.utils.formatUnits(it.value.tokensRepresented, 18)
+              ).toFixed(2)
+            ),
+          };
+        }
+      );
+
+      const edges = (
+        await collectGenerator(
+          limitGenerator(
+            skipFirst(
+              weightedRandomizerGenerator(delegates, seed || ""),
+              (after && parseInt(after)) || 0
+            ),
+            first ?? 100
+          )
+        )
+      ).map((node, idx) => ({
+        node,
+        cursor: idx.toString(),
+      }));
+
+      const endCursor = (
+        ((after && parseInt(after)) || 0) + edges.length
+      ).toString();
+      return {
+        edges,
+        pageInfo: {
+          endCursor,
+          hasNextPage: !!edges.length,
+          hasPreviousPage: false,
+          startCursor: null,
+        },
+      };
+    }
+
     return await driveReaderByIndex(
       reader,
       "Address",

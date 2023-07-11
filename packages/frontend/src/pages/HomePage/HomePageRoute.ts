@@ -9,8 +9,8 @@ import { HomePageRouteQuery } from "./__generated__/HomePageRouteQuery.graphql";
 
 /* eslint-disable relay/unused-fields, relay/must-colocate-fragment-spreads */
 export const query = graphql`
-  query HomePageRouteQuery($orderBy: DelegatesOrder!) {
-    ...DelegatesContainerFragment @arguments(orderBy: $orderBy)
+  query HomePageRouteQuery($orderBy: DelegatesOrder!, $seed: String) {
+    ...DelegatesContainerFragment @arguments(orderBy: $orderBy, seed: $seed)
 
     ...OverviewMetricsContainerFragment
   }
@@ -21,7 +21,8 @@ export type Variables = ReturnType<typeof locationToVariables>;
 
 function locationToVariables(location: Location) {
   return {
-    orderBy: parseOrderName(location.search["orderBy"]) ?? "mostVotingPower",
+    orderBy: parseOrderName(location.search["orderBy"]) ?? "weightedRandom",
+    seed: Date.now().toString(),
   };
 }
 

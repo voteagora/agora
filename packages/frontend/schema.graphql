@@ -6,9 +6,10 @@ type Query {
   delegate(addressOrEnsName: String!): Delegate!
   delegates(
     where: DelegatesWhere
-    orderBy: DelegatesOrder!
+    orderBy: DelegatesOrder! = weightedSort
     first: Int!
     after: String
+    seed: String
   ): DelegatesConnection!
   votes(proposalId: ID!, first: Int!, after: String): VotesConnection!
   proposal(id: ID!): Proposal!
@@ -172,6 +173,7 @@ enum DelegatesWhere {
 enum DelegatesOrder {
   mostVotingPower
   mostDelegates
+  weightedRandom
 }
 
 type DelegatesConnection {

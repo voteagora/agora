@@ -30,6 +30,7 @@ type Props = {
 };
 
 const orderNames: { [K in DelegatesOrder]?: string } = {
+  weightedRandom: "Weighted random",
   mostVotingPower: "Most voting power",
   mostDelegates: "Most delegators",
 };
@@ -71,10 +72,15 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
         first: { type: "Int", defaultValue: 30 }
         after: { type: "String" }
         orderBy: { type: "DelegatesOrder", defaultValue: mostVotingPower }
+        seed: { type: "String" }
       )
       @refetchable(queryName: "DelegatesContainerPaginationQuery") {
-        voters: delegates(first: $first, after: $after, orderBy: $orderBy)
-          @connection(key: "DelegatesContainerFragment_voters") {
+        voters: delegates(
+          first: $first
+          after: $after
+          orderBy: $orderBy
+          seed: $seed
+        ) @connection(key: "DelegatesContainerFragment_voters") {
           edges {
             node {
               id
