@@ -22,6 +22,13 @@ export const query = graphql`
         ...TopIssuesFragment
       }
     }
+    onChainProposals {
+      id
+      number
+      status
+      title
+      voteEndsAt
+    }
   }
 `;
 

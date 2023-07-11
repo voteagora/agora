@@ -11,17 +11,27 @@ import { descendingValueComparator } from "../../utils/sorting";
 import { VoteDetails } from "./VoteDetails";
 import { PastVotesFragment$key } from "./__generated__/PastVotesFragment.graphql";
 import { PropHouseVoteDetails } from "./PropHouseVoteDetails";
+import { VoterContributionGraph } from "./VoterContributionGraph";
+
+export type OnChainProposal = {
+  id: string;
+  number: string;
+  status: string;
+  title: string;
+  voteEndsAt: number;
+};
 
 type Props = {
-  fragment: PastVotesFragment$key;
+  delegateFragment: PastVotesFragment$key;
+  onChainProposals: readonly OnChainProposal[];
 };
 
 type Filter = "ALL" | "PROP_HOUSE" | "ONCHAIN";
 
 type Sort = "MOST_RECENT" | "LEAST_RECENT" | "MOST_ETH" | "LEAST_ETH";
 
-export function PastVotes({ fragment }: Props) {
-  const { votes, propHouseVotes } = useFragment(
+export function PastVotes({ delegateFragment, onChainProposals }: Props) {
+  const { votes, propHouseVotes, ...voterGraphData } = useFragment(
     graphql`
       fragment PastVotesFragment on Delegate {
         votes {
@@ -45,9 +55,11 @@ export function PastVotes({ fragment }: Props) {
 
           ...PropHouseVoteDetailsFragment
         }
+
+        ...VoterContributionGraphFragment
       }
     `,
-    fragment
+    delegateFragment
   );
 
   const [filter, setFilter] = useState<Filter>("ALL");
@@ -130,7 +142,15 @@ export function PastVotes({ fragment }: Props) {
 
   return (
     <VStack gap="4">
-      <HStack justifyContent="space-between">
+      <HStack
+        justifyContent="space-between"
+        className={css`
+          @media (max-width: ${theme.maxWidth.lg}) {
+            flex-direction: column;
+            gap: ${theme.spacing[2]};
+          }
+        `}
+      >
         <h2
           className={css`
             font-size: ${theme.fontSize["2xl"]};
@@ -186,6 +206,10 @@ export function PastVotes({ fragment }: Props) {
           />
         </HStack>
       </HStack>
+      <VoterContributionGraph
+        pastVotesFragmentRef={voterGraphData}
+        onChainProposals={onChainProposals}
+      />
 
       <VStack gap="4">
         {sortedVotes.map((vote) => {

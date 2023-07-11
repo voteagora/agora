@@ -15,7 +15,10 @@ import { delegatePageRoute, query } from "./DelegatePageRoute";
 export default function DelegatePage({
   initialQueryRef,
 }: RoutePropsForRoute<typeof delegatePageRoute>) {
-  const result = usePreloadedQuery(query, initialQueryRef);
+  const { delegate, onChainProposals } = usePreloadedQuery(
+    query,
+    initialQueryRef
+  );
 
   return (
     <>
@@ -53,9 +56,9 @@ export default function DelegatePage({
             }
           `}
         >
-          <VoterPanel fragment={result.delegate} />
+          <VoterPanel fragment={delegate} />
 
-          {!result.delegate.statement && (
+          {!delegate.statement && (
             <div
               className={css`
                 color: #66676b;
@@ -78,9 +81,9 @@ export default function DelegatePage({
             flex: 1;
           `}
         >
-          {!!result.delegate.statement && (
+          {!!delegate.statement && (
             <>
-              {result.delegate.statement.statement && (
+              {delegate.statement.statement && (
                 <VStack gap="4">
                   <h2
                     className={css`
@@ -88,21 +91,24 @@ export default function DelegatePage({
                       font-weight: bold;
                     `}
                   >
-                    {result.delegate.liquidDelegationProxy
+                    {delegate.liquidDelegationProxy
                       ? "About Delegation proxies"
                       : "Delegate statement"}
                   </h2>
 
-                  <Markdown markdown={result.delegate.statement.statement} />
+                  <Markdown markdown={delegate.statement.statement} />
                 </VStack>
               )}
 
-              <TopIssues fragment={result.delegate.statement} />
-              <ImpactfulProposals fragment={result.delegate.statement} />
+              <TopIssues fragment={delegate.statement} />
+              <ImpactfulProposals fragment={delegate.statement} />
             </>
           )}
 
-          <PastVotes fragment={result.delegate} />
+          <PastVotes
+            delegateFragment={delegate}
+            onChainProposals={onChainProposals}
+          />
         </VStack>
       </HStack>
     </>

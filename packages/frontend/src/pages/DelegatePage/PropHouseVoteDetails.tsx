@@ -84,7 +84,6 @@ export function PropHouseVoteDetails({ voteFragment }: Props) {
             </Link>
           </VoteTitle>
         </VStack>
-
         <div
           className={css`
             width: ${theme.spacing.px};
@@ -95,7 +94,6 @@ export function PropHouseVoteDetails({ voteFragment }: Props) {
             }
           `}
         />
-
         <VStack
           className={css`
             overflow-y: scroll;
