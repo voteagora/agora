@@ -6,8 +6,11 @@ import { useEffect, useMemo, useState } from "react";
 import isEqual from "lodash/isEqual";
 import { BigNumber, ethers, Signer } from "ethers";
 import * as Sentry from "@sentry/react";
-import { GnosisSafe__factory } from "@agora/common/src/contracts/generated";
-import { checkSafeSignature, hashEnvelopeValue } from "@agora/common";
+import {
+  GnosisSafe,
+  GnosisSafe__factory,
+} from "@agora/common/src/contracts/generated";
+import { hashEnvelopeValue } from "@agora/common";
 
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
@@ -419,6 +422,55 @@ function withIgnoringBlock(fn: () => void) {
   }
 }
 
+type TransactionServiceSafeMessage = {
+  messageHash: string;
+  status: string;
+  logoUri: string | null;
+  name: string | null;
+  message: string; //| EIP712TypedData,
+  creationTimestamp: number;
+  modifiedTimestamp: number;
+  confirmationsSubmitted: number;
+  confirmationsRequired: number;
+  proposedBy: { value: string };
+  confirmations: [
+    {
+      owner: { value: string };
+      signature: string;
+    }
+  ];
+  preparedSignature: string | null;
+};
+
+async function fetchMessage(
+  safeMessageHash: string
+): Promise<TransactionServiceSafeMessage | undefined> {
+  const safeMessage = await fetch(
+    `https://safe-transaction-mainnet.safe.global/api/v1/messages/${safeMessageHash}`,
+    {
+      headers: { "Content-Type": "application/json" },
+    }
+  ).then((res) => {
+    if (!res.ok) {
+      return Promise.reject("Invalid response when fetching SafeMessage");
+    }
+    return res.json() as Promise<TransactionServiceSafeMessage>;
+  });
+
+  return safeMessage;
+}
+
+async function getSafeSignature(safe: GnosisSafe, value: string) {
+  const hashed = ethers.utils.hashMessage(value);
+  const messageHash = await safe.getMessageHash(hashed);
+  try {
+    const safeMessage = await fetchMessage(messageHash);
+    return safeMessage?.preparedSignature;
+  } catch (e) {
+    return false;
+  }
+}
+
 async function makeSignedValue(
   signer: Signer,
   provider: ethers.providers.Provider,
@@ -434,18 +486,20 @@ async function makeSignedValue(
       signerAddress,
       value,
       signature: await signer.signMessage(signaturePayload),
+      signatureType: "EOA",
     };
   }
 
   // some kind of multi-sig wallet, likely a gnosis safe.
   const gnosisSafe = GnosisSafe__factory.connect(signerAddress, provider);
-  const isSigned = await checkSafeSignature(gnosisSafe, signaturePayload);
-  if (isSigned) {
+  const safeSignature = await getSafeSignature(gnosisSafe, signaturePayload);
+  if (safeSignature) {
     // already signed, post to backend
     return {
       signerAddress,
       value,
-      signature: "0x",
+      signature: safeSignature,
+      signatureType: "CONTRACT",
     };
   }
 

@@ -21,6 +21,7 @@ import {
 } from "./durableObject";
 import { Env, shouldUseCache } from "./env";
 import { makeTracingOptions } from "./datadog";
+import { fetchMessage } from "./genosis";
 
 function durableObjectHandler(
   parentSpan: ReadOnlySpan
@@ -60,6 +61,39 @@ function durableObjectHandler(
   };
 }
 
+function fetchSignatureHandler(): (
+  request: Request,
+  env: Env
+) => Promise<Response> {
+  return async (request, env) => {
+    const { safeMessageHash } = (await request.json()) as any;
+    if (safeMessageHash) {
+      const result = await fetchMessage({
+        safeMessageHash: safeMessageHash,
+        env: env,
+      });
+
+      if (result.error) {
+        return new Response(JSON.stringify({ error: result.error }), {
+          status: 500,
+          headers: { "content-type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify(result.response), {
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+    }
+
+    return new Response(JSON.stringify({ message: "Invalid request" }), {
+      status: 400,
+      headers: { "content-type": "application/json" },
+    });
+  };
+}
+
 export default <ExportedHandler<Env>>{
   async fetch(request, env, ctx): Promise<Response> {
     return await handleFetchWithSentry(
@@ -89,6 +123,10 @@ export default <ExportedHandler<Env>>{
                 {
                   matcher: startsWithPathMatcher("/admin"),
                   handle: durableObjectHandler(span),
+                },
+                {
+                  matcher: startsWithPathMatcher("/fetch_signature"),
+                  handle: fetchSignatureHandler(),
                 },
                 ...staticFileRouteDefinitions(),
               ],

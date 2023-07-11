@@ -13,6 +13,12 @@ input ValueWithSignature {
   signerAddress: String!
   value: String!
   signature: String!
+  signatureType: SingatureType!
+}
+
+enum SingatureType {
+  CONTRACT
+  EOA
 }
 
 type TopIssue {

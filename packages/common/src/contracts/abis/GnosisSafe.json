@@ -481,7 +481,7 @@
     "type": "function"
   },
   {
-    "constant": false,
+    "constant": true,
     "inputs": [
       { "internalType": "bytes", "name": "_data", "type": "bytes" },
       { "internalType": "bytes", "name": "_signature", "type": "bytes" }
@@ -489,7 +489,7 @@
     "name": "isValidSignature",
     "outputs": [{ "internalType": "bytes4", "name": "", "type": "bytes4" }],
     "payable": false,
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
