@@ -1,10 +1,12 @@
-import { css } from "@emotion/css";
+import { useState } from "react";
+import { css, keyframes } from "@emotion/css";
 import { graphql, useLazyLoadQuery, usePreloadedQuery } from "react-relay";
 
 import * as theme from "../../theme";
 import { RoutePropsForRoute } from "../../components/HammockRouter/HammockRouter";
 import { HStack, VStack } from "../../components/VStack";
 
+import IVotedOnNouns from "./IVotedOnNouns.svg";
 import { proposalsListPageRoute, query } from "./ProposalsListPageRoute";
 import { OnChainProposalRow } from "./OnChainProposalRow";
 import { PropHouseAuctionRow } from "./PropHouseAuctionRow";
@@ -42,9 +44,24 @@ export default function NonVotedProposalsListPage({
     { address: address }
   );
 
+  const rotate = keyframes`
+    0% {transform: rotate(0deg);}
+    100% {transform: rotate(-360deg);}
+  `;
+
+  const animation = keyframes`
+    0% { bottom: ${theme.spacing["6"]};}
+    100% { bottom: -300px; }
+  `;
+
+  const [isAnimated, setIsAnimated] = useState(false);
+  const handleClick = () => {
+    setIsAnimated(true);
+  };
+
   return (
     <>
-      {nonVotedProposals.length > 0 && (
+      {nonVotedProposals.length > 0 ? (
         <>
           <HStack
             justifyContent="space-between"
@@ -117,6 +134,28 @@ export default function NonVotedProposalsListPage({
             </table>
           </VStack>
         </>
+      ) : (
+        <div
+          className={css`
+            position: fixed;
+            right: calc(50vw - 652px);
+            bottom: ${theme.spacing["6"]};
+            cursor: s-resize;
+            animation: ${isAnimated ? `${animation} 300ms forwards` : "none"};
+            @media (max-width: ${theme.maxWidth["6xl"]}) {
+              right: ${theme.spacing["6"]};
+            }
+          `}
+          onClick={handleClick}
+        >
+          <img
+            className={css`
+              animation: ${rotate} 40s infinite linear;
+            `}
+            src={IVotedOnNouns}
+            alt="i voted on nouns badge"
+          />
+        </div>
       )}
     </>
   );
