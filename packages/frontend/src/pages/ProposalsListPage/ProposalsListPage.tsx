@@ -1,24 +1,22 @@
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
+import { useAccount } from "wagmi";
 import { HStack, VStack } from "../../components/VStack";
 import graphql from "babel-plugin-relay/macro";
 import { useLazyLoadQuery } from "react-relay/hooks";
 import { OverviewMetricsContainer } from "../HomePage/OverviewMetricsContainer";
 import { OnChainProposalRow } from "./OnChainProposalRow";
 import { ProposalsListPageQuery } from "./__generated__/ProposalsListPageQuery.graphql";
-import { useProposals } from "./useProposals";
 import { PageDivider } from "../../components/PageDivider";
+import NonVotedProposalsList from "./NonVotedProposalsList";
 
 export default function ProposalsListPage() {
+  const { address } = useAccount();
+
   const result = useLazyLoadQuery<ProposalsListPageQuery>(
     graphql`
       query ProposalsListPageQuery {
         proposals {
-          # eslint-disable-next-line relay/unused-fields
-          status
-          # eslint-disable-next-line relay/unused-fields
-          voteStartsAt
-
           ...OnChainProposalRowFragment
         }
 
@@ -28,16 +26,13 @@ export default function ProposalsListPage() {
     {}
   );
 
-  // @ts-ignore
-  const proposals = useProposals(result);
-
   return (
     <>
       <VStack
         className={css`
           width: ${theme.maxWidth["6xl"]};
           @media (max-width: ${theme.maxWidth["lg"]}) {
-            max-width: 100%;
+            display: none;
           }
         `}
       >
@@ -65,6 +60,8 @@ export default function ProposalsListPage() {
           padding: 0 ${theme.spacing["4"]};
         `}
       >
+        {address && <NonVotedProposalsList address={address} />}
+
         <HStack
           justifyContent="space-between"
           className={css`
@@ -73,7 +70,8 @@ export default function ProposalsListPage() {
             @media (max-width: ${theme.maxWidth["lg"]}) {
               max-width: 100%;
               flex-direction: column;
-              margin-bottom: ${theme.spacing["1"]};
+              margin-bottom: ${theme.spacing["0"]};
+              margin-top: ${theme.spacing["4"]};
             }
           `}
         >
@@ -82,7 +80,7 @@ export default function ProposalsListPage() {
               font-size: ${theme.fontSize["2xl"]};
               font-weight: ${theme.fontWeight["extrabold"]};
               @media (max-width: ${theme.maxWidth["lg"]}) {
-                margin-bottom: ${theme.spacing["1"]};
+                margin-bottom: ${theme.spacing["0"]};
               }
             `}
           >
@@ -109,14 +107,8 @@ export default function ProposalsListPage() {
             `}
           >
             <tbody>
-              {proposals.map((proposal, idx) => {
-                return (
-                  <OnChainProposalRow
-                    key={idx}
-                    // @ts-ignore
-                    fragmentRef={proposal.proposal}
-                  />
-                );
+              {result.proposals.map((proposal, idx) => {
+                return <OnChainProposalRow key={idx} fragmentRef={proposal} />;
               })}
             </tbody>
           </table>
