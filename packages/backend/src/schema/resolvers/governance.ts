@@ -472,7 +472,7 @@ export const Proposal: ProposalResolvers = {
             }
 
             if (proposalData.kind.proposalSettings.criteria === "THRESHOLD") {
-              proposalData.kind.options.forEach((option) => {
+              for (const option of proposalData.kind.options) {
                 if (
                   option.votes.gt(
                     proposalData.kind.proposalSettings.criteriaValue
@@ -480,7 +480,7 @@ export const Proposal: ProposalResolvers = {
                 ) {
                   return ProposalStatus.Succeeded;
                 }
-              });
+              }
 
               return ProposalStatus.Defeated;
             } else {
