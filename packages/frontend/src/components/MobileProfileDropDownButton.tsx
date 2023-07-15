@@ -98,7 +98,7 @@ export const MobileProfileDropDownButton = ({
         <>
           <Popover.Button
             className={css`
-              padding: ${theme.spacing[2]} ${theme.spacing[5]};
+              margin-top: ${theme.spacing[1]};
               outline: none;
             `}
           >

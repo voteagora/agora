@@ -75,12 +75,12 @@ export function VoterCard({ fragmentRef, contentClassName }: VoterCardProps) {
             <div
               className={css`
                 display: -webkit-box;
-
+                word-break: break-word;
                 color: #66676b;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                line-clamp: 5;
-                -webkit-line-clamp: 5;
+                line-clamp: 2;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 font-size: ${theme.fontSize.base};
                 line-height: ${theme.lineHeight.normal};

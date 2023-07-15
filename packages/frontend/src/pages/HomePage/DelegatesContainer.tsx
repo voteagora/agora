@@ -115,7 +115,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
 
         case "LOADING":
         case "ITEMS":
-          return 350;
+          return 270;
       }
     },
     onChange(instance) {
@@ -140,7 +140,7 @@ export function DelegatesContainer({ fragmentKey, variables }: Props) {
       <VStack
         className={css`
           width: 100%;
-          margin-bottom: ${theme.spacing["8"]};
+          margin-bottom: ${theme.spacing["4"]};
         `}
       >
         <HStack
