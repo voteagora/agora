@@ -252,7 +252,7 @@ export default function NonVotedProposalsListPage({
             </div>
             <div className={css``}>
               {delegate.address.resolvedName.name
-                ? "nounsagora.com/delegate/" +
+                ? "vote.optimism.io/delegate/" +
                   delegate.address.resolvedName.name
                 : "Want to delegate to me? Find me on Agora!"}
             </div>
