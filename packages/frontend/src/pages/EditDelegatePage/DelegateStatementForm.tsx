@@ -351,6 +351,7 @@ export function DelegateStatementForm({
                 address,
               })
             }
+            plausible-event-name="StatementEdit+Click"
           >
             Submit delegate profile
           </button>

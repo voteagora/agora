@@ -1,4 +1,4 @@
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { ReactNode } from "react";
 
 import * as theme from "../../theme";
@@ -73,27 +73,30 @@ const VoteButton = ({
   return (
     <div
       onClick={onClick}
-      className={css`
-        text-align: center;
-        border-radius: ${theme.spacing["2"]};
-        border: 1px solid ${theme.colors.gray.eb};
-        font-weight: ${theme.fontWeight.semibold};
-        font-size: ${theme.fontSize.xs};
-        color: ${theme.colors.black};
-        padding: ${theme.spacing["2"]} ${theme.spacing["6"]};
-        cursor: pointer;
-
-        ${!onClick &&
+      className={cx(
         css`
-          background: ${theme.colors.gray.eb};
-          color: ${theme.colors.gray["700"]};
-          cursor: not-allowed;
-        `}
+          text-align: center;
+          border-radius: ${theme.spacing["2"]};
+          border: 1px solid ${theme.colors.gray.eb};
+          font-weight: ${theme.fontWeight.semibold};
+          font-size: ${theme.fontSize.xs};
+          color: ${theme.colors.black};
+          padding: ${theme.spacing["2"]} ${theme.spacing["6"]};
+          cursor: pointer;
 
-        :hover {
-          background: ${theme.colors.gray.eb};
-        }
-      `}
+          ${!onClick &&
+          css`
+            background: ${theme.colors.gray.eb};
+            color: ${theme.colors.gray["700"]};
+            cursor: not-allowed;
+          `}
+
+          :hover {
+            background: ${theme.colors.gray.eb};
+          }
+        `,
+        "plausible-event-name=VoteButton+Click"
+      )}
     >
       {children}
     </div>
