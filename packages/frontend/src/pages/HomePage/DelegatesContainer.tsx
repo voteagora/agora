@@ -23,6 +23,7 @@ import {
   makePaginationItems,
   PaginationItemType,
 } from "../../hooks/pagination";
+import { TextInputWithTooltip } from "../../components/Form/TextInputWithTooltip";
 
 type Props = {
   fragmentKey: DelegatesContainerFragment$key;
@@ -312,10 +313,10 @@ const DelegatePageInput = () => {
           />
         </VStack>
 
-        <input
-          type="text"
-          onChange={(event) => setEnteredName(event.target.value)}
-          placeholder="Enter ENS or address"
+        <TextInputWithTooltip
+          onChange={(value) => setEnteredName(value)}
+          placeholder="Exact ENS or address"
+          tooltipMessage="Please input exact ENS or address. Partial and fuzzy search is not supported yet."
           className={css`
             padding: ${theme.spacing["2"]} ${theme.spacing["4"]};
             padding-left: ${theme.spacing["8"]};
@@ -329,6 +330,23 @@ const DelegatePageInput = () => {
             }
           `}
         />
+        {/*<input*/}
+        {/*  type="text"*/}
+        {/*  onChange={(event) => setEnteredName(event.target.value)}*/}
+        {/*  placeholder="Enter ENS or address"*/}
+        {/*  className={css`*/}
+        {/*    padding: ${theme.spacing["2"]} ${theme.spacing["4"]};*/}
+        {/*    padding-left: ${theme.spacing["8"]};*/}
+        {/*    border-radius: ${theme.borderRadius.full};*/}
+        {/*    background: #fafafa;*/}
+        {/*    border-color: #ebebeb;*/}
+        {/*    border-width: 1px;*/}
+
+        {/*    &::placeholder {*/}
+        {/*      color: #afafaf;*/}
+        {/*    }*/}
+        {/*  `}*/}
+        {/*/>*/}
       </VStack>
     </form>
   );
