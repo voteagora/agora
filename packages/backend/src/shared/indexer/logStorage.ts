@@ -10,6 +10,8 @@ import { mergeGenerators, takeLast } from "../utils/generatorUtils";
 import { BlockIdentifier } from "./process/storageHandle";
 import { IndexerDefinition } from "./process/indexerDefinition";
 
+const env = process.env.ENVIRONMENT || "dev";
+
 export async function loadLastLogIndex(
   reducer: IndexerDefinition,
   basePath: string
@@ -37,7 +39,7 @@ export async function loadLastLog(
 }
 
 export function logsDirectory(basePath: string) {
-  return path.join(basePath, `logs`);
+  return path.join(basePath, `logs-${env}`);
 }
 
 export function pathForLogs(reducer: IndexerDefinition, basePath: string) {

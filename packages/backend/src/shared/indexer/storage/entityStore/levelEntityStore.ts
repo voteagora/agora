@@ -17,13 +17,14 @@ import {
   ImportableEntityStore,
 } from "./entityStore";
 
+const env = process.env.ENVIRONMENT || "dev";
 export class LevelEntityStore
   implements EntityStore, ImportableEntityStore, ExportableEntityStore
 {
   constructor(private readonly level: Level<string, any>) {}
 
   static async open(basePath: string) {
-    const level = new Level<string, any>(path.join(basePath, "state"), {
+    const level = new Level<string, any>(path.join(basePath, "state-" + env), {
       valueEncoding: "json",
     });
     await level.open();
