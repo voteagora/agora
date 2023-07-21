@@ -10,6 +10,7 @@ import {
   blockIdentifierFromParentBlock,
   BlockProvider,
   BlockProviderBlock,
+  maxBlockRange,
 } from "./blockProvider/blockProvider";
 import { LogProvider, topicFilterForIndexers } from "./logProvider/logProvider";
 import {
@@ -147,7 +148,7 @@ export function followChain(
 
   let nextBlockNumber = storageArea.finalizedBlock.blockNumber + 1;
 
-  return async () => {
+  return async (maxStepSize: number = maxBlockRange) => {
     const latestBlock = await blockProvider.getLatestBlock();
 
     if (nextBlockNumber > latestBlock.number) {
@@ -156,43 +157,54 @@ export function followChain(
       };
     }
 
-    const nextBlock = await blockProvider.getBlockByNumber(nextBlockNumber);
-    if (!nextBlock) {
-      if (sentry) {
-        sentry.captureException("block not found");
-      }
-      throw new Error("block not found");
-    }
+    // stepSize will be 1 <= stepSize <= maxBlockRange
+    const stepSize = Math.max(1, Math.min(maxStepSize, maxBlockRange));
+
+    const fetchTill = Math.min(latestBlock.number, nextBlockNumber + stepSize);
+
+    const blocks = await blockProvider.getBlockRange(
+      nextBlockNumber,
+      fetchTill
+    );
 
     const logs = await logProvider.getLogs({
       ...filter,
       fromBlock: nextBlockNumber,
-      toBlock: nextBlockNumber,
+      toBlock: fetchTill,
     });
 
-    const logsCache = await makeLogsCache(logs, [nextBlock]);
+    const logsCache = await makeLogsCache(logs, blocks);
 
-    await ensureParentsAvailable(blockIdentifierFromParentBlock(nextBlock));
+    for (const nextBlock of blocks) {
+      if (!nextBlock) {
+        if (sentry) {
+          sentry.captureException("block not found");
+        }
+        throw new Error("block not found");
+      }
 
-    addToParents(storageArea.parents, nextBlock);
+      await ensureParentsAvailable(blockIdentifierFromParentBlock(nextBlock));
 
-    await processBlock(nextBlock, logsCache);
+      addToParents(storageArea.parents, nextBlock);
 
-    await promoteFinalizedBlocks(
-      latestBlock.number,
-      blockIdentifierFromBlock(nextBlock),
-      storageArea.finalizedBlock
-    );
+      await processBlock(nextBlock, logsCache);
 
-    // update storageArea.tipBlock
-    if (
-      !storageArea.tipBlock ||
-      nextBlock.number > storageArea.tipBlock.blockNumber
-    ) {
-      storageArea.tipBlock = blockIdentifierFromBlock(nextBlock);
+      await promoteFinalizedBlocks(
+        latestBlock.number,
+        blockIdentifierFromBlock(nextBlock),
+        storageArea.finalizedBlock
+      );
+
+      // update storageArea.tipBlock
+      if (
+        !storageArea.tipBlock ||
+        nextBlock.number > storageArea.tipBlock.blockNumber
+      ) {
+        storageArea.tipBlock = blockIdentifierFromBlock(nextBlock);
+      }
+
+      nextBlockNumber = nextBlock.number + 1;
     }
-
-    nextBlockNumber = nextBlock.number + 1;
 
     return {
       type: "MORE" as const,

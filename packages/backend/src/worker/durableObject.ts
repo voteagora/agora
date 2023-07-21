@@ -19,7 +19,7 @@ import {
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 
-export const blockUpdateIntervalSeconds = 10;
+export const blockUpdateIntervalSeconds = 4;
 
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
