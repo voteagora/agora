@@ -14,7 +14,6 @@ import {
 import { OnChainProposalRowActivityFragment$key } from "./__generated__/OnChainProposalRowActivityFragment.graphql";
 import { StatusText } from "./StatusText";
 import { Row, RowValue } from "./Rows";
-import { shortenId } from "../DelegatePage/VoteDetails";
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
 
 export function OnChainProposalRow({
@@ -82,7 +81,7 @@ export function OnChainProposalRow({
         primary
         title={
           <>
-            Prop {shortenId(proposal.number)} – by{" "}
+            Proposal by{" "}
             <NounResolvedName
               resolvedName={proposal.proposer.address.resolvedName}
             />
