@@ -40,6 +40,7 @@
     "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.1",
     "react-textfit": "^1.1.1",
+    "react-tooltip": "^5.18.0",
     "react-window": "^1.8.8",
     "react-window-infinite-loader": "^1.0.8",
     "react-window-scroller": "^1.0.10",
