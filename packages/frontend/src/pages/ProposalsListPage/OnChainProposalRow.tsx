@@ -5,6 +5,8 @@ import * as theme from "../../theme";
 import { HStack } from "../../components/VStack";
 import { NounResolvedName } from "../../components/NounResolvedName";
 import { formatDistanceToNow } from "date-fns";
+import TimestampTooltip from "../../components/TimestampTooltip";
+
 import {
   OnChainProposalRowFragment$key,
   ProposalStatus,
@@ -179,10 +181,28 @@ function Activity({
             return "Voting";
 
           case "ACTIVE":
-            return `Voting ends in ${formatDistanceToNow(voteEndsAt)}`;
+            return (
+              <HStack gap="1">
+                Voting ends in{" "}
+                {
+                  <TimestampTooltip date={voteEndsAt}>
+                    {formatDistanceToNow(voteEndsAt)}
+                  </TimestampTooltip>
+                }
+              </HStack>
+            );
 
           default:
-            return `Voting ended ${formatDistanceToNow(voteEndsAt)} ago`;
+            return (
+              <HStack gap="1">
+                Voting ended{" "}
+                {
+                  <TimestampTooltip date={voteEndsAt}>
+                    {formatDistanceToNow(voteEndsAt)} ago
+                  </TimestampTooltip>
+                }
+              </HStack>
+            );
         }
       })()}
     >
@@ -192,9 +212,16 @@ function Activity({
             // TODO - change the condition once data is available
             case "StandardProposalData": {
               if (proposal.status === "PENDING") {
-                return `Starts in ${formatDistanceToNow(
-                  new Date(voteStartsAt)
-                )}`;
+                return (
+                  <HStack gap="1">
+                    Starts in{" "}
+                    {
+                      <TimestampTooltip date={voteStartsAt}>
+                        {formatDistanceToNow(voteStartsAt)}
+                      </TimestampTooltip>
+                    }
+                  </HStack>
+                );
               } else {
                 return (
                   <HStack gap="1">
@@ -225,9 +252,16 @@ function Activity({
             }
             case "ApprovalVotingProposalData": {
               if (proposal.status === "PENDING") {
-                return `Starts in ${formatDistanceToNow(
-                  new Date(voteStartsAt)
-                )}`;
+                return (
+                  <HStack gap="1">
+                    Starts in{" "}
+                    {
+                      <TimestampTooltip date={voteStartsAt}>
+                        {formatDistanceToNow(voteStartsAt)}
+                      </TimestampTooltip>
+                    }
+                  </HStack>
+                );
               } else {
                 return (
                   <HStack gap="1">

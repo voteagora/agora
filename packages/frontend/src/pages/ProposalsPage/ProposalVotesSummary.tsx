@@ -1,5 +1,6 @@
-import { formatDistanceToNowStrict, formatISO9075 } from "date-fns";
+import { formatDistanceToNowStrict } from "date-fns";
 import { HStack, VStack } from "../../components/VStack";
+import TimestampTooltip from "../../components/TimestampTooltip";
 import { ProposalVotesSummaryFragment$key } from "./__generated__/ProposalVotesSummaryFragment.graphql";
 import { ProposalVotesSummaryVoteTimeFragment$key } from "./__generated__/ProposalVotesSummaryVoteTimeFragment.graphql";
 import graphql from "babel-plugin-relay/macro";
@@ -131,7 +132,7 @@ function VoteTime({
 
   const ago = formatDistanceToNowStrict(voteTime, { addSuffix: true });
   const text = `${voteTextPrefix} ${ago}`;
-  return <span title={formatISO9075(voteTime)}>{text}</span>;
+  return <TimestampTooltip date={voteTime}>{text}</TimestampTooltip>;
 }
 
 function VotesBar({

@@ -12,6 +12,7 @@ import {
   formatNumber,
 } from "../../../components/TokenAmountDisplay";
 import { ApprovalProposalCriteriaVoteTimeFragment$key } from "./__generated__/ApprovalProposalCriteriaVoteTimeFragment.graphql";
+import TimestampTooltip from "../../../components/TimestampTooltip";
 
 type Props = {
   fragmentRef: ApprovalProposalCriteriaFragment$key;
@@ -157,7 +158,7 @@ function VoteTime({
   let voteTextPrefix;
   // Display time until vote start if vote hasn't started yet.
   if (result.voteStartsAt > now) {
-    voteTextPrefix = "VOTE STARTS IN";
+    voteTextPrefix = "VOTE STARTS";
     voteTime = result.voteStartsAt;
   } else {
     voteTime = result.voteEndsAt;
@@ -169,7 +170,7 @@ function VoteTime({
   }
 
   const ago = formatDistanceToNowStrict(voteTime, { addSuffix: true });
-  const text = `${voteTextPrefix} ${ago}`;
+  const text = `${voteTextPrefix} ${ago}`.toUpperCase();
   return (
     <span
       className={css`
@@ -177,7 +178,7 @@ function VoteTime({
       `}
       title={formatISO9075(voteTime)}
     >
-      {text}
+      <TimestampTooltip date={voteTime}>{text}</TimestampTooltip>
     </span>
   );
 }

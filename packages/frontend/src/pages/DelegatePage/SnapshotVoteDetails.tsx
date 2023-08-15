@@ -13,6 +13,7 @@ import { SnapshotVoteDetailsFragment$key } from "./__generated__/SnapshotVoteDet
 import { SnapshotVoteDetailsVoteChoiceFragment$key } from "./__generated__/SnapshotVoteDetailsVoteChoiceFragment.graphql";
 import { pluralizeVote } from "../../words";
 import { BigNumber } from "ethers";
+import TimestampTooltip from "../../components/TimestampTooltip";
 
 type Props = {
   voteFragment: SnapshotVoteDetailsFragment$key;
@@ -67,8 +68,12 @@ export function SnapshotVoteDetails({ voteFragment }: Props) {
               color: #66676b;
             `}
           >
-            Snapshot Vote
-            {vote.createdAt && ` - ${formatDistanceToNow(vote.createdAt)} ago`}
+            Snapshot Vote{" "}
+            {vote.createdAt && (
+              <TimestampTooltip date={vote.createdAt}>
+                - {formatDistanceToNow(vote.createdAt)} ago
+              </TimestampTooltip>
+            )}
           </div>
 
           <VoteTitle>
