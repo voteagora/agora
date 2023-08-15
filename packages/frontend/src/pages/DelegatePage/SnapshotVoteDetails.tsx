@@ -2,7 +2,7 @@ import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { VStack } from "../../components/VStack";
+import { HStack, VStack } from "../../components/VStack";
 import {
   colorForSupportType,
   VoteDetailsContainer,
@@ -61,20 +61,21 @@ export function SnapshotVoteDetails({ voteFragment }: Props) {
             padding: ${theme.spacing["4"]} ${theme.spacing["6"]};
           `}
         >
-          <div
+          <HStack
+            gap="1"
             className={css`
               font-size: ${theme.fontSize.xs};
               font-weight: ${theme.fontWeight.medium};
               color: #66676b;
             `}
           >
-            Snapshot Vote{" "}
+            Snapshot Vote
             {vote.createdAt && (
               <TimestampTooltip date={vote.createdAt}>
                 - {formatDistanceToNow(vote.createdAt)} ago
               </TimestampTooltip>
             )}
-          </div>
+          </HStack>
 
           <VoteTitle>
             <a href={vote.proposal.link}>{vote.proposal.title}</a>
