@@ -25,7 +25,7 @@ export interface BlockProvider {
   ): Promise<BlockProviderBlock[]>;
 }
 
-export const maxBlockRange = 1000;
+export const maxBlockRange = 100;
 
 export class EthersBlockProvider implements BlockProvider {
   private provider: ethers.providers.JsonRpcProvider;
