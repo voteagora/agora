@@ -13,7 +13,7 @@ export function YesNoSelector({ onSelectionChanged, selection }: Props) {
     <VStack>
       <h4 className={inputLabelStyle}>
         Agree with{" "}
-        <a href="https://gov.optimism.io/t/delegate-code-of-conduct/3943">
+        <a href="https://gov.optimism.io/t/code-of-conduct/5751">
           Delegate Code of Conduct
         </a>
       </h4>
