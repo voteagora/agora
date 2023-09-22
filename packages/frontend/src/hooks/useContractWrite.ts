@@ -62,7 +62,7 @@ export function useContractWrite<
     onSuccess() {
       setOnPrepareError(false);
     },
-    overrides,
+    // overrides,
   });
 
   const { data, write } = useContractWriteUNSAFE({
@@ -72,10 +72,7 @@ export function useContractWrite<
         return;
       }
 
-      return {
-        ...config.request,
-        gasLimit: config.request.gasLimit.mul(2),
-      };
+      return config.request;
     })(),
     onSuccess() {
       onSuccess();

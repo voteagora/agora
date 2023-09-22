@@ -2,7 +2,7 @@ diff --git a/node_modules/@typechain/ethers-v5/dist/codegen/events.js b/node_mod
 index ef89623..e30afef 100644
 --- a/node_modules/@typechain/ethers-v5/dist/codegen/events.js
 +++ b/node_modules/@typechain/ethers-v5/dist/codegen/events.js
-@@ -44,12 +44,51 @@ function generateEventTypeExport(event, includeArgTypes) {
+@@ -44,12 +44,53 @@ function generateEventTypeExport(event, includeArgTypes) {
    `;
  }
  exports.generateEventTypeExport = generateEventTypeExport;
@@ -35,9 +35,11 @@ index ef89623..e30afef 100644
 +        case 'uinteger':
 +            return `uint${evmType.bits}`;
 +
-+        case 'bytes':
 +        case 'dynamic-bytes':
-+            return 'bytes';
++            return `bytes`;
++
++        case 'bytes':
++           return `bytes${evmType.size}`;
 +
 +        case 'array':
 +            return `${generateEventType(evmType.itemType)}[]`;

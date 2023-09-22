@@ -31,11 +31,11 @@ export function normalizeTopics(filter: TopicFilter) {
  * @param log
  */
 export function logMatchesTopics(
-  normalizedTopics: string[][],
+  normalizedTopics: (null | string)[][],
   log: ethers.providers.Log
 ): boolean {
   for (const [idx, segment] of normalizedTopics.entries()) {
-    if (!segment.includes(log.topics[idx])) {
+    if (!segment || !segment.includes(log.topics[idx])) {
       return false;
     }
   }

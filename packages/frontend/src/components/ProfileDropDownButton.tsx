@@ -21,14 +21,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ethers } from "ethers";
 
 type Props = {
-  isConnected: boolean;
-  isConnecting: boolean;
-  show?: () => void;
-  hide?: () => void;
   address: `0x${string}` | undefined;
   ensName: string | undefined;
   fragment: ProfileDropDownButtonFragment$key;
   hasStatment?: boolean;
+  handleSignOut?: () => void;
 };
 
 const ValueWrapper = ({ children }: { children: ReactNode }) => (
@@ -36,14 +33,11 @@ const ValueWrapper = ({ children }: { children: ReactNode }) => (
 );
 
 export const ProfileDropDownButton = ({
-  isConnected,
-  isConnecting,
-  show,
-  hide,
   address,
   ensName,
   fragment,
   hasStatment,
+  handleSignOut,
 }: Props) => {
   const { disconnect } = useDisconnect();
 
@@ -222,7 +216,10 @@ export const ProfileDropDownButton = ({
 
                       <img
                         src={icons.power}
-                        onClick={(e) => disconnect()}
+                        onClick={(e) => {
+                          if (handleSignOut) handleSignOut();
+                          disconnect();
+                        }}
                         alt="Disconnect Wallet"
                         className={css`
                           width: 32px;

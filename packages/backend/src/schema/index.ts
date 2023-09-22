@@ -4,6 +4,7 @@ import * as scalars from "./resolvers/scalars";
 import * as commonResolvers from "./resolvers/common";
 import * as governanceResolvers from "./resolvers/governance";
 import * as delegateStatement from "./resolvers/delegateStatement";
+import * as retroPGFResolvers from "./resolvers/retroPGF";
 import { attachTracingContextInjection } from "./transformers/tracingContext";
 import { applyIdPrefix } from "./transformers/applyIdPrefix";
 import { makeExecutableSchema } from "@graphql-tools/schema";
@@ -18,6 +19,7 @@ export const resolvers: Resolvers = {
   ...scalars,
   ...commonResolvers,
   ...delegateStatement,
+  ...retroPGFResolvers,
 };
 
 export function makeGatewaySchema() {

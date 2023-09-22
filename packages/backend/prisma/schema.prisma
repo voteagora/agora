@@ -1,0 +1,27 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Ballot {
+  address     String    @id @unique
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @map("updated_at")
+  publishedAt DateTime? @map("published_at")
+  votes       Json      @default("[]")  @db.JsonB
+  signature   String?   @map("signature")
+
+  @@map("ballots")
+}
+
+model Like {
+  id          String    @id @unique
+  addresses   String[]  @default([])
+  lastUpdated DateTime  @default(now()) @map("last_updated")
+
+  @@map("likes")
+}

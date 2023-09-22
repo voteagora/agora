@@ -24,11 +24,12 @@ export type Signatures<InterfaceType extends TypedInterface> = {
 
 export function filterForEventHandlers<InterfaceType extends TypedInterface>(
   instance: ContractInstance<InterfaceType>,
-  signatures: Signatures<InterfaceType>
+  signatures: Signatures<InterfaceType>,
+  topicFilters: (string[] | null)[] = []
 ): TopicFilter {
   return {
     address: [instance.address],
-    topics: [topicsForSignatures(instance.iface, signatures)],
+    topics: [topicsForSignatures(instance.iface, signatures), ...topicFilters],
   };
 }
 

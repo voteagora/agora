@@ -11,6 +11,7 @@ import { StructuredError } from "../utils/errorUtils";
 import { ethers } from "ethers";
 import { LevelEntityStore } from "../storage/level/levelEntityStore";
 import { makeProgressBar } from "../utils/progressBarUtils";
+import { makeDataFetcher } from "../dataFetcher/dataFetcher";
 
 /**
  * Backfills updates from fetched logs starting from the last finalized block
@@ -18,6 +19,13 @@ import { makeProgressBar } from "../utils/progressBarUtils";
  * to the network.
  */
 async function main() {
+  const provider = new ethers.providers.AlchemyProvider(
+    "optimism",
+    process.env.ALCHEMY_API_KEY
+  );
+
+  const dataFetcher = makeDataFetcher(provider);
+
   const store = await LevelEntityStore.open();
 
   const envIndexers = indexers.flatMap((it) => {
@@ -84,7 +92,12 @@ async function main() {
       );
 
       try {
-        await eventHandler.handle(storageHandle, event as any, log);
+        await eventHandler.handle(
+          storageHandle,
+          event as any,
+          log,
+          dataFetcher
+        );
       } catch (e) {
         throw new StructuredError(
           {

@@ -1,13 +1,22 @@
-import { Env, shouldUseCache } from "./env";
+import { ethers } from "ethers";
+import { Env, mustGetAlchemyApiKey, shouldUseCache } from "./env";
 import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
 import { fetchThroughCache } from "./cache";
 import { simulateTransaction } from "./tenderly";
 import { fetchMessage } from "./genosis";
 
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
+import { handleAuthRequest } from "./rpgfApi/auth";
+import PrismaSingleton from "../store/prisma/client";
+import { handleBallotsRequest } from "./rpgfApi/ballots";
+import { handleLikesRequest } from "./rpgfApi/likes";
+import { createResponse } from "./rpgfApi/utils";
+
 const assetManifest = JSON.parse(manifestJSON);
 
 export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
+  PrismaSingleton.setConnectionUrl(env.DATABASE_URL!);
+
   const url = new URL(request.url);
   const name =
     request.headers.get("x-durable-object-instance-name") ||
@@ -22,11 +31,7 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
       accessKey: env.TENDERLY_ACCESS_KEY,
     });
 
-    return new Response(JSON.stringify(result), {
-      headers: {
-        "content-type": "application/json",
-      },
-    });
+    return createResponse(result, 200);
   }
 
   if (url.pathname === "/fetch_signature") {
@@ -37,23 +42,35 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
       });
 
       if (result.error) {
-        return new Response(JSON.stringify({ error: result.error }), {
-          status: 500,
-          headers: { "content-type": "application/json" },
-        });
+        return createResponse(result.error, 500);
       }
 
-      return new Response(JSON.stringify(result.response), {
-        headers: {
-          "content-type": "application/json",
-        },
-      });
+      return createResponse(result.response as any, 200);
     }
 
-    return new Response(JSON.stringify({ message: "Invalid request" }), {
-      status: 400,
-      headers: { "content-type": "application/json" },
-    });
+    return createResponse("Invalid request", 400);
+  }
+
+  // ----------------
+  // RPGF API
+  // ----------------
+
+  if (url.pathname.startsWith("/api/")) {
+    const path = url.pathname.split("/").slice(1);
+
+    switch (path[1]) {
+      case "auth":
+        return await handleAuthRequest(path[2], request, env);
+
+      case "ballot":
+        return await handleBallotsRequest(request, env);
+
+      case "likes":
+        return await handleLikesRequest(request, env);
+
+      default:
+        return createResponse({ error: `Invalid path: ${url.pathname}` }, 400);
+    }
   }
 
   if (

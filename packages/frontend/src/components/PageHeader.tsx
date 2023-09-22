@@ -2,17 +2,19 @@ import { css } from "@emotion/css";
 import * as theme from "../theme";
 import logo from "../logo.svg";
 import graphql from "babel-plugin-relay/macro";
-import { ConnectKitButton } from "connectkit";
+import { ConnectKitButton, SIWESession, useModal, useSIWE } from "connectkit";
 import { useAccount } from "wagmi";
 import { useLazyLoadQuery } from "react-relay/hooks";
-import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
+import {
+  PageHeaderQuery,
+  PageHeaderQuery$data,
+} from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
 import { Link } from "./HammockRouter/Link";
 import { useLocation } from "./HammockRouter/HammockRouter";
 import { icons } from "../icons/icons";
 import { ProfileDropDownButton } from "./ProfileDropDownButton";
 import { MobileProfileDropDownButton } from "./MobileProfileDropDownButton";
-import React from "react";
 
 export const orgName = "Optimism";
 
@@ -178,43 +180,44 @@ export const DesktopButton = () => {
   );
 
   return (
-    <ConnectKitButton.Custom>
-      {({ isConnected, isConnecting, show, hide, address, ensName }) => (
-        <div
-          className={css`
-            background-color: ${theme.colors.gray.fa};
-            border-radius: ${theme.borderRadius.full};
-            cursor: pointer;
-            :hover {
-              background: ${theme.colors.gray[200]};
-            }
-          `}
-        >
-          {!accountAddress && (
-            <div
-              className={css`
-                padding: ${theme.spacing[2]} ${theme.spacing[5]};
-              `}
-              onClick={show}
-            >
-              Connect Wallet
-            </div>
-          )}
-          {accountAddress && delegate && (
-            <ProfileDropDownButton
-              isConnected={isConnected}
-              isConnecting={isConnecting}
-              show={show}
-              hide={hide}
-              address={address}
-              ensName={ensName}
-              fragment={delegate}
-              hasStatment={!!delegate.statement}
-            />
-          )}
-        </div>
-      )}
-    </ConnectKitButton.Custom>
+    <CustomSIWEButton delegate={delegate} />
+    // <ConnectKitButton.Custom>
+    //   {({ isConnected, isConnecting, show, hide, address, ensName }) => (
+    //     <div
+    //       className={css`
+    //         background-color: ${theme.colors.gray.fa};
+    //         border-radius: ${theme.borderRadius.full};
+    //         cursor: pointer;
+    //         :hover {
+    //           background: ${theme.colors.gray[200]};
+    //         }
+    //       `}
+    //     >
+    //       {!accountAddress && (
+    //         <div
+    //           className={css`
+    //             padding: ${theme.spacing[2]} ${theme.spacing[5]};
+    //           `}
+    //           onClick={show}
+    //         >
+    //           Connect Wallet
+    //         </div>
+    //       )}
+    //       {accountAddress && delegate && (
+    //         <ProfileDropDownButton
+    //           isConnected={isConnected}
+    //           isConnecting={isConnecting}
+    //           show={show}
+    //           hide={hide}
+    //           address={address}
+    //           ensName={ensName}
+    //           fragment={delegate}
+    //           hasStatment={!!delegate.statement}
+    //         />
+    //       )}
+    //     </div>
+    //   )}
+    // </ConnectKitButton.Custom>
   );
 };
 
@@ -271,5 +274,115 @@ export const MobileButton = () => {
         );
       }}
     </ConnectKitButton.Custom>
+  );
+};
+
+const CustomSIWEButton = ({
+  delegate,
+}: {
+  delegate: PageHeaderQuery$data["delegate"];
+}) => {
+  const { setOpen } = useModal();
+  const { isConnected } = useAccount();
+
+  const {
+    data,
+    // isReady,
+    isRejected,
+    isLoading,
+    isSignedIn,
+    signOut,
+    signIn,
+    status,
+    error,
+  } = useSIWE({
+    onSignIn: (session?: SIWESession) => {
+      // Do something with the data
+      console.log(session);
+      console.log("need to sign?");
+    },
+    onSignOut: () => {
+      // Do something when signed out
+    },
+  });
+
+  const handleSignIn = async () => {
+    await signIn()?.then((session?: SIWESession) => {
+      // Do something when signed in
+      console.log(session);
+      console.log("signed in");
+      console.log(status);
+      console.log(error);
+    });
+  };
+
+  const handleSignOut = async () => {
+    await signOut()?.then(() => {
+      // Do something when signed out
+    });
+  };
+
+  /** Wallet is connected and signed in */
+  if (isSignedIn) {
+    return (
+      <div
+        className={css`
+          background-color: ${theme.colors.gray.fa};
+          border-radius: ${theme.borderRadius.full};
+          cursor: pointer;
+          :hover {
+            background: ${theme.colors.gray[200]};
+          }
+        `}
+        onClick={handleSignOut}
+      >
+        {/* {!accountAddress && (
+          <div
+            className={css`
+              padding: ${theme.spacing[2]} ${theme.spacing[5]};
+            `}
+            onClick={show}
+          >
+            Connect Wallet
+          </div>
+        )} */}
+        {delegate && (
+          <ProfileDropDownButton
+            address={data.address.toString()}
+            ensName={data.ensName}
+            fragment={delegate}
+            hasStatment={!!delegate.statement}
+          />
+        )}
+      </div>
+      // <>
+      //   <div>Address: {data?.address}</div>
+      //   <div>ChainId: {data?.chainId}</div>
+      //   <button onClick={handleSignOut}>Sign Out</button>
+      // </>
+    );
+  }
+
+  /** Wallet is connected, but not signed in */
+  if (isConnected) {
+    return (
+      <>
+        <button onClick={handleSignIn} disabled={isLoading}>
+          {isRejected // User Rejected
+            ? "Try Again"
+            : isLoading // Waiting for signing request
+            ? "Awaiting request..."
+            : // Waiting for interaction
+              "Sign In"}
+        </button>
+      </>
+    );
+  }
+
+  /** A wallet needs to be connected first */
+  return (
+    <>
+      <button onClick={() => setOpen(true)}>Connect Wallet</button>
+    </>
   );
 };

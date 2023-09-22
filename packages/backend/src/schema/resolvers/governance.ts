@@ -233,6 +233,10 @@ export const Query: QueryResolvers = {
       after ?? null
     );
   },
+
+  retroPGF() {
+    return {};
+  },
 };
 
 export type DelegateModel = RuntimeType<
