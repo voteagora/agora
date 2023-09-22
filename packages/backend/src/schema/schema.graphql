@@ -18,6 +18,8 @@ type Query {
   proposals: [Proposal!]!
 
   metrics: Metrics!
+
+  retroPGF: RetroPGF!
 }
 
 type Delegate {
@@ -312,6 +314,65 @@ type ApprovalVotingProposalOption {
   transactions: [ProposalTransaction!]
 
   budgetTokensSpent: TokenAmount!
+}
+
+type RetroPGF {
+  badgeholders: [Delegate!]!
+  applications: [Application!]!
+  lists: [List!]!
+}
+
+type Application {
+  id: ID!
+  displayName: String!
+  applicantType: String!
+  websiteUrl: String!
+  bio: String!
+  contributionDescription: String!
+  contributionLinks: [ContributionLink!]!
+  impactCategory: [String!]!
+  impactDescription: String!
+  impactMetrics: [ImpactMetric!]!
+  fundingSources: [FundingSource!]
+  payoutAddress: String!
+  understoodKYCRequirements: Boolean!
+  understoodFundClaimPeriod: Boolean!
+  certifiedNotDesignatedOrSanctionedOrBlocked: Boolean!
+  certifiedNotSponsoredByPoliticalFigureOrGovernmentEntity: Boolean!
+  certifiedNotBarredFromParticipating: Boolean!
+}
+
+type ContributionLink {
+  type: String!
+  url: String!
+  description: String!
+}
+
+type ImpactMetric {
+  description: String!
+  number: Int!
+  url: String!
+}
+
+type FundingSource {
+  type: String!
+  currency: String!
+  amount: Int!
+  description: String!
+}
+
+type List {
+  id: ID!
+  listName: String!
+  listDescription: String!
+  impactEvaluationDescription: String!
+  impactEvaluationLink: String!
+  listContent: [ListConent!]!
+}
+
+type ListConent {
+  RPGF3_Application_UID: String!
+  OPAmount: Int!
 }
 
 type Mutation {

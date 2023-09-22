@@ -26,6 +26,7 @@ import {
 import { ethers } from "ethers";
 import { StructuredError } from "./utils/errorUtils";
 import { Toucan } from "toucan-js";
+import { makeDataFetcher } from "./dataFetcher/dataFetcher";
 
 export function followChain(
   store: EntityStore,
@@ -33,6 +34,7 @@ export function followChain(
   entityDefinitions: EntitiesType,
   blockProvider: BlockProvider,
   logProvider: LogProvider,
+  ethProvider: ethers.providers.BaseProvider,
   storageArea: StorageArea,
   env: String,
   sentry?: Toucan
@@ -50,6 +52,7 @@ export function followChain(
     block: BlockProviderBlock,
     logsCache?: Map<string, ethers.providers.Log[]>
   ) {
+    const dataFetcher = makeDataFetcher(ethProvider);
     const [storageHandle, loadedEntities] = makeStorageHandleForStorageArea(
       storageArea,
       block,
@@ -73,7 +76,12 @@ export function followChain(
       )!;
 
       try {
-        await eventHandler.handle(storageHandle, event as any, log);
+        await eventHandler.handle(
+          storageHandle,
+          event as any,
+          log,
+          dataFetcher
+        );
       } catch (e) {
         throw new StructuredError(
           {

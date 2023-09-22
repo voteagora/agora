@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import { followChain, makeInitialStorageArea } from "./followChain";
 import { DurableObjectEntityStore } from "./storage/durableObjects/durableObjectEntityStore";
 import { MemoryStorage } from "./storage/durableObjects/memoryStorage";
@@ -58,6 +59,8 @@ const testContractIndexer = makeIndexerDefinition(testContractInstance, {
 
 describe("followChain", () => {
   it("handles processing events", async () => {
+    const provider = new ethers.providers.JsonRpcProvider();
+
     const initialFinalizedBlock = makeBlockIdentifier(finalizedBlockNumber);
 
     const memoryStorage = new MemoryStorage(
@@ -78,6 +81,7 @@ describe("followChain", () => {
       entityDefinitions,
       blockProvider,
       logProvider,
+      provider,
       storageArea,
       "dev"
     );

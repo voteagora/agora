@@ -9,7 +9,7 @@ export type LogFilter = BlockSpec & TopicFilter;
 
 export type TopicFilter = {
   address?: string[];
-  topics?: Array<string> | Array<Array<string>>;
+  topics?: Array<string | null> | Array<Array<string> | null>;
 };
 
 export type BlockSpec =

@@ -42,9 +42,9 @@ export async function validateSigned(
   { signerAddress, value, signature, signatureType }: ValueWithSignature
 ): Promise<ValidatedMessage> {
   const parsedSignature = ethers.utils.arrayify(signature);
-  const hashedMessage = hashEnvelopeValue(value);
 
   if (signatureType === "CONTRACT") {
+    const hashedMessage = hashEnvelopeValue(value);
     const safe = GnosisSafe__factory.connect(signerAddress, provider);
     const isSigned = await checkSafeSignature(safe, hashedMessage, signature);
     if (!isSigned) {
@@ -58,7 +58,7 @@ export async function validateSigned(
       signatureType,
     };
   } else {
-    const address = ethers.utils.verifyMessage(hashedMessage, parsedSignature);
+    const address = ethers.utils.verifyMessage(value, parsedSignature);
     if (address.toLowerCase() !== signerAddress.toLowerCase()) {
       throw new Error("signature address does not match signer address");
     }

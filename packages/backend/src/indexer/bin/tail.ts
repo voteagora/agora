@@ -26,6 +26,7 @@ async function main() {
     entityDefinitions,
     blockProvider,
     logProvider,
+    provider,
     storageArea,
     process.argv[2] || "dev"
   );

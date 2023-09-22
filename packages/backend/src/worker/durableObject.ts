@@ -18,6 +18,7 @@ import {
 } from "../indexer/utils/generatorUtils";
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
+import { makeDataFetcher } from "../indexer/dataFetcher/dataFetcher";
 
 export const blockUpdateIntervalSeconds = 4;
 
@@ -224,6 +225,7 @@ export class StorageDurableObjectV1 {
           entityDefinitions,
           blockProvider,
           logProvider,
+          this.provider,
           storageArea,
           this.env.ENVIRONMENT,
           toucan

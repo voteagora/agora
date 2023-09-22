@@ -29,6 +29,12 @@ export interface Env {
   TENDERLY_USER: string;
   TENDERLY_PROJECT: string;
   TENDERLY_ACCESS_KEY: string;
+
+  /**
+   * API
+   */
+  JWT_SECRET: string;
+  DATABASE_URL: string;
 }
 
 export function safelyLoadBlockStepSize(env: Env): number | undefined {

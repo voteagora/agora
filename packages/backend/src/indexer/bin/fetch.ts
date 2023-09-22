@@ -38,7 +38,8 @@ async function main() {
 
   const filter = filterForEventHandlers(
     indexer,
-    indexer.eventHandlers.map((handler) => handler.signature)
+    indexer.eventHandlers.map((handler) => handler.signature),
+    indexer.topicsFilter
   );
 
   const latestBlock = await provider.getBlock("latest");

@@ -178,9 +178,9 @@ export async function takeLast<T>(gen: AsyncIterable<T>): Promise<T | null> {
 
 export async function* mapGenerator<T, U>(
   generator: AsyncGenerator<T>,
-  mapper: (item: T) => U
+  mapper: (item: T) => Promise<U> | U
 ): AsyncGenerator<U> {
   for await (const item of generator) {
-    yield mapper(item);
+    yield await mapper(item);
   }
 }
