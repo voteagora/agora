@@ -41,7 +41,7 @@ async function handleNonceRequest() {
     const nonce = await makeSIWENonce();
 
     return createResponse({ nonce }, 200, {
-      "Set-Cookie": `nonce=${nonce}; Path=/; HttpOnly; Secure; SameSite=Strict; max-age=300`,
+      "Set-Cookie": `nonce=${nonce}; Path=/; HttpOnly; Secure; SameSite=None; max-age=300`,
     });
   } catch (error) {
     return createResponse({ error }, 500);
@@ -78,7 +78,7 @@ async function handleVerifyRequest(
       );
       if (success) {
         return createResponse({ success }, 200, {
-          "Set-Cookie": `access-token=${jwt}; Path=/; HttpOnly; Secure; SameSite=Strict; max-age=3600`, // TODO: define max-age
+          "Set-Cookie": `access-token=${jwt}; Path=/; HttpOnly; Secure; SameSite=None; max-age=3600`, // TODO: define max-age
         });
       } else {
         return createResponse({ error: "Invalid nonce or signature" }, 401);
