@@ -16,6 +16,7 @@ export function createResponse(
     status,
     headers: {
       "content-type": "application/json",
+      "Access-Control-Allow-Origin": "*",
       ...headers,
     },
   });
