@@ -78,7 +78,7 @@ async function handleVerifyRequest(
       );
       if (success) {
         return createResponse({ success }, 200, {
-          "Set-Cookie": `access-token=${jwt}; Path=/; HttpOnly; Secure; SameSite=None; max-age=3600`, // TODO: define max-age
+          "Set-Cookie": `access-token=${jwt}; Path=/; HttpOnly; Secure; SameSite=None; max-age=7200`, // 2 hours
         });
       } else {
         return createResponse({ error: "Invalid nonce or signature" }, 401);
@@ -139,6 +139,6 @@ async function handleSessionRequest(
 async function handleSignOut() {
   // Remove cookies
   return createResponse({ success: true }, 200, {
-    "Set-Cookie": `access-token=; Path=/; HttpOnly; Secure; SameSite=Strict; max-age=0`,
+    "Set-Cookie": `access-token=; Path=/; HttpOnly; Secure; SameSite=None; max-age=0`,
   });
 }
