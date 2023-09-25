@@ -18,7 +18,10 @@ export function createResponse(
       "content-type": "application/json",
       "Access-Control-Allow-Origin": "*", // TODO: Update to only whitelisted domains
       "Access-Control-Allow-Methods": "GET,HEAD,POST,UPDATE,OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Cookie",
       "Access-Control-Max-Age": "86400",
+      "Access-Control-Allow-Credentials": "true",
+      "Cache-Control": "no-cache",
       ...headers,
     },
   });

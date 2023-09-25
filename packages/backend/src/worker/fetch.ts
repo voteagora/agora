@@ -56,6 +56,10 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
   // ----------------
 
   if (url.pathname.startsWith("/api/")) {
+    if (request.method === "OPTIONS") {
+      return createResponse({}, 204);
+    }
+
     const path = url.pathname.split("/").slice(1);
 
     switch (path[1]) {
