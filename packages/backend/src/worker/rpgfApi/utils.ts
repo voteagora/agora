@@ -16,7 +16,9 @@ export function createResponse(
     status,
     headers: {
       "content-type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": "*", // TODO: Update to only whitelisted domains
+      "Access-Control-Allow-Methods": "GET,HEAD,POST,UPDATE,OPTIONS",
+      "Access-Control-Max-Age": "86400",
       ...headers,
     },
   });
