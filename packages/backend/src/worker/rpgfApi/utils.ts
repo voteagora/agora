@@ -10,14 +10,15 @@ export type Handler = (
 export function createResponse(
   body: string | object,
   status: number = 200,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
+  request?: Request
 ) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       "content-type": "application/json",
       "Referrer-Policy": "origin-when-cross-origin",
-      "Access-Control-Allow-Origin": "*", // TODO: Update to only whitelisted domains
+      "Access-Control-Allow-Origin": request?.headers.get("Origin") ?? "*", // TODO: Update to only whitelisted domains
       "Access-Control-Allow-Methods": "GET,HEAD,POST,UPDATE,OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Cookie",
       "Access-Control-Max-Age": "86400",
@@ -46,20 +47,29 @@ export function authWrap(asyncFn: Handler): Handler {
           } else {
             return createResponse(
               { error: "Invalid or expired access token" },
-              401
+              401,
+              {},
+              request
             );
           }
         } catch (error) {
           return createResponse(
             { error: "Invalid or expired access token" },
-            401
+            401,
+            {},
+            request
           );
         }
       } else {
-        return createResponse({ error: "Missing access token" }, 401);
+        return createResponse(
+          { error: "Missing access token" },
+          401,
+          {},
+          request
+        );
       }
     } catch (error) {
-      return createResponse({ error }, 500);
+      return createResponse({ error }, 500, {}, request);
     }
   };
 
@@ -71,7 +81,7 @@ export function handlerWrap(asyncFunction: Handler): Handler {
     try {
       return await asyncFunction(request, env, address);
     } catch (error) {
-      return createResponse({ error }, 500);
+      return createResponse({ error }, 500, {}, request);
     }
   };
 

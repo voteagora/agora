@@ -13,7 +13,7 @@ export async function handleAuthRequest(
 ) {
   switch (path) {
     case "nonce":
-      return handleNonceRequest();
+      return handleNonceRequest(request);
 
     case "verify":
       return handleVerifyRequest(request, env);
@@ -22,7 +22,7 @@ export async function handleAuthRequest(
       return handleSessionRequest(request, env);
 
     case "signout":
-      return handleSignOut();
+      return handleSignOut(request);
 
     default:
       return createResponse(
@@ -36,15 +36,20 @@ export async function handleAuthRequest(
 // Nonce
 // ----------------
 
-async function handleNonceRequest() {
+async function handleNonceRequest(request: Request) {
   try {
     const nonce = await makeSIWENonce();
 
-    return createResponse({ nonce }, 200, {
-      "Set-Cookie": `nonce=${nonce}; Path=/; HttpOnly; Secure; SameSite=None; max-age=300`,
-    });
+    return createResponse(
+      { nonce },
+      200,
+      {
+        "Set-Cookie": `nonce=${nonce}; Path=/; HttpOnly; Secure; SameSite=None; max-age=300`,
+      },
+      request
+    );
   } catch (error) {
-    return createResponse({ error }, 500);
+    return createResponse({ error }, 500, {}, request);
   }
 }
 
@@ -60,7 +65,7 @@ async function handleVerifyRequest(
     const { message, signature } = (await request.json()) as any;
 
     if (!message || !signature) {
-      return createResponse({ error: "Invalid request" }, 400);
+      return createResponse({ error: "Invalid request" }, 400, {}, request);
     }
 
     const cookies = request.headers.get("Cookie");
@@ -77,17 +82,32 @@ async function handleVerifyRequest(
         env.JWT_SECRET
       );
       if (success) {
-        return createResponse({ success }, 200, {
-          "Set-Cookie": `access-token=${jwt}; Path=/; HttpOnly; Secure; SameSite=None; max-age=7200`, // 2 hours
-        });
+        return createResponse(
+          { success },
+          200,
+          {
+            "Set-Cookie": `access-token=${jwt}; Path=/; HttpOnly; Secure; SameSite=None; max-age=7200`, // 2 hours
+          },
+          request
+        );
       } else {
-        return createResponse({ error: "Invalid nonce or signature" }, 401);
+        return createResponse(
+          { error: "Invalid nonce or signature" },
+          401,
+          {},
+          request
+        );
       }
     } else {
-      return createResponse({ error: "Missing nonce cookie" }, 401);
+      return createResponse(
+        { error: "Missing nonce cookie" },
+        401,
+        {},
+        request
+      );
     }
   } catch (error) {
-    return createResponse({ error }, 500);
+    return createResponse({ error }, 500, {}, request);
   }
 }
 
@@ -111,24 +131,33 @@ async function handleSessionRequest(
       try {
         const session = await verifySIWESession(jwt, env.JWT_SECRET);
         if (session) {
-          return createResponse({ session: session.payload });
+          return createResponse({ session: session.payload }, 200, {}, request);
         } else {
           return createResponse(
             { error: "Invalid or expired access token" },
-            401
+            401,
+            {},
+            request
           );
         }
       } catch (error) {
         return createResponse(
           { error: "Invalid or expired access token" },
-          401
+          401,
+          {},
+          request
         );
       }
     } else {
-      return createResponse({ error: "Missing access token" }, 401);
+      return createResponse(
+        { error: "Missing access token" },
+        401,
+        {},
+        request
+      );
     }
   } catch (error) {
-    return createResponse({ error }, 500);
+    return createResponse({ error }, 500, {}, request);
   }
 }
 
@@ -136,9 +165,14 @@ async function handleSessionRequest(
 // Signout
 // ----------------
 
-async function handleSignOut() {
+async function handleSignOut(request: Request) {
   // Remove cookies
-  return createResponse({ success: true }, 200, {
-    "Set-Cookie": `access-token=; Path=/; HttpOnly; Secure; SameSite=None; max-age=0`,
-  });
+  return createResponse(
+    { success: true },
+    200,
+    {
+      "Set-Cookie": `access-token=; Path=/; HttpOnly; Secure; SameSite=None; max-age=0`,
+    },
+    request
+  );
 }

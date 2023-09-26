@@ -28,9 +28,14 @@ const handleGetRequest: Handler = async (
   address?: string
 ) => {
   if (!address) {
-    return createResponse({ error: "Address is missing" }, 400);
+    return createResponse({ error: "Address is missing" }, 400, {}, request);
   }
-  return createResponse(await makeBallotService().getBallot(address));
+  return createResponse(
+    await makeBallotService().getBallot(address),
+    200,
+    {},
+    request
+  );
 };
 
 const wrappedGetHandler = authWrap(handlerWrap(handleGetRequest));
@@ -51,13 +56,20 @@ const handleSaveRequest: Handler = async (
   if (!validationResult.success || !address) {
     return createResponse(
       { error: "Bad request: incorrect ballot schema" },
-      400
+      400,
+      {},
+      request
     );
   }
 
-  return createResponse({
-    ballot: await makeBallotService().saveBallot(address, votes),
-  });
+  return createResponse(
+    {
+      ballot: await makeBallotService().saveBallot(address, votes),
+    },
+    200,
+    {},
+    request
+  );
 };
 
 const wrappedSaveHandler = authWrap(handlerWrap(handleSaveRequest));
@@ -82,7 +94,9 @@ const handleSubmitRequest: Handler = async (
   if (!validationResult.success || !address || !signature) {
     return createResponse(
       { error: "Bad request: incorrect ballot schema" },
-      400
+      400,
+      {},
+      request
     );
   }
   try {
@@ -94,14 +108,24 @@ const handleSubmitRequest: Handler = async (
     );
 
     if (submission.error) {
-      return createResponse({ error: submission.error }, submission.error.code);
+      return createResponse(
+        { error: submission.error },
+        submission.error.code,
+        {},
+        request
+      );
     }
 
-    return createResponse({
-      submission,
-    });
+    return createResponse(
+      {
+        submission,
+      },
+      200,
+      {},
+      request
+    );
   } catch (error) {
-    return createResponse({ error }, 500);
+    return createResponse({ error }, 500, {}, request);
   }
 };
 

@@ -21,10 +21,20 @@ export async function handleLikesRequest(request: Request, env: Env) {
 const handleGetRequest: Handler = async (request: Request, env: Env) => {
   const listId = new URL(request.url).pathname.split("/")[3];
   if (!listId) {
-    return createResponse(await makeLikesService().getAllLikes());
+    return createResponse(
+      await makeLikesService().getAllLikes(),
+      200,
+      {},
+      request
+    );
   }
 
-  return createResponse(await makeLikesService().getLikes(listId));
+  return createResponse(
+    await makeLikesService().getLikes(listId),
+    200,
+    {},
+    request
+  );
 };
 
 const wrappedGetHandler = handlerWrap(handleGetRequest);
@@ -47,13 +57,20 @@ const handleLikeRequest: Handler = async (
         listId,
         address,
       },
-      400
+      400,
+      {},
+      request
     );
   }
 
   // TODO: verify that listId exists
 
-  return createResponse(await makeLikesService().like({ listId, address }));
+  return createResponse(
+    await makeLikesService().like({ listId, address }),
+    200,
+    {},
+    request
+  );
 };
 
 const wrappedLikeHandler = authWrap(handlerWrap(handleLikeRequest));
