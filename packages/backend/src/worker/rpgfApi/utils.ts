@@ -7,16 +7,6 @@ export type Handler = (
   address?: string
 ) => Promise<Response>;
 
-// const corsHeaders = {
-//   "content-type": "application/json",
-//   "Referrer-Policy": "origin-when-cross-origin",
-//   "Access-Control-Allow-Origin": "*", // TODO: Update to only whitelisted domains
-//   "Access-Control-Allow-Methods": "GET,HEAD,POST,UPDATE,OPTIONS",
-//   "Access-Control-Max-Age": "86400",
-//   "Access-Control-Allow-Credentials": "true",
-//   "Cache-Control": "no-cache",
-// };
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,HEAD,POST,OPTIONS",
