@@ -16,6 +16,7 @@ export function createResponse(
     status,
     headers: {
       "content-type": "application/json",
+      "Referrer-Policy": "origin-when-cross-origin",
       "Access-Control-Allow-Origin": "*", // TODO: Update to only whitelisted domains
       "Access-Control-Allow-Methods": "GET,HEAD,POST,UPDATE,OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Cookie",
