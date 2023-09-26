@@ -44,7 +44,7 @@ async function handleNonceRequest(request: Request) {
       { nonce },
       200,
       {
-        "Set-Cookie": `nonce=${nonce}; Path=/; HttpOnly; Secure; SameSite=None; max-age=300`,
+        "Set-Cookie": `nonce=${nonce}; Path=/; HttpOnly; SameSite=None; max-age=300`, // TODO: set Secure for production
       },
       request
     );
@@ -86,7 +86,7 @@ async function handleVerifyRequest(
           { success },
           200,
           {
-            "Set-Cookie": `access-token=${jwt}; Path=/; HttpOnly; Secure; SameSite=None; max-age=7200`, // 2 hours
+            "Set-Cookie": `access-token=${jwt}; Path=/; HttpOnly; SameSite=None; max-age=7200`, // 2 hours // TODO: set Secure for production
           },
           request
         );
