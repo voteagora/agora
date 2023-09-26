@@ -31,7 +31,10 @@ export async function verifySIWEMessage(
       : 3600 * 1000 * 2; // defaults to 2 hours
     const expiry = Math.floor(Date.now() / 1000) + expiryTimespan;
     const secret = new TextEncoder().encode(jwtSecret);
-    const jwtToken = await new SignJWT({ address: message.address })
+    const jwtToken = await new SignJWT({
+      address: message.address,
+      chainId: message.chainId,
+    })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime(expiry)
       .sign(secret);
