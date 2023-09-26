@@ -66,7 +66,6 @@ export function createResponse(
         headers: {
           ...corsHeaders,
           "Access-Control-Allow-Headers": requestHeaders,
-          "Access-Control-Allow-Origin": url.origin,
           ...headers,
         },
       });
@@ -75,7 +74,6 @@ export function createResponse(
         status,
         headers: {
           ...corsHeaders,
-          "Access-Control-Allow-Origin": url.origin,
           ...headers,
         },
       });
