@@ -131,7 +131,12 @@ async function handleSessionRequest(
       try {
         const session = await verifySIWESession(jwt, env.JWT_SECRET);
         if (session) {
-          return createResponse({ session: session.payload }, 200, {}, request);
+          return createResponse(
+            { session: { ...session.payload, chainId: 10 } },
+            200,
+            {},
+            request
+          );
         } else {
           return createResponse(
             { error: "Invalid or expired access token" },
