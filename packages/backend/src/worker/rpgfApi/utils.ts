@@ -56,6 +56,7 @@ export function createResponse(
         headers: {
           ...corsHeaders,
           "Access-Control-Allow-Headers": requestHeaders,
+          "content-type": "application/json",
           ...headers,
         },
       });
@@ -64,6 +65,7 @@ export function createResponse(
         status,
         headers: {
           ...corsHeaders,
+          "content-type": "application/json",
           ...headers,
         },
       });
