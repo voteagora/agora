@@ -1,5 +1,4 @@
-import { ethers } from "ethers";
-import { Env, mustGetAlchemyApiKey, shouldUseCache } from "./env";
+import { Env, shouldUseCache } from "./env";
 import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
 import { fetchThroughCache } from "./cache";
 import { simulateTransaction } from "./tenderly";
@@ -57,7 +56,7 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
 
   if (url.pathname.startsWith("/api/")) {
     if (request.method === "OPTIONS") {
-      return createResponse({}, 204);
+      return createResponse("OK", 204, {}, request);
     }
 
     const path = url.pathname.split("/").slice(1);
@@ -73,7 +72,12 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
         return await handleLikesRequest(request, env);
 
       default:
-        return createResponse({ error: `Invalid path: ${url.pathname}` }, 400);
+        return createResponse(
+          { error: `Invalid path: ${url.pathname}` },
+          400,
+          {},
+          request
+        );
     }
   }
 
