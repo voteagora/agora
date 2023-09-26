@@ -9,7 +9,7 @@ import { handleAuthRequest } from "./rpgfApi/auth";
 import PrismaSingleton from "../store/prisma/client";
 import { handleBallotsRequest } from "./rpgfApi/ballots";
 import { handleLikesRequest } from "./rpgfApi/likes";
-import { createResponse } from "./rpgfApi/utils";
+import { createResponse, handleOptionsRequest } from "./rpgfApi/utils";
 
 const assetManifest = JSON.parse(manifestJSON);
 
@@ -56,7 +56,7 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
 
   if (url.pathname.startsWith("/api/")) {
     if (request.method === "OPTIONS") {
-      return createResponse("OK", 204, {}, request);
+      return handleOptionsRequest(request);
     }
 
     const path = url.pathname.split("/").slice(1);

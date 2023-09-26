@@ -7,15 +7,47 @@ export type Handler = (
   address?: string
 ) => Promise<Response>;
 
+// const corsHeaders = {
+//   "content-type": "application/json",
+//   "Referrer-Policy": "origin-when-cross-origin",
+//   "Access-Control-Allow-Origin": "*", // TODO: Update to only whitelisted domains
+//   "Access-Control-Allow-Methods": "GET,HEAD,POST,UPDATE,OPTIONS",
+//   "Access-Control-Max-Age": "86400",
+//   "Access-Control-Allow-Credentials": "true",
+//   "Cache-Control": "no-cache",
+// };
+
 const corsHeaders = {
-  "content-type": "application/json",
-  "Referrer-Policy": "origin-when-cross-origin",
-  "Access-Control-Allow-Origin": "*", // TODO: Update to only whitelisted domains
-  "Access-Control-Allow-Methods": "GET,HEAD,POST,UPDATE,OPTIONS",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET,HEAD,POST,OPTIONS",
   "Access-Control-Max-Age": "86400",
   "Access-Control-Allow-Credentials": "true",
-  "Cache-Control": "no-cache",
 };
+
+export async function handleOptionsRequest(request: Request) {
+  if (
+    request.headers.get("Origin") !== null &&
+    request.headers.get("Access-Control-Request-Method") !== null &&
+    request.headers.get("Access-Control-Request-Headers") !== null
+  ) {
+    // Handle CORS preflight requests.
+    return new Response(null, {
+      headers: {
+        ...corsHeaders,
+        "Access-Control-Allow-Headers": request.headers.get(
+          "Access-Control-Request-Headers"
+        )!,
+      },
+    });
+  } else {
+    // Handle standard OPTIONS request.
+    return new Response(null, {
+      headers: {
+        Allow: "GET, HEAD, POST, OPTIONS",
+      },
+    });
+  }
+}
 
 export function createResponse(
   body: string | object,
@@ -23,27 +55,40 @@ export function createResponse(
   headers: Record<string, string> = {},
   request?: Request
 ) {
-  const requestHeaders = request?.headers.get("Access-Control-Request-Headers");
-  if (requestHeaders) {
-    return new Response(JSON.stringify(body), {
-      status,
-      headers: {
-        ...corsHeaders,
-        "Access-Control-Allow-Headers": requestHeaders,
-        "Access-Control-Allow-Origin": request?.headers.get("Origin") ?? "*",
-        ...headers,
-      },
-    });
-  } else {
-    return new Response(JSON.stringify(body), {
-      status,
-      headers: {
-        ...corsHeaders,
-        "Access-Control-Allow-Origin": request?.headers.get("Origin") ?? "*",
-        ...headers,
-      },
-    });
+  if (request) {
+    const url = new URL(request.url);
+    const requestHeaders = request.headers.get(
+      "Access-Control-Request-Headers"
+    );
+    if (requestHeaders) {
+      return new Response(JSON.stringify(body), {
+        status,
+        headers: {
+          ...corsHeaders,
+          "Access-Control-Allow-Headers": requestHeaders,
+          "Access-Control-Allow-Origin": url.origin,
+          ...headers,
+        },
+      });
+    } else {
+      return new Response(JSON.stringify(body), {
+        status,
+        headers: {
+          ...corsHeaders,
+          "Access-Control-Allow-Origin": url.origin,
+          ...headers,
+        },
+      });
+    }
   }
+
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "content-type": "application/json",
+      ...headers,
+    },
+  });
 }
 
 export function authWrap(asyncFn: Handler): Handler {
