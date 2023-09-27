@@ -37,6 +37,7 @@ export async function handleAuthRequest(
 // ----------------
 
 async function handleNonceRequest(request: Request) {
+  const domain = request.headers.get("host");
   try {
     const nonce = await makeSIWENonce();
 
@@ -44,7 +45,7 @@ async function handleNonceRequest(request: Request) {
       { nonce },
       200,
       {
-        "Set-Cookie": `nonce=${nonce}; Path=/; HttpOnly; Secure; SameSite=None; max-age=300`, // TODO: set Secure for production
+        "Set-Cookie": `nonce=${nonce}; Path=/; HttpOnly; Secure; SameSite=None; max-age=300 Domain=${domain}`, // TODO: set Secure for production
       },
       request
     );
@@ -61,6 +62,7 @@ async function handleVerifyRequest(
   request: Request,
   env: Env
 ): Promise<Response> {
+  const domain = request.headers.get("host");
   try {
     const { message, signature } = (await request.json()) as any;
 
@@ -86,7 +88,7 @@ async function handleVerifyRequest(
           { success },
           200,
           {
-            "Set-Cookie": `access-token=${jwt}; Path=/; HttpOnly; Secure; SameSite=None; max-age=7200`, // 2 hours // TODO: set Secure for production
+            "Set-Cookie": `access-token=${jwt}; Path=/; HttpOnly; Secure; SameSite=None; max-age=7200 Domain=${domain}`, // 2 hours // TODO: set Secure for production
           },
           request
         );
@@ -166,12 +168,13 @@ async function handleSessionRequest(
 // ----------------
 
 async function handleSignOut(request: Request) {
+  const domain = request.headers.get("host");
   // Remove cookies
   return createResponse(
     { success: true },
     200,
     {
-      "Set-Cookie": `access-token=; Path=/; HttpOnly; Secure; SameSite=None; max-age=0`,
+      "Set-Cookie": `access-token=; Path=/; HttpOnly; Secure; SameSite=None; max-age=0 Domain=${domain}`,
     },
     request
   );
