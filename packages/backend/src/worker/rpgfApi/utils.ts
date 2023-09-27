@@ -66,6 +66,7 @@ export function createResponse(
         status,
         headers: {
           ...corsHeaders,
+          "Access-Control-Allow-Origin": request.headers.get("Origin")!,
           "content-type": "application/json",
           ...headers,
         },
