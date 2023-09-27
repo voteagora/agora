@@ -37,8 +37,11 @@ export async function handleAuthRequest(
 // ----------------
 
 async function handleNonceRequest(request: Request) {
-  const domain = request.headers.get("host");
   try {
+    const origin = request.headers.get("origin")!;
+    const url = new URL(origin);
+    const domain = url.hostname;
+
     const nonce = await makeSIWENonce();
 
     return createResponse(
@@ -62,8 +65,11 @@ async function handleVerifyRequest(
   request: Request,
   env: Env
 ): Promise<Response> {
-  const domain = request.headers.get("host");
   try {
+    const origin = request.headers.get("origin")!;
+    const url = new URL(origin);
+    const domain = url.hostname;
+
     const { message, signature } = (await request.json()) as any;
 
     if (!message || !signature) {
@@ -168,7 +174,9 @@ async function handleSessionRequest(
 // ----------------
 
 async function handleSignOut(request: Request) {
-  const domain = request.headers.get("host");
+  const origin = request.headers.get("origin")!;
+  const url = new URL(origin);
+  const domain = url.hostname;
   // Remove cookies
   return createResponse(
     { success: true },
