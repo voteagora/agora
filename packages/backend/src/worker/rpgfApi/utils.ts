@@ -24,6 +24,7 @@ export async function handleOptionsRequest(request: Request) {
     return new Response(null, {
       headers: {
         ...corsHeaders,
+        "Access-Control-Allow-Origin": request.headers.get("Origin")!,
         "Access-Control-Allow-Headers": request.headers.get(
           "Access-Control-Request-Headers"
         )!,
