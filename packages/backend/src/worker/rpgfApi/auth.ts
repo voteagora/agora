@@ -38,12 +38,22 @@ export async function handleAuthRequest(
 
 async function handleNonceRequest(request: Request) {
   try {
-    const origin = request.headers.get("origin")!;
-    const url = new URL(origin);
-    const domain = url.hostname;
-
     const nonce = await makeSIWENonce();
 
+    const origin = request.headers.get("origin");
+    if (!origin) {
+      return createResponse(
+        { nonce },
+        200,
+        {
+          "Set-Cookie": `nonce=${nonce}; Path=/; HttpOnly; Secure; SameSite=None; max-age=300`, // TODO: set Secure for production
+        },
+        request
+      );
+    }
+
+    const url = new URL(origin);
+    const domain = url.host;
     return createResponse(
       { nonce },
       200,
@@ -66,10 +76,6 @@ async function handleVerifyRequest(
   env: Env
 ): Promise<Response> {
   try {
-    const origin = request.headers.get("origin")!;
-    const url = new URL(origin);
-    const domain = url.hostname;
-
     const { message, signature } = (await request.json()) as any;
 
     if (!message || !signature) {
@@ -90,6 +96,20 @@ async function handleVerifyRequest(
         env.JWT_SECRET
       );
       if (success) {
+        const origin = request.headers.get("origin");
+        if (!origin) {
+          return createResponse(
+            { success },
+            200,
+            {
+              "Set-Cookie": `access-token=${jwt}; Path=/; HttpOnly; Secure; SameSite=None; max-age=7200`, // 2 hours // TODO: set Secure for production
+            },
+            request
+          );
+        }
+
+        const url = new URL(origin);
+        const domain = url.host;
         return createResponse(
           { success },
           200,
@@ -174,9 +194,20 @@ async function handleSessionRequest(
 // ----------------
 
 async function handleSignOut(request: Request) {
-  const origin = request.headers.get("origin")!;
+  const origin = request.headers.get("origin");
+  if (!origin) {
+    return createResponse(
+      { success: true },
+      200,
+      {
+        "Set-Cookie": `access-token=; Path=/; HttpOnly; Secure; SameSite=None; max-age=0`, // TODO: set Secure for production
+      },
+      request
+    );
+  }
+
   const url = new URL(origin);
-  const domain = url.hostname;
+  const domain = url.host;
   // Remove cookies
   return createResponse(
     { success: true },
