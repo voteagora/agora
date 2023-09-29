@@ -19,6 +19,7 @@ import {
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 import { makeDataFetcher } from "../indexer/dataFetcher/dataFetcher";
+import PrismaSingleton from "../store/prisma/client";
 
 export const blockUpdateIntervalSeconds = 4;
 
@@ -100,6 +101,7 @@ export class StorageDurableObjectV1 {
       }
 
       case "/graphql": {
+        PrismaSingleton.setConnectionUrl(this.env.DATABASE_URL!);
         const isProduction = this.env.ENVIRONMENT === "prod";
         const storage = this.state.storage;
 

@@ -1,5 +1,6 @@
 import { DefaultArgs } from "@envelop/core";
 import { Prisma } from "@prisma/client/edge";
+import { compareBy } from "../indexer/utils/sortUtils";
 import PrismaSingleton from "../store/prisma/client";
 
 type Like = {
@@ -62,6 +63,49 @@ export function makeLikesService(): LikesService {
       });
 
       return likes;
+    },
+  };
+}
+
+export type LikesStore = {
+  getLikesForList(listId: string): Promise<string[]>;
+  getLikesForAddress(address: string): Promise<string[]>;
+  getAllLikesSortedDesc(): Promise<string[]>;
+};
+
+export function makeLikesStore(): LikesStore {
+  return {
+    async getLikesForList(listId: string) {
+      const like = await PrismaSingleton.instance.like.findUnique({
+        where: { id: listId },
+      });
+
+      if (like) {
+        return like.addresses;
+      } else {
+        return [];
+      }
+    },
+
+    async getLikesForAddress(address: string) {
+      const likes = await PrismaSingleton.instance.like.findMany({
+        where: { addresses: { has: address } },
+      });
+
+      return likes.map((like) => like.id);
+    },
+
+    async getAllLikesSortedDesc() {
+      const likesData = await PrismaSingleton.instance.like.findMany();
+
+      const likes: Likes = {};
+      likesData.forEach((like) => {
+        likes[like.id] = like.addresses;
+      });
+
+      return Object.entries(likes)
+        .sort(compareBy((it) => it[1].length))
+        .map((it) => it[0]);
     },
   };
 }

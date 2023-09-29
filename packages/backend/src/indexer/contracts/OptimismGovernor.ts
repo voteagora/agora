@@ -10,7 +10,7 @@ import * as serde from "../serde";
 import { RuntimeType } from "../serde";
 import { efficientLengthEncodingNaturalNumbers } from "../utils/efficientLengthEncoding";
 import { makeCompoundKey } from "../indexKey";
-import { encodeOrdinal, logToOrdinal, ordinal } from "./ordinal";
+import { encodeOrdinal, logToOrdinal, ordinal } from "./utils/ordinal";
 
 export const governorContract = makeContractInstance({
   iface: OptimismGovernorV5__factory.createInterface(),

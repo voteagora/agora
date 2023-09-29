@@ -1,13 +1,34 @@
 import { ethers, BigNumber } from "ethers";
+import { entityDefinitions } from ".";
 import { makeContractInstance } from "../../contracts";
 import { EAS__factory } from "../../contracts/generated";
 import { makeEntityDefinition, makeIndexerDefinition } from "../process";
 import * as serde from "../serde";
+import {
+  efficientLengthEncodingNaturalPositiveNumbers,
+  efficientLengthEncodingStringAsc,
+  efficientLengthEncodingStringDesc,
+} from "../utils/efficientLengthEncoding";
+import {
+  governanceTokenIndexer,
+  loadAccount,
+  saveAccount,
+} from "./GovernanceToken";
+import {
+  attestationAggregatesEntityDefinitions,
+  updateApplicationsAggregate,
+  updateListsAggregate,
+} from "./utils/aggregates";
+import {
+  addToApplicationsTrie,
+  addToListsTrie,
+  serchEntityDefinitions,
+} from "./utils/search";
 
 const EASContract = makeContractInstance({
   iface: EAS__factory.createInterface(),
   address: "0x4200000000000000000000000000000000000021",
-  startingBlock: 6490467,
+  startingBlock: 107953260,
 });
 
 const rpgfSchemas: { [key: string]: string } = {
@@ -24,6 +45,10 @@ export const EASIndexer = makeIndexerDefinition(EASContract, {
   name: "EAS",
 
   entities: {
+    ...serchEntityDefinitions,
+    ...attestationAggregatesEntityDefinitions,
+    ...governanceTokenIndexer.entities,
+
     Badgeholder: makeEntityDefinition({
       serde: serde.object({
         uid: serde.string,
@@ -91,24 +116,27 @@ export const EASIndexer = makeIndexerDefinition(EASContract, {
         certifiedNotDesignatedOrSanctionedOrBlocked: serde.boolean,
         certifiedNotSponsoredByPoliticalFigureOrGovernmentEntity: serde.boolean,
         certifiedNotBarredFromParticipating: serde.boolean,
+
+        blockNumber: serde.bigNumber,
       }),
       indexes: [
         {
-          indexName: "byDisplayName",
+          indexName: "byNameAZ",
           indexKey({ displayName }) {
-            return displayName;
+            return efficientLengthEncodingStringDesc(displayName);
           },
         },
         {
-          indexName: "byApplicantType",
-          indexKey({ applicantType }) {
-            return applicantType;
+          indexName: "byNameZA",
+          indexKey({ displayName }) {
+            return efficientLengthEncodingStringAsc(displayName);
           },
         },
         {
-          indexName: "byImpactCategory",
-          indexKey({ impactCategory }) {
-            return impactCategory[0]; // TODO: support multiple categories
+          // This index is used for shuffle
+          indexName: "byBlockNumber",
+          indexKey({ blockNumber }) {
+            return efficientLengthEncodingNaturalPositiveNumbers(blockNumber);
           },
         },
       ],
@@ -132,12 +160,29 @@ export const EASIndexer = makeIndexerDefinition(EASContract, {
             OPAmount: serde.number,
           })
         ),
+
+        categories: serde.array(serde.string),
+
+        blockNumber: serde.bigNumber,
       }),
       indexes: [
         {
-          indexName: "byListName",
+          indexName: "byNameAZ",
           indexKey({ listName }) {
-            return listName;
+            return efficientLengthEncodingStringDesc(listName);
+          },
+        },
+        {
+          indexName: "byNameZA",
+          indexKey({ listName }) {
+            return efficientLengthEncodingStringAsc(listName);
+          },
+        },
+        {
+          // This index is used for shuffle
+          indexName: "byBlockNumber",
+          indexKey({ blockNumber }) {
+            return efficientLengthEncodingNaturalPositiveNumbers(blockNumber);
           },
         },
       ],
@@ -153,7 +198,7 @@ export const EASIndexer = makeIndexerDefinition(EASContract, {
       async handle(
         handle,
         { args: { recipient, attester, uid, schema } },
-        _,
+        { blockNumber },
         { easDataFetcher, asyncDataFetcher }
       ) {
         const schemaName = rpgfSchemas[schema];
@@ -165,8 +210,9 @@ export const EASIndexer = makeIndexerDefinition(EASContract, {
             case "BADGEHOLDERS": {
               const badgeholderSchema = decodeBadgeholderSchema(schemaData);
 
+              // TODO: check if correct round
               if (attester == badgeholderAttester) {
-                handle.saveEntity("Badgeholder", uid, {
+                await handle.saveEntity("Badgeholder", uid, {
                   uid,
                   recipient,
                   attester,
@@ -177,6 +223,11 @@ export const EASIndexer = makeIndexerDefinition(EASContract, {
                   referredBy: badgeholderSchema.referredBy,
                   referredMethod: badgeholderSchema.referredMethod,
                 });
+
+                console.log("saving badgeholder", uid, recipient, attester);
+                const delegate = await loadAccount(handle, recipient);
+                console.log("delegate", delegate);
+                saveAccount(handle, { ...delegate, isCitizen: true });
               }
 
               break;
@@ -193,7 +244,7 @@ export const EASIndexer = makeIndexerDefinition(EASContract, {
                 );
               }
 
-              handle.saveEntity("Application", uid, {
+              const application = {
                 uid,
                 recipient,
                 attester,
@@ -226,7 +277,12 @@ export const EASIndexer = makeIndexerDefinition(EASContract, {
                   applicaitonData.certifiedNotSponsoredByPoliticalFigureOrGovernmentEntity,
                 certifiedNotBarredFromParticipating:
                   applicaitonData.certifiedNotBarredFromParticipating,
-              });
+                blockNumber: BigNumber.from(blockNumber),
+              };
+
+              handle.saveEntity("Application", uid, application);
+              await updateApplicationsAggregate(handle, application);
+              await addToApplicationsTrie(handle, application);
 
               break;
             }
@@ -242,7 +298,20 @@ export const EASIndexer = makeIndexerDefinition(EASContract, {
                 );
               }
 
-              handle.saveEntity("List", uid, {
+              const categories = new Set<string>();
+              for await (const vote of listData.listContent) {
+                const application = await handle.loadEntity(
+                  "Application",
+                  vote.RPGF3_Application_UID
+                );
+                if (application) {
+                  application.impactCategory.forEach((category) => {
+                    categories.add(category);
+                  });
+                }
+              }
+
+              const list = {
                 uid,
                 recipient,
                 attester,
@@ -255,7 +324,15 @@ export const EASIndexer = makeIndexerDefinition(EASContract, {
                   listData.impactEvaluationDescription,
                 impactEvaluationLink: listData.impactEvaluationLink,
                 listContent: listData.listContent,
-              });
+
+                categories: [...categories],
+
+                blockNumber: BigNumber.from(blockNumber),
+              };
+
+              handle.saveEntity("List", uid, list);
+              await updateListsAggregate(handle, list);
+              await addToListsTrie(handle, list);
 
               break;
             }
@@ -279,6 +356,8 @@ export const EASIndexer = makeIndexerDefinition(EASContract, {
             ...badgeholder,
             revokedAtBlock: BigNumber.from(log.blockNumber),
           });
+          const delegate = await loadAccount(handle, badgeholder.recipient);
+          saveAccount(handle, { ...delegate, isCitizen: false });
         }
 
         if (application) {

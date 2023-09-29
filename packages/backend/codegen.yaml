@@ -53,5 +53,5 @@ generates:
         DelegateStatement: ../delegateStatement#DelegateStatementModel
 
         RetroPGF: ../retroPGF#RetroPGFModel
-        Application: ../retroPGF#ApplicationModel
+        Project: ../retroPGF#ProjectModel
         List: ../retroPGF#ListModel

@@ -4,6 +4,7 @@ import { DefaultArgs } from "@envelop/core";
 import { Prisma } from "@prisma/client";
 import PrismaSingleton from "../store/prisma/client";
 import { validateSigned } from "../utils/signing";
+import { compareBy } from "../indexer/utils/sortUtils";
 
 type Ballot = {
   address: string;
@@ -181,3 +182,42 @@ export const ballotSchema = z
     votes: votesSchema,
   })
   .strict();
+
+export type BallotsStore = {
+  getSortedProjectsFromBallots(): Promise<string[]>;
+};
+
+export function makeBallotsStore(): BallotsStore {
+  return {
+    async getSortedProjectsFromBallots() {
+      const ballots = await PrismaSingleton.instance.ballot.findMany({
+        where: {
+          votes: {
+            not: {
+              isEmpty: true,
+            },
+          },
+        },
+      });
+
+      const projects = new Map<string, number>();
+
+      ballots.forEach((ballot) => {
+        toBallotType(ballot).votes.forEach((vote) => {
+          const existingVote = projects.get(vote.projectId);
+          if (existingVote) {
+            projects.set(vote.projectId, existingVote + 1);
+          } else {
+            projects.set(vote.projectId, 1);
+          }
+        });
+      });
+
+      const sortedProjects = Array.from(projects.entries()).sort(
+        compareBy((it) => it[1])
+      );
+
+      return sortedProjects.map((project) => project[0]);
+    },
+  };
+}

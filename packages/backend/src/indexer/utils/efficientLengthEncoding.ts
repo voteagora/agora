@@ -54,3 +54,32 @@ export function efficientLengthEncodingNaturalNumbers(num: ethers.BigNumber) {
     })(),
   ].join("");
 }
+
+export function efficientLengthEncodingStringDesc(str: string) {
+  return str
+    .toLowerCase()
+    .replace(" ", "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+// This encoding works for the most part but gives bias to longer strings -- no testcases built
+export function efficientLengthEncodingStringAsc(str: string) {
+  const score = str
+    .toLowerCase()
+    .replace(" ", "")
+    .replace(/[^a-z0-9]/g, "");
+
+  if (score === "") {
+    return "";
+  }
+  const alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
+  const reversedAlphabet = alphabet.split("").reverse().join("");
+  let encoded = "";
+  for (const char of score) {
+    const index = alphabet.indexOf(char);
+    if (index !== -1) {
+      encoded += reversedAlphabet.charAt(index);
+    }
+  }
+  return encoded;
+}

@@ -41,6 +41,8 @@ type Delegate {
 
   votes: [Vote!]!
   snapshotVotes: [SnapshotVote!]!
+
+  isCitizen: Boolean!
 }
 
 type Address {
@@ -318,11 +320,56 @@ type ApprovalVotingProposalOption {
 
 type RetroPGF {
   badgeholders: [Delegate!]!
-  applications: [Application!]!
-  lists: [List!]!
+
+  projects(
+    search: String
+    category: ProjectCategory
+    orderBy: ProjectOrder! = alphabeticalAZ
+    first: Int!
+    after: String
+    seed: String
+  ): ProjectsConnection!
+  project(id: ID!): Project
+  projectsAggregate: ProjectsAggregate!
+
+  lists(
+    search: String
+    category: ProjectCategory
+    likedBy: String
+    orderBy: ListOrder! = alphabeticalAZ
+    first: Int!
+    after: String
+    seed: String
+  ): ListsConnection!
+  list(id: ID!): List
+  listsAggregate: ListsAggregate!
 }
 
-type Application {
+enum ProjectOrder {
+  alphabeticalAZ
+  alphabeticalZA
+  shuffle
+  byIncludedInBallots
+}
+
+enum ProjectCategory {
+  COLLECTIVE_GOVERNANCE
+  DEVELOPER_ECOSYSTEM
+  END_USER_EXPERIENCE_AND_ADOPTION
+  OP_STACK
+}
+
+type ProjectsConnection {
+  pageInfo: PageInfo!
+  edges: [ProjectsEdge!]!
+}
+
+type ProjectsEdge {
+  node: Project!
+  cursor: String!
+}
+
+type Project {
   id: ID!
   displayName: String!
   applicantType: String!
@@ -340,6 +387,14 @@ type Application {
   certifiedNotDesignatedOrSanctionedOrBlocked: Boolean!
   certifiedNotSponsoredByPoliticalFigureOrGovernmentEntity: Boolean!
   certifiedNotBarredFromParticipating: Boolean!
+}
+
+type ProjectsAggregate {
+  total: Int!
+  collectiveGovernance: Int!
+  developerEcosystem: Int!
+  endUserExperienceAndAdoption: Int!
+  opStack: Int!
 }
 
 type ContributionLink {
@@ -361,6 +416,23 @@ type FundingSource {
   description: String!
 }
 
+enum ListOrder {
+  alphabeticalAZ
+  alphabeticalZA
+  shuffle
+  byLikes
+}
+
+type ListsConnection {
+  pageInfo: PageInfo!
+  edges: [ListsEdge!]!
+}
+
+type ListsEdge {
+  node: List!
+  cursor: String!
+}
+
 type List {
   id: ID!
   listName: String!
@@ -368,11 +440,21 @@ type List {
   impactEvaluationDescription: String!
   impactEvaluationLink: String!
   listContent: [ListConent!]!
+
+  likes: [String!]!
 }
 
 type ListConent {
-  RPGF3_Application_UID: String!
+  project: Project!
   OPAmount: Int!
+}
+
+type ListsAggregate {
+  total: Int!
+  collectiveGovernance: Int!
+  developerEcosystem: Int!
+  endUserExperienceAndAdoption: Int!
+  opStack: Int!
 }
 
 type Mutation {

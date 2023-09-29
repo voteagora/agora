@@ -15,6 +15,8 @@ import { makeEmptyTracingContext, makeFakeSpan } from "../utils/cache";
 import { NopReader } from "../indexer/storage/nopReader";
 import { Reader } from "../indexer/storage/reader";
 import { makeLatestBlockFetcher } from "../schema/latestBlockFetcher";
+import { makeLikesStore } from "../services/likes";
+import { makeBallotsStore } from "../services/ballot";
 
 // Initializing the schema takes about 250ms. We should avoid doing it once
 // per request. We need to move this calculation into some kind of compile time
@@ -58,6 +60,8 @@ export async function getGraphQLCallingContext(
     cache: {
       span: makeFakeSpan(),
     },
+    likesStore: makeLikesStore(),
+    ballotsStore: makeBallotsStore(),
   };
 
   return {

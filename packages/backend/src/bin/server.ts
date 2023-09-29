@@ -22,6 +22,8 @@ import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 import { makeLatestBlockFetcher } from "../schema/latestBlockFetcher";
 import { startRestServer } from "./restServer";
 import { startProxyServer } from "./proxyServer";
+import { makeLikesStore } from "../services/likes";
+import { makeBallotsStore } from "../services/ballot";
 
 async function main() {
   const schema = makeGatewaySchema();
@@ -91,6 +93,8 @@ async function main() {
           },
         },
         tracingContext: makeEmptyTracingContext(),
+        likesStore: makeLikesStore(),
+        ballotsStore: makeBallotsStore(),
       };
     },
     port: 4002,

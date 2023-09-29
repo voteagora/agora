@@ -6,7 +6,7 @@ import {
   BlockIdentifier,
   makeStorageHandleWithStagingArea,
 } from "../storageHandle";
-import { indexers } from "../contracts";
+import { entityDefinitions, indexers } from "../contracts";
 import { StructuredError } from "../utils/errorUtils";
 import { ethers } from "ethers";
 import { LevelEntityStore } from "../storage/level/levelEntityStore";
@@ -49,8 +49,6 @@ async function main() {
     return;
   }
 
-  const entityDefinitions = combineEntities(indexers);
-
   const progressBar = makeProgressBar(highestCommonBlock.blockNumber);
 
   let idx = 0;
@@ -88,7 +86,7 @@ async function main() {
       const [storageHandle, loadedEntities] = makeStorageHandleWithStagingArea(
         entityBlockStagingArea,
         store,
-        indexer.entities
+        entityDefinitions
       );
 
       try {

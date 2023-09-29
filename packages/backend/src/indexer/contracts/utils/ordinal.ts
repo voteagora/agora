@@ -1,4 +1,4 @@
-import * as serde from "../serde";
+import * as serde from "../../serde";
 import { BigNumber, ethers } from "ethers";
 
 export const ordinal = serde.object({
