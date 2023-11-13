@@ -5,6 +5,8 @@ import * as theme from "../../theme";
 import { HStack } from "../../components/VStack";
 import { NounResolvedName } from "../../components/NounResolvedName";
 import { formatDistanceToNow } from "date-fns";
+import TimestampTooltip from "../../components/TimestampTooltip";
+
 import {
   OnChainProposalRowFragment$key,
   ProposalStatus,
@@ -12,7 +14,6 @@ import {
 import { OnChainProposalRowActivityFragment$key } from "./__generated__/OnChainProposalRowActivityFragment.graphql";
 import { StatusText } from "./StatusText";
 import { Row, RowValue } from "./Rows";
-import { shortenId } from "../DelegatePage/VoteDetails";
 import { TokenAmountDisplay } from "../../components/TokenAmountDisplay";
 
 export function OnChainProposalRow({
@@ -69,6 +70,11 @@ export function OnChainProposalRow({
     "28601282374834906210319879956567232553560898502158891728063939287236508034960",
   ];
 
+  // This is the Carlos Hack
+  const carlosHack = [
+    "25353629475948605098820168047140307200589226219380649297323431722674892706917",
+  ];
+
   // This is a hack to hide a proposal formatting mistake from the OP Foundation
   const shortTitle = proposalsWithBadFormatting.includes(proposal.number)
     ? proposal.title.split("-")[0].split("(")[0]
@@ -80,7 +86,7 @@ export function OnChainProposalRow({
         primary
         title={
           <>
-            Prop {shortenId(proposal.number)} – by{" "}
+            Proposal by{" "}
             <NounResolvedName
               resolvedName={proposal.proposer.address.resolvedName}
             />
@@ -108,6 +114,28 @@ export function OnChainProposalRow({
         {shortTitle}
       </RowValue>
 
+      {/* Original status code. Uncomment this when the Carlos hack is fixed in the backend */}
+      {/* <RowValue title={"Status"}>
+        {testProposals.includes(proposal.number) ? (
+          <StatusText
+            className={css`
+              color: ${theme.colors.gray[700]};
+            `}
+          >
+            TEST PROP: {proposal.status}
+          </StatusText>
+        ) : (
+          <StatusText
+            className={css`
+              color: ${colorForOnChainProposalStatus(proposal.status)};
+            `}
+          >
+            {proposal.status}
+          </StatusText>
+        )}
+      </RowValue> */}
+
+      {/* This is a horrible hack for Carlos */}
       <RowValue title={"Status"}>
         {testProposals.includes(proposal.number) ? (
           <StatusText
@@ -116,6 +144,14 @@ export function OnChainProposalRow({
             `}
           >
             TEST PROP: {proposal.status}
+          </StatusText>
+        ) : carlosHack.includes(proposal.number) ? (
+          <StatusText
+            className={css`
+              color: ${theme.colors.red[600]};
+            `}
+          >
+            DEFEATED
           </StatusText>
         ) : (
           <StatusText
@@ -179,10 +215,28 @@ function Activity({
             return "Voting";
 
           case "ACTIVE":
-            return `Voting ends in ${formatDistanceToNow(voteEndsAt)}`;
+            return (
+              <HStack gap="1">
+                Voting ends in{" "}
+                {
+                  <TimestampTooltip date={voteEndsAt}>
+                    {formatDistanceToNow(voteEndsAt)}
+                  </TimestampTooltip>
+                }
+              </HStack>
+            );
 
           default:
-            return `Voting ended ${formatDistanceToNow(voteEndsAt)} ago`;
+            return (
+              <HStack gap="1">
+                Voting ended{" "}
+                {
+                  <TimestampTooltip date={voteEndsAt}>
+                    {formatDistanceToNow(voteEndsAt)} ago
+                  </TimestampTooltip>
+                }
+              </HStack>
+            );
         }
       })()}
     >
@@ -192,9 +246,16 @@ function Activity({
             // TODO - change the condition once data is available
             case "StandardProposalData": {
               if (proposal.status === "PENDING") {
-                return `Starts in ${formatDistanceToNow(
-                  new Date(voteStartsAt)
-                )}`;
+                return (
+                  <HStack gap="1">
+                    Starts in{" "}
+                    {
+                      <TimestampTooltip date={voteStartsAt}>
+                        {formatDistanceToNow(voteStartsAt)}
+                      </TimestampTooltip>
+                    }
+                  </HStack>
+                );
               } else {
                 return (
                   <HStack gap="1">
@@ -225,9 +286,16 @@ function Activity({
             }
             case "ApprovalVotingProposalData": {
               if (proposal.status === "PENDING") {
-                return `Starts in ${formatDistanceToNow(
-                  new Date(voteStartsAt)
-                )}`;
+                return (
+                  <HStack gap="1">
+                    Starts in{" "}
+                    {
+                      <TimestampTooltip date={voteStartsAt}>
+                        {formatDistanceToNow(voteStartsAt)}
+                      </TimestampTooltip>
+                    }
+                  </HStack>
+                );
               } else {
                 return (
                   <HStack gap="1">

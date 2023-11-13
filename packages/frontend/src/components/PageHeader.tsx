@@ -2,20 +2,27 @@ import { css } from "@emotion/css";
 import * as theme from "../theme";
 import logo from "../logo.svg";
 import graphql from "babel-plugin-relay/macro";
-import { ConnectKitButton } from "connectkit";
+import { ConnectKitButton, useSIWE } from "connectkit";
 import { useAccount } from "wagmi";
 import { useLazyLoadQuery } from "react-relay/hooks";
-import { PageHeaderQuery } from "./__generated__/PageHeaderQuery.graphql";
+import {
+  PageHeaderQuery,
+  // PageHeaderQuery$data,
+} from "./__generated__/PageHeaderQuery.graphql";
 import { HStack } from "./VStack";
 import { Link } from "./HammockRouter/Link";
 import { useLocation } from "./HammockRouter/HammockRouter";
 import { icons } from "../icons/icons";
 import { ProfileDropDownButton } from "./ProfileDropDownButton";
+import { MobileProfileDropDownButton } from "./MobileProfileDropDownButton";
+import { useEffect } from "react";
+import { useOpenDialog } from "./DialogProvider/DialogProvider";
 
 export const orgName = "Optimism";
 
 export function PageHeader() {
   const isProposalsPageActive = useLocation().pathname.startsWith("/proposals");
+  const isRetroPGFPageActive = useLocation().pathname.startsWith("/retropgf/3");
 
   return (
     <HStack
@@ -91,6 +98,7 @@ export function PageHeader() {
                   font-size: ${theme.fontSize.sm};
                 }
                 ${!isProposalsPageActive &&
+                !isRetroPGFPageActive &&
                 css`
                   background-color: ${theme.colors.gray.fa};
                   color: inherit;
@@ -117,6 +125,25 @@ export function PageHeader() {
               `}
             >
               Proposals
+            </div>
+          </Link>
+          <Link to="/retropgf/3">
+            <div
+              className={css`
+                padding: ${theme.spacing[1]} ${theme.spacing[4]};
+                border-radius: ${theme.borderRadius.full};
+                color: ${theme.colors.gray[700]};
+                @media (max-width: ${theme.maxWidth.md}) {
+                  font-size: ${theme.fontSize.sm};
+                }
+                ${isRetroPGFPageActive &&
+                css`
+                  background-color: ${theme.colors.gray.fa};
+                  color: inherit;
+                `};
+              `}
+            >
+              RetroPGF
             </div>
           </Link>
         </HStack>
@@ -175,7 +202,35 @@ export const DesktopButton = () => {
     }
   );
 
+  const openDialog = useOpenDialog();
+  const { isSignedIn } = useSIWE();
+
+  useEffect(() => {
+    if (accountAddress && !isSignedIn) {
+      fetch(`${process.env.PUBLIC_URL}/api/auth/can-signin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ address: accountAddress }),
+      }).then(async (res) => {
+        if (!res.ok) {
+          return;
+        }
+        const result = await res.json();
+        if (result.canSignIn) {
+          openDialog({
+            type: "SIGN_IN_WITH_ETHEREUM",
+            params: {},
+          });
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountAddress, isSignedIn]);
+
   return (
+    // <CustomSIWEButton delegate={delegate} />
     <ConnectKitButton.Custom>
       {({ isConnected, isConnecting, show, hide, address, ensName }) => (
         <div
@@ -200,10 +255,6 @@ export const DesktopButton = () => {
           )}
           {accountAddress && delegate && (
             <ProfileDropDownButton
-              isConnected={isConnected}
-              isConnecting={isConnecting}
-              show={show}
-              hide={hide}
               address={address}
               ensName={ensName}
               fragment={delegate}
@@ -217,31 +268,48 @@ export const DesktopButton = () => {
 };
 
 export const MobileButton = () => {
+  const { address: accountAddress } = useAccount();
+
+  const { delegate } = useLazyLoadQuery<PageHeaderQuery>(
+    graphql`
+      query PageHeaderMobileQuery($address: String!, $skip: Boolean!) {
+        delegate(addressOrEnsName: $address) @skip(if: $skip) {
+          statement {
+            __typename
+          }
+
+          ...MobileProfileDropDownButtonFragment
+        }
+      }
+    `,
+    {
+      address: accountAddress ?? "",
+      skip: !accountAddress,
+    }
+  );
+
   return (
     <ConnectKitButton.Custom>
       {({ isConnected, isConnecting, show, hide, address, ensName }) => {
         return (
-          <div
-            className={css`
-              margin-top: 13px;
-            `}
-            onClick={show}
-          >
-            {isConnected ? (
-              <img
-                src={icons.walletConnected}
-                alt="connect wallet button"
-                className={css`
-                  opacity: 1;
-                `}
-              />
-            ) : (
-              <img
-                src={icons.wallet}
-                alt="connect wallet button"
-                className={css`
-                  opacity: 0.6;
-                `}
+          <div>
+            {!isConnected && (
+              <div onClick={show}>
+                <img
+                  src={icons.wallet}
+                  alt="connect wallet button"
+                  className={css`
+                    opacity: 0.6;
+                  `}
+                />
+              </div>
+            )}
+            {accountAddress && delegate && (
+              <MobileProfileDropDownButton
+                address={address}
+                ensName={ensName}
+                fragment={delegate}
+                hasStatement={!!delegate.statement}
               />
             )}
           </div>
@@ -250,3 +318,113 @@ export const MobileButton = () => {
     </ConnectKitButton.Custom>
   );
 };
+
+// const CustomSIWEButton = ({
+//   delegate,
+// }: {
+//   delegate: PageHeaderQuery$data["delegate"];
+// }) => {
+//   const { setOpen } = useModal();
+//   const { isConnected } = useAccount();
+
+//   const {
+//     data,
+//     // isReady,
+//     isRejected,
+//     isLoading,
+//     isSignedIn,
+//     signOut,
+//     signIn,
+//     status,
+//     error,
+//   } = useSIWE({
+//     onSignIn: (session?: SIWESession) => {
+//       // Do something with the data
+//       console.log(session);
+//       console.log("need to sign?");
+//     },
+//     onSignOut: () => {
+//       // Do something when signed out
+//     },
+//   });
+
+//   const handleSignIn = async () => {
+//     await signIn()?.then((session?: SIWESession) => {
+//       // Do something when signed in
+//       console.log(session);
+//       console.log("signed in");
+//       console.log(status);
+//       console.log(error);
+//     });
+//   };
+
+//   const handleSignOut = async () => {
+//     await signOut()?.then(() => {
+//       // Do something when signed out
+//     });
+//   };
+
+//   /** Wallet is connected and signed in */
+//   if (isSignedIn) {
+//     return (
+//       <div
+//         className={css`
+//           background-color: ${theme.colors.gray.fa};
+//           border-radius: ${theme.borderRadius.full};
+//           cursor: pointer;
+//           :hover {
+//             background: ${theme.colors.gray[200]};
+//           }
+//         `}
+//         onClick={handleSignOut}
+//       >
+//         {/* {!accountAddress && (
+//           <div
+//             className={css`
+//               padding: ${theme.spacing[2]} ${theme.spacing[5]};
+//             `}
+//             onClick={show}
+//           >
+//             Connect Wallet
+//           </div>
+//         )} */}
+//         {delegate && (
+//           <ProfileDropDownButton
+//             address={data.address.toString()}
+//             ensName={data.ensName}
+//             fragment={delegate}
+//             hasStatment={!!delegate.statement}
+//           />
+//         )}
+//       </div>
+//       // <>
+//       //   <div>Address: {data?.address}</div>
+//       //   <div>ChainId: {data?.chainId}</div>
+//       //   <button onClick={handleSignOut}>Sign Out</button>
+//       // </>
+//     );
+//   }
+
+//   /** Wallet is connected, but not signed in */
+//   if (isConnected) {
+//     return (
+//       <>
+//         <button onClick={handleSignIn} disabled={isLoading}>
+//           {isRejected // User Rejected
+//             ? "Try Again"
+//             : isLoading // Waiting for signing request
+//             ? "Awaiting request..."
+//             : // Waiting for interaction
+//               "Sign In"}
+//         </button>
+//       </>
+//     );
+//   }
+
+//   /** A wallet needs to be connected first */
+//   return (
+//     <>
+//       <button onClick={() => setOpen(true)}>Connect Wallet</button>
+//     </>
+//   );
+// };

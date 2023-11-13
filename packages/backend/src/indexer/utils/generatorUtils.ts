@@ -114,10 +114,10 @@ export async function* limitGenerator<T>(
 
 export async function* filterGenerator<T>(
   asyncIterable: AsyncIterable<T>,
-  checkFn: (item: T) => boolean
+  checkFn: (item: T) => Promise<boolean> | boolean
 ): AsyncGenerator<T> {
   for await (const item of asyncIterable) {
-    if (checkFn(item)) {
+    if (await checkFn(item)) {
       yield item;
     }
   }
@@ -155,6 +155,18 @@ export function* infiniteCountingGenerator() {
   }
 }
 
+export async function* optimisticGenerator<T>(
+  asyncIterable: AsyncIterable<T>,
+  checkFn: (item: T) => Promise<boolean> | boolean
+): AsyncGenerator<T> {
+  for await (const item of asyncIterable) {
+    if (await checkFn(item)) {
+      break;
+    }
+    yield item;
+  }
+}
+
 export async function takeLast<T>(gen: AsyncIterable<T>): Promise<T | null> {
   let lastValue = null;
   for await (const item of gen) {
@@ -162,4 +174,13 @@ export async function takeLast<T>(gen: AsyncIterable<T>): Promise<T | null> {
   }
 
   return lastValue;
+}
+
+export async function* mapGenerator<T, U>(
+  generator: AsyncGenerator<T>,
+  mapper: (item: T) => Promise<U> | U
+): AsyncGenerator<U> {
+  for await (const item of generator) {
+    yield await mapper(item);
+  }
 }

@@ -57,10 +57,8 @@ export function ApprovalProposalsListPanel({
       transition={{ duration: 0.3, delay: isPending ? 0.3 : 0 }}
     >
       <VStack
-        gap="4"
+        gap="1"
         className={css`
-          border-bottom: 1px solid ${theme.colors.gray.eb};
-          // todo: put this closer to position: absolute below
           position: relative;
           min-height: 0;
           height: 100%;

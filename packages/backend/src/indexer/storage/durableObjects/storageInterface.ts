@@ -56,5 +56,9 @@ export async function* listEntries<T>(
     yield* entries;
 
     start = entries[entries.length - 1][0];
+
+    if (start === initialStartValue) {
+      return;
+    }
   }
 }

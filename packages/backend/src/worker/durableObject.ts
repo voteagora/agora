@@ -1,4 +1,4 @@
-import { Env, mustGetAlchemyApiKey, safelyLoadBlockStepSize } from "./env";
+import { Env, mustGetAlchemyApiKey, shouldAllowRead } from "./env";
 import { StoredEntry } from "../indexer/storage/dump";
 import { readableStreamFromGenerator } from "../utils/readableStream";
 import { getGraphQLCallingContext } from "./graphql";
@@ -18,8 +18,16 @@ import {
 } from "../indexer/utils/generatorUtils";
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
+import PrismaSingleton from "../store/prisma/client";
+import { createResponse, handleOptionsRequest } from "./rpgfApi/utils";
+import { handleAuthRequest } from "./rpgfApi/auth";
+import { handleBallotsRequest } from "./rpgfApi/ballots";
+import { handleLikesRequest } from "./rpgfApi/likes";
+import { DurableObjectReader } from "../indexer/storage/durableObjects/durableObjectReader";
+import { NopReader } from "../indexer/storage/nopReader";
+import { Reader } from "../indexer/storage/reader";
 
-export const blockUpdateIntervalSeconds = 10;
+export const blockUpdateIntervalSeconds = 4;
 
 export class StorageDurableObjectV1 {
   private readonly state: DurableObjectState;
@@ -80,6 +88,43 @@ export class StorageDurableObjectV1 {
       }
     }
 
+    // ----------------
+    // RPGF API
+    // ----------------
+
+    if (url.pathname.startsWith("/api/")) {
+      PrismaSingleton.setConnectionUrl(this.env.DATABASE_URL!);
+      const allowRead = shouldAllowRead(this.env);
+      const storage = this.state.storage;
+      const entityStore = new DurableObjectEntityStore(storage);
+      const storageArea = await makeInitialStorageArea(entityStore);
+
+      const reader = allowRead
+        ? new DurableObjectReader(entityDefinitions, storage, storageArea)
+        : (new NopReader(storageArea) as Reader<typeof entityDefinitions>);
+
+      const path = url.pathname.split("/").slice(1);
+
+      switch (path[1]) {
+        case "auth":
+          return await handleAuthRequest(path[2], request, this.env, reader);
+
+        case "ballot":
+          return await handleBallotsRequest(request, this.env, reader);
+
+        case "likes":
+          return await handleLikesRequest(request, this.env);
+
+        default:
+          return createResponse(
+            { error: `Invalid path: ${url.pathname}` },
+            400,
+            {},
+            request
+          );
+      }
+    }
+
     switch (url.pathname) {
       case "/inspect": {
         const entityStore = new DurableObjectEntityStore(this.state.storage);
@@ -99,6 +144,7 @@ export class StorageDurableObjectV1 {
       }
 
       case "/graphql": {
+        PrismaSingleton.setConnectionUrl(this.env.DATABASE_URL!);
         const isProduction = this.env.ENVIRONMENT === "prod";
         const storage = this.state.storage;
 
@@ -224,6 +270,7 @@ export class StorageDurableObjectV1 {
           entityDefinitions,
           blockProvider,
           logProvider,
+          this.provider,
           storageArea,
           this.env.ENVIRONMENT,
           toucan

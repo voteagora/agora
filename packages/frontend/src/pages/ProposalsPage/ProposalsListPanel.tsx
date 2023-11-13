@@ -396,7 +396,36 @@ function ProposalStatusPane({
     "28601282374834906210319879956567232553560898502158891728063939287236508034960",
   ];
 
+  // This is the hack for Carlos
+  const carlosHack = [
+    "25353629475948605098820168047140307200589226219380649297323431722674892706917",
+  ];
+
   return (
+    // // This is the original code. uncomment when carlos hack is fixed
+    // <div>
+    //   {testProposals.includes(result.number) ? (
+    //     <div
+    //       className={css`
+    //         text-transform: capitalize;
+    //         color: ${theme.colors.gray[700]};
+    //       `}
+    //     >
+    //       Test Prop: {result.status.toLowerCase()}
+    //     </div>
+    //   ) : (
+    //     <div
+    //       className={css`
+    //         color: ${colorForProposalStatus(result.status)};
+    //         text-transform: capitalize;
+    //       `}
+    //     >
+    //       {result.status.toLowerCase()}
+    //     </div>
+    //   )}
+    // </div>
+
+    // This is the hack for Carlos
     <div>
       {testProposals.includes(result.number) ? (
         <div
@@ -406,6 +435,15 @@ function ProposalStatusPane({
           `}
         >
           Test Prop: {result.status.toLowerCase()}
+        </div>
+      ) : carlosHack.includes(result.number) ? (
+        <div
+          className={css`
+            text-transform: capitalize;
+            color: ${theme.colors.red[600]};
+          `}
+        >
+          DEFEATED
         </div>
       ) : (
         <div

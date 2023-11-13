@@ -50,7 +50,7 @@ export function VotesListPanel({
     <VStack
       className={css`
         max-height: calc(
-          100vh - 417px
+          100vh - 437px
         ); //martin, this is kind of a hack, but it achieves the desired result lol, please don't remove this unless there's a better way
         overflow-y: scroll;
         flex-shrink: 1;
@@ -202,6 +202,7 @@ function VotesCastPanelVotes({
                 key={idx}
                 className={css`
                   color: ${theme.colors.gray["700"]};
+                  font-size: ${theme.fontSize.xs};
                   font-weight: ${theme.fontWeight.medium};
                   animation: ${shimmer} 0.5s alternate-reverse infinite
                     ease-in-out;
@@ -275,21 +276,23 @@ function SingleVote({
     singleOptionRef
   );
   const { address } = useAccount();
-
+  console.log(reason);
   return (
     <VStack
       className={css`
         color: ${theme.colors.black};
         font-weight: ${theme.fontWeight.semibold};
         font-size: ${theme.fontSize.xs};
-        margin-bottom: ${theme.spacing["3"]};
+        margin-bottom: ${theme.spacing["5"]};
+        border-radius: ${theme.borderRadius.md};
+        border: 1px solid ${theme.colors.gray["eb"]};
       `}
     >
       <HStack
         alignItems="center"
         justifyContent="space-between"
         className={css`
-          margin-bottom: ${theme.spacing["1"]};
+          padding: ${theme.spacing["3"]};
         `}
       >
         <div>
@@ -308,24 +311,41 @@ function SingleVote({
       <VStack
         className={css`
           margin-bottom: ${reason ? theme.spacing["1"] : "0"};
+          color: ${theme.colors.gray[700]};
+          gap: ${theme.spacing["1"]};
+          font-weight: ${theme.fontWeight.medium};
+          padding: 0 ${theme.spacing["3"]} ${theme.spacing["3"]}
+            ${theme.spacing["3"]};
         `}
       >
         {options?.map((option, index) => (
-          <p>
+          <p
+            className={css`
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              overflow: hidden;
+            `}
+          >
             {++index}. {option.description}
           </p>
         ))}
         {options?.length === 0 && "Abstain"}
       </VStack>
       {reason && (
-        <p
-          className={css`
-            color: ${theme.colors.gray["4f"]};
-            font-weight: ${theme.fontWeight.medium};
-          `}
-        >
-          {reason}
-        </p>
+        <div>
+          <p
+            className={css`
+              margin-top: ${theme.spacing["1"]};
+              color: ${theme.colors.gray[700]};
+              font-weight: ${theme.fontWeight.medium};
+              white-space: pre-wrap;
+              padding: ${theme.spacing["3"]};
+              border-top: 1px solid ${theme.colors.gray["300"]};
+            `}
+          >
+            {reason}
+          </p>
+        </div>
       )}
     </VStack>
   );

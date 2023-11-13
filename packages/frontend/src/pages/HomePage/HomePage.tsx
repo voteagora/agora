@@ -2,13 +2,16 @@ import { usePreloadedQuery } from "react-relay/hooks";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { OverviewMetricsContainer } from "./OverviewMetricsContainer";
-import { DelegatesContainer } from "./DelegatesContainer";
 import { VStack, HStack } from "../../components/VStack";
 import { orgName } from "../../components/PageHeader";
 import partnerBackground from "./partnerBackground.png";
 import { query } from "./HomePageRoute";
-import { RouteProps } from "../../components/HammockRouter/HammockRouter";
+import {
+  RouteProps,
+  useLocation,
+} from "../../components/HammockRouter/HammockRouter";
 import { HomePageRouteQuery } from "./__generated__/HomePageRouteQuery.graphql";
+import { VotersContainer } from "./VotersContainer";
 
 export function HomePage({
   initialQueryRef,
@@ -21,12 +24,21 @@ export function HomePage({
       <Hero />
       <OverviewMetricsContainer fragmentRef={result} />
       <PageDivider />
-      <DelegatesContainer fragmentKey={result} variables={variables as any} />
+      <VotersContainer
+        fragmentKey={result}
+        citizensFragmentKey={result}
+        variables={variables as any}
+      />
     </>
   );
 }
 
 function Hero() {
+  const location = useLocation();
+  const tab = (location.search["tab"]?.toLowerCase() ?? "delegates") as
+    | "delegates"
+    | "citizens";
+
   return (
     <HStack
       justifyContent="space-between"
@@ -75,7 +87,7 @@ function Hero() {
           >
             {orgName}
           </span>{" "}
-          delegates
+          {tab}
         </h1>
 
         <p
@@ -84,8 +96,12 @@ function Hero() {
             font-size: ${theme.fontSize.base};
           `}
         >
-          OP Delegates are the stewards of the Optimism Token House, appointed
-          by token holders to make governance decisions on their behalf.
+          {" "}
+          {tab === "delegates"
+            ? `OP Delegates are the stewards of the Optimism Token House, appointed
+          by token holders to make governance decisions on their behalf.`
+            : `OP Citizens are the stewards of the Optimism Citizens' House, selected
+            based on the reputation as the Optimism Collective members.`}
         </p>
       </VStack>
       <img

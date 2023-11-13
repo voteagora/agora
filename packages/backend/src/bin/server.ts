@@ -20,18 +20,10 @@ import { timeout } from "../indexer/utils/asyncUtils";
 import { EthersBlockProvider } from "../indexer/blockProvider/blockProvider";
 import { EthersLogProvider } from "../indexer/logProvider/logProvider";
 import { makeLatestBlockFetcher } from "../schema/latestBlockFetcher";
-
-// p0
-// todo: where are delegate statements going to be stored?
-// todo: replicate and deploy
-// todo: snapshot votes, delegate statements, cached ens name lookups
-
-// todo: to load up a replica, have the durable object pull from an initial file from r2 using streams
-
-// p1
-// todo: derived state
-// todo: joins
-// todo: some cleanup in the governance folder
+import { startRestServer } from "./restServer";
+import { startProxyServer } from "./proxyServer";
+import { makeLikesStore } from "../services/likes";
+import { makeBallotsStore } from "../services/ballot";
 
 async function main() {
   const schema = makeGatewaySchema();
@@ -43,6 +35,8 @@ async function main() {
   );
 
   const storageArea = await makeInitialStorageArea(store);
+
+  // Start Indexer
   const blockProvider = new EthersBlockProvider(baseProvider);
   const logProvider = new EthersLogProvider(baseProvider);
   const iter = followChain(
@@ -51,6 +45,7 @@ async function main() {
     entityDefinitions,
     blockProvider,
     logProvider,
+    baseProvider,
     storageArea,
     process.argv[2] || "dev"
   );
@@ -70,6 +65,7 @@ async function main() {
 
   const dynamoDb = new DynamoDB({});
 
+  // Start GraphQL Server (Port 4002)
   const server = createServer({
     schema,
     async context(): Promise<AgoraContextType> {
@@ -97,13 +93,21 @@ async function main() {
           },
         },
         tracingContext: makeEmptyTracingContext(),
+        likesStore: makeLikesStore(),
+        ballotsStore: makeBallotsStore(),
       };
     },
-    port: 4001,
+    port: 4002,
     maskedErrors: false,
     plugins: [useTiming(), useApolloTracing(), useErrorInspection()],
   });
   await server.start();
+
+  // Start REST Server (Port 4003)
+  startRestServer(baseProvider, reader);
+
+  // Start Proxy Server (Port 4001)
+  startProxyServer();
 }
 
 main();

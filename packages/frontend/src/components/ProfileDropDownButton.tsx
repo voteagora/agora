@@ -5,7 +5,7 @@ import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { ProfileDropDownButtonFragment$key } from "./__generated__/ProfileDropDownButtonFragment.graphql";
 import { HStack, VStack } from "./VStack";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link } from "./HammockRouter/Link";
 import { TokenAmountDisplay } from "./TokenAmountDisplay";
 import { icons } from "../icons/icons";
@@ -19,16 +19,14 @@ import { useDisconnect } from "wagmi";
 import { NounResolvedName } from "./NounResolvedName";
 import { AnimatePresence, motion } from "framer-motion";
 import { ethers } from "ethers";
+import { useSIWE } from "connectkit";
 
 type Props = {
-  isConnected: boolean;
-  isConnecting: boolean;
-  show?: () => void;
-  hide?: () => void;
   address: `0x${string}` | undefined;
   ensName: string | undefined;
   fragment: ProfileDropDownButtonFragment$key;
   hasStatment?: boolean;
+  handleSignOut?: () => void;
 };
 
 const ValueWrapper = ({ children }: { children: ReactNode }) => (
@@ -36,14 +34,11 @@ const ValueWrapper = ({ children }: { children: ReactNode }) => (
 );
 
 export const ProfileDropDownButton = ({
-  isConnected,
-  isConnecting,
-  show,
-  hide,
   address,
   ensName,
   fragment,
   hasStatment,
+  handleSignOut,
 }: Props) => {
   const { disconnect } = useDisconnect();
 
@@ -92,6 +87,25 @@ export const ProfileDropDownButton = ({
     fragment
   );
 
+  const { isSignedIn, signIn } = useSIWE();
+
+  const [canSignin, setCanSignin] = useState(false);
+
+  useEffect(() => {
+    if (!isSignedIn) {
+      fetch(`${process.env.PUBLIC_URL}/api/auth/can-signin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ address }),
+      }).then(async (res) => {
+        const result = await res.json();
+        setCanSignin(result.canSignin ?? false);
+      });
+    }
+  });
+
   return (
     <Popover className="relative">
       {({ open }) => (
@@ -103,14 +117,26 @@ export const ProfileDropDownButton = ({
             `}
           >
             <HStack alignItems="center" gap="1">
-              <div
-                className={css`
-                  width: ${theme.spacing[1]};
-                  height: ${theme.spacing[1]};
-                  border-radius: ${theme.borderRadius.full};
-                  background-color: #23b100;
-                `}
-              />
+              {isSignedIn ? (
+                <img
+                  className={css`
+                    width: ${theme.spacing[6]};
+                    height: ${theme.spacing[6]};
+                    margin-left: -${theme.spacing[2]};
+                  `}
+                  src={icons.badge}
+                  alt="badge symbol"
+                />
+              ) : (
+                <div
+                  className={css`
+                    width: ${theme.spacing[1]};
+                    height: ${theme.spacing[1]};
+                    border-radius: ${theme.borderRadius.full};
+                    background-color: #23b100;
+                  `}
+                />
+              )}
               <div>{ensName ? ensName : shortAddress(address ?? "")}</div>
 
               <ChevronDownIcon
@@ -172,14 +198,33 @@ export const ProfileDropDownButton = ({
                         margin-bottom: ${theme.spacing[1]};
                       `}
                     >
-                      <ENSAvatar
-                        fragment={delegate.address.resolvedName}
+                      <div
                         className={css`
-                          width: 51px;
-                          height: 51px;
-                          border-radius: 100%;
+                          position: relative;
+                          aspect-ratio: 1/1;
                         `}
-                      />
+                      >
+                        {isSignedIn && (
+                          <img
+                            className={css`
+                              position: absolute;
+                              bottom: -5px;
+                              right: -7px;
+                              z-index: 1;
+                            `}
+                            src={icons.badge}
+                            alt="badge symbol"
+                          />
+                        )}
+                        <ENSAvatar
+                          className={css`
+                            width: 44px;
+                            height: 44px;
+                            border-radius: 100%;
+                          `}
+                          fragment={delegate.address.resolvedName}
+                        />
+                      </div>
                       <VStack
                         className={css`
                           flex: 1;
@@ -222,7 +267,10 @@ export const ProfileDropDownButton = ({
 
                       <img
                         src={icons.power}
-                        onClick={(e) => disconnect()}
+                        onClick={(e) => {
+                          if (handleSignOut) handleSignOut();
+                          disconnect();
+                        }}
                         alt="Disconnect Wallet"
                         className={css`
                           width: 32px;
@@ -283,6 +331,30 @@ export const ProfileDropDownButton = ({
                       }
                     />
 
+                    {!isSignedIn && canSignin && (
+                      <div>
+                        <button
+                          className={css`
+                            width: 100%;
+                            border-radius: ${theme.borderRadius.lg};
+                            border-width: ${theme.spacing.px};
+                            padding: ${theme.spacing["3"]} ${theme.spacing["2"]};
+                            color: ${theme.colors.gray["200"]};
+                            background: ${theme.colors.black};
+                            display: flex;
+                            justify-content: center;
+                            margin-top: ${theme.spacing[1]};
+                            :hover {
+                              background: ${theme.colors.gray["800"]};
+                            }
+                          `}
+                          onClick={() => signIn()}
+                        >
+                          <div>Sign in as badgeholder</div>
+                        </button>
+                      </div>
+                    )}
+
                     <Link
                       to="/create"
                       className={css`
@@ -306,6 +378,29 @@ export const ProfileDropDownButton = ({
                           : "Create delegate statement"}
                       </div>
                     </Link>
+
+                    {isSignedIn && (
+                      <Link
+                        to={`/retroPGF/3/ballot`}
+                        className={css`
+                          border-radius: ${theme.borderRadius.lg};
+                          border-width: ${theme.spacing.px};
+                          padding: ${theme.spacing["3"]} ${theme.spacing["2"]};
+                          color: ${theme.colors.black};
+                          background: ${theme.colors.white};
+                          margin-top: ${theme.spacing[1]};
+                          display: flex;
+                          justify-content: center;
+                          :hover {
+                            background: ${theme.colors.gray["800"]};
+                            color: ${theme.colors.white};
+                          }
+                        `}
+                        afterUpdate={close}
+                      >
+                        <div>View my ballot</div>
+                      </Link>
+                    )}
 
                     {hasStatment && (
                       <Link

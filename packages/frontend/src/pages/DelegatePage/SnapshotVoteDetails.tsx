@@ -2,7 +2,7 @@ import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { css } from "@emotion/css";
 import * as theme from "../../theme";
-import { VStack } from "../../components/VStack";
+import { HStack, VStack } from "../../components/VStack";
 import {
   colorForSupportType,
   VoteDetailsContainer,
@@ -13,6 +13,7 @@ import { SnapshotVoteDetailsFragment$key } from "./__generated__/SnapshotVoteDet
 import { SnapshotVoteDetailsVoteChoiceFragment$key } from "./__generated__/SnapshotVoteDetailsVoteChoiceFragment.graphql";
 import { pluralizeVote } from "../../words";
 import { BigNumber } from "ethers";
+import TimestampTooltip from "../../components/TimestampTooltip";
 
 type Props = {
   voteFragment: SnapshotVoteDetailsFragment$key;
@@ -60,7 +61,8 @@ export function SnapshotVoteDetails({ voteFragment }: Props) {
             padding: ${theme.spacing["4"]} ${theme.spacing["6"]};
           `}
         >
-          <div
+          <HStack
+            gap="1"
             className={css`
               font-size: ${theme.fontSize.xs};
               font-weight: ${theme.fontWeight.medium};
@@ -68,8 +70,12 @@ export function SnapshotVoteDetails({ voteFragment }: Props) {
             `}
           >
             Snapshot Vote
-            {vote.createdAt && ` - ${formatDistanceToNow(vote.createdAt)} ago`}
-          </div>
+            {vote.createdAt && (
+              <TimestampTooltip date={vote.createdAt}>
+                - {formatDistanceToNow(vote.createdAt)} ago
+              </TimestampTooltip>
+            )}
+          </HStack>
 
           <VoteTitle>
             <a href={vote.proposal.link}>{vote.proposal.title}</a>

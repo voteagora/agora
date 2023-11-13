@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import { followChain, makeInitialStorageArea } from "./followChain";
 import { DurableObjectEntityStore } from "./storage/durableObjects/durableObjectEntityStore";
 import { MemoryStorage } from "./storage/durableObjects/memoryStorage";
@@ -58,6 +59,8 @@ const testContractIndexer = makeIndexerDefinition(testContractInstance, {
 
 describe("followChain", () => {
   it("handles processing events", async () => {
+    const provider = new ethers.providers.JsonRpcProvider();
+
     const initialFinalizedBlock = makeBlockIdentifier(finalizedBlockNumber);
 
     const memoryStorage = new MemoryStorage(
@@ -78,6 +81,7 @@ describe("followChain", () => {
       entityDefinitions,
       blockProvider,
       logProvider,
+      provider,
       storageArea,
       "dev"
     );
@@ -157,8 +161,8 @@ describe("followChain", () => {
 
       expect(result).toMatchInlineSnapshot(`
         {
-          "depth": 9,
-          "nextBlock": 3,
+          "depth": -1,
+          "nextBlock": 13,
           "type": "MORE",
         }
       `);
@@ -175,10 +179,50 @@ describe("followChain", () => {
               "blockNumber": 1,
               "hash": "0x1",
             },
+            "0x3" => {
+              "blockNumber": 2,
+              "hash": "0x2",
+            },
+            "0x4" => {
+              "blockNumber": 3,
+              "hash": "0x3",
+            },
+            "0x5" => {
+              "blockNumber": 4,
+              "hash": "0x4",
+            },
+            "0x6" => {
+              "blockNumber": 5,
+              "hash": "0x5",
+            },
+            "0x7" => {
+              "blockNumber": 6,
+              "hash": "0x6",
+            },
+            "0x8" => {
+              "blockNumber": 7,
+              "hash": "0x7",
+            },
+            "0x9" => {
+              "blockNumber": 8,
+              "hash": "0x8",
+            },
+            "0xa" => {
+              "blockNumber": 9,
+              "hash": "0x9",
+            },
+            "0xb" => {
+              "blockNumber": 10,
+              "hash": "0xa",
+            },
+            "0xc" => {
+              "blockNumber": 11,
+              "hash": "0xb",
+            },
           },
           "tipBlock": {
-            "blockNumber": 2,
-            "hash": "0x2",
+            "blockNumber": 12,
+            "hash": "0xc",
           },
         }
       `);
@@ -202,9 +246,7 @@ describe("followChain", () => {
 
       expect(result).toMatchInlineSnapshot(`
         {
-          "depth": 8,
-          "nextBlock": 4,
-          "type": "MORE",
+          "type": "TIP",
         }
       `);
     }

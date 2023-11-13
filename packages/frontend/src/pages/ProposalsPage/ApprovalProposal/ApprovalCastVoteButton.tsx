@@ -3,12 +3,12 @@ import * as theme from "../../../theme";
 import { startTransition } from "react";
 import { useOpenDialog } from "../../../components/DialogProvider/DialogProvider";
 import { ApprovalCastVoteDialogFragment$key } from "./__generated__/ApprovalCastVoteDialogFragment.graphql";
-import { ConnectKitButton } from "connectkit";
 import { useFragment } from "react-relay";
 import { ApprovalCastVoteButtonFragment$key } from "./__generated__/ApprovalCastVoteButtonFragment.graphql";
 import graphql from "babel-plugin-relay/macro";
 import { ApprovalCastVoteButtonDelegateFragment$key } from "./__generated__/ApprovalCastVoteButtonDelegateFragment.graphql";
 import { TokenAmountDisplayFragment$key } from "../../../components/__generated__/TokenAmountDisplayFragment.graphql";
+import ConnectWalletButton from "../../../components/ConnectWalletButton";
 
 type Props = {
   castVoteFragmentRef: ApprovalCastVoteDialogFragment$key;
@@ -60,7 +60,7 @@ export function ApprovalCastVoteButton({
   );
 
   if (!delegate) {
-    return <ConnectButton />;
+    return <ConnectWalletButton />;
   }
 
   if (result.status !== "ACTIVE") {
@@ -79,20 +79,6 @@ export function ApprovalCastVoteButton({
       hasStatement={!!delegate.statement}
       votesRepresentedRef={delegate.tokensRepresentedSnapshot.amount}
     />
-  );
-}
-
-function ConnectButton() {
-  return (
-    <ConnectKitButton.Custom>
-      {({ isConnected, show, address }) => {
-        return (
-          <button onClick={show} className={buttonStyle}>
-            {isConnected ? address : "Connect your wallet"}
-          </button>
-        );
-      }}
-    </ConnectKitButton.Custom>
   );
 }
 

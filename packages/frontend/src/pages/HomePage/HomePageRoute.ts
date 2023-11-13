@@ -4,13 +4,18 @@ import {
   Location,
 } from "../../components/HammockRouter/HammockRouter";
 import React from "react";
-import { parseOrderName } from "./DelegatesContainer";
 import { HomePageRouteQuery } from "./__generated__/HomePageRouteQuery.graphql";
+import { parseCitizensOrderName, parseOrderName } from "./VotersContainer";
 
 /* eslint-disable relay/unused-fields, relay/must-colocate-fragment-spreads */
 export const query = graphql`
-  query HomePageRouteQuery($orderBy: DelegatesOrder!) {
-    ...DelegatesContainerFragment @arguments(orderBy: $orderBy)
+  query HomePageRouteQuery(
+    $orderBy: DelegatesOrder!
+    $seed: String
+    $citizensOrderBy: CitizensOrder!
+  ) {
+    ...DelegatesContainerFragment @arguments(orderBy: $orderBy, seed: $seed)
+    ...CitizensContainerFragment @arguments(orderBy: $citizensOrderBy)
 
     ...OverviewMetricsContainerFragment
   }
@@ -21,7 +26,13 @@ export type Variables = ReturnType<typeof locationToVariables>;
 
 function locationToVariables(location: Location) {
   return {
-    orderBy: parseOrderName(location.search["orderBy"]) ?? "mostVotingPower",
+    orderBy: parseOrderName(location.search["orderBy"]) ?? "weightedRandom",
+    citizensOrderBy:
+      parseCitizensOrderName(location.search["citizensOrderBy"]) ?? "shuffle",
+    seed: Date.now().toString(),
+    tab: (location.search["tab"]?.toUpperCase() ?? "DELEGATES") as
+      | "DELEGATES"
+      | "CITIZENS",
   };
 }
 

@@ -1,8 +1,12 @@
 import { Env, shouldUseCache } from "./env";
 import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
 import { fetchThroughCache } from "./cache";
+import { simulateTransaction } from "./tenderly";
+import { fetchMessage } from "./genosis";
 
 import manifestJSON from "__STATIC_CONTENT_MANIFEST";
+import { createResponse, handleOptionsRequest } from "./rpgfApi/utils";
+
 const assetManifest = JSON.parse(manifestJSON);
 
 export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
@@ -11,14 +15,47 @@ export async function fetch(request: Request, env: Env, ctx: ExecutionContext) {
     request.headers.get("x-durable-object-instance-name") ||
     env.PRIMARY_DURABLE_OBJECT_INSTANCE_NAME;
 
+  if (url.pathname === "/simulate") {
+    const body = await request.json();
+    const result = await simulateTransaction({
+      body,
+      user: env.TENDERLY_USER,
+      project: env.TENDERLY_PROJECT,
+      accessKey: env.TENDERLY_ACCESS_KEY,
+    });
+
+    return createResponse(result, 200);
+  }
+
+  if (url.pathname === "/fetch_signature") {
+    const { safeMessageHash } = (await request.json()) as any;
+    if (safeMessageHash) {
+      const result = await fetchMessage({
+        safeMessageHash: safeMessageHash,
+      });
+
+      if (result.error) {
+        return createResponse(result.error, 500);
+      }
+
+      return createResponse(result.response as any, 200);
+    }
+
+    return createResponse("Invalid request", 400);
+  }
+
   if (
     url.pathname === "/graphql" ||
     url.pathname === "/inspect" ||
-    url.pathname.startsWith("/admin/")
+    url.pathname.startsWith("/admin/") ||
+    url.pathname.startsWith("/api/")
   ) {
     const object = env.STORAGE_OBJECT.get(env.STORAGE_OBJECT.idFromName(name));
 
     if (url.pathname !== "/graphql") {
+      if (request.method === "OPTIONS") {
+        return handleOptionsRequest(request);
+      }
       return await object.fetch(request);
     }
 

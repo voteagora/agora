@@ -1,4 +1,6 @@
 import { css, cx } from "@emotion/css";
+import { ConnectKitButton } from "connectkit";
+
 import * as theme from "../../theme";
 import { HStack, VStack } from "../../components/VStack";
 import {
@@ -116,7 +118,7 @@ function VoteButtons({
   }
 
   if (!delegate) {
-    return <DisabledVoteButton reason="Connect wallet to vote" />;
+    return <ConnectWalletButton reason="Connect wallet to vote" />;
   }
   const hasVoted = !!delegate.votes.find((it) => it.proposal.id === result.id);
   if (hasVoted) {
@@ -183,5 +185,24 @@ function DisabledVoteButton({ reason }: { reason: string }) {
     >
       {reason}
     </button>
+  );
+}
+
+export function ConnectWalletButton({ reason }: { reason: string }) {
+  return (
+    <ConnectKitButton.Custom>
+      {({ show }) => (
+        <div
+          className={css`
+            ${voteButtonStyles};
+            box-shadow: none;
+            width: 100%;
+          `}
+          onClick={show}
+        >
+          {reason}
+        </div>
+      )}
+    </ConnectKitButton.Custom>
   );
 }

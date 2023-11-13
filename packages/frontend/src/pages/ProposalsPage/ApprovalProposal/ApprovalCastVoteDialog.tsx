@@ -3,7 +3,7 @@ import { css } from "@emotion/css";
 import { motion } from "framer-motion";
 import { Dialog } from "@headlessui/react";
 import { VStack } from "../../../components/VStack";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { ApprovalCastVoteDialogFragment$key } from "./__generated__/ApprovalCastVoteDialogFragment.graphql";
@@ -54,20 +54,28 @@ export function ApprovalCastVoteDialog({
 
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
   const [reason, setReason] = useState<string>("");
-  const [abstain, setAbstain] = useState<boolean>(false);
+  const [abstain, setAbstain] = useState<boolean>(true);
   const [encodedParams, setEncodedParams] = useState<string>("");
   const maxChecked = proposalData.settings.maxApprovals;
   const abstainOptionId = proposalData.options.length; // Abstain option is always last
 
   const handleOnChange = (optionId: number) => {
     if (optionId === abstainOptionId) {
+      if (abstain) {
+        setSelectedOptions([proposalData.options.length - 1]);
+      } else {
+        setSelectedOptions([]);
+      }
       setAbstain((prev) => !prev);
-      setSelectedOptions([]);
     } else {
       if (selectedOptions.includes(optionId)) {
         setSelectedOptions((prev) =>
           prev.filter((value) => value !== optionId)
         );
+
+        if (selectedOptions.length === 1) {
+          setAbstain(true);
+        }
       } else if (selectedOptions.length < maxChecked) {
         setAbstain(false);
         setSelectedOptions((prev) => [...prev, optionId]);
@@ -86,12 +94,12 @@ export function ApprovalCastVoteDialog({
     () => {}
   );
 
-  useEffect(() => {
+  useMemo(() => {
     const encoded = abstain
       ? "0x"
       : ethers.utils.defaultAbiCoder.encode(
           ["uint256[]"],
-          [selectedOptions.sort()]
+          [selectedOptions.sort((a, b) => a - b)]
         );
     setEncodedParams(encoded);
   }, [selectedOptions, abstain]);
@@ -125,15 +133,31 @@ export function ApprovalCastVoteDialog({
         {!hasStatement && <NoStatementView />}
         {hasStatement && !isLoading && !isSuccess && (
           <VStack>
-            <p
+            <VStack
               className={css`
-                font-size: ${theme.fontSize["xl"]};
-                font-weight: ${theme.fontWeight.bold};
                 margin-bottom: ${theme.spacing["4"]};
               `}
             >
-              Select up to {maxChecked} option{maxChecked > 1 && "s"}
-            </p>
+              <p
+                className={css`
+                  font-size: ${theme.fontSize["xl"]};
+                  font-weight: ${theme.fontWeight.bold};
+                `}
+              >
+                Select up to {maxChecked} option{maxChecked > 1 && "s"}
+              </p>
+              <p
+                className={css`
+                  font-size: ${theme.fontSize["xs"]};
+                  color: ${theme.colors.gray[700]};
+                  font-weight: ${theme.fontWeight.medium};
+                  margin-top: ${theme.spacing["1"]};
+                `}
+              >
+                Note: onchain votes are final and cannot be edited once
+                submitted.
+              </p>
+            </VStack>
             <VStack
               className={css`
                 max-height: 46vh;
@@ -210,7 +234,7 @@ function CastVoteWithReason({
   return (
     <VStack
       className={css`
-        border: 1px solid ${theme.colors.gray.eo};
+        border: 1px solid ${theme.colors.gray[300]};
         border-radius: ${theme.borderRadius.lg};
         margin-top: ${theme.spacing["4"]};
       `}
@@ -238,6 +262,8 @@ function CastVoteWithReason({
           padding-left: ${theme.spacing["3"]};
           padding-right: ${theme.spacing["3"]};
           background-color: ${theme.colors.gray.fa};
+          border-bottom-left-radius: ${theme.borderRadius.lg};
+          border-bottom-right-radius: ${theme.borderRadius.lg};
         `}
       >
         {!abstain && numberOfOptions > 0 && (
@@ -285,14 +311,12 @@ function CheckCard({
         cursor: pointer;
         position: relative;
         padding-right: ${theme.spacing["12"]};
-        opacity: ${checked ? 1 : checkedOptions > 0 || abstain ? 0.5 : 1};
       `}
       onClick={onClick}
     >
       <p
         className={css`
-          font-size: ${theme.fontSize.sm};
-          font-weight: ${theme.fontWeight.semibold};
+          font-weight: ${theme.fontWeight.medium};
         `}
       >
         {title}
@@ -301,7 +325,7 @@ function CheckCard({
         className={css`
           font-size: ${theme.fontSize.xs};
           font-weight: ${theme.fontWeight.medium};
-          color: ${theme.colors.gray["4f"]};
+          color: ${theme.colors.gray["700"]};
         `}
       >
         {description}

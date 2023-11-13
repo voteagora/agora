@@ -7,6 +7,7 @@ import { css } from "@emotion/css";
 import { NounResolvedName } from "./NounResolvedName";
 import { TokenAmountDisplay } from "./TokenAmountDisplay";
 import { DelegateProfileImageFragment$key } from "./__generated__/DelegateProfileImageFragment.graphql";
+import { icons } from "../icons/icons";
 
 export function DelegateProfileImage({
   fragment,
@@ -30,6 +31,8 @@ export function DelegateProfileImage({
             ...TokenAmountDisplayFragment
           }
         }
+
+        isCitizen
       }
     `,
     fragment
@@ -37,14 +40,33 @@ export function DelegateProfileImage({
 
   return (
     <HStack gap="4">
-      <ENSAvatar
+      <div
         className={css`
-          width: 44px;
-          height: 44px;
-          border-radius: 100%;
+          position: relative;
+          aspect-ratio: 1/1;
         `}
-        fragment={delegate.address.resolvedName}
-      />
+      >
+        {delegate.isCitizen && (
+          <img
+            className={css`
+              position: absolute;
+              bottom: -5px;
+              right: -7px;
+              z-index: 1;
+            `}
+            src={icons.badge}
+            alt="badge symbol"
+          />
+        )}
+        <ENSAvatar
+          className={css`
+            width: 44px;
+            height: 44px;
+            border-radius: 100%;
+          `}
+          fragment={delegate.address.resolvedName}
+        />
+      </div>
 
       <VStack>
         <div

@@ -1,17 +1,21 @@
-import React, { useState } from "react";
+import React, { MutableRefObject, useState } from "react";
 
 type Props = {
   className?: string;
   placeholder?: string;
+  inputRef?: MutableRefObject<HTMLInputElement | null>;
   onChange: (value: string) => void;
   tooltipMessage?: string;
+  defaultValue?: string;
 };
 
 export function TextInputWithTooltip({
   className,
   onChange,
+  inputRef,
   placeholder,
   tooltipMessage,
+  defaultValue,
 }: Props) {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
 
@@ -28,6 +32,8 @@ export function TextInputWithTooltip({
       <TextInputTooltip
         className={className}
         placeholder={placeholder}
+        inputRef={inputRef}
+        defaultValue={defaultValue}
         onChange={onChange}
         onClick={handleInputClick}
         onBlur={handleInputBlur}
@@ -57,6 +63,8 @@ export function TextInputWithTooltip({
 type TextInputTooltipProps = {
   className?: string;
   placeholder?: string;
+  inputRef?: MutableRefObject<HTMLInputElement | null>;
+  defaultValue?: string;
   onChange: (value: string) => void;
   onClick?: () => void;
   onBlur?: () => void;
@@ -66,6 +74,8 @@ export function TextInputTooltip({
   className,
   onChange,
   placeholder,
+  inputRef,
+  defaultValue,
   onClick,
   onBlur,
 }: TextInputTooltipProps) {
@@ -74,7 +84,9 @@ export function TextInputTooltip({
     <input
       className={className}
       type="text"
+      ref={inputRef}
       placeholder={placeholder}
+      defaultValue={defaultValue}
       onChange={(event) => onChange(event.target.value)}
       onClick={onClick} // Add 'onClick' prop here
       onBlur={onBlur} // Add 'onBlur' prop here

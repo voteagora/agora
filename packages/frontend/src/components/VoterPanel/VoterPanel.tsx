@@ -33,56 +33,72 @@ export function VoterPanel({ fragment }: Props) {
 
         ...DelegateProfileImageFragment
         ...VoterPanelActionsFragment
+
+        isCitizen
       }
     `,
     fragment
   );
 
   return (
-    <VStack
-      className={css`
-        background-color: ${theme.colors.white};
-        border-radius: ${theme.spacing["3"]};
-        border-width: ${theme.spacing.px};
-        border-color: ${theme.colors.gray["300"]};
-        box-shadow: ${theme.boxShadow.newDefault};
-      `}
-    >
+    <>
       <VStack
-        alignItems="stretch"
         className={css`
-          padding: ${theme.spacing["6"]};
-          border-bottom: ${theme.spacing.px} solid ${theme.colors.gray["300"]};
+          background-color: ${theme.colors.white};
+          border-radius: ${theme.spacing["3"]};
+          border-width: ${theme.spacing.px};
+          border-color: ${theme.colors.gray["300"]};
+          box-shadow: ${theme.boxShadow.newDefault};
         `}
       >
-        <DelegateProfileImage fragment={delegate} />
-      </VStack>
-
-      <div
-        className={css`
-          ${css`
-            display: flex;
-            flex-direction: column;
-            padding: ${theme.spacing["6"]} ${theme.spacing["6"]};
-          `};
-        `}
-      >
-        <VStack gap="4">
-          <ProposalsVotedRow fragment={delegate} />
-
-          <ForAgainstAbstainRow fragment={delegate} />
-
-          <VotePowerRow fragment={delegate} />
-
-          <RecentActivityRow fragment={delegate.delegateMetrics} />
-
-          <ProposalsCreatedRow fragment={delegate.delegateMetrics} />
-
-          <DelegateFromList fragment={delegate.delegateMetrics} />
-
-          <VoterPanelActions fragment={delegate} />
+        <VStack
+          alignItems="stretch"
+          className={css`
+            padding: ${theme.spacing["6"]};
+            border-bottom: ${theme.spacing.px} solid ${theme.colors.gray["300"]};
+          `}
+        >
+          <DelegateProfileImage fragment={delegate} />
         </VStack>
-      </div>
-    </VStack>
+
+        <div
+          className={css`
+            ${css`
+              display: flex;
+              flex-direction: column;
+              padding: ${theme.spacing["6"]} ${theme.spacing["6"]};
+            `};
+          `}
+        >
+          <VStack gap="4">
+            <ProposalsVotedRow fragment={delegate} />
+
+            <ForAgainstAbstainRow fragment={delegate} />
+
+            <VotePowerRow fragment={delegate} />
+
+            <RecentActivityRow fragment={delegate.delegateMetrics} />
+
+            <ProposalsCreatedRow fragment={delegate.delegateMetrics} />
+
+            <DelegateFromList fragment={delegate.delegateMetrics} />
+
+            <VoterPanelActions fragment={delegate} />
+          </VStack>
+        </div>
+      </VStack>
+      {delegate.isCitizen && (
+        <p
+          className={css`
+            margin-top: ${theme.spacing["4"]};
+            color: ${theme.colors.gray["700"]};
+            font-size: ${theme.fontSize.xs};
+          `}
+        >
+          This voter is a citizen house badge holder. Information on this page
+          currently only reflects their participation in the token house.
+        </p>
+      )}
+    </>
   );
 }

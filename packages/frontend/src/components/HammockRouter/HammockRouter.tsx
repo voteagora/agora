@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useContext,
   useLayoutEffect,
+  useMemo,
   useTransition,
 } from "react";
 import { matchPath, PathMatch } from "react-router-dom";
@@ -22,6 +23,7 @@ import { loadQuery, useRelayEnvironment } from "react-relay";
 import { PreloadedQuery } from "react-relay/hooks";
 import { relayEnvironment } from "../../relayEnvironment";
 import { routes } from "./routes";
+import { ErrorBoundary } from "@sentry/react";
 
 export const browserHistory = createBrowserHistory();
 
@@ -289,6 +291,25 @@ export function HammockRouter({ children }: Props) {
   );
 }
 
+/**
+ * Retrieves the first simple route from router for use as a fallback route.
+ */
+function getFallbackElementFromRoutes(routes: Route[]) {
+  const fallbackRoutes = routes.flatMap((it) => {
+    if ("query" in it.params) {
+      return [];
+    }
+
+    return it.params;
+  });
+
+  if (!fallbackRoutes.length) {
+    throw new Error("No fallback route found");
+  }
+
+  return fallbackRoutes[0].element;
+}
+
 export function HammockRouterContents() {
   const currentRoute =
     useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(routingStateAtom);
@@ -297,12 +318,41 @@ export function HammockRouterContents() {
     window.scrollTo(0, 0);
   }, [currentRoute.location.pathname]);
 
-  const Element = routes[currentRoute.match.index].params.element;
+  const FallbackElement = useMemo(() => {
+    return getFallbackElementFromRoutes(routes);
+  }, []);
+
   return (
-    <Element
-      initialQueryRef={currentRoute.preloadState?.initialQueryRef as any}
-      variables={currentRoute.preloadState?.variables as any}
-    />
+    <ErrorBoundary
+      key={currentRoute.location.pathname}
+      fallback={(() => (
+        <FallbackElement
+          initialQueryRef={currentRoute.preloadState?.initialQueryRef as any}
+          variables={currentRoute.preloadState?.variables as any}
+        />
+      ))()}
+    >
+      {(() => {
+        if (!currentRoute.match) {
+          return (
+            <FallbackElement
+              initialQueryRef={
+                currentRoute.preloadState?.initialQueryRef as any
+              }
+              variables={currentRoute.preloadState?.variables as any}
+            />
+          );
+        }
+
+        const Element = routes[currentRoute.match.index].params.element;
+        return (
+          <Element
+            initialQueryRef={currentRoute.preloadState?.initialQueryRef as any}
+            variables={currentRoute.preloadState?.variables}
+          />
+        );
+      })()}
+    </ErrorBoundary>
   );
 }
 

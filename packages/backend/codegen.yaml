@@ -51,3 +51,8 @@ generates:
         Vote: ../governance#VoteModel
 
         DelegateStatement: ../delegateStatement#DelegateStatementModel
+
+        RetroPGF: ../retroPGF#RetroPGFModel
+        Project: ../retroPGF#ProjectModel
+        OptimistProfile: ../retroPGF#OptimistProfileModel
+        List: ../retroPGF#ListModel

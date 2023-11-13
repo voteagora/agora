@@ -5,10 +5,10 @@ type Query {
   delegate(addressOrEnsName: String!): Delegate!
 
   delegates(
-    where: DelegatesWhere
-    orderBy: DelegatesOrder! = mostRelevant
+    orderBy: DelegatesOrder! = weightedSort
     first: Int!
     after: String
+    seed: String
   ): DelegatesConnection!
 
   votes(proposalId: ID!, first: Int!, after: String): VotesConnection!
@@ -17,6 +17,8 @@ type Query {
   proposals: [Proposal!]!
 
   metrics: Metrics!
+
+  retroPGF: RetroPGF!
 }
 
 type Delegate {
@@ -38,6 +40,8 @@ type Delegate {
 
   votes: [Vote!]!
   snapshotVotes: [SnapshotVote!]!
+
+  isCitizen: Boolean!
 }
 
 type Address {
@@ -181,14 +185,10 @@ type TopIssue {
   value: String!
 }
 
-enum DelegatesWhere {
-  withStatement
-  withoutStatement
-}
-
 enum DelegatesOrder {
   mostVotingPower
   mostDelegates
+  weightedRandom
 }
 
 type DelegatesConnection {
@@ -312,6 +312,182 @@ type ApprovalVotingProposalOption {
   budgetTokensSpent: TokenAmount!
 }
 
+type RetroPGF {
+  badgeholders(orderBy: CitizensOrder! = mostVotingPower): [Delegate!]!
+
+  projects(
+    search: String
+    category: [ProjectCategory!]
+    orderBy: ProjectOrder! = alphabeticalAZ
+    first: Int!
+    after: String
+    skip: Int
+    seed: String
+  ): ProjectsConnection!
+  project(id: ID!): Project
+  projectsAggregate: ProjectsAggregate!
+
+  lists(
+    search: String
+    category: [ListCategory!]
+    likedBy: String
+    orderBy: ListOrder! = alphabeticalAZ
+    first: Int!
+    after: String
+    skip: Int
+    seed: String
+  ): ListsConnection!
+  list(id: ID!): List
+  listsAggregate: ListsAggregate!
+}
+
+enum CitizensOrder {
+  mostVotingPower
+  shuffle
+}
+
+enum ProjectOrder {
+  alphabeticalAZ
+  alphabeticalZA
+  shuffle
+  byIncludedInBallots
+}
+
+enum ProjectCategory {
+  COLLECTIVE_GOVERNANCE
+  DEVELOPER_ECOSYSTEM
+  END_USER_EXPERIENCE_AND_ADOPTION
+  OP_STACK
+}
+
+enum ListCategory {
+  COLLECTIVE_GOVERNANCE
+  DEVELOPER_ECOSYSTEM
+  END_USER_EXPERIENCE_AND_ADOPTION
+  OP_STACK
+  PAIRWISE
+}
+
+type ProjectsConnection {
+  pageInfo: PageInfo!
+  edges: [ProjectsEdge!]!
+}
+
+type ProjectsEdge {
+  node: Project!
+  cursor: String!
+}
+
+type Project {
+  id: ID!
+  applicant: Delegate!
+  displayName: String!
+  applicantType: String!
+  websiteUrl: String!
+  bio: String!
+  contributionDescription: String!
+  contributionLinks: [ContributionLink!]!
+  impactCategory: [String!]!
+  impactDescription: String!
+  impactMetrics: [ImpactMetric!]!
+  fundingSources: [FundingSource!]
+  payoutAddress: Address!
+  understoodKYCRequirements: Boolean!
+  understoodFundClaimPeriod: Boolean!
+  certifiedNotDesignatedOrSanctionedOrBlocked: Boolean!
+  certifiedNotSponsoredByPoliticalFigureOrGovernmentEntity: Boolean!
+  certifiedNotBarredFromParticipating: Boolean!
+
+  includedInBallots: Int!
+  lists: [List!]!
+  profile: OptimistProfile
+}
+
+type OptimistProfile {
+  id: ID!
+  uid: String!
+  name: String!
+  profileImageUrl: String
+  bannerImageUrl: String
+  websiteUrl: String
+  bio: String
+}
+
+type ProjectsAggregate {
+  total: Int!
+  collectiveGovernance: Int!
+  developerEcosystem: Int!
+  endUserExperienceAndAdoption: Int!
+  opStack: Int!
+}
+
+type ContributionLink {
+  type: String!
+  url: String!
+  description: String!
+}
+
+type ImpactMetric {
+  description: String!
+  number: String!
+  url: String!
+}
+
+type FundingSource {
+  type: String!
+  currency: String!
+  amount: Float!
+  description: String!
+}
+
+enum ListOrder {
+  alphabeticalAZ
+  alphabeticalZA
+  shuffle
+  byLikes
+}
+
+type ListsConnection {
+  pageInfo: PageInfo!
+  edges: [ListsEdge!]!
+}
+
+type ListsEdge {
+  node: List!
+  cursor: String!
+}
+
+type List {
+  id: ID!
+
+  author: Address!
+
+  listName: String!
+  listDescription: String!
+  impactEvaluationDescription: String!
+  impactEvaluationLink: String!
+  listContentCount: Int!
+  listContentShort: [ListContent!]!
+  listContent: [ListContent!]!
+  categories: [String!]!
+
+  likes: [String!]!
+}
+
+type ListContent {
+  project: Project!
+  OPAmount: Float!
+}
+
+type ListsAggregate {
+  total: Int!
+  collectiveGovernance: Int!
+  developerEcosystem: Int!
+  endUserExperienceAndAdoption: Int!
+  opStack: Int!
+  pairwise: Int!
+}
+
 type Mutation {
   createNewDelegateStatement(data: CreateNewDelegateStatementData!): Delegate!
 }
@@ -327,4 +503,10 @@ input ValueWithSignature {
   signerAddress: String!
   value: String!
   signature: String!
+  signatureType: SingatureType!
+}
+
+enum SingatureType {
+  CONTRACT
+  EOA
 }

@@ -6,6 +6,8 @@ import { ethers } from "ethers";
 import { TracingContext } from "./transformers/tracingContext";
 import { SnapshotVoteModel } from "./resolvers/snapshot";
 import { LatestBlockFetcher } from "./latestBlockFetcher";
+import { LikesStore } from "../services/likes";
+import { BallotsStore } from "../services/ballot";
 
 export type AgoraContextType = {
   reader: Reader<typeof entityDefinitions>;
@@ -17,6 +19,8 @@ export type AgoraContextType = {
   cache: CacheDependencies;
   emailStorage: EmailStorage;
   latestBlockFetcher: LatestBlockFetcher;
+  likesStore: LikesStore;
+  ballotsStore: BallotsStore;
 };
 
 export type SnapshotVoteStorage = {

@@ -1,8 +1,9 @@
-import { SetStateAction, useMemo, useState } from "react";
+import { SetStateAction, useCallback, useMemo, useState } from "react";
 
 export type UseForm<T extends Record<string, any>> = {
   state: T;
   onChange: OnChangeForFormValues<T>;
+  reset: () => void;
 };
 
 export type OnChangeForFormValues<T extends Record<string, any>> = {
@@ -43,11 +44,14 @@ export function useForm<T extends Record<string, any>>(
     [initialState, setState]
   ) as any;
 
+  const reset = useCallback(() => setState(initialState), [initialState]);
+
   return useMemo(
     () => ({
       state,
       onChange,
+      reset,
     }),
-    [state, onChange]
+    [state, onChange, reset]
   );
 }

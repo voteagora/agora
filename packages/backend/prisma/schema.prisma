@@ -1,0 +1,48 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Ballot {
+  address       String    @id @unique
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime? @map("updated_at")
+  publishedAt   DateTime? @map("published_at")
+  votes         Json      @default("[]")
+  signature     String?   @map("signature")
+  signedPayload String?   @map("signed_payload")
+
+  @@index([votes(ops: JsonbPathOps)], map: "idx_ballots_votes_projectid", type: Gin)
+  @@map("ballots")
+}
+
+model Like {
+  id          String   @id @unique
+  addresses   String[] @default([])
+  lastUpdated DateTime @default(now()) @map("last_updated")
+
+  @@map("likes")
+}
+
+model Whitelist {
+  address String @id @unique
+
+  @@map("whitelist")
+}
+
+model projects {
+  project_id   String @id @unique
+  display_name String
+}
+
+view ProjectsInBallots {
+  projectId String @unique @map("project_id")
+  count      BigInt?
+
+  @@map("projects_in_ballots")
+}

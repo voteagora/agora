@@ -4,6 +4,7 @@ import { css } from "@emotion/css";
 import * as theme from "../../theme";
 import { VoteDetailsFragment$key } from "./__generated__/VoteDetailsFragment.graphql";
 import { VStack } from "../../components/VStack";
+import TimestampTooltip from "../../components/TimestampTooltip";
 import {
   colorForSupportType,
   toSupportType,
@@ -107,10 +108,15 @@ export function VoteDetails({ voteFragment }: Props) {
               Prop {shortenId(vote.proposal.number)}
             </a>
             <ValuePart value={vote.proposal.totalValue} />
-            {vote.transaction.block.timestamp &&
-              ` - ${formatDistanceToNow(
-                new Date(vote.transaction.block.timestamp)
-              )} ago`}
+            {vote.transaction.block.timestamp && (
+              <TimestampTooltip date={vote.transaction.block.timestamp}>
+                -{" "}
+                {formatDistanceToNow(
+                  new Date(vote.transaction.block.timestamp)
+                )}{" "}
+                ago
+              </TimestampTooltip>
+            )}
           </div>
 
           <VoteTitle>

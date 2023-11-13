@@ -9,7 +9,7 @@ import { GovernanceToken__factory } from "../../contracts/generated";
 import { BigNumber, ethers } from "ethers";
 import * as serde from "../serde";
 import { RuntimeType } from "../serde";
-import { encodeOrdinal, logToOrdinal, ordinal } from "./ordinal";
+import { encodeOrdinal, logToOrdinal, ordinal } from "./utils/ordinal";
 
 const governanceTokenContract = makeContractInstance({
   iface: GovernanceToken__factory.createInterface(),
@@ -53,6 +53,8 @@ export const governanceTokenIndexer = makeIndexerDefinition(
           tokensRepresented: serde.bigNumber,
           delegatingTo: serde.string,
           accountsRepresentedCount: serde.bigNumber,
+
+          isCitizen: serde.boolean,
         }),
         indexes: [
           {
@@ -207,10 +209,11 @@ export function defaultAccount(
     tokensRepresented: ethers.BigNumber.from(0),
     accountsRepresentedCount: BigNumber.from(1),
     delegatingTo: ethers.constants.AddressZero,
+    isCitizen: false,
   };
 }
 
-async function loadAccount(
+export async function loadAccount(
   // @ts-ignore
   handle: StorageHandleForIndexer<typeof governanceTokenIndexer>,
   from: string
@@ -220,7 +223,7 @@ async function loadAccount(
   return (await handle.loadEntity("Address", from)) ?? defaultAccount(from);
 }
 
-function saveAccount(
+export function saveAccount(
   // @ts-ignore
   handle: StorageHandleForIndexer<typeof governanceTokenIndexer>,
   entity: RuntimeType<

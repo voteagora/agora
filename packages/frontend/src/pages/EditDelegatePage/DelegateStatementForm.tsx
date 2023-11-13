@@ -13,22 +13,18 @@ import { SelectedProposal } from "./PastProposalsFormSection";
 import { OtherInfoFormSection } from "./OtherInfoFormSection";
 import { buttonStyles } from "./EditDelegatePage";
 import { UseForm, useForm } from "./useForm";
-import { useAccount, useProvider, useSigner } from "wagmi";
+import { useAccount, useWalletClient, useSignMessage } from "wagmi";
+import { recoverMessageAddress } from "viem";
 import { useFragment, useMutation, VariablesOf } from "react-relay";
 import { useMutation as useReactQueryMutation } from "@tanstack/react-query";
 import graphql from "babel-plugin-relay/macro";
-import {
-  DelegateStatementFormMutation,
-  ValueWithSignature,
-} from "./__generated__/DelegateStatementFormMutation.graphql";
+import { DelegateStatementFormMutation } from "./__generated__/DelegateStatementFormMutation.graphql";
 import { HStack, VStack } from "../../components/VStack";
 import { DelegateStatementFormFragment$key } from "./__generated__/DelegateStatementFormFragment.graphql";
 import { useMemo, useState } from "react";
 import { isEqual } from "lodash";
 import { useNavigate } from "../../components/HammockRouter/HammockRouter";
-import { ethers, Signer } from "ethers";
 import * as Sentry from "@sentry/react";
-import { GnosisSafe, GnosisSafe__factory } from "../../contracts/generated";
 
 type DelegateStatementFormProps = {
   queryFragment: DelegateStatementFormFragment$key;
@@ -67,7 +63,6 @@ export function DelegateStatementForm({
   className,
 }: DelegateStatementFormProps) {
   const { address } = useAccount();
-  const provider = useProvider();
 
   const data = useFragment(
     graphql`
@@ -179,11 +174,13 @@ export function DelegateStatementForm({
   const navigate = useNavigate();
   const [lastErrorMessage, setLastErrorMessage] = useState<string>();
 
-  const { data: signer } = useSigner();
+  const messageSigner = useSignMessage();
+
+  const walletClient = useWalletClient();
   const submitMutation = useReactQueryMutation<
     unknown,
     unknown,
-    { values: FormValues; address?: string }
+    { values: FormValues; address?: `0x${string}` }
   >({
     mutationKey: ["submit"],
     onError: (error, variables) => {
@@ -200,7 +197,7 @@ export function DelegateStatementForm({
       setLastErrorMessage(`An error occurred, id: ${exceptionId}`);
     },
     async mutationFn({ values: formState, address }) {
-      if (!signer) {
+      if (!walletClient) {
         throw new Error("signer not available");
       }
 
@@ -227,50 +224,72 @@ export function DelegateStatementForm({
 
       const serializedBody = JSON.stringify(signingBody, undefined, "\t");
 
-      const variables: VariablesOf<DelegateStatementFormMutation> = {
-        input: {
-          statement: await makeSignedValue(
-            signer,
-            provider,
-            address,
-            serializedBody
-          ),
-          email: formState.email
-            ? await makeSignedValue(signer, provider, address, formState.email)
-            : null,
-        },
-      };
-
-      await new Promise<void>((resolve, reject) =>
-        createNewDelegateStatement({
-          variables,
-          updater(store) {
-            store.invalidateStore();
-          },
-          onCompleted() {
-            resolve();
-          },
-          onError(error) {
-            reject(error);
-          },
-        })
-      );
-
-      if (!data.delegate) {
-        return;
-      }
-
-      navigate({
-        path: `/delegate/${
-          data.delegate.address.resolvedName.name ??
-          data.delegate.address.resolvedName.address
-        }`,
+      const signature = await messageSigner.signMessageAsync({
+        message: serializedBody,
       });
+
+      const recoveredAddress = await recoverMessageAddress({
+        message: serializedBody,
+        signature: signature,
+      });
+
+      if ((recoveredAddress && signature) || messageSigner.data) {
+        const variables: VariablesOf<DelegateStatementFormMutation> = {
+          input: {
+            statement: {
+              signature,
+              signatureType: recoveredAddress === address ? "EOA" : "CONTRACT",
+              signerAddress: recoveredAddress,
+              value: serializedBody,
+            },
+            email: formState.email
+              ? {
+                  signature: await messageSigner.signMessageAsync({
+                    message: formState.email,
+                  }),
+                  signatureType:
+                    recoveredAddress === address ? "EOA" : "CONTRACT",
+                  signerAddress: address,
+                  value: formState.email,
+                }
+              : null,
+          },
+        };
+
+        await new Promise<void>((resolve, reject) =>
+          createNewDelegateStatement({
+            variables,
+            updater(store) {
+              store.invalidateStore();
+            },
+            onCompleted() {
+              resolve();
+            },
+            onError(error) {
+              reject(error);
+            },
+          })
+        );
+
+        if (!data.delegate) {
+          return;
+        }
+
+        navigate({
+          path: `/delegate/${
+            data.delegate.address.resolvedName.name ??
+            data.delegate.address.resolvedName.address
+          }`,
+        });
+      }
     },
   });
 
   const canSubmit =
-    !!signer && !isMutationInFlight && !submitMutation.isLoading && isDirty;
+    !!walletClient &&
+    !isMutationInFlight &&
+    !submitMutation.isLoading &&
+    isDirty;
 
   return (
     <VStack
@@ -380,56 +399,6 @@ const containerStyle = css`
   border-color: ${theme.colors.gray["300"]};
   box-shadow: ${theme.boxShadow.newDefault};
 `;
-
-function hashEnvelopeValue(value: string) {
-  return JSON.stringify({
-    for: "optimism-agora",
-    hashedValue: ethers.utils.hashMessage(value),
-  });
-}
-
-async function checkSafeSignature(safe: GnosisSafe, value: string) {
-  const hashed = ethers.utils.hashMessage(value);
-  const messageHash = await safe.getMessageHash(hashed);
-  const isSigned = await safe.signedMessages(messageHash);
-  return !isSigned.isZero();
-}
-
-async function makeSignedValue(
-  signer: Signer,
-  provider: ethers.providers.Provider,
-  signerAddress: string,
-  value: string
-): Promise<ValueWithSignature> {
-  const signaturePayload = hashEnvelopeValue(value);
-
-  const addressCode = await provider.getCode(signerAddress);
-  if (addressCode === "0x") {
-    // eoa account
-    return {
-      signerAddress,
-      value,
-      signature: await signer.signMessage(signaturePayload),
-    };
-  }
-
-  // some kind of multi-sig wallet, likely a gnosis safe.
-  const gnosisSafe = GnosisSafe__factory.connect(signerAddress, provider);
-  const isSigned = await checkSafeSignature(gnosisSafe, signaturePayload);
-  if (isSigned) {
-    // already signed, post to backend
-    return {
-      signerAddress,
-      value,
-      signature: "0x",
-    };
-  }
-
-  await signer.signMessage(signaturePayload);
-  throw new UserVisibleError(
-    "click submit again once all signatures have been provided, leaving this page will cause form values to be lost"
-  );
-}
 
 class UserVisibleError extends Error {
   public readonly message: string;

@@ -50,6 +50,17 @@ export class FakeBlockProvider implements BlockProvider {
     return foundBlock?.block ?? null;
   }
 
+  async getBlockRange(
+    fromBlockInclusive: number,
+    toBlockInclusive: number
+  ): Promise<BlockProviderBlock[]> {
+    return getBlocksByRange(
+      this.blocks,
+      fromBlockInclusive,
+      toBlockInclusive
+    ).map((it) => it.block);
+  }
+
   async getLatestBlock(): Promise<BlockProviderBlock> {
     if (!this.blocks.length) {
       throw new Error("no blocks");

@@ -12,6 +12,7 @@ import {
   formatNumber,
 } from "../../../components/TokenAmountDisplay";
 import { ApprovalProposalCriteriaVoteTimeFragment$key } from "./__generated__/ApprovalProposalCriteriaVoteTimeFragment.graphql";
+import TimestampTooltip from "../../../components/TimestampTooltip";
 
 type Props = {
   fragmentRef: ApprovalProposalCriteriaFragment$key;
@@ -41,6 +42,10 @@ export function ApprovalProposalCriteria({ fragmentRef, proposalRef }: Props) {
               topChoices
             }
           }
+          budget {
+            ...TokenAmountDisplayFragment
+          }
+          maxApprovals
         }
       }
     `,
@@ -70,7 +75,7 @@ export function ApprovalProposalCriteria({ fragmentRef, proposalRef }: Props) {
     <VStack
       className={css`
         padding: ${theme.spacing["4"]};
-        padding-bottom: 0;
+        padding-bottom: ${theme.spacing["2"]};
         border-top: 1px solid ${theme.colors.gray.eb};
       `}
     >
@@ -79,12 +84,13 @@ export function ApprovalProposalCriteria({ fragmentRef, proposalRef }: Props) {
           justify-content: space-between;
           font-size: ${theme.fontSize.xs};
           font-weight: ${theme.fontWeight.semibold};
-          color: ${theme.colors.gray[800]};
+          color: ${theme.colors.gray[700]};
         `}
       >
         <div>
           <p>
-            QUORUM <TokenAmountDisplay fragment={quorumVotes.quorumVotes} />
+            QUORUM {totalVotingPower.toString()} /{" "}
+            <TokenAmountDisplay fragment={quorumVotes.quorumVotes} />
           </p>
         </div>
         <div>
@@ -94,28 +100,36 @@ export function ApprovalProposalCriteria({ fragmentRef, proposalRef }: Props) {
       <div
         className={css`
           font-size: ${theme.fontSize.xs};
-          padding-top: ${theme.spacing["4"]};
-          color: ${theme.colors.gray["4f"]};
+          padding-top: ${theme.spacing["2"]};
+          color: ${theme.colors.gray[700]};
           font-weight: ${theme.fontWeight.semibold};
         `}
       >
+        {/* {totalVotingPower.toString()} */}
         {proposalData.settings.criteria.__typename ===
           "TopChoicesVotingCriteria" && (
           <p>
-            {totalVotingPower.toString()}/
-            <TokenAmountDisplay fragment={quorumVotes.quorumVotes} /> votes
-            required for top {proposalData.settings.criteria.topChoices} options
-            to execute.
+            In this top-choices style approval voting proposal, the top{" "}
+            {proposalData.settings.criteria.topChoices} options will be
+            executed. Each voter can select up to{" "}
+            {proposalData.settings.maxApprovals} options to vote for. If the
+            quorum is not met, no options will be executed.
           </p>
         )}
         {proposalData.settings.criteria.__typename ===
           "ThresholdVotingCriteria" && (
           <p>
-            All options with &gt;{" "}
+            In this threshold-based approval voting proposal, all options
+            passing the approval threshold of{" "}
             <TokenAmountDisplay
               fragment={proposalData.settings.criteria.threshold}
             />{" "}
-            will be approved.
+            votes will be executed in order from most to least popular, until
+            the total budget of{" "}
+            <TokenAmountDisplay fragment={proposalData.settings.budget} /> runs
+            out. Each voter can select up to{" "}
+            {proposalData.settings.maxApprovals} options to vote for. If the
+            quorum is not met, no options will be executed.
           </p>
         )}
       </div>
@@ -144,18 +158,27 @@ function VoteTime({
   let voteTextPrefix;
   // Display time until vote start if vote hasn't started yet.
   if (result.voteStartsAt > now) {
-    voteTextPrefix = "VOTE STARTS IN";
+    voteTextPrefix = "VOTE STARTS";
     voteTime = result.voteStartsAt;
   } else {
     voteTime = result.voteEndsAt;
     if (result.voteEndsAt > now) {
-      voteTextPrefix = "VOTE ENDS IN";
+      voteTextPrefix = "VOTE ENDS";
     } else {
       voteTextPrefix = "VOTE ENDED";
     }
   }
 
   const ago = formatDistanceToNowStrict(voteTime, { addSuffix: true });
-  const text = `${voteTextPrefix} ${ago}`;
-  return <span title={formatISO9075(voteTime)}>{text}</span>;
+  const text = `${voteTextPrefix} ${ago}`.toUpperCase();
+  return (
+    <span
+      className={css`
+        text-transform: uppercase;
+      `}
+      title={formatISO9075(voteTime)}
+    >
+      <TimestampTooltip date={voteTime}>{text}</TimestampTooltip>
+    </span>
+  );
 }

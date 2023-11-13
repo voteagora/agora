@@ -220,7 +220,7 @@ export function DropdownItems({ open, children }: DropdownItemsProps) {
     <div
       className={css`
         position: absolute;
-        z-index: 3;
+        z-index: 100;
         outline: none;
 
         top: calc(100% + ${theme.spacing["2"]});

@@ -5,7 +5,7 @@ import { useFragment } from "react-relay";
 import graphql from "babel-plugin-relay/macro";
 import { ProfileDropDownButtonFragment$key } from "./__generated__/ProfileDropDownButtonFragment.graphql";
 import { HStack, VStack } from "./VStack";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { Link } from "./HammockRouter/Link";
 import { TokenAmountDisplay } from "./TokenAmountDisplay";
 import { icons } from "../icons/icons";
@@ -14,16 +14,13 @@ import { Popover, Transition } from "@headlessui/react";
 import { ENSAvatar } from "./ENSAvatar";
 import { PanelRow } from "./VoterPanel/Rows/PanelRow";
 import { pluralizeAddresses } from "../words";
-import { useDisconnect } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
 import { NounResolvedName } from "./NounResolvedName";
 import { AnimatePresence, motion } from "framer-motion";
 import { ethers } from "ethers";
+import { useSIWE } from "connectkit";
 
 type Props = {
-  isConnected: boolean;
-  isConnecting: boolean;
-  show?: () => void;
-  hide?: () => void;
   address: `0x${string}` | undefined;
   ensName: string | undefined;
   fragment: ProfileDropDownButtonFragment$key;
@@ -91,6 +88,24 @@ export const MobileProfileDropDownButton = ({
     `,
     fragment
   );
+
+  const { isSignedIn, signIn } = useSIWE();
+  const { address } = useAccount();
+
+  const [canSignin, setCanSignin] = React.useState(false);
+
+  useEffect(() => {
+    fetch(`${process.env.PUBLIC_URL}/api/auth/can-signin`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ address }),
+    }).then(async (res) => {
+      const result = await res.json();
+      setCanSignin(result.canSignin ?? false);
+    });
+  });
 
   return (
     <Popover className="relative">
@@ -161,14 +176,33 @@ export const MobileProfileDropDownButton = ({
                         margin-bottom: ${theme.spacing[1]};
                       `}
                     >
-                      <ENSAvatar
-                        fragment={delegate.address.resolvedName}
+                      <div
                         className={css`
-                          width: 51px;
-                          height: 51px;
-                          border-radius: 100%;
+                          position: relative;
+                          aspect-ratio: 1/1;
                         `}
-                      />
+                      >
+                        {isSignedIn && (
+                          <img
+                            className={css`
+                              position: absolute;
+                              bottom: -2px;
+                              right: -2px;
+                              z-index: 1;
+                            `}
+                            src={icons.badge}
+                            alt="badge symbol"
+                          />
+                        )}
+                        <ENSAvatar
+                          fragment={delegate.address.resolvedName}
+                          className={css`
+                            width: 51px;
+                            height: 51px;
+                            border-radius: 100%;
+                          `}
+                        />
+                      </div>
                       <VStack
                         className={css`
                           flex: 1;
@@ -271,6 +305,30 @@ export const MobileProfileDropDownButton = ({
                         </MobileValueWrapper>
                       }
                     />
+
+                    {!isSignedIn && canSignin && (
+                      <div>
+                        <button
+                          className={css`
+                            width: 100%;
+                            border-radius: ${theme.borderRadius.lg};
+                            border-width: ${theme.spacing.px};
+                            padding: ${theme.spacing["3"]} ${theme.spacing["2"]};
+                            color: ${theme.colors.gray["200"]};
+                            background: ${theme.colors.black};
+                            display: flex;
+                            justify-content: center;
+                            margin-top: ${theme.spacing[1]};
+                            :hover {
+                              background: ${theme.colors.gray["800"]};
+                            }
+                          `}
+                          onClick={() => signIn()}
+                        >
+                          <div>Sign in as badgeholder</div>
+                        </button>
+                      </div>
+                    )}
 
                     <Link
                       to="/create"

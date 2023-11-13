@@ -6,7 +6,7 @@ import {
   useWaitForTransaction as useWaitForTransactionUNSAFE,
 } from "wagmi";
 import { CallOverrides } from "ethers";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 export interface Contract<InterfaceType extends TypedInterface>
   extends ethers.BaseContract {
@@ -47,6 +47,7 @@ export function useContractWrite<
   onSuccess: () => void,
   overrides?: CallOverrides
 ) {
+  const [onPrepareError, setOnPrepareError] = useState(false);
   const { config } = usePrepareContractWriteUNSAFE({
     address: instance.address as any,
     abi: instance.factory.abi,
@@ -54,10 +55,14 @@ export function useContractWrite<
     args,
     onError(e) {
       const id = Sentry.captureException(e);
+      setOnPrepareError(true);
       console.error(e, { id });
       // toast(`an error occurred when preparing transaction ${id}`);
     },
-    overrides,
+    onSuccess() {
+      setOnPrepareError(false);
+    },
+    // overrides,
   });
 
   const { data, write } = useContractWriteUNSAFE({
@@ -67,10 +72,7 @@ export function useContractWrite<
         return;
       }
 
-      return {
-        ...config.request,
-        gasLimit: config.request.gasLimit.mul(2),
-      };
+      return config.request;
     })(),
     onSuccess() {
       onSuccess();
@@ -84,6 +86,7 @@ export function useContractWrite<
 
   const { isLoading, isSuccess, isError } = useWaitForTransactionUNSAFE({
     hash: data?.hash,
+    timeout: 60_000, // 1 minute
   });
 
   const writeFn = useCallback(() => {
@@ -95,5 +98,7 @@ export function useContractWrite<
     isLoading,
     isSuccess,
     isError,
+    onPrepareError,
+    txHash: data?.hash as string | undefined,
   };
 }
