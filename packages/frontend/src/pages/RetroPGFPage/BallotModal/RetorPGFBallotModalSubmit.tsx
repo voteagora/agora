@@ -6,6 +6,7 @@ import { VStack } from "../../../components/VStack";
 import { useBallot } from "../RetroPGFVoterStore/useBallot";
 import { icons } from "../../../icons/icons";
 import { buttonStyles } from "../../EditDelegatePage/EditDelegatePage";
+import { ethers } from "ethers";
 
 export function RetroPGFBallotModalSubmit({
   onClose,
@@ -26,9 +27,28 @@ export function RetroPGFBallotModalSubmit({
 
   const submitBallot = async () => {
     setIsSubmitting(true);
+
+    // Trezor needs the message to be hashed
+    const isTrezor = await (async () => {
+      const res = await fetch(`${process.env.PUBLIC_URL}/api/auth/is-trezor`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ address }),
+      });
+
+      const result = await res.json();
+      return result.isTrezor ?? false;
+    })();
+
+    const message =
+      address && isTrezor
+        ? ethers.utils.keccak256(Buffer.from(JSON.stringify(ballot)))
+        : JSON.stringify(ballot);
     try {
       const signature = await signer.signMessageAsync({
-        message: JSON.stringify(ballot),
+        message,
       });
       if (!signature) {
         setErrorMessage("Error signing ballot");

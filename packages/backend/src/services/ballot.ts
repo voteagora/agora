@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import PrismaSingleton from "../store/prisma/client";
 import { validateSafeSignature, validateSigned } from "../utils/signing";
 import { compareBy } from "../indexer/utils/sortUtils";
+import { isTrezor } from "./auth";
 
 type Ballot = {
   address: string;
@@ -80,13 +81,20 @@ export function makeBallotService(): BallotsService {
       signature: string,
       provider: ethers.providers.BaseProvider
     ): Promise<Submission> {
+      // messaged is hashed for trezor wallets
+      const isTrezorWallet = await isTrezor(address);
+
       // Verify signature
       try {
         const code = await provider.getCode(address);
 
         if (code === "0x") {
           await validateSigned(provider, {
-            value: JSON.stringify(votes),
+            value: isTrezorWallet
+              ? ethers.utils.keccak256(
+                  new TextEncoder().encode(JSON.stringify(votes))
+                )
+              : JSON.stringify(votes),
             signature,
             signerAddress: address,
             signatureType: "EOA" as any,
@@ -133,6 +141,11 @@ export function makeBallotService(): BallotsService {
             votes,
             signature,
             signedPayload: JSON.stringify(votes),
+            signedPayloadHash: isTrezorWallet
+              ? ethers.utils.keccak256(
+                  new TextEncoder().encode(JSON.stringify(votes))
+                )
+              : null,
             updatedAt: new Date(),
             publishedAt: new Date(),
           },

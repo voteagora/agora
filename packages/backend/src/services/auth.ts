@@ -123,3 +123,11 @@ export async function isBadgeholder(
 
   return !!citizen || !!whitelist;
 }
+
+export async function isTrezor(address: string) {
+  const trezor = await PrismaSingleton.instance.trezors.findFirst({
+    where: { address },
+  });
+
+  return !!trezor;
+}

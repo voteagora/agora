@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { Env, mustGetAlchemyApiKey } from "../env";
 import {
   isBadgeholder,
+  isTrezor,
   makeSIWENonce,
   verifySIWEMessage,
   verifySIWESession,
@@ -28,6 +29,9 @@ export async function handleAuthRequest(
 
     case "can-signin":
       return handleCanSigninRequest(request, env, reader);
+
+    case "is-trezor":
+      return handleIsTrezorRequest(request);
 
     default:
       return createResponse(
@@ -163,6 +167,26 @@ async function handleCanSigninRequest(
 
     const canSignIn = await isBadgeholder(address, reader);
     return createResponse({ canSignIn }, 200, {}, request);
+  } catch (error) {
+    return createResponse({ error }, 500, {}, request);
+  }
+}
+
+// ----------------
+// Is Trezor
+// ----------------
+
+async function handleIsTrezorRequest(request: Request): Promise<Response> {
+  try {
+    const payload = (await request.json()) as any;
+
+    const { address } = payload;
+    if (!address) {
+      return createResponse({ error: "Invalid request" }, 400, {}, request);
+    }
+
+    const isTrezorWallet = await isTrezor(address);
+    return createResponse({ isTrezor: isTrezorWallet }, 200, {}, request);
   } catch (error) {
     return createResponse({ error }, 500, {}, request);
   }
